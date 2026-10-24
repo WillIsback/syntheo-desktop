@@ -36,7 +36,7 @@ jobs:
       bump: ${{ steps.calc.outputs.bump || 'none' }}
     steps:
       - name: Checkout du code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -94,7 +94,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout du code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -122,7 +122,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout du code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -164,7 +164,7 @@ jobs:
           cat dist/SHA256SUMS
 
       - name: SBOM (Syft, SPDX)
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: .
           format: spdx-json
@@ -172,7 +172,7 @@ jobs:
           upload-artifact: false
 
       - name: Upload des artefacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: syntheo-desktop-linux
           path: dist/
@@ -205,20 +205,20 @@ jobs:
       attestations: write
     steps:
       - name: Checkout du code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           fetch-tags: true
           persist-credentials: false
 
       - name: Télécharger les artefacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: syntheo-desktop-linux
           path: dist
 
       - name: Attestation de provenance
-        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: "dist/*.deb, dist/*.AppImage"
 
@@ -264,7 +264,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Commenter l'échec sur la PR ou le commit
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           VERSION: ${{ needs.detect.outputs.version || 'inconnue' }}
           GATE: ${{ needs.gate-version-consistency.result }}
