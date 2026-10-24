@@ -62,7 +62,7 @@ impl MacOSBackend {
             .unwrap_or(TransportType::Unknown);
 
         let is_default = default_device_id
-            .map(|id| device.0 .0 == id)
+            .map(|id| device.0.0 == id)
             .unwrap_or(false);
 
         let mut audio_device = AudioDevice {
@@ -105,11 +105,7 @@ impl MacOSBackend {
             })
         });
 
-        if detected {
-            Some(true)
-        } else {
-            None
-        }
+        if detected { Some(true) } else { None }
     }
 
     fn is_external_from_device(device: Option<ca::Device>) -> bool {
@@ -142,7 +138,7 @@ fn foreign_running_output_device_ids() -> Result<HashSet<u32>, Error> {
         .filter(|process| process.is_running_output().unwrap_or(false))
         .filter_map(|process| process.prop_vec::<ca::Device>(&PROCESS_OUTPUT_DEVICES).ok())
         .flatten()
-        .map(|device| device.0 .0)
+        .map(|device| device.0.0)
         .collect())
 }
 
@@ -151,11 +147,11 @@ impl AudioDeviceBackend for MacOSBackend {
         let running = foreign_running_output_device_ids()?;
         let ca_devices =
             ca::System::devices().map_err(|e| Error::EnumerationFailed(format!("{:?}", e)))?;
-        let default_output_id = ca::System::default_output_device().ok().map(|d| d.0 .0);
+        let default_output_id = ca::System::default_output_device().ok().map(|d| d.0.0);
 
         Ok(ca_devices
             .iter()
-            .filter(|device| running.contains(&device.0 .0))
+            .filter(|device| running.contains(&device.0.0))
             .filter(|device| {
                 device
                     .name()
@@ -172,8 +168,8 @@ impl AudioDeviceBackend for MacOSBackend {
         let ca_devices =
             ca::System::devices().map_err(|e| Error::EnumerationFailed(format!("{:?}", e)))?;
 
-        let default_input_id = ca::System::default_input_device().ok().map(|d| d.0 .0);
-        let default_output_id = ca::System::default_output_device().ok().map(|d| d.0 .0);
+        let default_input_id = ca::System::default_input_device().ok().map(|d| d.0.0);
+        let default_output_id = ca::System::default_output_device().ok().map(|d| d.0.0);
 
         let mut devices = Vec::new();
 
@@ -213,7 +209,7 @@ impl AudioDeviceBackend for MacOSBackend {
         Ok(Self::create_audio_device(
             &ca_device,
             AudioDirection::Input,
-            Some(ca_device.0 .0),
+            Some(ca_device.0.0),
         ))
     }
 
@@ -230,7 +226,7 @@ impl AudioDeviceBackend for MacOSBackend {
         Ok(Self::create_audio_device(
             &ca_device,
             AudioDirection::Output,
-            Some(ca_device.0 .0),
+            Some(ca_device.0.0),
         ))
     }
 

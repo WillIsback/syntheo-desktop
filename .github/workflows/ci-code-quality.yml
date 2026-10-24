@@ -24,13 +24,31 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Installer Node, pnpm et les dépendances (lockfile figé)
         uses: ./.github/actions/pnpm_install
 
+      # dprint délègue les .rs à rustfmt : toolchain installée une seule fois
+      # avant, sinon chaque appel concurrent de rustup la réinstalle.
+      - name: Toolchain Rust (rustfmt pour dprint)
+        uses: ./.github/actions/rust_install
+
+      # Sur une PR, seuls les fichiers modifiés sont vérifiés (le code hérité
+      # n'est pas entièrement formaté) ; sinon, tout le dépôt.
       - name: Formatage (dprint)
-        run: pnpm fmt:check
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [ -n "${BASE_SHA:-}" ]; then
+            git diff --name-only --diff-filter=ACMR -z "$BASE_SHA" HEAD \
+              | xargs -0 --no-run-if-empty pnpm exec dprint check --allow-no-files
+          else
+            pnpm fmt:check
+          fi
 
       - name: Lint (oxlint + ESLint)
         run: pnpm lint
@@ -62,9 +80,6 @@ jobs:
           set -euo pipefail
           cargo metadata --locked --format-version 1 > /dev/null
           echo "✅ Cargo.lock à jour."
-
-      - name: Formatage (cargo fmt)
-        run: cargo fmt --all --check
 
       # Clippy est limité aux crates qui portent le desktop et nos chantiers ;
       # le périmètre s'élargit au fil du nettoyage du code hérité.
