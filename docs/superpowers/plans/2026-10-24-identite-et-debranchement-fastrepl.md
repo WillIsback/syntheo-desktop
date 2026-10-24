@@ -202,12 +202,23 @@ fn no_fastrepl_channel_configs_remain() {
 ```tsx
 it("provides an unlocked pro plan without any session", () => {
   const seen = renderWithProvider(() => useBillingAccess());
-  expect(seen).toMatchObject({ isPro: true, isPaid: true, plan: "pro", isReady: true, isTrialing: false });
+  expect(seen).toMatchObject({
+    isPro: true,
+    isPaid: true,
+    plan: "pro",
+    isReady: true,
+    isTrialing: false,
+  });
   expect(seen.canStartTrial).toEqual({ data: false, isPending: false });
 });
 it("pro_settings_are_usable_without_session", () => {
-  render(<LocalBillingProvider><PlanGate plan="pro" allowed={useBillingAccess().isPro}>
-    <button type="button">Activer</button></PlanGate></LocalBillingProvider>);
+  render(
+    <LocalBillingProvider>
+      <PlanGate plan="pro" allowed={useBillingAccess().isPro}>
+        <button type="button">Activer</button>
+      </PlanGate>
+    </LocalBillingProvider>,
+  );
   // aucun wrapper cursor-not-allowed, aucun toast « Anarlog Pro »
 });
 ```
