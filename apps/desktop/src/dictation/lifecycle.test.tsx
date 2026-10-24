@@ -3,14 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   isCloudModel: false,
-  getSessionForRequest: vi.fn(),
   connection: null as {
     provider: string;
     model: string;
     apiKey: string;
     baseUrl: string;
   } | null,
-  session: { user: { id: "user-1" } } as { user: { id: string } } | null,
   billing: { isPro: true, isReady: true },
   platform: "macos",
   settings: {
@@ -50,14 +48,8 @@ vi.mock("~/stt/useSTTConnection", () => ({
     isCloudModel: mocks.isCloudModel,
   }),
 }));
-vi.mock("~/auth", () => ({
-  useAuth: () => ({
-    session: mocks.session,
-    getSessionForRequest: mocks.getSessionForRequest,
-  }),
-}));
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => mocks.billing,
 }));
 vi.mock("~/settings/queries", () => ({ useSettingsReady: () => true }));
@@ -147,14 +139,10 @@ describe("dictation access and lifecycle", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useDictationStatus.setState({ capturingShortcut: false });
-    mocks.session = { user: { id: "user-1" } };
     mocks.billing = { isPro: true, isReady: true };
     mocks.platform = "macos";
     mocks.connection = null;
     mocks.isCloudModel = false;
-    mocks.getSessionForRequest.mockResolvedValue({
-      access_token: "refreshed-token",
-    });
     mocks.settings.dictation_live_preview = false;
     mocks.settings.dictation_enabled = true;
     mocks.settings.dictation_shortcut = "Control+Alt+Space";
@@ -215,7 +203,6 @@ describe("dictation access and lifecycle", () => {
   );
 
   it("registers the shortcut without any account (offline, no session)", async () => {
-    mocks.session = null;
     render(<DictationLifecycle />);
     await waitFor(() => expect(useDictationStatus.getState().ready).toBe(true));
     expect(mocks.configure).toHaveBeenCalledWith("Control+Alt+Space");
@@ -418,7 +405,7 @@ describe("dictation access and lifecycle", () => {
     expect(mocks.runBatch).not.toHaveBeenCalled();
     expect(mocks.insertText).not.toHaveBeenCalled();
   });
-  it("keeps local preview local without requesting a cloud token", async () => {
+  it("keeps local preview local", async () => {
     mocks.settings.dictation_live_preview = true;
     mocks.connection = {
       provider: "anarlog",
@@ -431,56 +418,12 @@ describe("dictation access and lifecycle", () => {
     await act(async () => {
       mocks.listener?.({ payload: { type: "pressed" } });
     });
-    expect(mocks.getSessionForRequest).not.toHaveBeenCalled();
     expect(mocks.startSystemRecording.mock.calls[0]![2]).toEqual(
       expect.objectContaining({ baseUrl: "http://127.0.0.1:1234", apiKey: "" }),
     );
   });
 
-  it("captures the destination before waiting for a preview token", async () => {
-    mocks.settings.dictation_live_preview = true;
-    mocks.isCloudModel = true;
-    mocks.connection = {
-      provider: "anarlog",
-      model: "cloud",
-      apiKey: "stale",
-      baseUrl: "https://api.anarlog.so/stt",
-    };
-    let finishAuth!: (session: { access_token: string }) => void;
-    mocks.getSessionForRequest.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          finishAuth = resolve;
-        }),
-    );
-    render(<DictationLifecycle />);
-    await waitFor(() => expect(useDictationStatus.getState().ready).toBe(true));
-    await act(async () => {
-      mocks.listener?.({ payload: { type: "pressed" } });
-    });
-    expect(mocks.getSessionForRequest).toHaveBeenCalledOnce();
-    expect(mocks.captureTarget).toHaveBeenCalledOnce();
-    expect(mocks.captureTarget.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.getSessionForRequest.mock.invocationCallOrder[0],
-    );
-    mocks.captureTarget.mockResolvedValue({
-      status: "ok",
-      data: "different-field",
-    });
-    await act(async () => {
-      finishAuth({ access_token: "fresh" });
-    });
-    expect(mocks.captureTarget).toHaveBeenCalledOnce();
-    expect(mocks.startSystemRecording).toHaveBeenCalledOnce();
-    await act(async () => {
-      mocks.listener?.({ payload: { type: "released" } });
-    });
-    await waitFor(() =>
-      expect(mocks.insertText).toHaveBeenCalledWith("focused-field", "Hello"),
-    );
-  });
-
-  it("keeps recording available when a cloud preview session cannot be refreshed", async () => {
+  it("keeps recording available without a hosted preview (no account)", async () => {
     mocks.settings.dictation_live_preview = true;
     mocks.isCloudModel = true;
     mocks.connection = {
@@ -489,7 +432,6 @@ describe("dictation access and lifecycle", () => {
       apiKey: "stale-token",
       baseUrl: "https://api.anarlog.so/stt",
     };
-    mocks.getSessionForRequest.mockRejectedValue(new Error("offline"));
     render(<DictationLifecycle />);
     await waitFor(() => expect(useDictationStatus.getState().ready).toBe(true));
     await act(async () => {

@@ -78,7 +78,7 @@ vi.mock("./custom-sidebar-header", () => ({
   CustomSidebarHeader: () => <div />,
 }));
 
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({
     isPro: mocks.isPro,
     isUpgradingToPro: mocks.isUpgradingToPro,

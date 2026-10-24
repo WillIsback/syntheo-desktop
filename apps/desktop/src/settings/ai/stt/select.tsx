@@ -60,7 +60,7 @@ import {
   sttModelQueries,
 } from "./shared";
 
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import { useNotifications } from "~/contexts/notifications";
 import {
   providerRowId,

@@ -11,7 +11,7 @@ import {
 } from "./useNewNote";
 
 import { AuthProvider } from "~/auth";
-import { LocalBillingProvider } from "~/auth/local-billing";
+import { LocalBillingProvider } from "~/billing/local-billing";
 import { getOrCreateSessionForEventId } from "~/session/queries";
 import { openFoldersFromNavigation } from "~/shared/folders-navigation";
 import { leaveAllOverlayTabs } from "~/shared/leave-overlay-tab";

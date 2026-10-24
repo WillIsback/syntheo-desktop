@@ -35,7 +35,6 @@ const mocks = vi.hoisted(() => ({
     reset: vi.fn(),
     error: null as string | null,
   },
-  openIntegration: vi.fn(),
   removeDisconnectedCalendarConnection: vi.fn(),
   allowReconnectedCalendarConnections: vi.fn(),
   syncCalendarEvents: vi.fn(),
@@ -50,7 +49,7 @@ vi.mock("~/auth", () => ({
   useAuth: () => ({ session: {} }),
 }));
 
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({
     isPaid: true,
     isPro: true,
@@ -76,14 +75,6 @@ vi.mock("~/shared/hooks/useNativeContextMenu", () => ({
 
 vi.mock("~/shared/hooks/usePermissions", () => ({
   usePermission: () => mocks.calendar,
-}));
-
-vi.mock("~/shared/integration", () => ({
-  openIntegrationUrl: vi.fn(),
-  useOpenIntegrationUrl: () => ({
-    openIntegration: mocks.openIntegration,
-    openingAction: null,
-  }),
 }));
 
 vi.mock("~/services/calendar", () => ({

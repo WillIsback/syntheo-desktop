@@ -15,7 +15,7 @@ vi.mock("@anlg/ui/components/ui/toast", () => ({
   toast: { error: mocks.toastError },
 }));
 
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({ upgradeToPro: mocks.upgradeToPro }),
 }));
 

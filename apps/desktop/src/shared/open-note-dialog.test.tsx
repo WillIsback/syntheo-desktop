@@ -23,7 +23,7 @@ vi.mock("~/auth", () => ({
   useAuth: () => ({ session: { user: { id: "viewer-1" } } }),
 }));
 
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({ isPro: true }),
 }));
 

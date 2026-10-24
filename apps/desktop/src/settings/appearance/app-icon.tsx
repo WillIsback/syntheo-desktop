@@ -6,7 +6,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { CircleNotch, LockSimple } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import { useNotifyPlanRequired } from "~/settings/plan-gate";
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";

@@ -27,7 +27,6 @@ import { cn, formatDistanceToNow } from "@anlg/utils";
 import { AutomationLastRunLine, MarkdownExportConfig } from "./starter-config";
 import { useSaveWorkflow, WorkflowBuilder } from "./workflow-builder";
 
-import { useBillingAccess } from "~/auth/billing-context";
 import {
   useDeleteChatAutomation,
   useDeleteWorkflow,
@@ -56,6 +55,7 @@ import {
   saveAutomationWorkflows,
   useAutomationWorkflows,
 } from "~/automations/workflows";
+import { useBillingAccess } from "~/billing/billing-context";
 import { useChatGroup } from "~/chat/store/queries";
 import { SettingsHydrationBoundary } from "~/settings/hydration-boundary";
 import { SettingsPageTitle } from "~/settings/page-title";

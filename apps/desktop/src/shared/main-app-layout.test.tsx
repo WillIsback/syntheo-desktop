@@ -31,7 +31,7 @@ vi.mock("~/auth", () => ({
   ),
 }));
 
-vi.mock("~/auth/local-billing", () => ({
+vi.mock("~/billing/local-billing", () => ({
   LocalBillingProvider: ({ children }: { children: React.ReactNode }) =>
     children,
 }));

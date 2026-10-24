@@ -39,7 +39,6 @@ import {
 import { RelatedNotesSection } from "./related-notes";
 import { ContactFacehash } from "./shared";
 
-import { useOptionalAuth } from "~/auth";
 import { useOwnerUserId } from "~/shared/owner-user";
 
 export function DetailsColumn({
@@ -55,9 +54,7 @@ export function DetailsColumn({
   handleSessionClick: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
-  const localOwnerUserId = useOwnerUserId();
-  const auth = useOptionalAuth();
-  const ownerUserId = auth?.session?.user.id ?? localOwnerUserId;
+  const ownerUserId = useOwnerUserId();
   const readOnly = human?.id === ownerUserId;
   const user = humans.find((candidate) => candidate.id === ownerUserId) ?? null;
   const { t } = useLingui();

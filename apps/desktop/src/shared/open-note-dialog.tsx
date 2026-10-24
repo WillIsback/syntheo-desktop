@@ -27,7 +27,7 @@ import {
 import { cn } from "@anlg/utils";
 
 import { trackAnalyticsEvent } from "~/analytics";
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import { useSessionSummaries } from "~/session/queries";
 import { useMainContentCenterOffset } from "~/shared/main/content-offset";
 import { useSettingsNavGroups } from "~/sidebar/settings-nav-groups";

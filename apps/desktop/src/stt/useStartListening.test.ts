@@ -167,9 +167,6 @@ vi.mock("@anlg/plugin-db", () => ({
   subscribe: vi.fn(async () => () => {}),
 }));
 
-vi.mock("~/auth", () => ({
-  useAuth: () => ({ getSessionForRequest: vi.fn(async () => null) }),
-}));
 vi.mock("@anlg/plugin-transcription", () => ({
   commands: {
     acknowledgeStoppedCapture: acknowledgeStoppedCaptureMock,

@@ -9,7 +9,7 @@ import {
 import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 
 export type GatedPlan = "pro" | "enterprise";
 

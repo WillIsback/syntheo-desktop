@@ -45,7 +45,7 @@ import {
 import { useProviderSelectionPrompt } from "./provider-selection-prompt";
 
 import { providerFetch } from "~/ai/provider-fetch";
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import {
   isKeychainAccessError,
   repairKeychainAccess,

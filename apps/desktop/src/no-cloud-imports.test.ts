@@ -1,6 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 // Garde-fou : Syntheo Desktop n'a ni compte ni fonction cloud. Aucun fichier de
@@ -56,7 +55,10 @@ describe("no cloud features", () => {
           readFileSync(path, "utf8").includes(needle),
         ),
       }))
-      .filter(({ file, hits }) => hits.length > 0 && file !== "no-cloud-imports.test.ts");
+      .filter(
+        ({ file, hits }) =>
+          hits.length > 0 && file !== "no-cloud-imports.test.ts",
+      );
     expect(offenders).toEqual([]);
   });
 

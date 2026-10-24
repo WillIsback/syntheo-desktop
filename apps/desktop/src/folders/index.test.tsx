@@ -38,7 +38,7 @@ vi.mock("~/auth", () => ({
   useOptionalAuth: () => mocks.auth,
 }));
 
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({
     isReady: false,
     isPaid: false,

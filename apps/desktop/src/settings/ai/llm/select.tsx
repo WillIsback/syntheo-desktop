@@ -29,8 +29,7 @@ import {
   normalizeReasoningEffort,
   supportsReasoningEffort,
 } from "~/ai/reasoning-effort";
-import { useAuth } from "~/auth";
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import {
   providerRowId,
   ProviderIconSlot,
@@ -654,7 +653,6 @@ function useConfiguredMapping(): {
   providers: Record<string, ProviderStatus>;
   isReady: boolean;
 } {
-  const auth = useAuth();
   const billing = useBillingAccess();
   const availability = useProviderAvailability("llm", PROVIDERS);
   const { current_llm_provider } = useConfigValues([
@@ -680,14 +678,14 @@ function useConfiguredMapping(): {
           getLlmProviderStatus({
             provider,
             config,
-            isAuthenticated: !!auth?.session,
+            isAuthenticated: false,
             isPaid: billing.isPaid,
             isAvailable,
           }),
         ];
       }),
     ) as Record<string, ProviderStatus>;
-  }, [configuredProviders, auth, billing, availability, current_llm_provider]);
+  }, [configuredProviders, billing, availability, current_llm_provider]);
 
   return {
     providers: mapping,

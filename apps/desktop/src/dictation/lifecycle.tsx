@@ -16,8 +16,7 @@ import { DictationController } from "./controller";
 import { waitForDictationPanel } from "./panel";
 import { useDictationStatus } from "./state";
 
-import { useAuth } from "~/auth";
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import { useSettingsReady } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
 import { useListener } from "~/stt/contexts";
@@ -32,7 +31,6 @@ export function waitForDictationCleanup() {
 }
 
 export function DictationLifecycle() {
-  const { session } = useAuth();
   const { isPro, isReady } = useBillingAccess();
   const settingsReady = useSettingsReady();
   const enabled = useConfigValue("dictation_enabled");
@@ -49,7 +47,7 @@ export function DictationLifecycle() {
   // Syntheo n'a pas de compte : la dictée ne dépend pas d'une session.
   if (!isReady || !isPro || !settingsReady || !enabled) return null;
   return (
-    <TranscriptRetention key={session?.user.id ?? "local"}>
+    <TranscriptRetention key="local">
       {!meetingActive && !capturingShortcut && (
         <ActiveDictation
           key={`${shortcut}:${handsFree}:${retry}`}
@@ -90,7 +88,6 @@ function ActiveDictation({
   const dictionary = useConfigValue("personalization_dictionary_terms");
   const languages = useConfigValue("spoken_languages");
   const { conn, isCloudModel } = useSTTConnection();
-  const auth = useAuth();
   const current = useRef({
     runBatch,
     microphone,
@@ -99,7 +96,6 @@ function ActiveDictation({
     dictionary,
     conn,
     isCloudModel,
-    auth,
   });
   current.current = {
     runBatch,
@@ -109,7 +105,6 @@ function ActiveDictation({
     dictionary,
     conn,
     isCloudModel,
-    auth,
   };
 
   useMountEffect(() => {
@@ -140,7 +135,6 @@ function ActiveDictation({
           isCloudModel,
           languages,
           dictionary,
-          auth,
         } = current.current;
         useDictationStatus.setState({
           owner,
@@ -169,18 +163,14 @@ function ActiveDictation({
           );
         abort.signal.throwIfAborted();
         target = unwrap(await dictation.captureTarget());
-        const previewSession = isCloudModel
-          ? await auth.getSessionForRequest().catch(() => null)
-          : null;
-        const apiKey = isCloudModel
-          ? previewSession?.access_token
-          : conn?.apiKey;
+        // L'aperçu hébergé exigeait une session : seuls les endpoints
+        // configurés par l'utilisateur alimentent l'aperçu en direct.
         const preview =
-          conn && (!isCloudModel || previewSession)
+          conn && !isCloudModel
             ? {
                 provider: conn.provider,
                 baseUrl: conn.baseUrl,
-                apiKey: apiKey ?? "",
+                apiKey: conn.apiKey ?? "",
                 params: {
                   model: conn.model,
                   channels: 1,
