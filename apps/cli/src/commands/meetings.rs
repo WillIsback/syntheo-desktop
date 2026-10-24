@@ -1,28 +1,24 @@
 use std::sync::Arc;
 
 use crate::cli::{DocumentKind, ExportFormat, MeetingCommand, MeetingSource};
-use crate::{Args, Error, Result, cloud::CloudClient, db, output};
+use crate::{Args, Error, Result, db, output};
 use anlg_agent_access::{
     Document, Folder, FolderPage, GetMeetingInput, GetMeetingTranscriptInput,
     GetRecurringMeetingHistoryInput, ListFoldersInput, ListMeetingsInput, Meeting, MeetingExport,
     MeetingListItem, MeetingPage, TranscriptPage,
 };
 
+// Syntheo ne lit que la base locale : aucun client hébergé, aucun repli cloud.
 pub enum DataSource {
     Local(Arc<anlg_db_core::Db>),
-    Cloud(CloudClient),
 }
 
 impl DataSource {
     pub async fn open(args: &Args, source: MeetingSource) -> Result<Self> {
         match source {
-            MeetingSource::Local => db::open(args).await.map(Arc::new).map(Self::Local),
-            MeetingSource::Cloud => CloudClient::current().map(Self::Cloud),
-            MeetingSource::Auto => match db::open(args).await {
-                Ok(db) => Ok(Self::Local(Arc::new(db))),
-                Err(Error::DatabaseNotFound(_)) => CloudClient::current().map(Self::Cloud),
-                Err(error) => Err(error),
-            },
+            MeetingSource::Local | MeetingSource::Auto => {
+                db::open(args).await.map(Arc::new).map(Self::Local)
+            }
         }
     }
 
@@ -34,8 +30,6 @@ impl DataSource {
             Self::Local(db) => anlg_agent_access::list_meetings(db.pool(), input)
                 .await
                 .map_err(Into::into),
-            Self::Cloud(_) if input.folder_path.is_some() => Err(local_only("--folder")),
-            Self::Cloud(client) => client.list_meetings(input).await,
         }
     }
 
@@ -44,7 +38,6 @@ impl DataSource {
             Self::Local(db) => anlg_agent_access::list_folders(db.pool(), input)
                 .await
                 .map_err(Into::into),
-            Self::Cloud(_) => Err(local_only("meetings folders")),
         }
     }
 
@@ -53,7 +46,6 @@ impl DataSource {
             Self::Local(db) => anlg_agent_access::get_meeting(db.pool(), input)
                 .await
                 .map_err(Into::into),
-            Self::Cloud(client) => client.get_meeting(input).await,
         }
     }
 
@@ -65,7 +57,6 @@ impl DataSource {
             Self::Local(db) => anlg_agent_access::get_meeting_transcript(db.pool(), input)
                 .await
                 .map_err(Into::into),
-            Self::Cloud(client) => client.get_meeting_transcript(input).await,
         }
     }
 
@@ -77,7 +68,6 @@ impl DataSource {
             Self::Local(db) => anlg_agent_access::get_recurring_meeting_history(db.pool(), input)
                 .await
                 .map_err(Into::into),
-            Self::Cloud(client) => client.get_recurring_meeting_history(input).await,
         }
     }
 
@@ -86,7 +76,6 @@ impl DataSource {
             Self::Local(db) => anlg_agent_access::get_meeting_export(db.pool(), meeting_id)
                 .await
                 .map_err(Into::into),
-            Self::Cloud(client) => client.get_meeting_export(meeting_id).await,
         }
     }
 }
@@ -98,7 +87,7 @@ pub async fn run(source: &DataSource, command: MeetingCommand, json: bool) -> Re
         }
         MeetingCommand::PilotUsage { from_ms, until_ms } => match source {
             DataSource::Local(db) if json => super::meeting_pilot::run(db, from_ms, until_ms).await,
-            _ => Err(local_only("JSON meetings pilot-usage")),
+            _ => Err(json_required("JSON meetings pilot-usage")),
         },
         MeetingCommand::HoldList {
             after,
@@ -108,13 +97,13 @@ pub async fn run(source: &DataSource, command: MeetingCommand, json: bool) -> Re
             DataSource::Local(db) if json => {
                 super::meeting_hold::list(db, &after, limit, database_only).await
             }
-            _ => Err(local_only("JSON meetings hold-list")),
+            _ => Err(json_required("JSON meetings hold-list")),
         },
         MeetingCommand::HoldExport { id, database_only } => match source {
             DataSource::Local(db) if json => {
                 super::meeting_hold::export(db, &id, database_only).await
             }
-            _ => Err(local_only("JSON meetings hold-export")),
+            _ => Err(json_required("JSON meetings hold-export")),
         },
         MeetingCommand::Delete { .. }
         | MeetingCommand::Capabilities
@@ -176,7 +165,6 @@ pub async fn run(source: &DataSource, command: MeetingCommand, json: bool) -> Re
                         &anlg_agent_access::local_meeting(db.pool(), meeting).await?,
                         None,
                     )?,
-                    DataSource::Cloud(_) => output::json("meetings.get", &meeting, None)?,
                 }
             } else {
                 meeting.to_markdown()
@@ -268,9 +256,8 @@ pub async fn run(source: &DataSource, command: MeetingCommand, json: bool) -> Re
             output: path,
             force,
         } => {
-            if matches!(format, ExportFormat::Json)
-                && let DataSource::Local(db) = source
-            {
+            if matches!(format, ExportFormat::Json) {
+                let DataSource::Local(db) = source;
                 let meeting = anlg_agent_access::get_local_meeting_export(db.pool(), id).await?;
                 let content = if json {
                     output::json("meetings.export", &meeting, None)?
@@ -361,11 +348,8 @@ fn render_folders(folders: &[Folder]) -> String {
         .join("\n")
 }
 
-fn local_only(feature: &str) -> Error {
-    Error::cloud(
-        "invalid_request",
-        format!("{feature} is only available for local meetings; use --source local"),
-    )
+fn json_required(feature: &'static str) -> Error {
+    Error::operation(feature, "pass --json")
 }
 
 fn render_documents(documents: &[Document]) -> String {
@@ -399,6 +383,30 @@ fn truncate(value: &str, width: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn meetings_without_local_database_reports_missing_database() {
+        // Aucun repli cloud : même en mode auto, une base absente est une
+        // erreur explicite plutôt qu'un appel à un service hébergé.
+        let dir = tempfile::tempdir().unwrap();
+        let args = Args {
+            base: None,
+            db_path: Some(dir.path().join("missing.db")),
+            json: false,
+            command: crate::cli::Command::Doctor,
+        };
+        for source in [MeetingSource::Local, MeetingSource::Auto] {
+            let error = match DataSource::open(&args, source).await {
+                Err(error) => error,
+                Ok(_) => panic!("a missing database must not open a data source"),
+            };
+            assert!(matches!(error, Error::DatabaseNotFound(_)));
+            assert!(
+                error.to_string().contains("base Syntheo introuvable"),
+                "{error}"
+            );
+        }
+    }
 
     #[test]
     fn list_render_is_bounded_and_contains_ids() {
