@@ -93,12 +93,13 @@ jobs:
           cargo metadata --locked --format-version 1 > /dev/null
           echo "✅ Cargo.lock à jour."
 
-      # Clippy est limité aux crates qui portent le desktop et nos chantiers ;
-      # le périmètre s'élargit au fil du nettoyage du code hérité.
+      # Clippy est limité aux crates qui portent le desktop et nos chantiers
+      # (--no-deps : sans les crates héritées dont elles dépendent) ; le
+      # périmètre s'élargit au fil du nettoyage du code hérité.
       - name: Lint (cargo clippy)
         run: |
           set -euo pipefail
-          cargo clippy --locked \
+          cargo clippy --locked --no-deps \
             -p desktop -p owhisper-client -p template-app -p db-app -p listener-core \
             --all-targets -- -D warnings
 
