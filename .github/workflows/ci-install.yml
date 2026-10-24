@@ -1,0 +1,49 @@
+# Workflow : Test d'installation depuis les sources
+# Rejoue tel quel, sur un runner vierge, le bloc « Construire depuis les sources ›
+# Linux » de CONTRIBUTING.md : dépendances, build du paquet .deb, démarrage.
+# scripts/ci/quickstart_test.sh n'ajoute aucune commande : la doc est le test.
+# Hors PR (≈ 25 min) : hebdomadaire et à la demande ; la release construit
+# elle-même les paquets.
+name: ci-install
+
+on:
+  schedule:
+    # Hebdomadaire : détecte une casse venue de l'extérieur (paquets apt,
+    # registres npm/crates) même sans commit.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: install-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci-install:
+    name: ci-install (depuis les sources)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      # Clone vierge : pas de credentials persistés, comme un nouveau contributeur.
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      # Prérequis annoncés par CONTRIBUTING.md (hors bloc) : Node ≥ 22.23 et rustup.
+      - name: Prérequis Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22.23.4"
+
+      - name: Libérer de l'espace disque
+        run: sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup 2> /dev/null || true
+
+      # Le `git clone` du bloc est redirigé vers ce checkout ; l'URL documentée
+      # est tout de même vérifiée.
+      - name: Construire depuis les sources (CONTRIBUTING.md › Linux)
+        env:
+          QUICKSTART_CLONE_FROM: ${{ github.workspace }}
+        run: scripts/ci/quickstart_test.sh CONTRIBUTING.md "Construire depuis les sources" "Linux" "$RUNNER_TEMP/quickstart"

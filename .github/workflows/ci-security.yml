@@ -1,0 +1,192 @@
+# Workflow : Sécurité
+# SCA (Dependency Review, cargo deny, Trivy), fuite de secrets, synthèse.
+# Le SAST (CodeQL) est dans ci-codeql.yml.
+name: ci-security
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    # Hebdomadaire : nouvelles CVE publiées sur des dépendances inchangées.
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  sca:
+    name: SCA (Dependency Review, cargo deny, Trivy)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Licences : la politique du projet refuse le copyleft fort (aligné sur
+      # la politique héritée d'Anarlog). Liste de refus plutôt qu'allow-list :
+      # npm et cargo exposent des centaines d'expressions SPDX permissives.
+      - name: Dependency Review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+        with:
+          fail-on-scopes: "runtime"
+          fail-on-severity: "high"
+          deny-licenses: "GPL-2.0-only, GPL-2.0-or-later, GPL-3.0-only, GPL-3.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later, SSPL-1.0"
+
+      - name: Valider le registre des exceptions de sécurité
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Registre daté : une exception expirée fait échouer la CI.
+          python3 -m venv "$RUNNER_TEMP/exc-venv"
+          "$RUNNER_TEMP/exc-venv/bin/pip" install --quiet --disable-pip-version-check 'pyyaml==6.0.2'
+          "$RUNNER_TEMP/exc-venv/bin/python" scripts/check_security_exceptions.py
+
+      - name: "Dépendances Rust (cargo deny : advisories, licences, sources)"
+        uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2
+        with:
+          command: check advisories licenses bans sources
+
+      - name: Scan des dépendances avec Trivy (lockfiles)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Script et binaire épinglés à la même version (v0.76.0).
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/v0.76.0/contrib/install.sh | sh -s -- -b "$RUNNER_TEMP/bin" v0.76.0
+          "$RUNNER_TEMP/bin/trivy" fs "${GITHUB_WORKSPACE}" \
+            --scanners vuln \
+            --severity HIGH,CRITICAL \
+            --ignorefile "${GITHUB_WORKSPACE}/.trivyignore" \
+            --format sarif \
+            --output "${GITHUB_WORKSPACE}/trivy-fs.sarif" \
+            --exit-code 1
+
+      - name: Upload SARIF Trivy
+        if: ${{ always() && hashFiles('trivy-fs.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+        with:
+          sarif_file: trivy-fs.sarif
+          category: "trivy-fs"
+
+  secret-leak:
+    name: Secret Leak (Gitleaks)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan Gitleaks (historique de la PR)
+        id: gitleaks
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # Binaire officiel Gitleaks épinglé.
+          go install github.com/zricethezav/gitleaks/v8@v8.30.1
+          GITLEAKS="$(go env GOPATH)/bin/gitleaks"
+          # Plage de commits de la PR (un secret ajouté puis supprimé reste
+          # détecté) ; hors PR, tout l'historique.
+          LOG_OPTS=()
+          if [ -n "${BASE_SHA:-}" ] && [ -n "${HEAD_SHA:-}" ]; then
+            LOG_OPTS=(--log-opts="${BASE_SHA}..${HEAD_SHA}")
+          fi
+          EXIT_CODE=0
+          "$GITLEAKS" detect \
+            --source "${GITHUB_WORKSPACE}" \
+            --config "${GITHUB_WORKSPACE}/.gitleaks.toml" \
+            --report-format sarif \
+            --report-path "${GITHUB_WORKSPACE}/gitleaks.sarif" \
+            --redact \
+            "${LOG_OPTS[@]}" \
+            --exit-code 1 || EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload SARIF Gitleaks
+        if: ${{ always() && steps.gitleaks.outputs.exit_code != '0' && hashFiles('gitleaks.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+        with:
+          sarif_file: gitleaks.sarif
+          category: "gitleaks"
+
+      - name: Échouer si une fuite de secret est détectée
+        if: always() && steps.gitleaks.outputs.exit_code != '0'
+        shell: bash
+        run: |
+          echo "❌ Gitleaks a détecté au moins une fuite de secret (SARIF, catégorie « gitleaks »)."
+          exit 1
+
+  summary:
+    name: Synthèse de sécurité
+    runs-on: ubuntu-24.04
+    needs: [sca, secret-leak]
+    if: always() && github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Analyser les résultats des jobs
+        shell: bash
+        env:
+          SCA_STATUS: ${{ needs.sca.result }}
+          SECRET_STATUS: ${{ needs.secret-leak.result }}
+        run: |
+          set -euo pipefail
+          {
+            echo "### 🔒 Synthèse sécurité"
+            echo ""
+            echo "| Scan | Statut |"
+            echo "|------|--------|"
+            echo "| SCA (Dependency Review + cargo deny + Trivy) | $SCA_STATUS |"
+            echo "| Secret Leak (Gitleaks) | $SECRET_STATUS |"
+            echo ""
+            echo "_SAST (CodeQL) : voir le workflow ci-codeql et l'onglet Sécurité._"
+            echo ""
+            if [[ "$SCA_STATUS" == "success" && "$SECRET_STATUS" == "success" ]]; then
+              echo "✅ **Verdict global : PASS** — tous les scans sont conformes."
+            else
+              echo "❌ **Verdict global : ÉCHEC** — consultez les jobs et l'onglet Sécurité."
+            fi
+          } > summary.md
+          cat summary.md
+
+      - name: Publier le commentaire de synthèse
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('summary.md', 'utf8');
+            const { owner, repo } = context.repo;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number: context.issue.number,
+            });
+            const existing = comments.find(c =>
+              c.body.includes('🔒 Synthèse sécurité') && c.user.type === 'Bot'
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: context.issue.number, body });
+            }

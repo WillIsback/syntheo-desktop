@@ -1,0 +1,172 @@
+# Workflow : Qualité du code
+# Formatage, lint TS/Rust, typage, cohérence des commits, des workflows et des lockfiles
+name: ci-code-quality
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: code-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  js:
+    name: ci-code-quality (TypeScript)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Installer Node, pnpm et les dépendances (lockfile figé)
+        uses: ./.github/actions/pnpm_install
+
+      # dprint délègue les .rs à rustfmt : toolchain installée une seule fois
+      # avant, sinon chaque appel concurrent de rustup la réinstalle.
+      - name: Toolchain Rust (rustfmt pour dprint)
+        uses: ./.github/actions/rust_install
+
+      # Sur une PR, seuls les fichiers modifiés sont vérifiés (le code hérité
+      # n'est pas entièrement formaté) ; sinon, tout le dépôt.
+      - name: Formatage (dprint)
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [ -n "${BASE_SHA:-}" ]; then
+            git diff --name-only --diff-filter=ACMR -z "$BASE_SHA" HEAD \
+              | xargs -0 --no-run-if-empty pnpm exec dprint check --allow-no-files
+          else
+            pnpm fmt:check
+          fi
+
+      # Code hérité : oxlint (erreurs) sur le desktop, comme la CI d'origine.
+      # Code nouveau ou modifié : ESLint complet, limité aux fichiers de la PR.
+      - name: Lint (oxlint)
+        run: pnpm exec oxlint --quiet --format=github apps/desktop/src/
+
+      - name: Lint (ESLint, fichiers modifiés)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          git diff --name-only --diff-filter=ACMR -z "$BASE_SHA" HEAD -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' \
+            | xargs -0 --no-run-if-empty pnpm exec eslint --no-warn-ignored
+
+      - name: Typage du desktop (tsc)
+        run: |
+          set -euo pipefail
+          pnpm -F ui build
+          pnpm -F desktop typecheck
+
+  rust:
+    name: ci-code-quality (Rust)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Dépendances système Tauri
+        uses: ./.github/actions/install_desktop_deps
+
+      - name: Toolchain Rust
+        uses: ./.github/actions/rust_install
+
+      - name: Intégrité du lockfile Cargo
+        run: |
+          set -euo pipefail
+          cargo metadata --locked --format-version 1 > /dev/null
+          echo "✅ Cargo.lock à jour."
+
+      # Clippy est limité aux crates qui portent le desktop et nos chantiers
+      # (--no-deps : sans les crates héritées dont elles dépendent).
+      # Non bloquant tant que les adaptateurs cloud hérités (erreurs clippy)
+      # ne sont pas retirés : voir issue #3.
+      - name: Lint (cargo clippy)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          cargo clippy --locked --no-deps \
+            -p desktop -p owhisper-client -p template-app -p db-app -p listener-core \
+            --all-targets -- -D warnings
+
+  meta:
+    name: ci-code-quality (PR et workflows)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Lint du titre de PR (Conventional Commits)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          PATTERN='^(feat|fix|refactor|docs|test|chore|perf|ci|build|revert)(\(.+\))?!?: .+'
+          if ! echo "$PR_TITLE" | grep -qE "$PATTERN"; then
+            echo "❌ Le titre de la PR ne respecte pas Conventional Commits."
+            echo "   Titre : $PR_TITLE"
+            echo "   Exemples valides : feat: ..., fix(stt): ..., feat!: ..., chore: ..."
+            exit 1
+          fi
+          echo "✅ Titre de PR valide."
+
+      - name: Lint des workflows GitHub (actionlint)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Script et binaire épinglés à la même version (v1.7.12).
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
+          ./actionlint -color -shellcheck=-
+
+      - name: Installer uv (pour zizmor)
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          version: "0.13.1"
+
+      - name: Analyse de sécurité des workflows (zizmor)
+        id: zizmor
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Bloquant à partir de la sévérité « high » ; les constats justifiés
+          # sont listés dans .github/zizmor.yml.
+          uvx zizmor@1.31.0 --min-severity high --format sarif .github/workflows .github/actions > zizmor.sarif
+
+      - name: Upload SARIF zizmor
+        if: ${{ always() && hashFiles('zizmor.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+        with:
+          sarif_file: zizmor.sarif
+          category: "zizmor"
+
+      - name: Échouer si zizmor signale un problème de sévérité élevée
+        if: steps.zizmor.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "❌ zizmor a signalé au moins un problème de sévérité « high »."
+          exit 1

@@ -1,0 +1,88 @@
+# Workflow Forgejo : tests fonctionnels contre les moteurs d'inférence du GB10
+#
+# Exécuté uniquement sur le miroir Forgejo privé (runner du home-server, qui
+# voit le DGX sur le LAN et le tailnet). Jamais sur GitHub : un runner
+# auto-hébergé sur un dépôt public exécuterait le code de PR externes.
+#
+# Secret Forgejo requis : BWS_ACCESS_TOKEN (Bitwarden Secrets Manager).
+# Les clés VLLM_API_KEY et ASR_API_KEY sont lues dans Bitwarden pendant le job,
+# jamais stockées dans Forgejo.
+#
+# Ne modifie JAMAIS l'état du DGX (pas de démarrage ni d'arrêt de modèle) :
+# le test Voxtral exige une fenêtre manuelle (voir docs/superpowers/specs, « Tests
+# fonctionnels sur le GB10 », contrainte mémoire).
+name: functional-gb10
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: functional-gb10
+  cancel-in-progress: false
+
+# Adresses LAN : les conteneurs du runner ne résolvent pas le DNS du tailnet.
+env:
+  DGX_LLM_URL: http://192.168.1.87:30000
+  DGX_ASR_URL: http://192.168.1.87:9000
+
+jobs:
+  preflight:
+    name: Préflight des endpoints du GB10
+    runs-on: docker
+    timeout-minutes: 10
+    steps:
+      # Les conteneurs de job ne résolvent pas le nom de service `forgejo` :
+      # checkout par l'adresse LAN plutôt que d'ouvrir le réseau interne aux jobs.
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        with:
+          github-server-url: http://192.168.1.97:3737
+
+      # Image du runner : node:22 (Debian bookworm), sans jq ni bws.
+      - name: Installer jq et bws (version et empreinte épinglées)
+        run: |
+          set -euo pipefail
+          apt-get -o Acquire::Retries=3 update -qq
+          apt-get install -y -qq jq unzip > /dev/null
+          BWS_ZIP=bws-x86_64-unknown-linux-gnu-2.1.0.zip
+          curl -fsSLO "https://github.com/bitwarden/sdk-sm/releases/download/bws-v2.1.0/$BWS_ZIP"
+          echo "ba8233c3a4aee5d43e3c73bbd04d99e9bc5aba13bbbfd06d89b073abe732b860  $BWS_ZIP" | sha256sum -c -
+          unzip -q -o "$BWS_ZIP" -d /usr/local/bin && rm "$BWS_ZIP"
+
+      - name: Lire les clés dans Bitwarden
+        env:
+          BWS_ACCESS_TOKEN: ${{ secrets.BWS_ACCESS_TOKEN }}
+          # Organisation Bitwarden hébergée en région UE.
+          BWS_SERVER_URL: https://vault.bitwarden.eu
+        run: |
+          set -euo pipefail
+          for key in VLLM_API_KEY ASR_API_KEY; do
+            value=$(bws secret list -o json | jq -r --arg k "$key" '.[] | select(.key == $k) | .value')
+            [ -n "$value" ] || { echo "❌ $key introuvable dans Bitwarden"; exit 1; }
+            echo "::add-mask::$value"
+            echo "$key=$value" >> "$GITHUB_ENV"
+          done
+
+      - name: "LLM (vLLM) : modèle servi"
+        run: |
+          set -euo pipefail
+          MODEL=$(curl -fsS --max-time 15 -H "Authorization: Bearer $VLLM_API_KEY" "$DGX_LLM_URL/v1/models" | jq -r '.data[0].id')
+          [ -n "$MODEL" ] && [ "$MODEL" != "null" ] || { echo "❌ aucun modèle servi"; exit 1; }
+          echo "✅ vLLM sert : $MODEL"
+
+      # Vérifié le 2026-10-24 : 200 avec la clé, 401 sans (proxy Caddy du DGX, port 9000).
+      - name: "ASR (NIM, Realtime) : session acceptée, authentification exigée"
+        run: |
+          set -euo pipefail
+          URL="$DGX_ASR_URL/v1/realtime/transcription_sessions"
+          CODE=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 -X POST \
+            -H "Authorization: Bearer $ASR_API_KEY" -H 'Content-Type: application/json' -d '{}' "$URL")
+          [ "$CODE" = "200" ] || { echo "❌ NIM ASR : HTTP $CODE"; exit 1; }
+          NOAUTH=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 -X POST -d '{}' "$URL")
+          [ "$NOAUTH" = "401" ] || { echo "❌ NIM ASR accessible sans clé (HTTP $NOAUTH)"; exit 1; }
+          echo "✅ NIM ASR joignable et protégé"
+
+  # Tests de bout en bout (WER sur fixture FR, enhance avec template Syntheo,
+  # générateur, zéro audio sur disque) : ajoutés avec les chantiers 04c, 07-09.

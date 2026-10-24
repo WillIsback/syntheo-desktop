@@ -1,0 +1,294 @@
+# Workflow : Release (CD)
+# Push sur main ou déclenchement manuel : version semver depuis les commits,
+# gates (dont CodeQL Rust, trop long pour les PR), build des paquets Linux,
+# SBOM, attestation de provenance, GitHub Release.
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Type de bump (auto = détection automatique)"
+        type: choice
+        options: [auto, patch, minor, major, none]
+        default: auto
+      dry_run:
+        description: "Mode dry-run (build sans publication)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false # sérialisation stricte
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Détection et calcul de version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.calc.outputs.version || 'skipped' }}
+      bump: ${{ steps.calc.outputs.bump || 'none' }}
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Calcul de la version
+        id: calc
+        shell: bash
+        env:
+          INPUT_BUMP: ${{ inputs.bump }}
+        run: |
+          set -euo pipefail
+          if git log -1 --format=%s | grep -qiE '\[skip release\]'; then
+            echo "🔇 Commit marqué [skip release]."
+            echo "version=skipped" >> "$GITHUB_OUTPUT"; echo "bump=none" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          LAST_TAG=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || echo "")
+          RANGE="${LAST_TAG:+$LAST_TAG..}HEAD"
+          BASE="${LAST_TAG:-v0.0.0}"
+          IFS=. read -r MAJOR MINOR PATCH <<<"${BASE#v}"
+          if [ -n "${INPUT_BUMP:-}" ] && [ "$INPUT_BUMP" != "auto" ]; then
+            BUMP="$INPUT_BUMP"
+            echo "ℹ️  Bump forcé : $BUMP"
+          else
+            # Seuls feat / fix / perf (ou breaking change) déclenchent une release.
+            BUMP="none"
+            while IFS= read -r COMMIT; do
+              [ -z "$COMMIT" ] && continue
+              if echo "$COMMIT" | grep -qE '^[a-zA-Z]+(\(.+\))?!:'; then BUMP="major"
+              elif echo "$COMMIT" | grep -qE '^feat(\(.+\))?:' && [ "$BUMP" != "major" ]; then BUMP="minor"
+              elif echo "$COMMIT" | grep -qE '^(fix|perf)(\(.+\))?:' && [ "$BUMP" = "none" ]; then BUMP="patch"
+              fi
+            done < <(git log --format=%s "$RANGE")
+          fi
+          echo "Dernier tag : ${LAST_TAG:-aucun} — bump : $BUMP"
+          if [ "$BUMP" = "none" ]; then
+            echo "ℹ️  Aucun commit éligible (feat/fix/perf) : pas de release."
+            echo "version=skipped" >> "$GITHUB_OUTPUT"; echo "bump=none" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          case "$BUMP" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+          VERSION="v$MAJOR.$MINOR.$PATCH"
+          echo "Version calculée : $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
+
+  gate-version-consistency:
+    name: gate-version-consistency
+    needs: detect
+    if: needs.detect.outputs.version != 'skipped'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Le tag ne doit pas exister et doit être supérieur au dernier
+        shell: bash
+        env:
+          VERSION: ${{ needs.detect.outputs.version }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --tags origin "refs/tags/$VERSION" | grep -q .; then
+            echo "❌ Le tag $VERSION existe déjà."; exit 1
+          fi
+          LAST_TAG=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || echo "v0.0.0")
+          HIGHEST=$(printf '%s\n%s\n' "$LAST_TAG" "$VERSION" | sort -V | tail -1)
+          [ "$HIGHEST" = "$VERSION" ] && [ "$LAST_TAG" != "$VERSION" ] \
+            || { echo "❌ $VERSION n'est pas supérieure à $LAST_TAG."; exit 1; }
+          echo "✅ $VERSION > $LAST_TAG"
+
+  build:
+    name: Build des paquets Linux
+    needs: [detect, gate-version-consistency]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Dépendances système Tauri
+        uses: ./.github/actions/install_desktop_deps
+
+      - name: Toolchain Rust
+        uses: ./.github/actions/rust_install
+
+      - name: Installer Node, pnpm et les dépendances (lockfile figé)
+        uses: ./.github/actions/pnpm_install
+
+      - name: Injecter la version dans la configuration Syntheo
+        shell: bash
+        env:
+          VERSION: ${{ needs.detect.outputs.version }}
+        run: |
+          set -euo pipefail
+          CONF=apps/desktop/src-tauri/tauri.conf.syntheo.json
+          jq --arg v "${VERSION#v}" '.version = $v' "$CONF" > "$CONF.tmp" && mv "$CONF.tmp" "$CONF"
+
+      - name: Build .deb et AppImage
+        env:
+          # Valeur factice exigée par le code hérité ; supprimée avec le chantier « privacy ».
+          POSTHOG_API_KEY: phc_disabled
+        run: |
+          set -euo pipefail
+          pnpm -F ui build
+          pnpm -F desktop tauri build --ci --bundles deb,appimage --config ./src-tauri/tauri.conf.syntheo.json
+
+      - name: Rassembler les artefacts et les sommes de contrôle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp apps/desktop/src-tauri/target/release/bundle/deb/*.deb dist/
+          cp apps/desktop/src-tauri/target/release/bundle/appimage/*.AppImage dist/
+          (cd dist && sha256sum ./* > SHA256SUMS)
+          cat dist/SHA256SUMS
+
+      - name: SBOM (Syft, SPDX)
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: dist/syntheo-desktop.spdx.json
+          upload-artifact: false
+
+      - name: Upload des artefacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: syntheo-desktop-linux
+          path: dist/
+          retention-days: 14
+
+  # Gate SAST lourde (CodeQL Rust + TypeScript), en parallèle du build.
+  sast:
+    name: Gate SAST (CodeQL)
+    needs: [detect, gate-version-consistency]
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    uses: ./.github/workflows/ci-codeql.yml
+
+  publish:
+    name: Publication de la release
+    needs: [detect, build, sast]
+    if: |
+      needs.detect.outputs.version != 'skipped'
+      && (github.event_name != 'workflow_dispatch' || (inputs.dry_run != true && inputs.dry_run != 'true'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://github.com/${{ github.repository }}/releases/tag/${{ needs.detect.outputs.version }}
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Télécharger les artefacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: syntheo-desktop-linux
+          path: dist
+
+      - name: Attestation de provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-path: "dist/*.deb, dist/*.AppImage"
+
+      - name: Générer le CHANGELOG
+        shell: bash
+        env:
+          VERSION: ${{ needs.detect.outputs.version }}
+        run: |
+          set -euo pipefail
+          LAST_TAG=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || echo "")
+          {
+            echo "## [${VERSION}] - $(date +%Y-%m-%d)"
+            echo ""
+            echo "### Changements depuis ${LAST_TAG:-le début}"
+            echo ""
+            git log "${LAST_TAG:+$LAST_TAG..}HEAD" --format="* %s"
+            echo ""
+            echo "Vérifier un paquet : \`sha256sum -c SHA256SUMS\` puis \`gh attestation verify <fichier> -R ${GITHUB_REPOSITORY}\`."
+          } > changelog-tmp.md
+          cat changelog-tmp.md
+
+      - name: Créer le tag et la GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.detect.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release create "$VERSION" dist/* \
+            --target "$GITHUB_SHA" \
+            --title "Syntheo Desktop $VERSION" \
+            --notes-file changelog-tmp.md \
+            --latest
+          echo "✅ Release $VERSION publiée."
+
+  notify-failure:
+    name: Notification d'échec
+    needs: [detect, gate-version-consistency, build, sast, publish]
+    if: failure() && github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Commenter l'échec sur la PR ou le commit
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          VERSION: ${{ needs.detect.outputs.version || 'inconnue' }}
+          GATE: ${{ needs.gate-version-consistency.result }}
+          BUILD: ${{ needs.build.result }}
+          SAST: ${{ needs.sast.result }}
+          PUBLISH: ${{ needs.publish.result }}
+        with:
+          script: |
+            const body = [
+              `## ❌ Release échouée pour la version ${process.env.VERSION}`,
+              '',
+              `- **Gate version-consistency** : \`${process.env.GATE}\``,
+              `- **Build** : \`${process.env.BUILD}\``,
+              `- **Gate SAST (CodeQL)** : \`${process.env.SAST}\``,
+              `- **Publish** : \`${process.env.PUBLISH}\``,
+              '',
+              `🔗 Run : ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+            ].join('\n');
+            const { owner, repo } = context.repo;
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner, repo, commit_sha: context.sha,
+            });
+            if (prs.length > 0) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: prs[0].number, body });
+            } else {
+              await github.rest.repos.createCommitComment({ owner, repo, commit_sha: context.sha, body });
+            }

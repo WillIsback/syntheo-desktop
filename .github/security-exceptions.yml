@@ -1,0 +1,57 @@
+# Registre des exceptions de sécurité
+# Chaque exception DOIT avoir une justification, un auteur et une date d'expiration.
+# Validé par scripts/check_security_exceptions.py (job SCA de ci-security) :
+# une exception expirée fait échouer la CI. Les identifiants listés ici sont
+# reportés dans .trivyignore (Trivy) ou deny.toml (cargo deny).
+---
+exceptions:
+  - cve: "RUSTSEC-2023-0071, RUSTSEC-2026-0387, RUSTSEC-2026-0346, RUSTSEC-2026-0349, RUSTSEC-2026-0098, RUSTSEC-2026-0099, RUSTSEC-2026-0104, RUSTSEC-2026-0382, RUSTSEC-2026-0258, CVE-2026-18140, GHSA-82j2-j2ch-gfr8"
+    reason: >-
+      Dette héritée d'Anarlog : rsa (jsonwebtoken), crypto-bigint, rustls 0.21,
+      rustls-webpki 0.101, h2 0.3 et aws-smithy-json sont tirés par le compte
+      cloud (api-*, supabase) et le SDK AWS (s3, bedrock), retirés aux chantiers
+      04b et 04d. Pas de correctif compatible sans réécrire ces modules.
+    expires: "2027-01-31"
+    author: "WillIsback"
+    path: "Cargo.lock"
+  - cve: "RUSTSEC-2026-0367, RUSTSEC-2026-0368, RUSTSEC-2026-0369"
+    reason: >-
+      zip 2.x (local-llm, local-stt) et 4.x (tauri-plugin-updater) : inférence
+      embarquée et updater Fastrepl retirés aux chantiers 04b et 04d.
+    expires: "2027-01-31"
+    author: "WillIsback"
+    path: "Cargo.lock"
+  - cve: "RUSTSEC-2025-0111, CVE-2025-62518, CVE-2026-40034, CVE-2026-44471, GHSA-fr8x-3vfx-f45h, GHSA-p3hw-mv63-rf9w, GHSA-pg4w-g64p-qwhj, GHSA-x494-mj8g-cj27, RUSTSEC-2026-0194, RUSTSEC-2026-0195"
+    reason: >-
+      Outils de build et de test absents du binaire livré : tokio-tar
+      (testcontainers, dev-dependency), gix (vergen-gix, script de build),
+      quick-xml (wayland-scanner au build ; plist/citationberg sur fichiers
+      locaux). À suivre en amont.
+    expires: "2027-01-31"
+    author: "WillIsback"
+    path: "Cargo.lock"
+  - cve: "RUSTSEC-2026-0332, RUSTSEC-2024-0429, CVE-2026-28980, CVE-2026-43671"
+    reason: >-
+      Plateformes non livrées ou dépendances de Tauri : wasapi (Windows),
+      swift-nio (transcribe-soniqo, macOS, retiré au chantier 04b), glib 0.18
+      (gtk-rs tiré par Tauri sur Linux, en attente de la migration GTK4).
+    expires: "2027-01-31"
+    author: "WillIsback"
+    path: "Cargo.lock, crates/transcribe-soniqo/swift-lib/Package.resolved"
+  - cve: "RUSTSEC-2026-0293, LGPL-3.0 (mp3lame-encoder, mp3lame-sys)"
+    reason: >-
+      Capture audio héritée : ringbuf 0.4 (audio-actual) et l'encodeur MP3 LGPL
+      de l'enregistrement. Le chantier 04c (aucun audio sur disque) supprime
+      l'encodeur et monte la version de ringbuf.
+    expires: "2027-01-31"
+    author: "WillIsback"
+    path: "Cargo.lock"
+  - cve: "CVE-2023-54404, CVE-2026-19693, CVE-2026-56876, CVE-2026-85393"
+    reason: >-
+      pnpm-lock.yaml : zod 3.x (correctif publié uniquement en 4.x, tiré par
+      des dépendances tierces), extract-zip et node-forge (outillage de
+      développement épinglé à la racine par Anarlog, sans correctif publié).
+      Absents de l'application livrée.
+    expires: "2027-01-31"
+    author: "WillIsback"
+    path: "pnpm-lock.yaml"
