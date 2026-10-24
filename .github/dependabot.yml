@@ -43,3 +43,7 @@ updates:
     commit-message:
       prefix: "chore(ci)"
     open-pull-requests-limit: 10
+    # Une seule PR pour toutes les actions (épinglées par SHA dans plusieurs fichiers).
+    groups:
+      github-actions:
+        patterns: ["*"]

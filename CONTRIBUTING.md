@@ -43,6 +43,13 @@ Gates lourdes, hors PR :
 | `ci-install` | hebdomadaire, à la demande | le bloc « Construire depuis les sources › Linux » rejoué sur un runner vierge |
 | `functional-gb10` (Forgejo) | push sur `main`, à la demande | moteurs d'inférence réels du GB10 |
 
+### Dépendances (Dependabot)
+
+Dependabot ouvre chaque semaine des PR groupées (npm, cargo, actions). Elles sont
+fusionnées automatiquement (squash) dès que les gates de PR requises par la règle
+de la branche `main` sont au vert ; une PR en échec reste ouverte et doit être
+corrigée à la main. `ci-traceability` ne s'applique pas à Dependabot.
+
 ## Construire depuis les sources
 
 Prérequis communs : Node.js ≥ 22.23 et [rustup](https://rustup.rs) (la version
