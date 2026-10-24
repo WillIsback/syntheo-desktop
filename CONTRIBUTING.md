@@ -22,20 +22,58 @@
 - Seuls `feat` (minor), `fix`/`perf` (patch) et `!` (major) déclenchent une
   release.
 
-## Gates de CI (bloquantes sur les PR)
+## Gates de CI
+
+Sur chaque PR (rapides, bloquantes) :
 
 | Workflow | Vérifie |
 |---|---|
 | `ci-code-quality` | dprint (TS, Rust, YAML, TOML, Markdown), oxlint (desktop), ESLint (fichiers modifiés), `tsc`, `cargo clippy` (non bloquant, #3), titre de PR, actionlint, zizmor, lockfiles |
 | `ci-security` | Dependency Review, `cargo deny`, Trivy, Gitleaks, registre d'exceptions |
-| `ci-codeql` | CodeQL `security-extended` : TypeScript et Rust, chacun seulement si la PR le modifie (complet sur `main` et chaque semaine) |
+| `ci-codeql` | CodeQL `security-extended` TypeScript, si la PR modifie du TS/JS |
 | `ci-test` | Vitest (desktop), `cargo test` des crates des chantiers, yamllint ; couverture différentielle ≥ 90 % à venir |
 | `ci-traceability` | issue référencée, type de PR, cohérence semver |
-| `ci-install` | le bloc « Démarrage rapide » du README, rejoué sur un runner vierge |
 
-Sur `main` : `release` (version, paquets `.deb`/AppImage, SBOM, attestation,
-GitHub Release) et, sur le miroir Forgejo, `functional-gb10` (tests contre les
-moteurs d'inférence réels).
+Gates lourdes, hors PR :
+
+| Workflow | Quand | Vérifie |
+|---|---|---|
+| `release` | push sur `main` (feat/fix/perf) | CodeQL Rust et TypeScript (gate), build des paquets, SBOM, attestation, GitHub Release |
+| `ci-codeql` | hebdomadaire, à la demande | analyse complète TypeScript + Rust |
+| `ci-install` | hebdomadaire, à la demande | le bloc « Construire depuis les sources › Linux » rejoué sur un runner vierge |
+| `functional-gb10` (Forgejo) | push sur `main`, à la demande | moteurs d'inférence réels du GB10 |
+
+## Construire depuis les sources
+
+Prérequis communs : Node.js ≥ 22.23 et [rustup](https://rustup.rs) (la version
+de Rust est fixée par `rust-toolchain.toml`). Les dépendances système de Tauri
+par OS sont décrites dans les
+[prérequis Tauri](https://v2.tauri.app/start/prerequisites/).
+
+### Linux
+
+Ce bloc (Debian/Ubuntu), exécuté tel quel depuis un dossier vide, installe les
+dépendances, construit le paquet `.deb` et vérifie que l'application démarre.
+Il est rejoué à l'identique par `ci-install` (hebdomadaire et à la demande).
+
+```bash
+git clone https://github.com/WillIsback/syntheo-desktop.git
+cd syntheo-desktop
+bash scripts/setup-linux-tauri.sh
+bash scripts/setup-linux-others.sh
+sudo apt-get install -y xvfb
+npm install -g pnpm@11.1.1
+pnpm install --frozen-lockfile
+pnpm -F ui build
+POSTHOG_API_KEY=phc_disabled VITE_API_URL=http://127.0.0.1:9 pnpm -F desktop tauri build --ci --bundles deb --config ./src-tauri/tauri.conf.syntheo.json
+ls apps/desktop/src-tauri/target/release/bundle/deb/*.deb
+# Vérification : l'application doit tenir 30 s sans planter (124 = arrêtée par timeout).
+status=0; timeout 30 xvfb-run -a apps/desktop/src-tauri/target/release/syntheo || status=$?; [ "$status" -eq 124 ]
+```
+
+`POSTHOG_API_KEY` et `VITE_API_URL` sont des valeurs factices exigées à la
+compilation par du code hérité (télémétrie, intégrations cloud) ; elles
+disparaissent avec les chantiers 04 et 04d du plan.
 
 ## Vérifications locales
 

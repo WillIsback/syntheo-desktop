@@ -1,6 +1,7 @@
 # Workflow : Release (CD)
 # Push sur main ou déclenchement manuel : version semver depuis les commits,
-# gates, build des paquets Linux, SBOM, attestation de provenance, GitHub Release.
+# gates (dont CodeQL Rust, trop long pour les PR), build des paquets Linux,
+# SBOM, attestation de provenance, GitHub Release.
 name: release
 
 on:
@@ -177,9 +178,19 @@ jobs:
           path: dist/
           retention-days: 14
 
+  # Gate SAST lourde (CodeQL Rust + TypeScript), en parallèle du build.
+  sast:
+    name: Gate SAST (CodeQL)
+    needs: [detect, gate-version-consistency]
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    uses: ./.github/workflows/ci-codeql.yml
+
   publish:
     name: Publication de la release
-    needs: [detect, build]
+    needs: [detect, build, sast]
     if: |
       needs.detect.outputs.version != 'skipped'
       && (github.event_name != 'workflow_dispatch' || (inputs.dry_run != true && inputs.dry_run != 'true'))
@@ -245,7 +256,7 @@ jobs:
 
   notify-failure:
     name: Notification d'échec
-    needs: [detect, gate-version-consistency, build, publish]
+    needs: [detect, gate-version-consistency, build, sast, publish]
     if: failure() && github.event_name == 'push'
     runs-on: ubuntu-24.04
     permissions:
@@ -258,6 +269,7 @@ jobs:
           VERSION: ${{ needs.detect.outputs.version || 'inconnue' }}
           GATE: ${{ needs.gate-version-consistency.result }}
           BUILD: ${{ needs.build.result }}
+          SAST: ${{ needs.sast.result }}
           PUBLISH: ${{ needs.publish.result }}
         with:
           script: |
@@ -266,6 +278,7 @@ jobs:
               '',
               `- **Gate version-consistency** : \`${process.env.GATE}\``,
               `- **Build** : \`${process.env.BUILD}\``,
+              `- **Gate SAST (CodeQL)** : \`${process.env.SAST}\``,
               `- **Publish** : \`${process.env.PUBLISH}\``,
               '',
               `🔗 Run : ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,

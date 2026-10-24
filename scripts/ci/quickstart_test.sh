@@ -1,39 +1,42 @@
 #!/usr/bin/env bash
-# Rejoue le parcours « Développeurs » du Démarrage rapide du README dans un dossier vide.
+# Rejoue un bloc de commandes documenté (doc = test) dans un dossier vide.
 #
-# Convention : la section `## Démarrage rapide` du README contient une
-# sous-section `### Développeurs` avec un seul bloc ```bash qui, exécuté tel quel
-# depuis un dossier vide, installe, construit ET vérifie l'application. Ce script
-# n'ajoute aucune commande : il extrait le bloc et l'exécute en mode strict ; la
-# moindre commande en échec fait échouer le test.
+# Convention : la section `## <SECTION>` du document contient une sous-section
+# `### <SOUS-SECTION>` avec un seul bloc ```bash qui, exécuté tel quel depuis un
+# dossier vide, installe, construit ET vérifie l'application. Ce script n'ajoute
+# aucune commande : il extrait le bloc et l'exécute en mode strict ; la moindre
+# commande en échec fait échouer le test.
 #
-# Usage : scripts/ci/quickstart_test.sh [README] [dossier de travail]
+# Usage : scripts/ci/quickstart_test.sh <document> <section> <sous-section> [dossier de travail]
+#   ex. : scripts/ci/quickstart_test.sh CONTRIBUTING.md "Construire depuis les sources" "Linux"
 # Variables :
-#   QUICKSTART_CLONE_FROM  dépôt local cloné à la place de l'URL du README
-#                          (CI : tester le code de la PR, pas celui de main)
+#   QUICKSTART_CLONE_FROM  dépôt local cloné à la place de l'URL du document
+#                          (CI : tester le code du checkout, pas celui de main)
 set -euo pipefail
 
-README="$(realpath "${1:-$(dirname "$0")/../../README.md}")"
-WORKDIR="${2:-$(mktemp -d)}"
+[ $# -ge 3 ] || { echo "Usage : $0 <document> <section> <sous-section> [dossier de travail]" >&2; exit 2; }
+README="$(realpath "$1")"
+SECTION="$2"
+SUBSECTION="$3"
+WORKDIR="${4:-$(mktemp -d)}"
 mkdir -p "$WORKDIR"
 WORKDIR="$(realpath "$WORKDIR")"
 
 fail() { printf '\033[1;31m❌ %s\033[0m\n' "$*" >&2; exit 1; }
 
-# Premier bloc ```bash de la sous-section « Développeurs » de « Démarrage rapide ».
-# Les commentaires `# …` du bloc ne sont pas des titres. Sortie 3 si le bloc
-# n'est jamais refermé.
-BLOCK="$(awk '
-  inblock && /^```/                  { closed = 1; exit }
-  inblock                            { print; next }
-  /^## Démarrage rapide/             { quick = 1; next }
-  quick && /^## /                    { exit }
-  quick && /^### Développeurs/       { found = 1; next }
-  found && /^#+ /                    { exit }
-  found && /^```bash/                { inblock = 1 }
+# Premier bloc ```bash de la sous-section voulue. Les commentaires `# …` du bloc
+# ne sont pas des titres. Sortie 3 si le bloc n'est jamais refermé.
+BLOCK="$(awk -v section="## $SECTION" -v subsection="### $SUBSECTION" '
+  inblock && /^```/                          { closed = 1; exit }
+  inblock                                    { print; next }
+  index($0, section) == 1                    { quick = 1; next }
+  quick && /^## /                            { exit }
+  quick && index($0, subsection) == 1        { found = 1; next }
+  found && /^#+ /                            { exit }
+  found && /^```bash/                        { inblock = 1 }
   END { if (inblock && !closed) exit 3 }
-' "$README")" || fail "bloc \`\`\`bash « Développeurs » non refermé dans $README"
-[ -n "$BLOCK" ] || fail "aucun bloc \`\`\`bash dans « Démarrage rapide › Développeurs » de $README"
+' "$README")" || fail "bloc \`\`\`bash « $SECTION › $SUBSECTION » non refermé dans $README"
+[ -n "$BLOCK" ] || fail "aucun bloc \`\`\`bash dans « $SECTION › $SUBSECTION » de $README"
 
 CLONE_URL="$(grep -oE 'git clone [^ ]+' <<<"$BLOCK" | head -1 | cut -d' ' -f3)"
 [ -n "$CLONE_URL" ] || fail "le parcours développeur doit commencer par « git clone <url> »"
@@ -47,7 +50,7 @@ if [ -n "${QUICKSTART_CLONE_FROM:-}" ]; then
     "url.$(realpath "$QUICKSTART_CLONE_FROM").insteadOf" "$CLONE_URL"
 fi
 
-printf '\033[1;34m==> Démarrage rapide « Développeurs » de %s, exécuté dans %s\033[0m\n' "$README" "$WORKDIR"
+printf '\033[1;34m==> « %s › %s » de %s, exécuté dans %s\033[0m\n' "$SECTION" "$SUBSECTION" "$README" "$WORKDIR"
 cd "$WORKDIR"
 bash -euxo pipefail -c "$BLOCK"
-printf '\n\033[1;32m✅ Démarrage rapide OK : le projet se construit et démarre depuis un dossier vierge.\033[0m\n'
+printf '\n\033[1;32m✅ « %s › %s » OK : le projet se construit et démarre depuis un dossier vierge.\033[0m\n' "$SECTION" "$SUBSECTION"
