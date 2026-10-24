@@ -9,7 +9,7 @@ import {
 import { persistDisclosureAttempt } from "./meeting-consent-store";
 
 export const MEETING_DISCLOSURE_MESSAGE =
-  "J'utilise Syntheo pour transcrire cette réunion (traitement local, aucun enregistrement audio conservé).";
+  "J'utilise Syntheo pour transcrire cette réunion ; le transcript est conservé sur mon poste.";
 
 const MEETING_DISCLOSURE_MAX_ATTEMPTS = 30;
 const MEETING_DISCLOSURE_RETRY_INTERVAL_MS = 1_000;

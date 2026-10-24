@@ -4368,7 +4368,7 @@ describe("useStartListening", () => {
       expect(startMeetingChatCaptureMock).toHaveBeenCalledWith({
         sessionId: "session-1",
         excludedTexts: [
-          "J'utilise Syntheo pour transcrire cette réunion (traitement local, aucun enregistrement audio conservé).",
+          "J'utilise Syntheo pour transcrire cette réunion ; le transcript est conservé sur mon poste.",
         ],
         onParticipantDeclined: expect.any(Function),
       });
@@ -4407,7 +4407,7 @@ describe("useStartListening", () => {
       expect(startMeetingChatCaptureMock).toHaveBeenCalledWith({
         sessionId: "session-1",
         excludedTexts: [
-          "J'utilise Syntheo pour transcrire cette réunion (traitement local, aucun enregistrement audio conservé).",
+          "J'utilise Syntheo pour transcrire cette réunion ; le transcript est conservé sur mon poste.",
         ],
         onParticipantDeclined: expect.any(Function),
       });

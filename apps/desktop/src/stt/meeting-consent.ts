@@ -1,4 +1,4 @@
-export const MEETING_DISCLOSURE_MESSAGE_VERSION = "anarlog-disclosure-v1";
+export const MEETING_DISCLOSURE_MESSAGE_VERSION = "syntheo-disclosure-v2";
 
 type DisclosureDelivery = "sent" | "not_sent" | "cancelled";
 
