@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["You"]
 edition = "2021"
 exclude = ["/js", "/node_modules"]
+license = "MIT"
 links = "tauri-plugin-fs2"
 description = ""
 

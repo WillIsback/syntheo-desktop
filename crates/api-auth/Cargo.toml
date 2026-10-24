@@ -2,6 +2,7 @@
 name = "api-auth"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 anlg-supabase-auth = { workspace = true, features = ["server"] }

@@ -2,6 +2,7 @@
 name = "api-messenger"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 anlg-api-error = { workspace = true }

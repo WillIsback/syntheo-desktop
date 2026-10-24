@@ -2,6 +2,7 @@
 name = "calendar-interface"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 chrono = { workspace = true, features = ["serde"] }

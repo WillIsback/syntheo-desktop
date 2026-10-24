@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = [ "You" ]
 description = ""
 edition = "2024"
+license = "MIT"
 exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
 links = "tauri-plugin-permissions"
 
