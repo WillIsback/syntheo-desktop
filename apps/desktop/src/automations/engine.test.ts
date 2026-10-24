@@ -33,10 +33,6 @@ vi.mock("~/db", () => ({
   liveQueryClient: { execute: mocks.execute },
 }));
 
-vi.mock("~/auth/client", () => ({
-  supabase: { auth: { getSession: mocks.getSession } },
-}));
-
 vi.mock("~/env", () => ({
   env: { VITE_API_URL: "https://api.test" },
 }));

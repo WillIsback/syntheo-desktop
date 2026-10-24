@@ -34,10 +34,6 @@ const mocks = vi.hoisted(() => ({
   workspaces: [] as Array<{ id: string; name: string }>,
 }));
 
-vi.mock("~/auth", () => ({
-  useOptionalAuth: () => mocks.auth,
-}));
-
 vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({
     isReady: false,

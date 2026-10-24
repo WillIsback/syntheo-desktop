@@ -45,24 +45,12 @@ vi.mock("@tauri-apps/plugin-os", () => ({
   platform: () => "macos",
 }));
 
-vi.mock("~/auth", () => ({
-  useAuth: () => ({ session: {} }),
-}));
-
 vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({
     isPaid: true,
     isPro: true,
     upgradeToPro: vi.fn(),
     isUpgradingToPro: false,
-  }),
-}));
-
-vi.mock("~/auth/useConnections", () => ({
-  useConnections: () => ({
-    data: [],
-    isPending: false,
-    isError: false,
   }),
 }));
 

@@ -52,7 +52,6 @@ vi.mock("./env", () => ({
 
 import {
   captureOperationalError,
-  initializeErrorReporting,
   normalizeOperationalError,
   operationalErrorMetadata,
   sanitizeErrorEvent,
@@ -323,9 +322,9 @@ describe("archived operational noise", () => {
   });
 });
 
-describe("initializeErrorReporting", () => {
+describe("telemetry", () => {
   it("never initializes Sentry, even with a DSN in the environment", () => {
-    initializeErrorReporting();
+    // Importer le module (fait en tête de fichier) ne doit rien initialiser.
     expect(mocks.sentryInit).not.toHaveBeenCalled();
   });
 });

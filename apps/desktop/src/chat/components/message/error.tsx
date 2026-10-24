@@ -8,9 +8,9 @@ import {
 
 import { ActionButton, MessageBubble, MessageContainer } from "./shared";
 
-import { env } from "~/env";
-
-const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
+// Pas d'application web hébergée : l'aide renvoie à la documentation du dépôt.
+const CONTEXT_LENGTH_HELP_URL =
+  "https://github.com/WillIsback/syntheo-desktop#readme";
 
 // `useChat().error` is typed as Error but holds whatever the transport threw.
 export function getChatErrorText(error: unknown): string {
@@ -42,10 +42,7 @@ export function ErrorMessage({
   const showContextLengthHelp = isContextLengthError(message);
 
   const handleOpenFaq = () => {
-    void openerCommands.openUrl(
-      `${WEB_APP_BASE_URL}/docs/faq/local-llm-setup#context-length-error`,
-      null,
-    );
+    void openerCommands.openUrl(CONTEXT_LENGTH_HELP_URL, null);
   };
 
   return (

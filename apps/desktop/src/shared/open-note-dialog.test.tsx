@@ -19,10 +19,6 @@ const mocks = vi.hoisted(() => ({
   }>,
 }));
 
-vi.mock("~/auth", () => ({
-  useAuth: () => ({ session: { user: { id: "viewer-1" } } }),
-}));
-
 vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({ isPro: true }),
 }));

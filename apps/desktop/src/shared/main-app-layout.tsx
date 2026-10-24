@@ -10,7 +10,6 @@ import {
   useNewNote,
 } from "./useNewNote";
 
-import { AuthProvider } from "~/auth";
 import { LocalBillingProvider } from "~/billing/local-billing";
 import { getOrCreateSessionForEventId } from "~/session/queries";
 import { openFoldersFromNavigation } from "~/shared/folders-navigation";
@@ -29,11 +28,9 @@ export default function MainAppLayout() {
   useZoomShortcuts();
 
   return (
-    <AuthProvider>
-      <LocalBillingProvider>
-        <MainAppContent />
-      </LocalBillingProvider>
-    </AuthProvider>
+    <LocalBillingProvider>
+      <MainAppContent />
+    </LocalBillingProvider>
   );
 }
 

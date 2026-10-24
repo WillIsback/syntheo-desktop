@@ -50,9 +50,6 @@ vi.mock("~/session/components/note-input/transcript/export-data", () => ({
   useTranscriptExportSegments: () => ({ data: [], isLoading: false }),
 }));
 vi.mock("~/stt/queries", () => ({ useSessionTranscriptMetadata: () => [] }));
-vi.mock("~/auth", () => ({
-  useAuth: () => ({ session: { user: { id: "viewer" } } }),
-}));
 vi.mock("~/shared-notes/cache", () => ({
   useDurableSharedNote: (_viewer: string | null, shareId: string) => ({
     data: shareId ? mocks.sharedNote : undefined,

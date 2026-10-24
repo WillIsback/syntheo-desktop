@@ -15,9 +15,10 @@ const FORBIDDEN = [
   "~/attachment-sync",
   "~/enterprise-capture",
   "~/settings/team",
-  "~/auth/cloudsync",
-  "~/auth/useConnections",
-  "~/auth/sync-devices",
+  "~/auth",
+  "@anlg/plugin-auth",
+  "@anlg/supabase",
+  "@supabase/",
   "anarlog.so",
   "useConnections",
   "requireTeamContext",
@@ -32,6 +33,7 @@ const REMOVED_DIRS = [
   "attachment-sync",
   "enterprise-capture",
   "settings/team",
+  "auth",
 ];
 
 function productionFiles(dir: string): string[] {

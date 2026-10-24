@@ -25,12 +25,6 @@ vi.mock("./useNewNote", () => ({
   useNewNote: () => vi.fn(),
 }));
 
-vi.mock("~/auth", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="auth-provider">{children}</div>
-  ),
-}));
-
 vi.mock("~/billing/local-billing", () => ({
   LocalBillingProvider: ({ children }: { children: React.ReactNode }) =>
     children,

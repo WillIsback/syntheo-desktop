@@ -22,7 +22,6 @@ import { trackAnalyticsEvent } from "./analytics";
 import { createToolRegistry } from "./contexts/tool-registry/core";
 import {
   captureOperationalError,
-  initializeErrorReporting,
   reportCaughtReactError,
 } from "./error-reporting";
 import { AppI18nProvider } from "./i18n/provider";
@@ -94,8 +93,6 @@ function App() {
     </>
   );
 }
-
-initializeErrorReporting();
 
 function AppRoot() {
   return (

@@ -175,9 +175,6 @@ importers:
       '@anlg/plugin-attachment-sync':
         specifier: workspace:*
         version: link:../../plugins/attachment-sync
-      '@anlg/plugin-auth':
-        specifier: workspace:*
-        version: link:../../plugins/auth
       '@anlg/plugin-calendar':
         specifier: workspace:*
         version: link:../../plugins/calendar
@@ -277,18 +274,12 @@ importers:
       '@anlg/plugin-windows':
         specifier: workspace:*
         version: link:../../plugins/windows
-      '@anlg/pricing':
-        specifier: workspace:^
-        version: link:../../packages/pricing
       '@anlg/provider-validation':
         specifier: workspace:*
         version: link:../../packages/provider-validation
       '@anlg/store':
         specifier: workspace:*
         version: link:../../packages/store
-      '@anlg/supabase':
-        specifier: workspace:*
-        version: link:../../packages/supabase
       '@anlg/ui':
         specifier: workspace:^
         version: link:../../packages/ui
@@ -331,9 +322,6 @@ importers:
       '@sentry/react':
         specifier: ^8.55.1
         version: 8.55.1(react@19.2.5)
-      '@supabase/supabase-js':
-        specifier: ^2.103.0
-        version: 2.103.0
       '@t3-oss/env-core':
         specifier: ^0.13.11
         version: 0.13.11(typescript@5.8.3)(zod@4.6.7)
@@ -1932,11 +1920,6 @@ packages:
     resolution: {integrity: sha512-EMCx3AGZ3WfAl6ht7AyQoPm2Lh+BGYEMdc4Q6Hf7uSCDOZFuLq44qNwL+iaim8VlyYhRAo4X43+weadK8ZB4Yg==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/parser@7.29.11':
-    resolution: {integrity: sha512-OZ6+oaK7GMyg3IfCpj8JOmn8n+w2rJbDT0LLfVDTLb1ZFeKDh3AiNELgCMUw175IJHSkLl74hG0M0VLsvx+gag==}
-    engines: {node: '>=6.0.0'}
-    hasBin: true
-
   '@babel/parser@7.29.2':
     resolution: {integrity: sha512-4GgRzy/+fsBa72/RZVJmGKPmZu9Byn8o4MoLpmNe1m8ZfYnz5emHLQz3U4gLud6Zwl0RZIcgiLD7Uq7ySFuDLA==}
     engines: {node: '>=6.0.0'}
@@ -2039,12 +2022,6 @@ packages:
     peerDependencies:
       '@babel/core': 7.29.7
 
-  '@babel/plugin-transform-block-scoping@7.29.11':
-    resolution: {integrity: sha512-iARF4jjHSM0v8DImCACPXrwEltBP3DgqDpXTvjAMBAVpyEY0LiGss78wvI+KtmW+IJNEvZ5sOhPDCsOsXsIybA==}
-    engines: {node: '>=6.9.0'}
-    peerDependencies:
-      '@babel/core': 7.29.7
-
   '@babel/plugin-transform-block-scoping@7.29.7':
     resolution: {integrity: sha512-ONyr4+AZhKh8yKWInVxU9AXA9EbsyeLcL6V0dJy6M2/62vuvpGm29zzuymbTpdc451GEpDIdAyPLP3r+P61yKQ==}
     engines: {node: '>=6.9.0'}
@@ -2059,12 +2036,6 @@ packages:
 
   '@babel/plugin-transform-class-static-block@7.29.7':
     resolution: {integrity: sha512-kibJgmEdX2iMwsHY2tSZNDgj8PwIlCQz7FK9KuGKO8zsuoUwSEhoNnNVp/emKWrbY4HeO6kkXfdMqRKKKXBm2A==}
-    engines: {node: '>=6.9.0'}
-    peerDependencies:
-      '@babel/core': 7.29.7
-
-  '@babel/plugin-transform-classes@7.29.11':
-    resolution: {integrity: sha512-f8kTDM/nTvpLeafb+TJ4jboFr/Y3BbC+QzgPpPGzSKJqWLnj9LW0WLqv4XKA11LX5sr+EgvLE6Ix3YsCEusodw==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': 7.29.7
@@ -11089,10 +11060,6 @@ packages:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
 
-  ignore@7.0.14:
-    resolution: {integrity: sha512-wCBiZ77u1tuWde6G/nfOtLaCTYcFDU5yCzARzK10y+rLhzYoL7a7yEemcopcc2Mzow7gZOIjnV2ym1NYmdiJOQ==}
-    engines: {node: '>= 4'}
-
   ignore@7.0.5:
     resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
     engines: {node: '>= 4'}
@@ -14713,8 +14680,8 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  url-join@5.2.0:
-    resolution: {integrity: sha512-/tMVQdp/2eE90fGb6npbd2nLHH8jamzLLeZhLEKTz4Rc38wO5AeEuIhoWroWWfQJS50ZzL4Xod9JER/pJWTTEQ==}
+  url-join@5.1.1:
+    resolution: {integrity: sha512-5+M4YX5pEFeXSdMyt3J5iXr949UC+j6yHRkZUEv6ljTusAfdCdS4pSTudnYGzYEbKkdK5xIE0E3i5xzIzoiFrQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   url-parse@1.5.10:
@@ -15652,10 +15619,6 @@ snapshots:
       '@babel/template': 7.29.7
       '@babel/types': 7.29.8
 
-  '@babel/parser@7.29.11':
-    dependencies:
-      '@babel/types': 7.29.11
-
   '@babel/parser@7.29.2':
     dependencies:
       '@babel/types': 7.29.8
@@ -15755,11 +15718,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/plugin-transform-block-scoping@7.29.11(@babel/core@7.29.7)':
-    dependencies:
-      '@babel/core': 7.29.7
-      '@babel/helper-plugin-utils': 7.29.7
-
   '@babel/plugin-transform-block-scoping@7.29.7(@babel/core@7.29.7)':
     dependencies:
       '@babel/core': 7.29.7
@@ -15778,18 +15736,6 @@ snapshots:
       '@babel/core': 7.29.7
       '@babel/helper-create-class-features-plugin': 7.29.7(@babel/core@7.29.7)
       '@babel/helper-plugin-utils': 7.29.7
-    transitivePeerDependencies:
-      - supports-color
-
-  '@babel/plugin-transform-classes@7.29.11(@babel/core@7.29.7)':
-    dependencies:
-      '@babel/core': 7.29.7
-      '@babel/helper-annotate-as-pure': 7.29.7
-      '@babel/helper-compilation-targets': 7.29.7
-      '@babel/helper-globals': 7.29.7
-      '@babel/helper-plugin-utils': 7.29.7
-      '@babel/helper-replace-supers': 7.29.7(@babel/core@7.29.7)
-      '@babel/traverse': 7.29.10
     transitivePeerDependencies:
       - supports-color
 
@@ -16044,9 +15990,9 @@ snapshots:
       '@babel/code-frame': 7.29.7
       '@babel/generator': 7.29.8
       '@babel/helper-globals': 7.29.7
-      '@babel/parser': 7.29.11
+      '@babel/parser': 7.29.9
       '@babel/template': 7.29.7
-      '@babel/types': 7.29.11
+      '@babel/types': 7.29.8
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
@@ -17905,7 +17851,7 @@ snapshots:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
       react-layout-kit: 1.9.2(react@19.2.5)
-      url-join: 5.2.0
+      url-join: 5.1.1
     transitivePeerDependencies:
       - '@types/mdast'
       - '@types/react'
@@ -17997,7 +17943,7 @@ snapshots:
       swr: 2.5.1(react@19.2.5)
       ts-md5: 2.0.1
       unified: 11.0.5
-      url-join: 5.2.0
+      url-join: 5.1.1
       use-merge-value: 1.2.0(react@19.2.5)
       uuid: 13.0.2
     transitivePeerDependencies:
@@ -20301,7 +20247,7 @@ snapshots:
   '@rc-component/collapse@1.1.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
       '@babel/runtime': 7.29.10
-      '@rc-component/motion': 1.1.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@rc-component/motion': 1.3.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/util': 1.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       clsx: 2.1.1
       react: 19.2.5
@@ -20323,7 +20269,7 @@ snapshots:
 
   '@rc-component/dialog@1.5.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
-      '@rc-component/motion': 1.1.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@rc-component/motion': 1.3.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/portal': 2.2.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/util': 1.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       clsx: 2.1.1
@@ -20332,7 +20278,7 @@ snapshots:
 
   '@rc-component/drawer@1.3.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
-      '@rc-component/motion': 1.1.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@rc-component/motion': 1.3.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/portal': 2.2.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/util': 1.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       clsx: 2.1.1
@@ -20357,7 +20303,7 @@ snapshots:
 
   '@rc-component/image@1.5.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
-      '@rc-component/motion': 1.1.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@rc-component/motion': 1.3.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/portal': 2.2.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/util': 1.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       clsx: 2.1.1
@@ -20392,7 +20338,7 @@ snapshots:
 
   '@rc-component/menu@1.2.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
-      '@rc-component/motion': 1.1.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@rc-component/motion': 1.3.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/overflow': 1.0.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/trigger': 3.10.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/util': 1.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -20426,7 +20372,7 @@ snapshots:
 
   '@rc-component/notification@1.2.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
-      '@rc-component/motion': 1.1.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@rc-component/motion': 1.3.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/util': 1.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       clsx: 2.1.1
       react: 19.2.5
@@ -20505,7 +20451,7 @@ snapshots:
   '@rc-component/segmented@1.2.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
       '@babel/runtime': 7.29.10
-      '@rc-component/motion': 1.1.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@rc-component/motion': 1.3.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/util': 1.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       clsx: 2.1.1
       react: 19.2.5
@@ -20556,7 +20502,7 @@ snapshots:
     dependencies:
       '@rc-component/dropdown': 1.0.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/menu': 1.2.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@rc-component/motion': 1.1.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@rc-component/motion': 1.3.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/resize-observer': 1.1.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/util': 1.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       clsx: 2.1.1
@@ -20600,7 +20546,7 @@ snapshots:
 
   '@rc-component/tree@1.1.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
-      '@rc-component/motion': 1.1.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@rc-component/motion': 1.3.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/util': 1.14.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@rc-component/virtual-list': 1.6.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       clsx: 2.1.1
@@ -20655,7 +20601,7 @@ snapshots:
     dependencies:
       agent-install: 0.0.6
       commander: 14.0.3
-      ignore: 7.0.14
+      ignore: 7.0.5
       ora: 9.4.1
       package-manager-detector: 1.9.0
       picocolors: 1.1.1
@@ -20692,9 +20638,9 @@ snapshots:
       '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@7.29.7)
       '@babel/plugin-transform-async-generator-functions': 7.29.7(@babel/core@7.29.7)
       '@babel/plugin-transform-async-to-generator': 7.29.7(@babel/core@7.29.7)
-      '@babel/plugin-transform-block-scoping': 7.29.11(@babel/core@7.29.7)
+      '@babel/plugin-transform-block-scoping': 7.29.7(@babel/core@7.29.7)
       '@babel/plugin-transform-class-properties': 7.29.7(@babel/core@7.29.7)
-      '@babel/plugin-transform-classes': 7.29.11(@babel/core@7.29.7)
+      '@babel/plugin-transform-classes': 7.29.7(@babel/core@7.29.7)
       '@babel/plugin-transform-destructuring': 7.29.7(@babel/core@7.29.7)
       '@babel/plugin-transform-flow-strip-types': 7.29.7(@babel/core@7.29.7)
       '@babel/plugin-transform-for-of': 7.29.7(@babel/core@7.29.7)
@@ -24455,7 +24401,7 @@ snapshots:
   eslint-plugin-react-hooks@7.1.1(eslint@9.39.5(jiti@2.7.0)):
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/parser': 7.29.11
+      '@babel/parser': 7.29.9
       eslint: 9.39.5(jiti@2.7.0)
       hermes-parser: 0.25.1
       zod: 4.6.7
@@ -25745,8 +25691,6 @@ snapshots:
 
   ignore@5.3.2: {}
 
-  ignore@7.0.14: {}
-
   ignore@7.0.5: {}
 
   immediate@3.0.6: {}
@@ -26416,7 +26360,7 @@ snapshots:
 
   magicast@0.5.5:
     dependencies:
-      '@babel/parser': 7.29.11
+      '@babel/parser': 7.29.9
       '@babel/types': 7.29.8
       source-map-js: 1.2.2
 
@@ -27011,7 +26955,7 @@ snapshots:
   metro-source-map@0.84.6:
     dependencies:
       '@babel/traverse': 7.29.10
-      '@babel/types': 7.29.11
+      '@babel/types': 7.29.8
       flow-enums-runtime: 0.0.6
       invariant: 2.2.4
       metro-symbolicate: 0.84.6
@@ -27090,8 +27034,8 @@ snapshots:
     dependencies:
       '@babel/core': 7.29.7
       '@babel/generator': 7.29.8
-      '@babel/parser': 7.29.11
-      '@babel/types': 7.29.11
+      '@babel/parser': 7.29.9
+      '@babel/types': 7.29.8
       flow-enums-runtime: 0.0.6
       metro: 0.84.6
       metro-babel-transformer: 0.84.6
@@ -27156,10 +27100,10 @@ snapshots:
       '@babel/code-frame': 7.29.7
       '@babel/core': 7.29.7
       '@babel/generator': 7.29.8
-      '@babel/parser': 7.29.11
+      '@babel/parser': 7.29.9
       '@babel/template': 7.29.7
       '@babel/traverse': 7.29.10
-      '@babel/types': 7.29.11
+      '@babel/types': 7.29.8
       accepts: 2.0.0
       ci-info: 2.0.0
       connect: 3.7.0
@@ -28971,7 +28915,7 @@ snapshots:
       oxlint-plugin-react-doctor: 0.9.18
       playwright-core: 1.64.1
       prompts: 2.4.2
-      typescript: 5.8.3
+      typescript: 5.9.3
       yaml: 2.9.1
       yoga-layout: 3.2.1
     transitivePeerDependencies:
@@ -30694,7 +30638,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  url-join@5.2.0: {}
+  url-join@5.1.1: {}
 
   url-parse@1.5.10:
     dependencies:

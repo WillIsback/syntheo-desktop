@@ -67,10 +67,6 @@ vi.mock("@anlg/ui/components/ui/toast", () => ({
   toast: { error: mocks.toastError, warning: mocks.toastWarning },
 }));
 
-vi.mock("~/auth/client", () => ({
-  supabase: mocks.supabaseClient,
-}));
-
 vi.mock("~/calendar/ignored-events", () => ({
   useIgnoredEvents: () => ({
     ignoreEvent: mocks.ignoreEvent,

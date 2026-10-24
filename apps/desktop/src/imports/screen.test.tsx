@@ -29,27 +29,6 @@ const mocks = vi.hoisted(() => ({
   }>,
 }));
 
-vi.mock("~/auth", () => ({
-  useAuth: () => ({
-    session: mocks.signedIn ? { user: { id: "user-1" } } : null,
-    signIn: mocks.signIn,
-    getHeaders: () =>
-      mocks.signedIn ? { Authorization: "Bearer test" } : null,
-  }),
-}));
-
-vi.mock("~/auth/useConnections", async () => {
-  const { useQuery } = await import("@tanstack/react-query");
-  return {
-    useConnections: () =>
-      useQuery({
-        queryKey: ["integration-status", "user-1"],
-        queryFn: async () => mocks.connections,
-        initialData: mocks.connections,
-      }),
-  };
-});
-
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: mocks.selectFiles }));
 vi.mock("@anlg/plugin-importer", () => ({
   commands: { readTextFiles: mocks.readTextFiles },
