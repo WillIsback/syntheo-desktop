@@ -1,5 +1,6 @@
 # Workflow : Sécurité
-# SCA (Dependency Review, cargo deny, Trivy), SAST (CodeQL TS + Rust), fuite de secrets, synthèse
+# SCA (Dependency Review, cargo deny, Trivy), fuite de secrets, synthèse.
+# Le SAST (CodeQL) est dans ci-codeql.yml.
 name: ci-security
 
 on:
@@ -81,36 +82,6 @@ jobs:
           sarif_file: trivy-fs.sarif
           category: "trivy-fs"
 
-  sast:
-    name: SAST (CodeQL ${{ matrix.language }})
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    permissions:
-      security-events: write
-      actions: read
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [javascript-typescript, rust]
-    steps:
-      - name: Checkout du code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-
-      - name: Initialiser CodeQL
-        uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
-        with:
-          languages: ${{ matrix.language }}
-          build-mode: none
-          queries: security-and-quality
-
-      - name: Analyse CodeQL (upload automatique)
-        uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
-        with:
-          category: "/language:${{ matrix.language }}"
-
   secret-leak:
     name: Secret Leak (Gitleaks)
     runs-on: ubuntu-24.04
@@ -170,7 +141,7 @@ jobs:
   summary:
     name: Synthèse de sécurité
     runs-on: ubuntu-24.04
-    needs: [sca, sast, secret-leak]
+    needs: [sca, secret-leak]
     if: always() && github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -180,7 +151,6 @@ jobs:
         shell: bash
         env:
           SCA_STATUS: ${{ needs.sca.result }}
-          SAST_STATUS: ${{ needs.sast.result }}
           SECRET_STATUS: ${{ needs.secret-leak.result }}
         run: |
           set -euo pipefail
@@ -190,10 +160,11 @@ jobs:
             echo "| Scan | Statut |"
             echo "|------|--------|"
             echo "| SCA (Dependency Review + cargo deny + Trivy) | $SCA_STATUS |"
-            echo "| SAST (CodeQL TS + Rust) | $SAST_STATUS |"
             echo "| Secret Leak (Gitleaks) | $SECRET_STATUS |"
             echo ""
-            if [[ "$SCA_STATUS" == "success" && "$SAST_STATUS" == "success" && "$SECRET_STATUS" == "success" ]]; then
+            echo "_SAST (CodeQL) : voir le workflow ci-codeql et l'onglet Sécurité._"
+            echo ""
+            if [[ "$SCA_STATUS" == "success" && "$SECRET_STATUS" == "success" ]]; then
               echo "✅ **Verdict global : PASS** — tous les scans sont conformes."
             else
               echo "❌ **Verdict global : ÉCHEC** — consultez les jobs et l'onglet Sécurité."

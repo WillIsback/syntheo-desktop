@@ -1,0 +1,113 @@
+# Workflow : SAST (CodeQL)
+# Analyse TypeScript et Rust, suite security-extended (la qualité est couverte
+# par clippy, oxlint et ESLint). Sur une PR, chaque langage n'est analysé que
+# si la PR le modifie : l'extraction Rust (workspace + ~1 000 dépendances) est
+# longue. Analyse complète sur main et chaque semaine.
+name: ci-codeql
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Langages modifiés
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      rust: ${{ steps.diff.outputs.rust }}
+      ts: ${{ steps.diff.outputs.ts }}
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Détecter les langages touchés
+        id: diff
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE_SHA:-}" ]; then
+            # Hors PR (main, planifié, manuel) : analyse complète.
+            echo "rust=true" >> "$GITHUB_OUTPUT"; echo "ts=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          FILES=$(git diff --name-only "$BASE_SHA" HEAD)
+          # Le workflow lui-même compte : une modification de l'analyse se teste.
+          SELF='^\.github/workflows/ci-codeql\.yml$'
+          if grep -qE "\.rs$|(^|/)Cargo\.(toml|lock)$|$SELF" <<<"$FILES"; then RUST=true; else RUST=false; fi
+          if grep -qE "\.(ts|tsx|js|jsx|mjs|cjs)$|(^|/)package\.json$|^pnpm-lock\.yaml$|$SELF" <<<"$FILES"; then TS=true; else TS=false; fi
+          echo "rust=$RUST" >> "$GITHUB_OUTPUT"; echo "ts=$TS" >> "$GITHUB_OUTPUT"
+          echo "Rust : $RUST — TypeScript : $TS"
+
+  analyze-ts:
+    name: SAST (CodeQL javascript-typescript)
+    needs: changes
+    if: needs.changes.outputs.ts == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Initialiser CodeQL
+        uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+        with:
+          languages: javascript-typescript
+          build-mode: none
+          queries: security-extended
+
+      - name: Analyse CodeQL (upload automatique)
+        uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+        with:
+          category: "/language:javascript-typescript"
+
+  analyze-rust:
+    name: SAST (CodeQL rust)
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Initialiser CodeQL
+        uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+        with:
+          languages: rust
+          build-mode: none
+          queries: security-extended
+
+      - name: Analyse CodeQL (upload automatique)
+        uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+        with:
+          category: "/language:rust"

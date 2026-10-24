@@ -27,7 +27,8 @@
 | Workflow | Vérifie |
 |---|---|
 | `ci-code-quality` | dprint (TS, Rust, YAML, TOML, Markdown), oxlint (desktop), ESLint (fichiers modifiés), `tsc`, `cargo clippy` (non bloquant, #3), titre de PR, actionlint, zizmor, lockfiles |
-| `ci-security` | Dependency Review, `cargo deny`, Trivy, CodeQL (TS + Rust), Gitleaks, registre d'exceptions |
+| `ci-security` | Dependency Review, `cargo deny`, Trivy, Gitleaks, registre d'exceptions |
+| `ci-codeql` | CodeQL `security-extended` : TypeScript et Rust, chacun seulement si la PR le modifie (complet sur `main` et chaque semaine) |
 | `ci-test` | Vitest (desktop), `cargo test` des crates des chantiers, yamllint ; couverture différentielle ≥ 90 % à venir |
 | `ci-traceability` | issue référencée, type de PR, cohérence semver |
 | `ci-install` | le bloc « Démarrage rapide » du README, rejoué sur un runner vierge |
