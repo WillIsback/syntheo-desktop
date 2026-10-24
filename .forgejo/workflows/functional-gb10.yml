@@ -33,8 +33,12 @@ jobs:
     runs-on: docker
     timeout-minutes: 10
     steps:
+      # Les conteneurs de job ne résolvent pas le nom de service `forgejo` :
+      # checkout par l'adresse LAN plutôt que d'ouvrir le réseau interne aux jobs.
       - name: Checkout du code
         uses: actions/checkout@v4
+        with:
+          github-server-url: http://192.168.1.97:3737
 
       # Image du runner : node:22 (Debian bookworm), sans jq ni bws.
       - name: Installer jq et bws (version et empreinte épinglées)
