@@ -146,8 +146,8 @@ jobs:
 
       - name: Build .deb et AppImage
         env:
-          # Valeur factice exigée par le code hérité ; supprimée avec le chantier « privacy ».
-          POSTHOG_API_KEY: phc_disabled
+          # Valeur factice exigée par des intégrations cloud héritées (chantier 04d).
+          VITE_API_URL: http://127.0.0.1:9
         run: |
           set -euo pipefail
           pnpm -F ui build

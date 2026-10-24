@@ -65,15 +65,14 @@ sudo apt-get install -y xvfb
 npm install -g pnpm@11.1.1
 pnpm install --frozen-lockfile
 pnpm -F ui build
-POSTHOG_API_KEY=phc_disabled VITE_API_URL=http://127.0.0.1:9 pnpm -F desktop tauri build --ci --bundles deb --config ./src-tauri/tauri.conf.syntheo.json
+VITE_API_URL=http://127.0.0.1:9 pnpm -F desktop tauri build --ci --bundles deb --config ./src-tauri/tauri.conf.syntheo.json
 ls apps/desktop/src-tauri/target/release/bundle/deb/*.deb
 # Vérification : l'application doit tenir 30 s sans planter (124 = arrêtée par timeout).
 status=0; timeout 30 xvfb-run -a apps/desktop/src-tauri/target/release/syntheo || status=$?; [ "$status" -eq 124 ]
 ```
 
-`POSTHOG_API_KEY` et `VITE_API_URL` sont des valeurs factices exigées à la
-compilation par du code hérité (télémétrie, intégrations cloud) ; elles
-disparaissent avec les chantiers 04 et 04d du plan.
+`VITE_API_URL` est une valeur factice exigée à la compilation par des
+intégrations cloud héritées ; elle disparaît avec le chantier 04d du plan.
 
 ## Vérifications locales
 

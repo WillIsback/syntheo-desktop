@@ -221,6 +221,10 @@ impl AnalyticsClientBuilder {
 }
 
 impl AnalyticsClient {
+    pub fn has_remote_sink(&self) -> bool {
+        self.posthog.is_some()
+    }
+
     async fn capture(&self, state: &PosthogState, mut event: Event) -> Result<(), Error> {
         for (key, value) in &self.event_properties {
             let _ = event.insert_prop(key, value);
@@ -466,6 +470,12 @@ impl AnalyticsPayloadBuilder {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn default_client_has_no_remote_sink() {
+        assert!(!AnalyticsClientBuilder::default().build().has_remote_sink());
+    }
+
     use super::*;
 
     #[tokio::test]
