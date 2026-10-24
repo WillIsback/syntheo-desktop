@@ -1,0 +1,29 @@
+# Workflow : fusion automatique des PR Dependabot
+# Active l'auto-merge (squash) sur chaque PR ouverte par Dependabot. La fusion
+# n'a lieu qu'une fois les gates requises par la règle de la branche main au
+# vert : ce workflow n'exécute ni ne checkout le code de la PR.
+name: dependabot-auto-merge
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  auto-merge:
+    name: Auto-merge Dependabot
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Activer l'auto-merge (squash)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR_URL"
