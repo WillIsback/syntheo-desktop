@@ -22,6 +22,8 @@ pub fn list_installed_apps() -> Vec<InstalledApp> {
 }
 
 const SELF_BUNDLE_IDS: &[&str] = &[
+    "fr.willisback.syntheo",
+    "fr.willisback.syntheo.dev",
     "com.anarlog.dev",
     "com.anarlog.stable",
     "com.anarlog.staging",
@@ -33,6 +35,8 @@ const SELF_BUNDLE_IDS: &[&str] = &[
 ];
 
 const SELF_APP_NAMES: &[&str] = &[
+    "syntheo",
+    "syntheo dev",
     "anarlog",
     "anarlog staging",
     "anarlog nightly",
@@ -105,6 +109,17 @@ mod tests {
         InstalledApp {
             id: id.to_string(),
             name: name.to_string(),
+        }
+    }
+
+    #[test]
+    fn is_self_app_matches_syntheo_identities() {
+        for (id, name) in [
+            ("fr.willisback.syntheo", "Syntheo"),
+            ("fr.willisback.syntheo.dev", "Syntheo Dev"),
+            ("pid:45", "Syntheo"),
+        ] {
+            assert!(is_self_app(&app(id, name)), "{id} / {name}");
         }
     }
 

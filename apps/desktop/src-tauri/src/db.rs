@@ -4,7 +4,7 @@ use anlg_db_core::Db;
 
 const DB_FILENAME: &str = "app.db";
 const DB_RESET_MARKER: &str = "app.db.reset-requested";
-pub(crate) const STABLE_BUNDLE_ID: &str = "com.hyprnote.stable";
+pub(crate) const STABLE_BUNDLE_ID: &str = anlg_brand::STABLE_BUNDLE_ID;
 pub(crate) const NIGHTLY_BUNDLE_ID: &str = "com.hyprnote.nightly";
 const DEFAULT_CLOUDSYNC_INTERVAL_MS: u64 = 30_000;
 const DB_OPEN_LOCK_RETRIES: u32 = 12;
@@ -257,9 +257,9 @@ mod tests {
 
     #[test]
     fn only_nightly_and_stable_share_a_database_directory() {
-        let db_dir = desktop_db_dir("com.hyprnote.dev").unwrap();
+        let db_dir = desktop_db_dir(anlg_brand::DEV_BUNDLE_ID).unwrap();
 
-        assert!(db_dir.ends_with("com.hyprnote.dev"));
+        assert!(db_dir.ends_with(anlg_brand::DEV_BUNDLE_ID));
 
         assert_eq!(
             desktop_db_dir(NIGHTLY_BUNDLE_ID),
@@ -280,7 +280,7 @@ mod tests {
             Some(NIGHTLY_BUNDLE_ID)
         );
         assert_eq!(shared_database_peer("com.hyprnote.staging"), None);
-        assert_eq!(shared_database_peer("com.hyprnote.dev"), None);
+        assert_eq!(shared_database_peer(anlg_brand::DEV_BUNDLE_ID), None);
     }
 
     #[test]

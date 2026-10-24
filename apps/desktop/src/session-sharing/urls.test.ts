@@ -123,26 +123,26 @@ describe("session share URLs", () => {
         appBaseUrl: "https://anarlog.so",
         linkId,
         linkToken: token,
-        desktopScheme: "anarlog-staging",
+        desktopScheme: "syntheo-dev",
       }),
     );
-    expect(linkUrl.searchParams.get("scheme")).toBe("anarlog-staging");
+    expect(linkUrl.searchParams.get("scheme")).toBe("syntheo-dev");
     expect(linkUrl.hash).toBe(`#token=${token}`);
 
     const publicUrl = new URL(
       buildPublicSessionShareUrl({
         appBaseUrl: "https://anarlog.so",
         publicSlug,
-        desktopScheme: "anarlog-dev",
+        desktopScheme: "syntheo-dev",
       }),
     );
-    expect(publicUrl.searchParams.get("scheme")).toBe("anarlog-dev");
+    expect(publicUrl.searchParams.get("scheme")).toBe("syntheo-dev");
 
     const stableUrl = new URL(
       buildAccountSessionShareUrl({
         appBaseUrl: "https://anarlog.so",
         shareId,
-        desktopScheme: "anarlog",
+        desktopScheme: "syntheo",
       }),
     );
     expect(stableUrl.search).toBe("");

@@ -2728,6 +2728,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "brand"
+version = "0.1.0"
+
+[[package]]
 name = "brotli"
 version = "8.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4693,6 +4697,7 @@ version = "0.0.0"
 dependencies = [
  "audio-actual",
  "audio-mock",
+ "brand",
  "chrono",
  "db-app",
  "db-core",
@@ -10355,6 +10360,7 @@ dependencies = [
 name = "notification-linux"
 version = "0.1.0"
 dependencies = [
+ "brand",
  "gdk",
  "gdk-pixbuf",
  "glib",
@@ -15379,6 +15385,7 @@ name = "storage"
 version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
+ "brand",
  "dirs 6.0.0",
  "serde_json",
  "shellexpand",
@@ -16541,6 +16548,7 @@ dependencies = [
 name = "tauri-plugin-anlg-tray"
 version = "0.1.0"
 dependencies = [
+ "brand",
  "intercept",
  "libloading 0.8.9",
  "objc2",
@@ -17572,6 +17580,7 @@ name = "tauri-plugin-store2"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "brand",
  "keyring",
  "objc2-security",
  "security-framework",

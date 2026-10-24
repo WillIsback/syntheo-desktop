@@ -4,12 +4,12 @@ use std::os::unix::fs::PermissionsExt;
 
 #[test]
 fn maps_bundle_id_to_command_name() {
-    assert_eq!(command_name_from_identifier(STABLE_BUNDLE_ID), "anarlog");
+    assert_eq!(command_name_from_identifier(STABLE_BUNDLE_ID), "syntheo");
     assert_eq!(
         command_name_from_identifier(LEGACY_STABLE_BUNDLE_ID),
-        "anarlog"
+        "syntheo"
     );
-    assert_eq!(command_name_from_identifier(FLATPAK_BUNDLE_ID), "anarlog");
+    assert_eq!(command_name_from_identifier(FLATPAK_BUNDLE_ID), "syntheo");
     assert_eq!(
         command_name_from_identifier(STAGING_BUNDLE_ID),
         "anarlog-staging"
@@ -18,8 +18,8 @@ fn maps_bundle_id_to_command_name() {
         command_name_from_identifier(NIGHTLY_BUNDLE_ID),
         "anarlog-nightly"
     );
-    assert_eq!(command_name_from_identifier(DEV_BUNDLE_ID), "anarlog-dev");
-    assert_eq!(command_name_from_identifier("unknown"), "anarlog");
+    assert_eq!(command_name_from_identifier(DEV_BUNDLE_ID), "syntheo-dev");
+    assert_eq!(command_name_from_identifier("unknown"), "syntheo");
 }
 
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]

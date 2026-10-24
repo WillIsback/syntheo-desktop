@@ -9,26 +9,11 @@ import { env } from "~/env";
 
 export const id = () => crypto.randomUUID() as string;
 
-export type DesktopScheme =
-  | "anarlog"
-  | "anarlog-staging"
-  | "anarlog-nightly"
-  | "anarlog-dev";
+export type DesktopScheme = "syntheo" | "syntheo-dev";
 
 export const getScheme = async (): Promise<DesktopScheme> => {
   const id = await getIdentifier();
-  const schemes: Record<string, DesktopScheme> = {
-    "com.hyprnote.stable": "anarlog",
-    "com.hyprnote.Hyprnote": "anarlog",
-    "com.hyprnote.staging": "anarlog-staging",
-    "com.hyprnote.nightly": "anarlog-nightly",
-    "com.hyprnote.dev": "anarlog-dev",
-    "so.anarlog.Anarlog": "anarlog",
-    "com.anarlog.stable": "anarlog",
-    "com.anarlog.staging": "anarlog-staging",
-    "com.anarlog.dev": "anarlog-dev",
-  };
-  return schemes[id] ?? "anarlog";
+  return id === "fr.willisback.syntheo.dev" ? "syntheo-dev" : "syntheo";
 };
 
 type DesktopFlowPath =
@@ -51,7 +36,7 @@ export const buildWebAppUrl = async (
   url.searchParams.set("scheme", scheme);
   if (
     import.meta.env.DEV &&
-    scheme === "anarlog-dev" &&
+    scheme === "syntheo-dev" &&
     (path === "/app/integration" || path === "/app/google-drive-picker")
   ) {
     const { commands } = await import("@anlg/plugin-deeplink2");
