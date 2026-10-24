@@ -30,6 +30,9 @@
   d'être transcrit. Seuls le transcript et la note sont enregistrés, localement.
 - **Ni compte, ni abonnement, ni télémétrie.**
 
+Données, flux réseau et responsabilités au regard du RGPD :
+[docs/conformite/rgpd.md](docs/conformite/rgpd.md).
+
 ## Installation
 
 Les installateurs graphiques (Windows, macOS, Linux) et les scripts
