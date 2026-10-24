@@ -26,7 +26,7 @@
 
 | Workflow | Vérifie |
 |---|---|
-| `ci-code-quality` | dprint (TS, Rust, YAML, TOML, Markdown), oxlint + ESLint, `tsc`, `cargo clippy`, titre de PR, actionlint, zizmor, lockfiles |
+| `ci-code-quality` | dprint (TS, Rust, YAML, TOML, Markdown), oxlint (desktop), ESLint (fichiers modifiés), `tsc`, `cargo clippy`, titre de PR, actionlint, zizmor, lockfiles |
 | `ci-security` | Dependency Review, `cargo deny`, Trivy, CodeQL (TS + Rust), Gitleaks, registre d'exceptions |
 | `ci-test` | Vitest (desktop), `cargo test` des crates des chantiers, yamllint ; couverture différentielle ≥ 90 % à venir |
 | `ci-traceability` | issue référencée, type de PR, cohérence semver |

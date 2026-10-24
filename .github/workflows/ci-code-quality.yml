@@ -50,8 +50,20 @@ jobs:
             pnpm fmt:check
           fi
 
-      - name: Lint (oxlint + ESLint)
-        run: pnpm lint
+      # Code hérité : oxlint (erreurs) sur le desktop, comme la CI d'origine.
+      # Code nouveau ou modifié : ESLint complet, limité aux fichiers de la PR.
+      - name: Lint (oxlint)
+        run: pnpm exec oxlint --quiet --format=github apps/desktop/src/
+
+      - name: Lint (ESLint, fichiers modifiés)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          git diff --name-only --diff-filter=ACMR -z "$BASE_SHA" HEAD -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' \
+            | xargs -0 --no-run-if-empty pnpm exec eslint --no-warn-ignored
 
       - name: Typage du desktop (tsc)
         run: |
