@@ -7,7 +7,6 @@ use tracing_appender::non_blocking::WorkerGuard;
 const MAX_LOG_BYTES: u64 = 5 * 1024 * 1024;
 const MAX_LOG_FILES: usize = 5;
 
-
 pub fn cleanup_old_daily_logs(logs_dir: &PathBuf) -> io::Result<()> {
     if !logs_dir.exists() {
         return Ok(());

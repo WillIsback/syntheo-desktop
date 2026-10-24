@@ -470,7 +470,6 @@ impl AnalyticsPayloadBuilder {
 
 #[cfg(test)]
 mod tests {
-
     #[test]
     fn default_client_has_no_remote_sink() {
         assert!(!AnalyticsClientBuilder::default().build().has_remote_sink());

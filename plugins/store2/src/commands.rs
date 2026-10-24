@@ -491,7 +491,6 @@ fn delete_secret_blocking_for<R: tauri::Runtime>(
 
 #[cfg(test)]
 mod tests {
-
     #[test]
     fn secure_store_service_is_syntheo_specific() {
         assert_eq!(

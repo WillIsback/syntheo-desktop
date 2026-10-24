@@ -12,14 +12,15 @@ pub fn compute_default_base(bundle_id: &str) -> Option<PathBuf> {
     Some(data_dir.join(app_folder))
 }
 
-// This base holds settings, the store, and the vault config. Debug builds keep
-// their bundle id folder; release always uses Syntheo's own folder and never
-// reads an Anarlog/Hyprnote installation.
+// This base holds settings, the store, and the vault config. Only the stable
+// release identity uses Syntheo's own folder; any other identity (debug builds,
+// a release build of the dev config) keeps its bundle id folder. Never reads an
+// Anarlog/Hyprnote installation.
 fn resolve_app_folder<'a>(_data_dir: &Path, bundle_id: &'a str, is_debug: bool) -> &'a str {
-    if is_debug {
-        bundle_id
-    } else {
+    if !is_debug && bundle_id == anlg_brand::STABLE_BUNDLE_ID {
         anlg_brand::APP_DATA_FOLDER
+    } else {
+        bundle_id
     }
 }
 
@@ -47,6 +48,15 @@ mod tests {
         assert_eq!(
             resolve_app_folder(temp.path(), anlg_brand::STABLE_BUNDLE_ID, false),
             "syntheo"
+        );
+    }
+
+    #[test]
+    fn release_build_of_another_identity_keeps_its_own_folder() {
+        let temp = tempdir().unwrap();
+        assert_eq!(
+            resolve_app_folder(temp.path(), anlg_brand::DEV_BUNDLE_ID, false),
+            anlg_brand::DEV_BUNDLE_ID
         );
     }
 

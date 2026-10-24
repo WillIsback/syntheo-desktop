@@ -46,9 +46,10 @@ export function DictationLifecycle() {
     (state) => state.live.status !== "inactive" || state.live.loading,
   );
 
-  if (!session || !isReady || !isPro || !settingsReady || !enabled) return null;
+  // Syntheo n'a pas de compte : la dictée ne dépend pas d'une session.
+  if (!isReady || !isPro || !settingsReady || !enabled) return null;
   return (
-    <TranscriptRetention key={session.user.id}>
+    <TranscriptRetention key={session?.user.id ?? "local"}>
       {!meetingActive && !capturingShortcut && (
         <ActiveDictation
           key={`${shortcut}:${handsFree}:${retry}`}

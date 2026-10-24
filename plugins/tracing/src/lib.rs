@@ -14,7 +14,6 @@ use tracing_subscriber::{
     EnvFilter, fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
 };
 
-
 const PLUGIN_NAME: &str = "tracing";
 const WEBVIEW_CONSOLE_TARGET: &str = "anarlog.webview.console";
 
