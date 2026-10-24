@@ -49,7 +49,9 @@ vi.mock("~/settings/queries", () => ({
   useStoredSettingValuesQuery: mocks.useStoredSettingValuesQuery,
 }));
 
-vi.mock("./account", () => ({ SettingsAccount: () => null }));
+vi.mock("./account-profile", () => ({
+  AccountProfile: () => <span>Profil local</span>,
+}));
 vi.mock("./app-settings", () => ({ AppSettingsView: () => null }));
 vi.mock("./audio-settings", () => ({
   AudioSettingsView: () => <span>Audio settings</span>,
@@ -108,6 +110,18 @@ describe("SettingsApp", () => {
     render(<SettingsApp />);
 
     expect(screen.getByTestId("main-language").textContent).toBe("ko");
+  });
+
+  it("account_profile_is_reachable_from_general", () => {
+    mocks.useStoredSettingValuesQuery.mockReturnValue({
+      data: { values: {}, hasValues: new Set() },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<SettingsApp />);
+
+    expect(screen.getByText("Profil local")).toBeTruthy();
   });
 
   it("persists meeting switch toggles", async () => {

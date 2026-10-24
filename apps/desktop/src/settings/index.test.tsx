@@ -22,14 +22,9 @@ vi.mock("~/settings/developers", () => ({ SettingsDevelopers: () => null }));
 vi.mock("~/settings/dictionary", () => ({ SettingsDictionary: () => null }));
 vi.mock("~/settings/imports", () => ({ SettingsImports: () => null }));
 vi.mock("~/settings/privacy", () => ({ SettingsPrivacy: () => null }));
-vi.mock("~/settings/general/billing", () => ({
-  SettingsBilling: () => <div>Billing settings</div>,
-}));
 vi.mock("~/settings/stats", () => ({
   SettingsInsights: () => <div>Personal insights</div>,
 }));
-vi.mock("~/settings/sync", () => ({ SettingsSync: () => null }));
-vi.mock("~/settings/team", () => ({ SettingsTeam: () => null }));
 vi.mock("~/shared/main", () => ({
   StandardContentWrapper: ({ children }: { children: React.ReactNode }) =>
     children,
@@ -43,7 +38,6 @@ describe("TabContentSettings", () => {
   afterEach(cleanup);
 
   it.each([
-    ["billing", "Billing settings"],
     ["insights", "Personal insights"],
     ["stats", "Personal insights"],
   ] as const)("opens the %s destination", (destination, heading) => {

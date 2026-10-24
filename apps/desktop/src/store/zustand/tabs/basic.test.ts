@@ -395,8 +395,13 @@ describe("Basic Tab Actions", () => {
     ["data", "imports"],
     ["personalization", "dictionary"],
     ["audio", "meetings"],
-    ["billing", "billing"],
-    ["referrals", "referrals"],
+    // legacy_settings_tabs_normalize_to_general : écrans compte/équipe retirés
+    ["account", "app"],
+    ["billing", "app"],
+    ["referrals", "app"],
+    ["team", "app"],
+    ["sync", "app"],
+    ["crm", "app"],
   ] as const)(
     "openNew normalizes settings tab %s to %s",
     (requested, expected) => {
