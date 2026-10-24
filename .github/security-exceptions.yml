@@ -1,0 +1,12 @@
+# Registre des exceptions de sécurité
+# Chaque exception DOIT avoir une justification, un auteur et une date d'expiration.
+# Validé par scripts/check_security_exceptions.py (job SCA de ci-security) :
+# une exception expirée fait échouer la CI. Les identifiants listés ici sont
+# reportés dans .trivyignore (Trivy) ou deny.toml (cargo deny).
+---
+exceptions: []
+# - cve: CVE-2026-XXXXX
+#   reason: "Faux positif : fonction vulnérable non appelée par le desktop"
+#   expires: "2027-01-31"
+#   author: "WillIsback"
+#   path: "pnpm-lock.yaml"

@@ -1,0 +1,13 @@
+# Configuration Gitleaks : règles par défaut + exclusions justifiées.
+title = "Syntheo Desktop"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fichiers générés et lockfiles (hashes d'intégrité, pas des secrets)"
+paths = [
+  '''pnpm-lock\.yaml''',
+  '''Cargo\.lock''',
+  '''apps/desktop/src/i18n/locales/.*/messages\.(po|ts)''',
+]

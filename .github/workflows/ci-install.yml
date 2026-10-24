@@ -1,0 +1,66 @@
+# Workflow : Test d'installation (parcours développeur)
+# Rejoue tel quel, sur un runner vierge, le bloc « Démarrage rapide › Développeurs »
+# du README : dépendances, build du paquet .deb, démarrage de l'application.
+# scripts/ci/quickstart_test.sh n'ajoute aucune commande : la doc est le test.
+name: ci-install
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "README.md"
+      - "apps/desktop/**"
+      - "packages/**"
+      - "plugins/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "rust-toolchain.toml"
+      - "scripts/setup-linux-*.sh"
+      - "scripts/ci/quickstart_test.sh"
+      - ".github/workflows/ci-install.yml"
+  push:
+    branches: [main]
+  schedule:
+    # Hebdomadaire : détecte une casse venue de l'extérieur (paquets apt,
+    # registres npm/crates) même sans commit.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: install-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci-install:
+    name: ci-install (développeurs)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      # Clone vierge : pas de credentials persistés, comme un nouveau contributeur.
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      # Prérequis annoncés par le README (hors bloc) : Node ≥ 22.23 et rustup.
+      - name: Prérequis Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22.23.4"
+
+      - name: Libérer de l'espace disque
+        run: sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup 2> /dev/null || true
+
+      # Le `git clone` du README est redirigé vers ce checkout (code de la PR) ;
+      # l'URL du README est tout de même vérifiée.
+      - name: Démarrage rapide du README
+        env:
+          QUICKSTART_CLONE_FROM: ${{ github.workspace }}
+        run: scripts/ci/quickstart_test.sh README.md "$RUNNER_TEMP/quickstart"

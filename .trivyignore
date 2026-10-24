@@ -1,0 +1,2 @@
+# Vulnérabilités acceptées temporairement par Trivy.
+# Chaque entrée DOIT figurer dans .github/security-exceptions.yml (justification + expiration).

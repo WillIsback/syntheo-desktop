@@ -1,0 +1,91 @@
+# Workflow : Tests
+# Tests unitaires TypeScript (Vitest) et Rust (cargo test), validation YAML
+name: ci-test
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  vitest:
+    name: ci-test (Vitest ${{ matrix.shard }}/3)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Installer Node, pnpm et les dépendances (lockfile figé)
+        uses: ./.github/actions/pnpm_install
+
+      - name: Tests du desktop
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -euo pipefail
+          pnpm -F ui build
+          pnpm -F desktop test --shard="$SHARD/3" --reporter=default --reporter=junit --outputFile.junit=junit.xml
+
+      - name: Upload des résultats
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: vitest-results-${{ matrix.shard }}
+          path: apps/desktop/junit.xml
+          retention-days: 7
+
+  cargo:
+    name: ci-test (Rust)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Dépendances système Tauri
+        uses: ./.github/actions/install_desktop_deps
+
+      - name: Toolchain Rust
+        uses: ./.github/actions/rust_install
+
+      # Crates portant les chantiers Syntheo : templates et prompts, schéma
+      # SQLite, adaptateurs STT, capture (règle « aucun audio sur disque »).
+      - name: Tests Rust
+        run: |
+          set -euo pipefail
+          cargo test --locked \
+            -p template-app -p db-app -p owhisper-client -p listener-core -p storage
+
+  yaml:
+    name: ci-test (YAML)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Validation YAML des workflows et configs
+        shell: bash
+        run: |
+          set -euo pipefail
+          pip install --only-binary :all: "yamllint==1.38.0" -q
+          yamllint -d '{"extends": "default", "rules": {"line-length": "disable", "document-start": "disable", "brackets": "disable", "truthy": {"check-keys": false}, "comments": {"min-spaces-from-content": 1}}}' .github/
