@@ -1,0 +1,41 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Origin: Anarlog
+Label: Anarlog
+Suite: stable
+Codename: stable
+Version: 1.4.31
+Date: Tue, 20 Oct 2026 10:03:48 GMT
+Architectures: amd64 arm64
+Components: main
+Description: Anarlog stable desktop releases
+MD5Sum:
+ 00dfa5b4bef904a4656113743e210bb3 638 main/binary-amd64/Packages
+ 6df82c9aa12246289fdda8179c1cb20d 432 main/binary-amd64/Packages.gz
+ dc02e3ec42d44ebf2dbfa7b2f52420a9 638 main/binary-arm64/Packages
+ 93b697ae380717edb49616bf18b57dfa 433 main/binary-arm64/Packages.gz
+SHA1:
+ 56e52153628386dc006f81ec04f6d97ea09cbd2b 638 main/binary-amd64/Packages
+ e4ae3e0cf79efb061e456f8ea163622642bb9138 432 main/binary-amd64/Packages.gz
+ 976b33d3043a3fcba5045f68f77b7a19d27fafeb 638 main/binary-arm64/Packages
+ ac6be3d66d2b31a15bfabf2d406ae82c039c5c91 433 main/binary-arm64/Packages.gz
+SHA256:
+ 4bc02f5e011cc8f59f76ce91dd2a8d07448f28f730f5754076a35877aec435e1 638 main/binary-amd64/Packages
+ 862815fad28b710bd8b01ba4fc9a7f11b5f31c89f7661b2e59015301edb7f524 432 main/binary-amd64/Packages.gz
+ 4e4b7dcface30c2cf61046d63f7efa3b9417591ecc9d88f311274fdeb0a6994d 638 main/binary-arm64/Packages
+ 5dbf41c1fc8d6f7512b229c5e8ab66c09438e5e7d1fb9f63773c0b71c5ab4089 433 main/binary-arm64/Packages.gz
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEJ1B7jKGV92hWmxTHGO3nP4OmCy0FAmrXPQ4ACgkQGO3nP4Om
+Cy0dUQv/Wlok2xopWNh53EVD5ZzztPWmUvJ3u8nv8qXgDRQQcM89hNNTsR4hTR+y
+e9puAYXnmhhkkx9n30pofUeFq9o9ITw/znx9GBM0akzQjqOtWPLqp4cFlbVVix6k
+8t3M46v0c/0FhK/P9YKhxHnF6HELCos8Jgj1PW1jKGJJ8OqTXUcg1pBxtbBDwiDb
+uZMOhMrJF7DruqU8vKjbm+mUafaL0yQKMNWr9SJhFUpR9UdEf0inXGFNwgISuuAL
+wp+u2W6SDc7qmRBYALT2SItSs9fKJhjYLRu07QT7cnvXlTDzptm/100n8qZrDXoB
+Hi+D7vy/cW7t14RA6NnfApdnFla+rCiSmmlUdJAEbf/B/h7OVwRqzWWd5+YOXEMr
+BGVe2FCDxh0lel+X5CigJgEXKy8St9t2Qwj473yexIxpxGLIrZONTT3sjbFUMGkk
+8oCdlnENdp+FGZ+sxwIFeKwnWFUC7SYHDSK4SfDwlejPBAfzii4FLqm2iEdr0mEP
+3REhn7kW
+=kOOr
+-----END PGP SIGNATURE-----

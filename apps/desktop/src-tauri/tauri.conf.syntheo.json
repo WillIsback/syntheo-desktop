@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Syntheo",
+  "mainBinaryName": "syntheo",
+  "identifier": "fr.willisback.syntheo",
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["syntheo"]
+      }
+    },
+    "updater": {
+      "active": false
+    }
+  },
+  "bundle": {
+    "publisher": "Syntheo",
+    "createUpdaterArtifacts": false,
+    "icon": [
+      "icons/staging/32x32.png",
+      "icons/staging/128x128.png",
+      "icons/staging/128x128@2x.png",
+      "icons/staging/icon.icns",
+      "icons/staging/icon.ico"
+    ]
+  }
+}
