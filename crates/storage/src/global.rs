@@ -1,10 +1,6 @@
 use std::path::{Path, PathBuf};
 
 pub const VAULT_CONFIG_FILENAME: &str = "global.json";
-const STAGING_BUNDLE_ID: &str = "com.hyprnote.staging";
-const NIGHTLY_BUNDLE_ID: &str = "com.hyprnote.nightly";
-const RELEASE_APP_FOLDER: &str = "anarlog";
-const LEGACY_RELEASE_APP_FOLDER: &str = "hyprnote";
 
 pub fn compute_vault_config_path(base: &Path) -> PathBuf {
     base.join(VAULT_CONFIG_FILENAME)
@@ -16,24 +12,16 @@ pub fn compute_default_base(bundle_id: &str) -> Option<PathBuf> {
     Some(data_dir.join(app_folder))
 }
 
-// This base holds settings, the store, and the vault config. Nightly keeps its
-// own; the desktop app maps only the database itself onto stable's folder.
-fn resolve_app_folder<'a>(data_dir: &Path, bundle_id: &'a str, is_debug: bool) -> &'a str {
-    if is_debug || matches!(bundle_id, STAGING_BUNDLE_ID | NIGHTLY_BUNDLE_ID) {
-        bundle_id
-    } else if has_app_data(&data_dir.join(LEGACY_RELEASE_APP_FOLDER))
-        && !has_app_data(&data_dir.join(RELEASE_APP_FOLDER))
-    {
-        LEGACY_RELEASE_APP_FOLDER
+// This base holds settings, the store, and the vault config. Only the stable
+// release identity uses Syntheo's own folder; any other identity (debug builds,
+// a release build of the dev config) keeps its bundle id folder. Never reads an
+// Anarlog/Hyprnote installation.
+fn resolve_app_folder<'a>(_data_dir: &Path, bundle_id: &'a str, is_debug: bool) -> &'a str {
+    if !is_debug && bundle_id == anlg_brand::STABLE_BUNDLE_ID {
+        anlg_brand::APP_DATA_FOLDER
     } else {
-        RELEASE_APP_FOLDER
+        bundle_id
     }
-}
-
-fn has_app_data(path: &Path) -> bool {
-    std::fs::read_dir(path)
-        .map(|mut entries| entries.next().is_some())
-        .unwrap_or_else(|_| path.exists())
 }
 
 #[cfg(test)]
@@ -42,73 +30,42 @@ mod tests {
     use tempfile::tempdir;
 
     #[test]
-    fn resolve_app_folder_uses_anarlog_for_new_stable_installs() {
+    fn resolve_app_folder_uses_syntheo_for_release() {
         let temp = tempdir().unwrap();
-
         assert_eq!(
-            resolve_app_folder(temp.path(), "com.hyprnote.stable", false),
-            RELEASE_APP_FOLDER
+            resolve_app_folder(temp.path(), anlg_brand::STABLE_BUNDLE_ID, false),
+            "syntheo"
         );
     }
 
     #[test]
-    fn resolve_app_folder_keeps_legacy_stable_folder_when_it_has_data() {
+    fn resolve_app_folder_ignores_existing_anarlog_data() {
         let temp = tempdir().unwrap();
-        let legacy_base = temp.path().join(LEGACY_RELEASE_APP_FOLDER);
-        std::fs::create_dir_all(&legacy_base).unwrap();
-        std::fs::write(legacy_base.join("store.json"), "{}").unwrap();
-
-        assert_eq!(
-            resolve_app_folder(temp.path(), "com.hyprnote.stable", false),
-            LEGACY_RELEASE_APP_FOLDER
-        );
-    }
-
-    #[test]
-    fn resolve_app_folder_prefers_anarlog_when_new_folder_has_data() {
-        let temp = tempdir().unwrap();
-        let legacy_base = temp.path().join(LEGACY_RELEASE_APP_FOLDER);
-        let new_base = temp.path().join(RELEASE_APP_FOLDER);
-        std::fs::create_dir_all(&legacy_base).unwrap();
-        std::fs::create_dir_all(&new_base).unwrap();
-        std::fs::write(legacy_base.join("store.json"), "{}").unwrap();
-        std::fs::write(new_base.join("app.db"), "").unwrap();
-
-        assert_eq!(
-            resolve_app_folder(temp.path(), "com.hyprnote.stable", false),
-            RELEASE_APP_FOLDER
-        );
-    }
-
-    #[test]
-    fn resolve_app_folder_ignores_empty_legacy_stable_folder() {
-        let temp = tempdir().unwrap();
-        std::fs::create_dir_all(temp.path().join(LEGACY_RELEASE_APP_FOLDER)).unwrap();
-
-        assert_eq!(
-            resolve_app_folder(temp.path(), "com.hyprnote.stable", false),
-            RELEASE_APP_FOLDER
-        );
-    }
-
-    #[test]
-    fn nightly_keeps_its_own_settings_base() {
-        let temp = tempfile::tempdir().unwrap();
-        for folder in [RELEASE_APP_FOLDER, LEGACY_RELEASE_APP_FOLDER] {
-            std::fs::create_dir(temp.path().join(folder)).unwrap();
-            std::fs::write(temp.path().join(folder).join("app.db"), "stable data").unwrap();
+        for legacy in ["anarlog", "hyprnote"] {
+            std::fs::create_dir_all(temp.path().join(legacy)).unwrap();
+            std::fs::write(temp.path().join(legacy).join("app.db"), b"x").unwrap();
         }
         assert_eq!(
-            resolve_app_folder(temp.path(), NIGHTLY_BUNDLE_ID, false),
-            NIGHTLY_BUNDLE_ID
+            resolve_app_folder(temp.path(), anlg_brand::STABLE_BUNDLE_ID, false),
+            "syntheo"
         );
     }
 
     #[test]
-    fn resolve_app_folder_returns_bundle_id_in_debug_builds() {
+    fn release_build_of_another_identity_keeps_its_own_folder() {
+        let temp = tempdir().unwrap();
         assert_eq!(
-            resolve_app_folder(Path::new("/tmp"), "com.hyprnote.stable", true),
-            "com.hyprnote.stable"
+            resolve_app_folder(temp.path(), anlg_brand::DEV_BUNDLE_ID, false),
+            anlg_brand::DEV_BUNDLE_ID
+        );
+    }
+
+    #[test]
+    fn resolve_app_folder_uses_bundle_id_in_debug() {
+        let temp = tempdir().unwrap();
+        assert_eq!(
+            resolve_app_folder(temp.path(), anlg_brand::DEV_BUNDLE_ID, true),
+            anlg_brand::DEV_BUNDLE_ID
         );
     }
 }

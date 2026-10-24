@@ -8,16 +8,11 @@ use super::MenuItemHandler;
 pub struct TrayVersion;
 
 impl TrayVersion {
-    fn get_channel(identifier: &str, app_name: &str) -> &'static str {
-        match identifier {
-            "com.hyprnote.stable" | "com.hyprnote.Hyprnote" => "stable",
-            "com.hyprnote.staging" => "staging",
-            "com.hyprnote.dev" => "dev",
-            _ => match app_name {
-                "Anarlog" | "Char" | "Hyprnote" => "stable",
-                "Anarlog Staging" | "Char Staging" | "Hyprnote Staging" => "staging",
-                _ => "dev",
-            },
+    fn get_channel(identifier: &str, _app_name: &str) -> &'static str {
+        if identifier == anlg_brand::STABLE_BUNDLE_ID {
+            "stable"
+        } else {
+            "dev"
         }
     }
 }
@@ -37,4 +32,25 @@ impl MenuItemHandler for TrayVersion {
     }
 
     fn handle(_app: &AppHandle<tauri::Wry>) {}
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_channel_maps_syntheo_identifiers() {
+        assert_eq!(
+            TrayVersion::get_channel("fr.willisback.syntheo", "Syntheo"),
+            "stable"
+        );
+        assert_eq!(
+            TrayVersion::get_channel("fr.willisback.syntheo.dev", "Syntheo Dev"),
+            "dev"
+        );
+        assert_eq!(
+            TrayVersion::get_channel("com.hyprnote.stable", "Anarlog"),
+            "dev"
+        );
+    }
 }

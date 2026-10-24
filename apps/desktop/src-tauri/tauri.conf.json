@@ -1,10 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Anarlog Dev",
-  "mainBinaryName": "anarlog-dev",
-  "identifier": "com.hyprnote.dev",
+  "productName": "Syntheo Dev",
+  "mainBinaryName": "syntheo-dev",
+  "identifier": "fr.willisback.syntheo.dev",
   "build": {
-    "features": ["direct-distribution"],
+    "features": [
+      "direct-distribution"
+    ],
     "beforeDevCommand": "pnpm -F desktop dev",
     "devUrl": "http://localhost:1422",
     "beforeBuildCommand": "pnpm -F desktop build",
@@ -25,9 +27,9 @@
     }
   },
   "bundle": {
-    "publisher": "Fastrepl",
+    "publisher": "Syntheo",
     "active": true,
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "targets": "all",
     "linux": {
       "deb": {
@@ -103,9 +105,7 @@
     "deep-link": {
       "desktop": {
         "schemes": [
-          "anarlog-dev",
-          "hypr",
-          "char"
+          "syntheo-dev"
         ]
       }
     },

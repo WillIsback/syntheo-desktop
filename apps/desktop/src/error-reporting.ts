@@ -1,10 +1,9 @@
 import * as Sentry from "@sentry/react";
 import type { ErrorEvent, SeverityLevel } from "@sentry/react";
-import { emit, listen } from "@tauri-apps/api/event";
+import { emit } from "@tauri-apps/api/event";
 
 import { isUserError, isUserErrorEvent } from "@anlg/user-error";
 
-import { env } from "./env";
 import { commands as desktopCommands } from "./types/tauri.gen";
 
 type ErrorContextValue = null | boolean | number | string;
@@ -213,57 +212,12 @@ export function sanitizeErrorEvent(event: ErrorEvent): ErrorEvent | null {
   return event;
 }
 
-export function initializeErrorReporting() {
-  if (!env.VITE_SENTRY_DSN) return;
-
-  Sentry.init({
-    dsn: env.VITE_SENTRY_DSN,
-    release: env.VITE_APP_VERSION
-      ? `anarlog-desktop@${env.VITE_APP_VERSION}`
-      : undefined,
-    environment: import.meta.env.MODE,
-    sendDefaultPii: false,
-    tracePropagationTargets: [],
-    beforeSend: (event) =>
-      errorReportingEnabled ? sanitizeErrorEvent(event) : null,
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
-    initialScope: {
-      tags: {
-        "service.name": "desktop",
-        "service.namespace": "anarlog",
-        "anarlog.surface": "desktop",
-      },
-    },
-  });
-
-  void initializeErrorReportingConsent();
-}
+// Télémétrie retirée de Syntheo Desktop (voir NOTICE.md) : aucun rapport
+// d'erreur n'est envoyé, Sentry n'est jamais initialisé.
+export function initializeErrorReporting() {}
 
 let sessionReplayInstalled = false;
 let sessionReplayRunning = false;
-
-async function initializeErrorReportingConsent() {
-  try {
-    await listen<{ enabled: boolean }>(
-      ERROR_REPORTING_CONSENT_EVENT,
-      ({ payload }) => {
-        errorReportingConsentRevision += 1;
-        applyErrorReportingConsent(payload.enabled);
-      },
-    );
-    const consentRevision = errorReportingConsentRevision;
-    const enabled = await desktopCommands.isCrashReportingEnabled();
-    if (
-      enabled.status === "ok" &&
-      consentRevision === errorReportingConsentRevision
-    ) {
-      applyErrorReportingConsent(enabled.data);
-    }
-  } catch {
-    // Without a readable consent state, keep error reporting off.
-  }
-}
 
 function applyErrorReportingConsent(enabled: boolean) {
   errorReportingEnabled = enabled;

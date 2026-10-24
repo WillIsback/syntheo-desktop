@@ -21,6 +21,7 @@ crate-type = ["staticlib", "rlib"]
 tauri-build = { workspace = true, features = [] }
 
 [dependencies]
+anlg-brand = { workspace = true }
 tauri = { workspace = true, features = ["specta", "protocol-asset"] }
 
 tauri-plugin-agent = { workspace = true }

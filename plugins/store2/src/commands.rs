@@ -491,6 +491,18 @@ fn delete_secret_blocking_for<R: tauri::Runtime>(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn secure_store_service_is_syntheo_specific() {
+        assert_eq!(
+            secure_store_service(anlg_brand::STABLE_BUNDLE_ID),
+            format!("fr.willisback.syntheo.{SECURE_STORE_SUFFIX}")
+        );
+        assert_eq!(
+            secure_store_service(anlg_brand::DEV_BUNDLE_ID),
+            format!("fr.willisback.syntheo.dev.{SECURE_STORE_SUFFIX}")
+        );
+    }
+
     use super::*;
 
     #[test]

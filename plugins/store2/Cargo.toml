@@ -12,6 +12,7 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+anlg-brand = { workspace = true }
 specta-typescript = { workspace = true }
 
 anyhow = { workspace = true }

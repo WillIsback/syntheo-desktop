@@ -51,28 +51,17 @@ fn resolve_default_path_for_command(data_dir: &Path, command_name: Option<&OsStr
         .and_then(OsStr::to_str)
         .and_then(|name| Path::new(name).file_stem())
         .and_then(OsStr::to_str);
-    // `anarlog-nightly` falls through: the Nightly desktop app opens the same
-    // database as stable.
-    let channel_identifier = match command_name {
-        Some("anarlog-dev") => Some("com.hyprnote.dev"),
-        Some("anarlog-staging") => Some("com.hyprnote.staging"),
-        _ => None,
-    };
-    if let Some(identifier) = channel_identifier {
-        return data_dir.join(identifier).join("app.db");
+    // Même résolution que l'app Syntheo : jamais la base d'une installation Anarlog.
+    if command_name == Some("syntheo-dev") {
+        return data_dir.join("fr.willisback.syntheo.dev").join("app.db");
     }
 
-    let current = data_dir.join("anarlog").join("app.db");
+    let current = data_dir.join("syntheo").join("app.db");
     if current.is_file() {
         return current;
     }
 
-    let legacy = data_dir.join("hyprnote").join("app.db");
-    if legacy.is_file() {
-        return legacy;
-    }
-
-    let identifier = data_dir.join("com.hyprnote.stable").join("app.db");
+    let identifier = data_dir.join("fr.willisback.syntheo").join("app.db");
     if identifier.is_file() {
         return identifier;
     }
@@ -85,67 +74,40 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_path_prefers_current_then_legacy_then_identifier() {
+    fn default_path_is_syntheo_and_ignores_anarlog_databases() {
         let dir = tempfile::tempdir().unwrap();
-        let current = dir.path().join("anarlog/app.db");
-        let legacy = dir.path().join("hyprnote/app.db");
-        let identifier = dir.path().join("com.hyprnote.stable/app.db");
-
+        for legacy in ["anarlog", "hyprnote", "com.hyprnote.stable"] {
+            std::fs::create_dir_all(dir.path().join(legacy)).unwrap();
+            std::fs::write(dir.path().join(legacy).join("app.db"), b"x").unwrap();
+        }
         assert_eq!(
-            resolve_default_path_for_command(dir.path(), Some(OsStr::new("anarlog"))),
-            dir.path().join("anarlog/app.db")
+            resolve_default_path_for_command(dir.path(), Some(OsStr::new("syntheo"))),
+            dir.path().join("syntheo/app.db")
         );
-
-        std::fs::create_dir_all(identifier.parent().unwrap()).unwrap();
-        std::fs::write(&identifier, "").unwrap();
         assert_eq!(
             resolve_default_path_for_command(dir.path(), Some(OsStr::new("anarlog"))),
-            identifier
-        );
-
-        std::fs::create_dir_all(legacy.parent().unwrap()).unwrap();
-        std::fs::write(&legacy, "").unwrap();
-        assert_eq!(
-            resolve_default_path_for_command(dir.path(), Some(OsStr::new("anarlog"))),
-            legacy
-        );
-
-        std::fs::create_dir_all(current.parent().unwrap()).unwrap();
-        std::fs::write(&current, "").unwrap();
-        assert_eq!(
-            resolve_default_path_for_command(dir.path(), Some(OsStr::new("anarlog"))),
-            current
+            dir.path().join("syntheo/app.db")
         );
     }
 
     #[test]
-    fn channel_commands_target_their_channel_database() {
+    fn default_path_falls_back_to_the_stable_identifier_folder() {
         let dir = tempfile::tempdir().unwrap();
-        let stable = dir.path().join("anarlog/app.db");
-        std::fs::create_dir_all(stable.parent().unwrap()).unwrap();
-        std::fs::write(&stable, "").unwrap();
+        let identifier = dir.path().join("fr.willisback.syntheo/app.db");
+        std::fs::create_dir_all(identifier.parent().unwrap()).unwrap();
+        std::fs::write(&identifier, b"x").unwrap();
+        assert_eq!(
+            resolve_default_path_for_command(dir.path(), Some(OsStr::new("syntheo"))),
+            identifier
+        );
+    }
 
+    #[test]
+    fn dev_command_targets_the_dev_database() {
+        let dir = tempfile::tempdir().unwrap();
         assert_eq!(
-            resolve_default_path_for_command(dir.path(), Some(OsStr::new("anarlog-dev"))),
-            dir.path().join("com.hyprnote.dev/app.db")
+            resolve_default_path_for_command(dir.path(), Some(OsStr::new("syntheo-dev"))),
+            dir.path().join("fr.willisback.syntheo.dev/app.db")
         );
-        assert_eq!(
-            resolve_default_path_for_command(dir.path(), Some(OsStr::new("anarlog-staging"))),
-            dir.path().join("com.hyprnote.staging/app.db")
-        );
-        assert_eq!(
-            resolve_default_path_for_command(dir.path(), Some(OsStr::new("anarlog-dev.exe"))),
-            dir.path().join("com.hyprnote.dev/app.db")
-        );
-        assert_eq!(
-            resolve_default_path_for_command(dir.path(), Some(OsStr::new("anarlog-staging.exe"))),
-            dir.path().join("com.hyprnote.staging/app.db")
-        );
-        for command in ["anarlog-nightly", "anarlog-nightly.exe"] {
-            assert_eq!(
-                resolve_default_path_for_command(dir.path(), Some(OsStr::new(command))),
-                stable
-            );
-        }
     }
 }

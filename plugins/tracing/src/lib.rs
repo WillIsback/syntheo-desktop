@@ -14,8 +14,6 @@ use tracing_subscriber::{
     EnvFilter, fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
 };
 
-use utils::cleanup_legacy_logs;
-
 const PLUGIN_NAME: &str = "tracing";
 const WEBVIEW_CONSOLE_TARGET: &str = "anarlog.webview.console";
 
@@ -77,8 +75,6 @@ impl Builder {
             .js_init_script(JS_INIT_SCRIPT)
             .setup(move |app, _api| {
                 specta_builder.mount_events(app);
-
-                cleanup_legacy_logs(app);
 
                 if skip_subscriber_init {
                     return Ok(());

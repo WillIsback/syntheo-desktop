@@ -15,6 +15,7 @@ required-features = ["linux-examples"]
 tokio = { workspace = true }
 
 [dependencies]
+anlg-brand = { workspace = true }
 anlg-notification-interface = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]

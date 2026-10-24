@@ -7,7 +7,7 @@ Date : 2026-10-24 · Statut : proposé
 - **Syntheo** (Next.js, dépôt `syntheo-mvp`) devient **syntheo-web**.
 - Un fork d'**Anarlog** (`fastrepl/anarlog`, MIT hors `enterprise/`) devient **Syntheo Desktop**, sous l'identité Syntheo.
 - On garde **toute la mécanique d'Anarlog** : capture micro et audio système, transcription temps réel, fusion des notes avec le transcript (enhance), templates, stockage local SQLite.
-- On y apporte ce qui fait Syntheo : la marque et l'UI, les templates et leur **générateur IA**, le français, la gestion des locuteurs et le consentement RGPD.
+- On y apporte ce qui fait Syntheo : la marque et l'UI, les templates et leur **générateur IA**, le français, la gestion des locuteurs et un rappel d'information des participants.
 - Aucun paywall, aucune télémétrie vers Fastrepl.
 - **Uniquement des providers custom on-premise** : la transcription et le résumé passent exclusivement par des API standard de moteurs d'inférence open-weight (OpenAI-compatible, NVIDIA NIM), pointées vers l'infra de l'utilisateur, par exemple Voxtral Mini 4B Realtime ou Nemotron ASR, et un LLM servi par vLLM. **Tous les adaptateurs vers des providers cloud sont retirés.**
 
@@ -29,7 +29,7 @@ Dans les faits, on ne porte que trois types d'éléments : des **données** (tok
 | Générateur de templates (`/api/templates/generate`)        | **Migrer et améliorer**                                                           | nouveau module TS côté desktop (voir Phase 4)                                                                                                                                         |
 | Prompt « compte rendu » en JSON (`llm.service.ts`)         | **Abandonner**                                                                    | l'enhance d'Anarlog (streaming, notes + transcript, validateur et retry) le remplace ; on n'en reprend que le ton FR                                                                  |
 | Renommage des locuteurs                                    | **Migrer le comportement**                                                        | vérifier l'existant Anarlog et compléter si besoin                                                                                                                                    |
-| Consentement RGPD en 2 étapes (`ConsentDialog`)            | **Migrer**                                                                        | avant le premier enregistrement d'une session                                                                                                                                         |
+| Consentement RGPD en 2 étapes (`ConsentDialog`)            | **Remplacer**                                                                     | rappel « informez les participants » au démarrage d'une capture, désactivable ; conformité documentée dans `docs/conformite/rgpd.md` (voir « RGPD »)                                  |
 | Export DOCX (`src/lib/session-export.ts`, lib `docx`)      | **Migrer si absent** (Anarlog fait du Markdown, `automations/markdown-export.ts`) | menu d'export de la note                                                                                                                                                              |
 | Export JSON « mes données »                                | Optionnel                                                                         | —                                                                                                                                                                                     |
 | Auth.js, Postgres/RLS, Drizzle, S3/MinIO, upload présigné  | **Abandonner**                                                                    | données 100 % locales (SQLite Anarlog)                                                                                                                                                |
@@ -68,7 +68,7 @@ Le projet suit sa propre route. Aucune synchronisation automatique n'est prévue
 | 07  | `templates: syntheo`        | migration SQL des 4 templates, import/export Markdown                                                                                                                                                                                                                            |
 | 08  | `templates: generator`      | générateur IA                                                                                                                                                                                                                                                                    |
 | 09  | `providers: custom`         | adaptateurs vLLM realtime et NIM gRPC, préréglages on-premise                                                                                                                                                                                                                    |
-| 10  | `features: rgpd, docx`      | consentement + export DOCX                                                                                                                                                                                                                                                       |
+| 10  | `features: rappel, docx`    | rappel d'information des participants + export DOCX                                                                                                                                                                                                                              |
 
 **Astuce (chantier 06)** : les chaînes affichées mentionnent « Anarlog » dans environ 580 fichiers source. On écrit « Syntheo » dans les **traductions françaises** et l'app est forcée en `fr`, et, puisqu'aucune synchronisation n'est prévue, on remplace aussi « Anarlog » par « Syntheo » directement dans les sources et les msgid anglais (codemod `scripts/rebrand.sh`, puis `lingui extract`).
 
@@ -217,13 +217,30 @@ Le même parseur sert à l'**import** (coller un template Syntheo) et à l'**exp
 
 ### Phase 6 — Fonctions Syntheo restantes (couche 10, ≈ 2 j)
 
-- **Consentement RGPD** : réécrire le `ConsentDialog` de Syntheo avec `@anlg/ui`, l'afficher au démarrage d'une capture, et mémoriser le consentement par session (colonne ou métadonnée SQLite).
+- **Rappel d'information** : au démarrage d'une capture, un rappel non bloquant « Pensez à informer les participants de la transcription » (toast ou bandeau), désactivable dans les réglages (`capture_reminder_enabled`, activé par défaut). Pas de consentement mémorisé : rien n'est collecté par l'éditeur.
 - **Export DOCX** : vérifier l'existant Anarlog. Sinon, porter `session-export.ts` (lib `docx`, import dynamique) dans le menu d'export.
 - **Locuteurs** : vérifier le renommage et la persistance dans Anarlog ; appliquer la palette s1-s4.
 
 ### Phase 7 (optionnelle) — Pont syntheo-web ⇄ desktop
 
 Le desktop sait déjà récupérer des « web templates » sur une URL (`resource-list/hooks.ts`, format `WebTemplate`). syntheo-web peut exposer `GET /api/templates/feed` au format `WebTemplate`. Les templates créés sur le web apparaissent alors dans le desktop, avec un seul catalogue et deux clients.
+
+## RGPD : conformité documentée, pas de dispositif côté éditeur
+
+Décidé le 2026-10-24. Syntheo Desktop n'a ni serveur, ni base centrale, ni compte, ni télémétrie, et ne conserve jamais l'audio : l'éditeur n'accède à aucune donnée et n'est pas responsable de traitement. Le dispositif de syntheo-web (consentement en deux étapes, registre, hébergement) n'est pas repris.
+
+Ce qui reste et doit être documenté :
+
+- les transcripts et notes sont des données personnelles des participants, sous la responsabilité de l'utilisateur, sur son poste ;
+- l'audio et le texte transitent vers les endpoints d'inférence configurés ; un endpoint tiers devient sous-traitant de l'utilisateur ;
+- l'utilisateur doit informer les participants (art. 13-14 RGPD ; en France, art. 226-1 du Code pénal pour les conversations privées ; information des salariés en entreprise).
+
+Livrables :
+
+1. `docs/conformite/rgpd.md` : inventaire des données (quoi, où, durée, suppression), flux réseau (uniquement les endpoints configurés, TLS recommandé), garanties techniques (aucun audio sur disque, clés dans le trousseau, aucune télémétrie, aucun compte), responsabilités de l'utilisateur (information des participants, choix des endpoints, analyse d'impact éventuelle en entreprise). Document de référence pour une organisation qui évalue l'outil ; mis à jour à chaque changement de flux ou de stockage.
+2. Le rappel d'information désactivable (Phase 6).
+
+L'authentification héritée (Supabase, plugin `auth`, étape « compte ») n'a plus de raison d'être et est retirée en premier lot du chantier 04d, avec ce document.
 
 ## CI/CD (reprise du modèle OC P5)
 

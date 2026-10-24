@@ -6,12 +6,12 @@ use std::path::PathBuf;
 
 use serde::Serialize;
 
-const DEV_BUNDLE_ID: &str = "com.hyprnote.dev";
+const DEV_BUNDLE_ID: &str = anlg_brand::DEV_BUNDLE_ID;
 const FLATPAK_BUNDLE_ID: &str = "so.anarlog.Anarlog";
 const LEGACY_STABLE_BUNDLE_ID: &str = "com.hyprnote.Hyprnote";
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 const MANAGED_CLI_DIR: &str = ".anarlog-cli";
-const STABLE_BUNDLE_ID: &str = "com.hyprnote.stable";
+const STABLE_BUNDLE_ID: &str = anlg_brand::STABLE_BUNDLE_ID;
 const STAGING_BUNDLE_ID: &str = "com.hyprnote.staging";
 const NIGHTLY_BUNDLE_ID: &str = "com.hyprnote.nightly";
 
@@ -224,11 +224,11 @@ fn unavailable_status(command_name: &str, details: &str) -> EmbeddedCliStatus {
 
 fn command_name_from_identifier(identifier: &str) -> &'static str {
     match identifier {
-        STABLE_BUNDLE_ID | LEGACY_STABLE_BUNDLE_ID | FLATPAK_BUNDLE_ID => "anarlog",
+        STABLE_BUNDLE_ID | LEGACY_STABLE_BUNDLE_ID | FLATPAK_BUNDLE_ID => anlg_brand::CLI_COMMAND,
         STAGING_BUNDLE_ID => "anarlog-staging",
         NIGHTLY_BUNDLE_ID => "anarlog-nightly",
-        DEV_BUNDLE_ID => "anarlog-dev",
-        _ => "anarlog",
+        DEV_BUNDLE_ID => "syntheo-dev",
+        _ => anlg_brand::CLI_COMMAND,
     }
 }
 

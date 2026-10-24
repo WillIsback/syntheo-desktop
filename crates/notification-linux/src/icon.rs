@@ -56,9 +56,8 @@ fn expand_home(path: &str) -> String {
 }
 
 fn default_app_icon() -> Option<Pixbuf> {
-    icon_theme_pixbuf("com.hyprnote.dev")
-        .or_else(|| icon_theme_pixbuf("anarlog"))
-        .or_else(|| icon_theme_pixbuf("hyprnote"))
+    icon_theme_pixbuf(anlg_brand::DEV_BUNDLE_ID)
+        .or_else(|| icon_theme_pixbuf(anlg_brand::CLI_COMMAND))
         .or_else(|| icon_theme_pixbuf("application-x-executable"))
 }
 

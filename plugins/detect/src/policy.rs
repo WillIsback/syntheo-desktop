@@ -30,6 +30,8 @@ impl AppCategory {
     pub fn bundle_ids(&self) -> &'static [&'static str] {
         match self {
             Self::Anarlog => &[
+                "fr.willisback.syntheo",
+                "fr.willisback.syntheo.dev",
                 "com.hyprnote.dev",
                 "com.hyprnote.stable",
                 "com.hyprnote.nightly",

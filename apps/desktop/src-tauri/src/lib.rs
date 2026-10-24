@@ -14,10 +14,7 @@ use db::{cloudsync_runtime_config_from_env, open_desktop_db};
 use ext::*;
 use store::*;
 
-use std::sync::{
-    Arc,
-    atomic::{AtomicBool, Ordering},
-};
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use tauri::{Emitter, Manager};
 use tauri_plugin_permissions::{Permission, PermissionsPluginExt};
@@ -182,52 +179,9 @@ pub fn main() {
             )
         });
 
-    let sentry_client = {
-        let dsn = if std::env::var_os("ANARLOG_DISABLE_SENTRY").is_some() {
-            None
-        } else {
-            option_env!("SENTRY_DSN")
-        };
-
-        if let Some(dsn) = dsn {
-            let release =
-                option_env!("APP_VERSION").map(|v| format!("anarlog-desktop@{}", v).into());
-
-            let client = sentry::init((
-                dsn,
-                sentry::ClientOptions {
-                    release,
-                    traces_sample_rate: 1.0,
-                    auto_session_tracking: false,
-                    before_send: Some(Arc::new(|event| {
-                        CRASH_REPORTING_ENABLED
-                            .load(Ordering::SeqCst)
-                            .then(|| tauri_plugin_tracing::redaction::sanitize_sentry_event(event))
-                            .flatten()
-                    })),
-                    before_breadcrumb: Some(Arc::new(|breadcrumb| {
-                        CRASH_REPORTING_ENABLED
-                            .load(Ordering::SeqCst)
-                            .then_some(breadcrumb)
-                    })),
-                    ..Default::default()
-                },
-            ));
-
-            sentry::configure_scope(|scope| {
-                scope.set_tag("service.namespace", "anarlog");
-                scope.set_tag("service.name", "desktop");
-                scope.set_tag(
-                    "release_channel",
-                    option_env!("RELEASE_CHANNEL").unwrap_or("dev"),
-                );
-            });
-
-            Some(client)
-        } else {
-            None
-        }
-    };
+    // Syntheo n'envoie aucun rapport d'erreur : Sentry n'est jamais initialisé
+    // (retiré entièrement au chantier 04d).
+    let sentry_client: Option<sentry::ClientInitGuard> = None;
     let crash_reporting_state = CrashReportingState::new(crash_reporting_enabled);
 
     let audio: std::sync::Arc<dyn anlg_audio_actual::AudioProvider> =

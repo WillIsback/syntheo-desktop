@@ -59,6 +59,7 @@ anlg-audio-norm = { path = "crates/audio-norm", package = "audio-norm" }
 anlg-audio-snapshot = { path = "crates/audio-snapshot", package = "audio-snapshot" }
 anlg-audio-sync = { path = "crates/audio-sync", package = "audio-sync" }
 anlg-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
+anlg-brand = { path = "crates/brand", package = "brand" }
 anlg-buffer = { path = "crates/buffer", package = "buffer" }
 anlg-bundle = { path = "crates/bundle", package = "bundle" }
 anlg-calendar = { path = "crates/calendar", package = "calendar" }
