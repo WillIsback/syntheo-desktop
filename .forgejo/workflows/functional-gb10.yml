@@ -54,6 +54,8 @@ jobs:
       - name: Lire les clés dans Bitwarden
         env:
           BWS_ACCESS_TOKEN: ${{ secrets.BWS_ACCESS_TOKEN }}
+          # Organisation Bitwarden hébergée en région UE.
+          BWS_SERVER_URL: https://vault.bitwarden.eu
         run: |
           set -euo pipefail
           for key in VLLM_API_KEY ASR_API_KEY; do
