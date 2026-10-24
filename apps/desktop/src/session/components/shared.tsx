@@ -9,11 +9,13 @@ import {
   useSession,
   useSessionHasTranscript,
 } from "~/session/queries";
-import { useSessionSharedNoteIds } from "~/shared-notes/event-keys";
 import type { SessionMode } from "~/store/zustand/listener/general";
 import type { Tab } from "~/store/zustand/tabs/schema";
 import { type EditorView } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
+
+// Notes partagées retirées (cloud) : liste toujours vide, référence stable.
+const NO_SHARED_NOTE_IDS: string[] = [];
 
 export function useHasTranscript(sessionId: string): boolean {
   return useSessionHasTranscript(sessionId);
@@ -57,7 +59,7 @@ export function useCurrentNoteTab(
     hasTranscript && sessionMode === "inactive",
   );
 
-  const sharedNoteIds = useSessionSharedNoteIds(tab.id);
+  const sharedNoteIds = NO_SHARED_NOTE_IDS;
 
   return useMemo(() => {
     return computeCurrentNoteTab(

@@ -11,7 +11,8 @@ import { SettingsPageTitle } from "~/settings/page-title";
 
 export { buildMcpConfiguration, getCliInstallNotification } from "./cli";
 
-const DEVELOPERS_GUIDE_URL = "https://docs.anarlog.so/agents/overview";
+const DEVELOPERS_GUIDE_URL =
+  "https://github.com/WillIsback/syntheo-desktop#readme";
 
 export function SettingsDevelopers() {
   return (

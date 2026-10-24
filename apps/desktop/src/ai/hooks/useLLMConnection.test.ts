@@ -100,7 +100,9 @@ it("sends OpenRouter app-attribution headers for the BYOK openrouter provider", 
     const headers = new Headers(
       init?.headers ?? (input instanceof Request ? input.headers : undefined),
     );
-    expect(headers.get("HTTP-Referer")).toBe("https://anarlog.so");
+    expect(headers.get("HTTP-Referer")).toBe(
+      "https://github.com/WillIsback/syntheo-desktop",
+    );
     expect(headers.get("X-OpenRouter-Title")).toBe("Anarlog");
     expect(headers.get("X-OpenRouter-Categories")).toBe(
       "writing-assistant,personal-agent",

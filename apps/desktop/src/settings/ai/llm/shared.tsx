@@ -184,7 +184,7 @@ const _PROVIDERS = [
       models: { label: "Available models", url: "https://lmstudio.ai/models" },
       setup: {
         label: "Setup guide",
-        url: "https://docs.anarlog.so/ai-setup#lm-studio",
+        url: "https://github.com/WillIsback/syntheo-desktop#readme",
       },
     },
   },
@@ -204,7 +204,7 @@ const _PROVIDERS = [
       models: { label: "Available models", url: "https://ollama.com/library" },
       setup: {
         label: "Setup guide",
-        url: "https://docs.anarlog.so/ai-setup#ollama",
+        url: "https://github.com/WillIsback/syntheo-desktop#readme",
       },
     },
   },
@@ -233,7 +233,7 @@ const _PROVIDERS = [
       },
       setup: {
         label: "Setup guide",
-        url: "https://docs.anarlog.so/ai-setup#unsloth",
+        url: "https://github.com/WillIsback/syntheo-desktop#readme",
       },
     },
   },

@@ -17,9 +17,11 @@ import {
 } from "~/session/components/shared";
 import { useEnhancedNotes } from "~/session/hooks/useEnhancedNotes";
 import { deleteEnhancedNote } from "~/session/queries";
-import { useSessionSharedNoteIds } from "~/shared-notes/event-keys";
 import { type EditorView } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
+
+// Notes partagées retirées (cloud) : liste toujours vide, référence stable.
+const NO_SHARED_NOTE_IDS: string[] = [];
 
 export function Header({ sessionId }: { sessionId: string }) {
   return <FolderPicker sessionId={sessionId} align="end" />;
@@ -162,7 +164,7 @@ export function useEditorTabs({
     hasTranscript && sessionMode === "inactive",
   );
 
-  const sharedNoteIds = useSessionSharedNoteIds(sessionId);
+  const sharedNoteIds = NO_SHARED_NOTE_IDS;
 
   return createEditorTabs({
     enhancedNoteIds,

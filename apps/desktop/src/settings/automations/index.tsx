@@ -24,14 +24,7 @@ import {
 import { toast } from "@anlg/ui/components/ui/toast";
 import { cn, formatDistanceToNow } from "@anlg/utils";
 
-import { GoogleDriveConfig, DriveExportResult } from "./google-drive-config";
-import {
-  AutomationLastRunLine,
-  LinearIssuesConfig,
-  MarkdownExportConfig,
-  NotionUpdateConfig,
-  SlackRecapConfig,
-} from "./starter-config";
+import { AutomationLastRunLine, MarkdownExportConfig } from "./starter-config";
 import { useSaveWorkflow, WorkflowBuilder } from "./workflow-builder";
 
 import { useBillingAccess } from "~/auth/billing-context";
@@ -40,6 +33,7 @@ import {
   useDeleteWorkflow,
   useRemoveStarterDraft,
 } from "~/automations/actions";
+import { CLOUD_STEP_REMOVED_MESSAGE } from "~/automations/engine";
 import { parseAutomationTargetRef } from "~/automations/engine";
 import {
   useAutomationSelection,
@@ -63,10 +57,6 @@ import {
   useAutomationWorkflows,
 } from "~/automations/workflows";
 import { useChatGroup } from "~/chat/store/queries";
-import {
-  ResourceShareButton,
-  sharedAutomationPayload,
-} from "~/resource-sharing";
 import { SettingsHydrationBoundary } from "~/settings/hydration-boundary";
 import { SettingsPageTitle } from "~/settings/page-title";
 import { useNotifyPlanRequired } from "~/settings/plan-gate";
@@ -333,12 +323,6 @@ function CustomWorkflowDetails({
       description={description}
       actions={
         <div className="flex items-center gap-2">
-          <ResourceShareButton
-            resourceType="automation"
-            sourceId={workflow.id}
-            title={workflow.title.trim() || t`Untitled automation`}
-            buildPayload={() => sharedAutomationPayload(workflow)}
-          />
           {workflow.enabled ? (
             <Button
               type="button"
@@ -449,9 +433,6 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
   const driveWorkflow =
     workflows.find((item) => item.id === GOOGLE_DRIVE_STARTER_WORKFLOW_ID) ??
     driveFallback;
-  const driveStep = driveWorkflow.steps.find(
-    (step) => step.type === "google_drive_export",
-  );
   const legacyKeys =
     starterId === "google-drive" ? null : STARTER_AUTOMATIONS[starterId];
   const saveDrive = (
@@ -466,10 +447,6 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
         ...items.filter((item) => item.id !== current.id),
       ];
     });
-  const configureDrive = useMutation({
-    mutationFn: (step: WorkflowStep) => saveDrive({ steps: [step] }),
-    onError: () => toast.error(t`Could not update the automation`),
-  });
   const { values: settingValues } = useStoredSettingValues();
   const removeStarterDraft = useRemoveStarterDraft();
 
@@ -689,22 +666,12 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
         </div>
 
         <div className="border-border border-t px-5 py-4">
-          {starterId === "google-drive" && driveStep ? (
-            <>
-              <GoogleDriveConfig
-                step={driveStep}
-                onChange={(step) => configureDrive.mutate(step)}
-              />
-              <DriveExportResult workflow={driveWorkflow} step={driveStep} />
-            </>
-          ) : starterId === "markdown-export" ? (
+          {starterId === "markdown-export" ? (
             <MarkdownExportConfig />
-          ) : starterId === "slack-recap" ? (
-            <SlackRecapConfig />
-          ) : starterId === "linear-action-items" ? (
-            <LinearIssuesConfig />
           ) : (
-            <NotionUpdateConfig />
+            <p className="text-muted-foreground text-xs">
+              {CLOUD_STEP_REMOVED_MESSAGE}
+            </p>
           )}
           {legacyKeys ? (
             <AutomationLastRunLine settingKey={legacyKeys.lastRunKey} />

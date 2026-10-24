@@ -14,16 +14,10 @@ import {
 import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
-import { GoogleDriveConfig, DriveExportResult } from "./google-drive-config";
 import { MarkdownExportOptionsConfig } from "./markdown-export-options";
-import {
-  AutomationLastRunLine,
-  LinearIssuesConfig,
-  MarkdownExportConfig,
-  NotionUpdateConfig,
-  SlackRecapConfig,
-} from "./starter-config";
+import { AutomationLastRunLine, MarkdownExportConfig } from "./starter-config";
 
+import { CLOUD_STEP_REMOVED_MESSAGE } from "~/automations/engine";
 import { DEFAULT_MARKDOWN_EXPORT_OPTIONS } from "~/automations/markdown-export";
 import {
   createWorkflowStep,
@@ -148,21 +142,6 @@ export function WorkflowBuilder({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="slack_recap">
-                    <Trans>Post a recap to Slack</Trans>
-                  </SelectItem>
-                  <SelectItem value="notion_update">
-                    <Trans>Append an update to Notion</Trans>
-                  </SelectItem>
-                  <SelectItem value="linear_issues">
-                    <Trans>Create Linear issues from action items</Trans>
-                  </SelectItem>
-                  <SelectItem
-                    value="google_drive_export"
-                    disabled={workflow.trigger !== "note_enhanced"}
-                  >
-                    <Trans>Save to Google Drive</Trans>
-                  </SelectItem>
                   <SelectItem value="markdown_export">
                     <Trans>Export the meeting as Markdown</Trans>
                   </SelectItem>
@@ -173,9 +152,6 @@ export function WorkflowBuilder({
                   step={step}
                   onChange={(next) => updateStep(step.id, next)}
                 />
-                {step.type === "google_drive_export" ? (
-                  <DriveExportResult workflow={workflow} step={step} />
-                ) : null}
               </div>
             </WorkflowCard>
           </div>
@@ -207,8 +183,6 @@ function WorkflowStepConfig({
   step: WorkflowStep;
   onChange: (step: WorkflowStep) => void;
 }) {
-  if (step.type === "google_drive_export")
-    return <GoogleDriveConfig step={step} onChange={onChange} />;
   if (step.type === "markdown_export") {
     return (
       <>
@@ -223,33 +197,17 @@ function WorkflowStepConfig({
       </>
     );
   }
-  if (step.type === "slack_recap") {
-    return (
-      <SlackRecapConfig
-        value={step.target}
-        onChange={(target) => onChange({ ...step, target })}
-      />
-    );
-  }
-  if (step.type === "linear_issues") {
-    return (
-      <LinearIssuesConfig
-        value={step.target}
-        onChange={(target) => onChange({ ...step, target })}
-      />
-    );
-  }
+  // Étapes cloud (Slack, Linear, Notion, Google Drive) retirées : une étape
+  // héritée d'un ancien workflow s'affiche comme non prise en charge.
   return (
-    <NotionUpdateConfig
-      value={step.target}
-      onChange={(target) => onChange({ ...step, target })}
-    />
+    <p className="text-muted-foreground text-xs">
+      {CLOUD_STEP_REMOVED_MESSAGE}
+    </p>
   );
 }
 
 function AddWorkflowStep({
   onAdd,
-  trigger,
 }: {
   onAdd: (type: WorkflowStepType) => void;
   trigger: WorkflowTrigger;
@@ -276,21 +234,6 @@ function AddWorkflowStep({
           </span>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="slack_recap">
-            <Trans>Slack recap</Trans>
-          </SelectItem>
-          <SelectItem value="notion_update">
-            <Trans>Notion update</Trans>
-          </SelectItem>
-          <SelectItem value="linear_issues">
-            <Trans>Linear issues</Trans>
-          </SelectItem>
-          <SelectItem
-            value="google_drive_export"
-            disabled={trigger !== "note_enhanced"}
-          >
-            <Trans>Save to Google Drive</Trans>
-          </SelectItem>
           <SelectItem value="markdown_export">
             <Trans>Markdown export</Trans>
           </SelectItem>

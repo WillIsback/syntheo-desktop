@@ -1,4 +1,5 @@
-export const WELCOME_NOTE_DEMO_URL = "https://anarlog.so/onboarding-demo/";
+// Démo distante (site Anarlog) retirée : la note de bienvenue n'a pas de lien.
+export const WELCOME_NOTE_DEMO_URL = "";
 export const WELCOME_NOTE_TRACKING_ID = "anarlog-onboarding-demo-v1";
 const WELCOME_NOTE_COMPLETE_PATH = "/onboarding-demo/complete";
 const WELCOME_NOTE_DEMO_AUTOJOIN_PARAM = "autojoin";

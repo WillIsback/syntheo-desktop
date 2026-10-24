@@ -17,7 +17,6 @@ import {
   startMeetingRecordingDisclosure,
 } from "./meeting-disclosure";
 import { startMeetingScreenCapture } from "./meeting-screen-capture";
-import { startPrimaryDeviceCoordination } from "./primary-device";
 import {
   classifyStartFailure,
   getMicrophonePermission,
@@ -293,12 +292,6 @@ export function useStartListeningState(
     }
 
     setLeftSidebarExpanded(false);
-
-    startPrimaryDeviceCoordination({
-      sessionId,
-      event: getSessionEvent({ event_json: session?.event_json }),
-      automatic,
-    });
 
     const stopChatCapture = startMeetingChatCapture({
       sessionId,

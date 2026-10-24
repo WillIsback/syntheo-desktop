@@ -1,10 +1,7 @@
 import { Outlet, useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
-import {
-  events as windowsEvents,
-  getCurrentWebviewWindowLabel,
-} from "@anlg/plugin-windows";
+import { events as windowsEvents } from "@anlg/plugin-windows";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import {
@@ -15,11 +12,7 @@ import {
 
 import { AuthProvider } from "~/auth";
 import { LocalBillingProvider } from "~/auth/local-billing";
-import { EnterpriseCaptureSync } from "~/enterprise-capture/lifecycle";
-import { MeetingImportSync } from "~/services/meeting-import-sync";
 import { getOrCreateSessionForEventId } from "~/session/queries";
-import { WorkspaceInvitationToasts } from "~/settings/team/invitation-toast";
-import { useMyWorkspacesWithMirror } from "~/settings/team/mirror";
 import { openFoldersFromNavigation } from "~/shared/folders-navigation";
 import { leaveAllOverlayTabs } from "~/shared/leave-overlay-tab";
 import { useZoomShortcuts } from "~/shared/zoom";
@@ -38,7 +31,6 @@ export default function MainAppLayout() {
   return (
     <AuthProvider>
       <LocalBillingProvider>
-        <SharedWorkspaceMirror />
         <MainAppContent />
       </LocalBillingProvider>
     </AuthProvider>
@@ -46,14 +38,9 @@ export default function MainAppLayout() {
 }
 
 function MainAppContent() {
-  const isMainWindow = getCurrentWebviewWindowLabel() === "main";
-
   return (
     <>
       <Outlet />
-      {isMainWindow ? <MeetingImportSync /> : null}
-      {isMainWindow ? <EnterpriseCaptureSync /> : null}
-      {isMainWindow ? <WorkspaceInvitationToasts /> : null}
       <UndoDeleteToast />
     </>
   );
@@ -183,7 +170,3 @@ const useNavigationEvents = () => {
 
 // Renders nothing; keeps the local workspace mirror fresh so sharing scopes are
 // available without visiting Team settings.
-function SharedWorkspaceMirror() {
-  useMyWorkspacesWithMirror();
-  return null;
-}

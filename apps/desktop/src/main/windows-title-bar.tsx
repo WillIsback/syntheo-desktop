@@ -180,7 +180,10 @@ export function WindowsTitleBar({
           <TitleBarMenu label={t`Help`} onPointerDown={rememberEditTarget}>
             <DropdownMenuItem
               onSelect={() =>
-                void openerCommands.openUrl("https://docs.anarlog.so", null)
+                void openerCommands.openUrl(
+                  "https://github.com/WillIsback/syntheo-desktop#readme",
+                  null,
+                )
               }
             >
               {t`Documentation`}
@@ -188,14 +191,20 @@ export function WindowsTitleBar({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onSelect={() =>
-                void openerCommands.openUrl("https://anarlog.so/discord", null)
+                void openerCommands.openUrl(
+                  "https://github.com/WillIsback/syntheo-desktop/issues",
+                  null,
+                )
               }
             >
               {t`Report a Bug`}
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() =>
-                void openerCommands.openUrl("https://anarlog.so/discord", null)
+                void openerCommands.openUrl(
+                  "https://github.com/WillIsback/syntheo-desktop/issues",
+                  null,
+                )
               }
             >
               {t`Suggest a Feature`}

@@ -43,14 +43,6 @@ vi.mock("./overflow", () => ({
   OverflowButton: () => <button type="button">More</button>,
 }));
 
-vi.mock("~/session-sharing", () => ({
-  SessionShareButton: () => (
-    <button type="button" aria-label="Share note">
-      Share
-    </button>
-  ),
-}));
-
 vi.mock("../shared", () => ({
   RecordingIcon: () => <div />,
   useHasTranscript: (sessionId: string) =>
@@ -191,7 +183,7 @@ function renderHeader(
   );
 }
 
-const ACTIONS = ["Record", "Join & record", "Stop", "Share note"] as const;
+const ACTIONS = ["Record", "Join & record", "Stop"] as const;
 
 function visibleAction() {
   const visible = ACTIONS.filter((name) =>
@@ -237,9 +229,10 @@ describe("OuterHeader", () => {
     ],
     ["post-meeting transcription", { mode: "running_batch", now: AFTER }, null],
     ["finalizing", { mode: "finalizing", event: scheduled(MEET_LINK) }, null],
-    ["inactive with transcript", { transcript: true }, "Share note"],
-    ["inactive with audio", { audio: true }, "Share note"],
-    ["meeting over", { event: scheduled(MEET_LINK), now: AFTER }, "Share note"],
+    // Partage retiré (cloud) : plus aucune action une fois la réunion terminée.
+    ["inactive with transcript", { transcript: true }, null],
+    ["inactive with audio", { audio: true }, null],
+    ["meeting over", { event: scheduled(MEET_LINK), now: AFTER }, null],
     [
       "recorded event without ended_at",
       {
@@ -247,7 +240,7 @@ describe("OuterHeader", () => {
         now: AFTER,
         transcript: true,
       },
-      "Share note",
+      null,
     ],
     ["meeting without a link", { event: scheduled() }, "Record"],
     [

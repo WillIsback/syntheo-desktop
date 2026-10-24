@@ -68,13 +68,6 @@ describe("LeftSidebar", () => {
     cleanup();
   });
 
-  it("shows received notes without the personal timeline", () => {
-    render(<LeftSidebar noteFilter="shared" />);
-
-    expect(screen.queryByTestId("timeline-view")).toBeNull();
-    expect(screen.getByTestId("shared-notes-nav")).toBeTruthy();
-  });
-
   it("keeps the personal timeline when filtering to a folder", () => {
     render(<LeftSidebar folderFilter="CS 101" />);
 
