@@ -1,2 +1,24 @@
-# Vulnérabilités acceptées temporairement par Trivy.
-# Chaque entrée DOIT figurer dans .github/security-exceptions.yml (justification + expiration).
+# Vulnérabilités acceptées temporairement par Trivy (expiration incluse : exp:AAAA-MM-JJ).
+# Chaque entrée DOIT figurer dans .github/security-exceptions.yml (justification).
+
+# Cargo.lock : SDK AWS (s3, bedrock), retiré aux chantiers 04b/04d
+CVE-2026-18140 exp:2027-01-31
+GHSA-82j2-j2ch-gfr8 exp:2027-01-31
+# Cargo.lock : gix via vergen-gix (script de build), non livré
+CVE-2026-40034 exp:2027-01-31
+CVE-2026-44471 exp:2027-01-31
+GHSA-fr8x-3vfx-f45h exp:2027-01-31
+GHSA-p3hw-mv63-rf9w exp:2027-01-31
+GHSA-pg4w-g64p-qwhj exp:2027-01-31
+GHSA-x494-mj8g-cj27 exp:2027-01-31
+# Cargo.lock : tokio-tar via testcontainers (dev-dependency), non livré
+CVE-2025-62518 exp:2027-01-31
+# swift-nio : transcribe-soniqo (STT embarqué macOS), retiré au chantier 04b
+CVE-2026-28980 exp:2027-01-31
+CVE-2026-43671 exp:2027-01-31
+# pnpm-lock.yaml : zod 3.x (correctif uniquement en 4.x), extract-zip et node-forge
+# (outillage de développement épinglé à la racine, sans correctif publié)
+CVE-2023-54404 exp:2027-01-31
+CVE-2026-19693 exp:2027-01-31
+CVE-2026-56876 exp:2027-01-31
+CVE-2026-85393 exp:2027-01-31
