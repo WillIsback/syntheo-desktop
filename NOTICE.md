@@ -36,7 +36,10 @@ En résumé :
 
 - identité Syntheo (nom, identifiant d'application, logo, thème, français) ;
 - providers d'inférence **on-premise uniquement** (protocoles OpenAI-compatible
-  et NVIDIA NIM) ; adaptateurs cloud retirés ;
+  et NVIDIA NIM) ; les 33 adaptateurs de transcription cloud (Deepgram,
+  AssemblyAI, Soniox, ElevenLabs, Gladia, Speechmatics, Azure, Google, AWS…),
+  le crate `soniox` et le provider « custom » compatible Deepgram sont
+  supprimés ; les providers LLM cloud suivent ;
 - aucune conservation de l'audio d'une réunion : enregistreur de capture,
   réglage de rétention, lecteur audio, retranscription et empreintes vocales
   retirés ; une coupure de transcription laisse un trou daté ;

@@ -54,3 +54,11 @@ it("docs_rgpd_states_failed_import_copy_is_kept", () => {
   const rgpd = readFileSync(join(ROOT, "docs/conformite/rgpd.md"), "utf8");
   expect(rgpd).toContain("import dont la transcription échoue");
 });
+
+it("rgpd_lists_stt_as_on_prem_only", () => {
+  const rgpd = readFileSync(join(ROOT, "docs/conformite/rgpd.md"), "utf8");
+  // Les adaptateurs STT cloud sont retirés (04b-1) ; restent les providers
+  // LLM cloud jusqu'au 04b-3.
+  expect(rgpd).not.toContain("Deepgram");
+  expect(rgpd).toContain("04b-3");
+});
