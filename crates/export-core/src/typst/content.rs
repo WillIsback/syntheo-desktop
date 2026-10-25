@@ -3,7 +3,7 @@ use crate::ExportInput;
 use super::markdown::markdown_to_typst;
 use super::utils::{escape_typst_literal, escape_typst_string};
 
-// Palette mirrors apps/web/BRAND.md (warm stone scale + brand yellow).
+// Palette inherited from the Anarlog brand (warm stone scale + brand yellow).
 fn build_preamble() -> String {
     r##"
 #let ink = rgb("#332d23")

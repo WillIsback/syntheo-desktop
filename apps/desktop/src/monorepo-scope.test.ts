@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 // Garde-fou : le dépôt ne contient plus que le client desktop et la CLI. Les
@@ -40,6 +40,8 @@ describe("monorepo scope", () => {
       ".oxlintrc.json",
       ".vscode/settings.json",
       ".codex/environments/environment.toml",
+      "pnpm-workspace.yaml",
+      "scripts/setup-devtools.sh",
     ];
     const offenders = files.filter((file) =>
       /apps\/(web|mobile|api|stripe|watch)\b|@anlg\/web\b|supabase/.test(
@@ -128,5 +130,29 @@ describe("monorepo scope", () => {
     ]) {
       expect(notice).toContain(app);
     }
+  });
+
+  it("no_source_targets_removed_packages", () => {
+    expect(read("apps/desktop/src/styles/globals.css")).not.toMatch(
+      /packages\/(supabase|pricing|mobile-bridge-rn)\b/,
+    );
+  });
+
+  it("no_rust_source_writes_into_removed_apps", () => {
+    const rustFiles = (dir: string): string[] =>
+      readdirSync(dir).flatMap((name) => {
+        const path = join(dir, name);
+        if (statSync(path).isDirectory()) {
+          return ["target", "node_modules", "vendor"].includes(name)
+            ? []
+            : rustFiles(path);
+        }
+        return name.endsWith(".rs") ? [path] : [];
+      });
+    const offenders = ["crates", "plugins"]
+      .flatMap((dir) => rustFiles(join(REPO_ROOT, dir)))
+      .filter((path) => /apps\/web\b/.test(readFileSync(path, "utf8")))
+      .map((path) => relative(REPO_ROOT, path));
+    expect(offenders).toEqual([]);
   });
 });

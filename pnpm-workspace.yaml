@@ -87,7 +87,6 @@ peerDependencyRules:
     esbuild: "0.25"
 
 allowBuilds:
-  "@infisical/cli": set this to true or false
   "@parcel/watcher": true
   "@sentry/cli": true
   cbor-extract: true
@@ -100,7 +99,6 @@ allowBuilds:
   protobufjs: true
   puppeteer: true
   sharp: true
-  supabase: set this to true or false
   unix-dgram: true
   workerd: true
 
