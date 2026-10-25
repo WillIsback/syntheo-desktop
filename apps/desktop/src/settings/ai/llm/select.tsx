@@ -218,6 +218,9 @@ export function SelectProviderAndModel() {
   const needsDefaultSelection = !(
     visibleSelection.provider && visibleSelection.model
   );
+  // fetchModels est recréée à chaque rendu et n'est pas une donnée de cache :
+  // l'ajouter à la clé relancerait la requête en boucle.
+  // eslint-disable-next-line @tanstack/query/exhaustive-deps
   const defaultSelectionQuery = useQuery({
     queryKey: [
       "default-ai-selection",
