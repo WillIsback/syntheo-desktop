@@ -3,12 +3,10 @@ import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const [target, ...args] = process.argv.slice(2);
-const ports = { stack: "18080", desktop: "18081", web: "18082", api: "18083" };
+const ports = { desktop: "18081" };
 
 if (!Object.hasOwn(ports, target)) {
-  console.error(
-    "Usage: node scripts/dev.mjs <stack|desktop|web|api> [process-compose flags]",
-  );
+  console.error("Usage: node scripts/dev.mjs desktop [process-compose flags]");
   process.exit(1);
 }
 
@@ -30,14 +28,13 @@ if (
 mkdirSync(env.PC_LOG_DIR, { recursive: true });
 console.log(`Logs: ${env.PC_LOG_DIR}`);
 
-const composeArgs = ["--disable-dotenv", "-f", "process-compose.yaml"];
-if (target === "stack" || target === "api") {
-  composeArgs.push("-f", "process-compose.backend.yaml");
-}
-composeArgs.push("up");
-if (target !== "stack") {
-  composeArgs.push(target);
-}
+const composeArgs = [
+  "--disable-dotenv",
+  "-f",
+  "process-compose.yaml",
+  "up",
+  target,
+];
 if (args[0] === "--") {
   args.shift();
 }

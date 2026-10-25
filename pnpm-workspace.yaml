@@ -87,7 +87,6 @@ peerDependencyRules:
     esbuild: "0.25"
 
 allowBuilds:
-  "@infisical/cli": true
   "@parcel/watcher": true
   "@sentry/cli": true
   cbor-extract: true
@@ -100,16 +99,13 @@ allowBuilds:
   protobufjs: true
   puppeteer: true
   sharp: true
-  supabase: true
   unix-dgram: true
   workerd: true
 
 patchedDependencies:
   # Embed React Scan history, prompts, and inspector in the developer bar.
   react-scan@0.5.7: patches/react-scan@0.5.7.patch
-  expo-audio@57.0.4: patches/expo-audio@57.0.4.patch
   braces@3.0.3: patches/braces@3.0.3.patch
   extract-zip@2.0.1: patches/extract-zip@2.0.1.patch
   node-forge@1.4.0: patches/node-forge@1.4.0.patch
-  decode-uri-component@0.2.2: patches/decode-uri-component@0.2.2.patch
   sprintf-js@1.0.3: patches/sprintf-js@1.0.3.patch

@@ -90,10 +90,7 @@ test -f "packages/changelog/content/desktop/$VERSION.md"
 
 Stable desktop releases never infer a version. The workflow requires the exact
 stable semantic version to match `release-version.json` and a changelog file.
-The version command also regenerates `apps/watch/apple/Version.xcconfig`;
-commit both desktop version files with the release preparation changes. Expo
-reads `apps/mobile/release-version.json`. A desktop bump does not change or
-authorize mobile publication.
+Commit `release-version.json` with the release preparation changes.
 
 3. Identify the latest stable desktop tag and the commits that will ship:
 

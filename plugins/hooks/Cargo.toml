@@ -14,8 +14,6 @@ tauri-plugin = { workspace = true, features = ["build"] }
 [dev-dependencies]
 specta-typescript = { workspace = true }
 
-anlg-docs = { workspace = true }
-
 [dependencies]
 anlg-hooks = { workspace = true }
 

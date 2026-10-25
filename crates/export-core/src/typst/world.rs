@@ -11,7 +11,7 @@ use typst::{Library, LibraryExt, World};
 static LIBRARY: OnceLock<LazyHash<Library>> = OnceLock::new();
 static FONTS: OnceLock<(Vec<Font>, LazyHash<FontBook>)> = OnceLock::new();
 
-// Keep in sync with apps/web/public/logo.svg.
+// Inherited Anarlog logo; its website source no longer exists in this repo.
 static WORDMARK: &[u8] = include_bytes!("../../assets/anarlog-logo.svg");
 
 fn library() -> &'static LazyHash<Library> {
