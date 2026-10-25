@@ -1,7 +1,6 @@
 mod adapter;
 mod batch;
 mod error;
-mod error_detection;
 mod http_client;
 mod live;
 #[cfg(feature = "local")]
@@ -13,17 +12,16 @@ mod providers;
 #[cfg(test)]
 pub(crate) mod test_utils;
 
-pub use error_detection::ProviderError;
 use owhisper_interface::ListenParams;
-pub use providers::{Auth, Provider, is_meta_model};
+pub use providers::{Provider, is_meta_model};
 
 #[cfg(feature = "local")]
 pub use adapter::StreamingBatchConfig;
 pub use adapter::{
-    AdapterKind, AnarlogAdapter, ArgmaxAdapter, BatchSttAdapter, BatchUploadLimit, CallbackResult,
-    CallbackSttAdapter, LanguageQuality, LanguageSupport, NvidiaAdapter, OpenAIAdapter,
-    RealtimeSttAdapter, WhisperCppAdapter, append_provider_param, documented_language_codes_batch,
-    documented_language_codes_live, is_anarlog_proxy, is_local_host, normalize_languages,
+    AdapterKind, AnarlogAdapter, ArgmaxAdapter, BatchSttAdapter, BatchUploadLimit, LanguageQuality,
+    LanguageSupport, NvidiaAdapter, OpenAIAdapter, RealtimeSttAdapter, WhisperCppAdapter,
+    append_provider_param, documented_language_codes_batch, documented_language_codes_live,
+    is_anarlog_proxy, is_local_host, normalize_languages,
 };
 pub use adapter::{StreamingBatchEvent, StreamingBatchStream};
 

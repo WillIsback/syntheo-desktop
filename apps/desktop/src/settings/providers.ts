@@ -2,7 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { commands as store2Commands } from "@anlg/plugin-store2";
-import { verifyProviderCredentials } from "@anlg/provider-validation";
+import {
+  usesDeferredProviderAuthentication,
+  verifyProviderCredentials,
+} from "@anlg/provider-validation";
 
 import { providerFetch } from "~/ai/provider-fetch";
 import { executeTransaction, liveQueryClient, useLiveQuery } from "~/db";
@@ -215,7 +218,12 @@ export function useSetAiProvider(
     mutationFn: async (
       changes: Partial<Pick<AiProviderConfig, "base_url" | "api_key">>,
     ) => {
-      if (verifyCredentials) {
+      // Les endpoints STT on-prem n'ont pas de sonde d'authentification, mais
+      // leur URL est contrôlée (HTTPS, ou HTTP vers un hôte privé).
+      if (
+        verifyCredentials ||
+        usesDeferredProviderAuthentication(type, providerId)
+      ) {
         const previous = await getStoredAiProvider(type, providerId);
         const apiKey = (changes.api_key ?? previous?.api_key ?? "").trim();
         const baseUrl =

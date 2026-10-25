@@ -31,6 +31,8 @@ vi.mock("@tauri-apps/plugin-http", () => ({ fetch: mocks.fetch }));
 
 vi.mock("@anlg/provider-validation", () => ({
   verifyProviderCredentials: mocks.verify,
+  usesDeferredProviderAuthentication: (type: string, provider: string) =>
+    type === "stt" && ["openai", "nvidia"].includes(provider),
 }));
 
 vi.mock("@anlg/plugin-store2", () => ({
@@ -119,6 +121,30 @@ describe("SQLite AI providers", () => {
     });
     expect(mocks.verify).not.toHaveBeenCalled();
     expect(mocks.setSecret).toHaveBeenCalled();
+    queryClient.clear();
+  });
+
+  it("rejects a public plain-HTTP STT endpoint even without key verification", async () => {
+    const { verifyProviderCredentials } = await vi.importActual<
+      typeof import("@anlg/provider-validation")
+    >("@anlg/provider-validation");
+    mocks.verify.mockImplementation(verifyProviderCredentials);
+    mocks.execute.mockResolvedValue([]);
+    const queryClient = new QueryClient();
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+    const { result, unmount } = renderHook(
+      () => useSetAiProvider("stt", "openai"),
+      { wrapper },
+    );
+    await expect(
+      result.current.mutateAsync({
+        base_url: "http://8.8.8.8/v1",
+        api_key: "",
+      }),
+    ).rejects.toThrow("Use HTTPS");
+    expect(mocks.executeTransaction).not.toHaveBeenCalled();
+    unmount();
     queryClient.clear();
   });
 

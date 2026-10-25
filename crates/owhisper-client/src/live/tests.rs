@@ -296,3 +296,19 @@ async fn nvidia_dual_capture_authenticates_each_stream_with_its_own_token() {
         .unwrap();
     assert_eq!(tokens.lock().unwrap().len(), 2);
 }
+
+#[tokio::test]
+async fn empty_endpoint_is_rejected_instead_of_a_cloud_default() {
+    let error = ListenClient::builder()
+        .adapter::<OpenAIAdapter>()
+        .api_base("")
+        .build_single()
+        .await
+        .err()
+        .expect("an empty endpoint must not fall back to a cloud host");
+
+    assert!(matches!(
+        error,
+        crate::Error::ProviderConfiguration { provider, .. } if provider == "openai"
+    ));
+}

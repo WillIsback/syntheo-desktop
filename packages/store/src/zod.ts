@@ -62,7 +62,11 @@ export const aiProviderSchema = z
     api_key: z.string(),
   })
   .refine(
-    (data) => !data.base_url.startsWith("https:") || data.api_key.length > 0,
+    // Les endpoints STT on-prem n'exigent pas forcément de clé, même en HTTPS.
+    (data) =>
+      data.type === "stt" ||
+      !data.base_url.startsWith("https:") ||
+      data.api_key.length > 0,
     {
       message: "API key is required for HTTPS URLs",
       path: ["api_key"],

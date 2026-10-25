@@ -11,7 +11,6 @@ use crate::error::Error;
 
 pub(crate) struct OpenAICompatibleBatchConfig<'a> {
     pub provider: &'a str,
-    pub default_api_base: &'a str,
     pub default_model: &'a str,
     pub transcription_path: &'a str,
     pub response_format: Option<&'a str>,
@@ -51,16 +50,14 @@ pub(crate) async fn transcribe(
     }
     form = form.part("file", streaming_file_part(file_path).await?);
 
-    let mut url: url::Url = if api_base.is_empty() {
-        config
-            .default_api_base
-            .parse()
-            .expect("invalid_default_openai_compatible_api_base")
-    } else {
-        api_base.parse().map_err(|error: url::ParseError| {
-            Error::AudioProcessing(format!("invalid api_base: {error}"))
-        })?
-    };
+    if api_base.trim().is_empty() {
+        return Err(Error::AudioProcessing(
+            "no transcription endpoint configured".to_string(),
+        ));
+    }
+    let mut url: url::Url = api_base.parse().map_err(|error: url::ParseError| {
+        Error::AudioProcessing(format!("invalid api_base: {error}"))
+    })?;
     append_path_if_missing(&mut url, config.transcription_path);
 
     let response = client

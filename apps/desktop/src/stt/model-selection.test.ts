@@ -7,11 +7,21 @@ describe("normalizeStoredSttSelection", () => {
     "clears_removed_cloud_stt_provider %s",
     (provider) => {
       expect(normalizeStoredSttSelection(provider, "nova-3")).toEqual({
-        provider: undefined,
-        model: undefined,
+        provider: "",
+        model: "",
       });
     },
   );
+
+  it("clears_the_hosted_anarlog_model", () => {
+    expect(normalizeStoredSttSelection("anarlog", "cloud")).toEqual({
+      provider: "",
+      model: "",
+    });
+    expect(
+      normalizeStoredSttSelection("anarlog", "soniqo-parakeet-streaming"),
+    ).toEqual({ provider: "soniqo", model: "soniqo-parakeet-streaming" });
+  });
 
   it("keeps_on_prem_selection", () => {
     expect(normalizeStoredSttSelection("openai", "whisper-large-v3")).toEqual({

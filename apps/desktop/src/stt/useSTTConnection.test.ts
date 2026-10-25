@@ -59,6 +59,11 @@ vi.mock("~/settings/providers", () => ({
         base_url: "http://localhost:9000",
         api_key: "",
       },
+      "stt:deepgram": {
+        type: "stt",
+        base_url: "https://api.deepgram.com/v1",
+        api_key: "legacy-key",
+      },
       "stt:openai": {
         type: "stt",
         base_url: "http://192.168.1.87:8000/v1",
@@ -131,6 +136,20 @@ describe("useSTTConnection", () => {
 
     expect(result.current.conn).toBeNull();
     expect(result.current.isReady).toBe(false);
+  });
+
+  it("ignores_a_stored_provider_that_no_longer_exists", () => {
+    config.current_stt_provider = "deepgram";
+    config.current_stt_model = "nova-3";
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+
+    const { result } = renderHook(() => useSTTConnection(), { wrapper });
+
+    expect(result.current.conn).toBeNull();
   });
 
   it("openai_connection_accepts_empty_key_and_marks_provider", () => {

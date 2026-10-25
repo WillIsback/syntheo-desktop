@@ -32,16 +32,22 @@ export function normalizeStoredSttSelection(
   provider: string | undefined,
   model: string | undefined,
 ) {
-  if (provider !== undefined && !KNOWN_STT_PROVIDERS.has(provider)) {
-    return { provider: undefined, model: undefined };
+  // Chaîne vide et non undefined : value_json est TEXT NOT NULL en base.
+  const cleared = { provider: "", model: "" };
+
+  if (!provider) {
+    return { provider, model };
   }
 
-  if (provider === "anarlog" && model?.startsWith("soniqo-")) {
-    return { provider: "soniqo", model };
+  if (provider === "anarlog") {
+    if (model?.startsWith("soniqo-")) return { provider: "soniqo", model };
+    if (model === "apple-speech") return { provider: "apple_speech", model };
+    // Transcription hébergée par Anarlog : exige un compte, inexistant ici.
+    return cleared;
   }
 
-  if (provider === "anarlog" && model === "apple-speech") {
-    return { provider: "apple_speech", model };
+  if (!KNOWN_STT_PROVIDERS.has(provider)) {
+    return cleared;
   }
 
   return { provider, model };

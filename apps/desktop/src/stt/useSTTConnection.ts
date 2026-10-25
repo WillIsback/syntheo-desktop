@@ -152,6 +152,13 @@ export const useSTTConnection = () => {
       return null;
     }
 
+    // Un réglage hérité peut désigner un provider retiré ou désactivé : aucune
+    // connexion, même si sa configuration (URL cloud, clé) est encore stockée.
+    const provider = PROVIDERS.find(({ id }) => id === current_stt_provider);
+    if (!provider || provider.disabled) {
+      return null;
+    }
+
     // Les endpoints on-prem n'exigent pas forcément de clé.
     if (!baseUrl) {
       return null;

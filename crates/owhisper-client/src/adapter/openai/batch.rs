@@ -20,7 +20,6 @@ use crate::error::Error;
 
 use super::OpenAIAdapter;
 
-const DEFAULT_API_BASE: &str = "https://api.openai.com/v1";
 const OPENAI_PROGRESS_CAP: f64 = 0.99;
 const MAX_SSE_FRAME_BYTES: usize = 8 * 1_024 * 1_024;
 const MAX_SSE_DELIMITER_BYTES: usize = 4;
@@ -189,7 +188,6 @@ async fn transcribe_custom_model(
         file_path,
         crate::adapter::openai_compatible_batch::OpenAICompatibleBatchConfig {
             provider: "openai",
-            default_api_base: DEFAULT_API_BASE,
             default_model: model,
             transcription_path: "audio/transcriptions",
             response_format: Some("verbose_json"),
@@ -248,15 +246,14 @@ fn build_multipart_form(
 }
 
 fn transcription_url(api_base: &str) -> Result<url::Url, Error> {
-    let mut url: url::Url = if api_base.is_empty() {
-        DEFAULT_API_BASE
-            .parse()
-            .expect("invalid_default_openai_api_base")
-    } else {
-        api_base.parse().map_err(|e: url::ParseError| {
-            Error::AudioProcessing(format!("invalid api_base: {e}"))
-        })?
-    };
+    if api_base.trim().is_empty() {
+        return Err(Error::AudioProcessing(
+            "no transcription endpoint configured".to_string(),
+        ));
+    }
+    let mut url: url::Url = api_base
+        .parse()
+        .map_err(|e: url::ParseError| Error::AudioProcessing(format!("invalid api_base: {e}")))?;
     append_path_if_missing(&mut url, "audio/transcriptions");
     Ok(url)
 }
@@ -647,6 +644,28 @@ fn build_batch_response(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn batch_without_endpoint_is_rejected() {
+        for model in ["whisper-1", "mistralai/Voxtral-Mini-3B-2507"] {
+            let client = crate::BatchClient::<OpenAIAdapter>::builder()
+                .api_base("")
+                .api_key("")
+                .params(ListenParams {
+                    model: Some(model.to_string()),
+                    ..Default::default()
+                })
+                .build();
+            let error = client
+                .transcribe_file(anlg_data::english_1::AUDIO_PATH)
+                .await
+                .expect_err("an empty endpoint must not fall back to a cloud host");
+            assert!(
+                matches!(&error, Error::AudioProcessing(message) if message.contains("no transcription endpoint")),
+                "{model}: {error:?}"
+            );
+        }
+    }
 
     #[tokio::test]
     async fn custom_batch_model_is_sent_verbatim() {

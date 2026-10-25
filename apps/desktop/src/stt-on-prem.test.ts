@@ -2,6 +2,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { aiProviderSchema } from "@anlg/store";
+
 import { PROVIDERS } from "~/settings/ai/stt/shared";
 
 // Garde-fou : la transcription ne parle qu'aux protocoles standard des moteurs
@@ -65,5 +67,15 @@ describe("stt on-prem", () => {
     ]);
     const openai = PROVIDERS.find((provider) => provider.id === "openai");
     expect(openai?.baseUrl).toBeUndefined();
+  });
+
+  it("stt_endpoint_key_is_optional_over_https", () => {
+    expect(
+      aiProviderSchema.safeParse({
+        type: "stt",
+        base_url: "https://spark-787d-1.tail6cba9f.ts.net/v1/realtime",
+        api_key: "",
+      }).success,
+    ).toBe(true);
   });
 });

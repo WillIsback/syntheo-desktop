@@ -470,6 +470,10 @@ describe("SQLite settings", () => {
     ];
     mocks.execute.mockImplementation(async () => rows);
     mocks.executeTransaction.mockImplementation(async (statements) => {
+      // value_json est TEXT NOT NULL : SQLite rejette null/undefined.
+      if (statements.some((statement) => statement.params[1] == null)) {
+        throw new Error("NOT NULL constraint failed: app_settings.value_json");
+      }
       rows = statements.map((statement) => ({
         id: String(statement.params[0]),
         value_json: String(statement.params[1]),
@@ -481,9 +485,13 @@ describe("SQLite settings", () => {
 
     const statements = mocks.executeTransaction.mock.calls[0][0];
     expect(
-      statements.map((statement) => String(statement.params[0])).sort(),
-    ).toEqual(["current_stt_model", "current_stt_provider"]);
-    expect(JSON.stringify(statements)).not.toContain("deepgram");
+      statements
+        .map((statement) => statement.params.slice(0, 2))
+        .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    ).toEqual([
+      ["current_stt_model", JSON.stringify("")],
+      ["current_stt_provider", JSON.stringify("")],
+    ]);
   });
 
   it.each([
