@@ -18,6 +18,9 @@ const SAVE_RECORDINGS_SETTING_ID: &str = "save_recordings";
 const LEGACY_SETTINGS_ID: &str = "legacy_settings_document";
 const LEGACY_MAIN_VALUES_ID: &str = "legacy_main_values_document";
 
+// Réglage hérité d'Anarlog, ignoré par Syntheo (rétention toujours « aucune ») ;
+// supprimé avec le reste du balayage au ménage 04c-B.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum AudioRetentionPolicy {
     None,
@@ -28,6 +31,9 @@ enum AudioRetentionPolicy {
     Forever,
 }
 
+// Réglage hérité d'Anarlog, ignoré par Syntheo (rétention toujours « aucune ») ;
+// supprimé avec le reste du balayage au ménage 04c-B.
+#[allow(dead_code)]
 impl AudioRetentionPolicy {
     fn from_value(value: &Value) -> Option<Self> {
         match value {
@@ -58,6 +64,9 @@ impl AudioRetentionPolicy {
     }
 }
 
+// Réglage hérité d'Anarlog, ignoré par Syntheo (rétention toujours « aucune ») ;
+// supprimé avec le reste du balayage au ménage 04c-B.
+#[allow(dead_code)]
 #[derive(Debug, Default)]
 struct StoredRetentionSettings {
     audio_retention: Option<String>,
@@ -66,42 +75,11 @@ struct StoredRetentionSettings {
     legacy_main_values: Option<String>,
 }
 
-/// Mirrors the desktop settings resolution: direct row, then legacy documents,
-/// then `save_recordings = false`, then the `forever` default.
-fn resolve_policy(stored: &StoredRetentionSettings) -> AudioRetentionPolicy {
-    let parse = |json: &Option<String>| {
-        json.as_deref()
-            .and_then(|json| serde_json::from_str::<Value>(json).ok())
-    };
-
-    if let Some(policy) = parse(&stored.audio_retention)
-        .as_ref()
-        .and_then(AudioRetentionPolicy::from_value)
-    {
-        return policy;
-    }
-
-    let legacy_settings = parse(&stored.legacy_settings).unwrap_or(Value::Null);
-    let legacy_main_values = parse(&stored.legacy_main_values).unwrap_or(Value::Null);
-    let legacy = [
-        legacy_settings.pointer("/general/audio_retention"),
-        legacy_settings.pointer("/general/saveAudioAfterMeeting"),
-        legacy_settings.pointer("/general/save_recordings"),
-        legacy_main_values.get("audio_retention"),
-        legacy_main_values.get("save_recordings"),
-    ];
-    if let Some(policy) = legacy
-        .into_iter()
-        .flatten()
-        .find_map(AudioRetentionPolicy::from_value)
-    {
-        return policy;
-    }
-
-    if parse(&stored.save_recordings) == Some(Value::Bool(false)) {
-        return AudioRetentionPolicy::None;
-    }
-    AudioRetentionPolicy::Forever
+/// Règle audio de Syntheo : la rétention est toujours « aucune ». Les réglages
+/// hérités (`audio_retention`, `save_recordings`, documents legacy) sont ignorés ;
+/// le balayage reste actif comme filet de sécurité pour l'audio hérité.
+fn resolve_policy(_stored: &StoredRetentionSettings) -> AudioRetentionPolicy {
+    AudioRetentionPolicy::None
 }
 
 async fn load_policy(pool: &SqlitePool) -> Result<AudioRetentionPolicy, sqlx::Error> {
@@ -336,36 +314,31 @@ mod tests {
         }
     }
 
+    // Règle audio de Syntheo : la rétention est toujours « aucune », quel que
+    // soit le réglage hérité stocké.
     #[test]
-    fn retention_policy_never_deletes_audio_the_user_chose_to_keep() {
-        use AudioRetentionPolicy as P;
-        let cases = [
-            (stored(None, None, None, None), P::Forever),
-            (stored(Some(r#""unknown""#), None, None, None), P::Forever),
-            (stored(Some("not json"), Some("false"), None, None), P::None),
-            (
-                stored(Some(r#""oneWeek""#), Some("false"), None, None),
-                P::OneWeek,
-            ),
-            (stored(Some("true"), Some("false"), None, None), P::Forever),
-            (stored(Some("false"), None, None, None), P::None),
-            (
-                stored(
-                    None,
-                    Some("false"),
-                    Some(r#"{"general":{"saveAudioAfterMeeting":"threeDays"}}"#),
-                    None,
-                ),
-                P::ThreeDays,
-            ),
-            (
-                stored(None, None, None, Some(r#"{"save_recordings":false}"#)),
-                P::None,
-            ),
-        ];
-        for (settings, expected) in cases {
-            assert_eq!(resolve_policy(&settings), expected, "{settings:?}");
+    fn retention_policy_is_always_none() {
+        for stored_value in [r#""forever""#, r#""oneWeek""#, r#""none""#] {
+            assert_eq!(
+                resolve_policy(&stored(Some(stored_value), None, None, None)),
+                AudioRetentionPolicy::None
+            );
         }
+        assert_eq!(
+            resolve_policy(&stored(None, None, None, None)),
+            AudioRetentionPolicy::None
+        );
+    }
+
+    #[test]
+    fn legacy_session_audio_is_swept_under_forced_none() {
+        let policy = resolve_policy(&stored(Some(r#""forever""#), None, None, None));
+        let candidate = anlg_db_app::SessionAudioRetentionCandidate {
+            session_id: "legacy".to_string(),
+            created_at_ms: Some(1_000),
+            has_words: true,
+        };
+        assert!(retention_expired(&candidate, policy, 1_000));
     }
 
     #[test]

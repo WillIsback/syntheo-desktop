@@ -31,7 +31,7 @@ fn validate(bytes: &[u8]) -> Result<ManagedSettings, sqlx::Error> {
             "intelligence_disabled" => value == &Value::Bool(true),
             "auto_start_scheduled_meetings" | "save_recordings" => value.is_boolean(),
             "current_llm_provider" | "current_llm_model" => value.as_str() == Some(""),
-            "audio_retention" => value.as_str() == Some("forever"),
+            "audio_retention" => value.as_str() == Some("none"),
             "current_stt_provider" => value.as_str() == Some("custom"),
             "current_stt_model" => value
                 .as_str()
@@ -104,6 +104,13 @@ pub async fn apply_managed_settings(pool: &SqlitePool) -> Result<(), sqlx::Error
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn managed_settings_require_no_audio_retention() {
+        assert!(validate(br#"{"schema_version":1,"settings":{"audio_retention":"none"}}"#).is_ok());
+        assert!(
+            validate(br#"{"schema_version":1,"settings":{"audio_retention":"forever"}}"#).is_err()
+        );
+    }
     #[test]
     fn secrets_and_unsafe_values_are_rejected() {
         assert!(validate(br#"{"schema_version":1,"settings":{"intelligence_disabled":true,"telemetry_consent":false}}"#).is_ok());
