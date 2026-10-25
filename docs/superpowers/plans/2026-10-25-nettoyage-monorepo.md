@@ -10,7 +10,7 @@
 
 **Spec :** `docs/superpowers/specs/2026-10-24-syntheo-desktop-migration-design.md`, section « Projet, identité et dépôt » (« Les applications hors périmètre (`apps/web`, `apps/mobile`, `apps/api`, `apps/stripe` et leurs packages exclusifs) sont retirées dans le chantier 04d, une fois le graphe de dépendances vérifié ») et section « Intégrations cloud hors IA : retirées (chantier 04d) ».
 
-**Ordre des lots, décidé avec l'utilisateur le 2026-10-25 :** 04d (ce plan), puis 04b (providers on-prem, en trois PR : adaptateurs STT cloud, inférence embarquée, providers LLM), puis 04c-B (audio temporaire de la dictée, de l'import et du batch, sur la surface réduite).
+**Ordre des lots (2026-10-25) :** 04d (ce plan, imposé par les dépendances), puis 04b (choisi par l'utilisateur avant 04c-B ; providers on-prem, en trois PR : adaptateurs STT cloud, inférence embarquée, providers LLM), puis 04c-B (audio temporaire de la dictée, de l'import et du batch, sur la surface réduite).
 
 ## Global Constraints
 

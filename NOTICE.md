@@ -46,6 +46,14 @@ En résumé :
   cloud, intégrations Nango (calendriers Google/Outlook, CRM, Google Drive),
   facturation et paywall (`@anlg/pricing`) ;
   conformité RGPD documentée dans [`docs/conformite/rgpd.md`](docs/conformite/rgpd.md) ;
+- applications hors périmètre retirées du dépôt, qui ne contient plus que le
+  client desktop et la CLI : serveur `apps/api` (proxys de transcription et de
+  LLM, facturation, synchronisation), site `apps/web`, application mobile
+  `apps/mobile`, webhooks Stripe `apps/stripe`, application watchOS `apps/watch`,
+  packages `@anlg/supabase`, `@anlg/pricing` et `mobile-bridge-rn`, dossier
+  `supabase/`, et les 34 crates qui ne servaient qu'à eux (`api-*`,
+  `transcribe-proxy`, `llm-proxy`, `supabase-auth`, `supabase-storage`, `nango`,
+  `mobile-bridge`, `updater-core`, etc.) ;
 - templates Syntheo, templates traduits en français, générateur de templates.
 
 ## Correctifs portés depuis Anarlog

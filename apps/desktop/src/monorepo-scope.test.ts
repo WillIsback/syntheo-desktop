@@ -116,4 +116,17 @@ describe("monorepo scope", () => {
       expect(existsSync(join(REPO_ROOT, "crates", name))).toBe(true);
     }
   });
+
+  it("notice_lists_removed_apps", () => {
+    const notice = read("NOTICE.md");
+    for (const app of [
+      "apps/api",
+      "apps/web",
+      "apps/mobile",
+      "apps/stripe",
+      "apps/watch",
+    ]) {
+      expect(notice).toContain(app);
+    }
+  });
 });
