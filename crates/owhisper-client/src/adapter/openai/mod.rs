@@ -59,27 +59,39 @@ impl OpenAIAdapter {
         Self::language_support_batch(languages).is_supported()
     }
 
-    pub(crate) fn resolve_batch_model(model: Option<&str>) -> AudioModel {
-        let default = Provider::OpenAI.default_batch_model();
+    /// `None` means a model the OpenAI API does not know (Voxtral, Whisper on
+    /// vLLM...): it is sent verbatim through the generic
+    /// `/v1/audio/transcriptions` path instead of being replaced.
+    pub(crate) fn resolve_batch_model(model: Option<&str>) -> Option<AudioModel> {
+        let default = || {
+            Provider::OpenAI
+                .default_batch_model()
+                .parse()
+                .expect("invalid_default_openai_batch_model")
+        };
 
         match model {
-            Some(value) if crate::providers::is_meta_model(value) => {
-                default.parse().expect("invalid_default_openai_batch_model")
-            }
-            Some(value) => value
-                .parse()
-                .unwrap_or_else(|_| default.parse().expect("invalid_default_openai_batch_model")),
-            None => default.parse().expect("invalid_default_openai_batch_model"),
+            Some(value) if crate::providers::is_meta_model(value) => Some(default()),
+            Some(value) => value.parse().ok(),
+            None => Some(default()),
         }
+    }
+
+    /// File-only models of the OpenAI API (`whisper-1`, `gpt-transcribe`...).
+    /// Any other name, notably an on-prem realtime model, can stream live.
+    pub fn is_batch_only_model(model: &str) -> bool {
+        !crate::providers::is_meta_model(model) && model.parse::<AudioModel>().is_ok()
     }
 
     pub fn supports_progressive_batch_model(model: Option<&str>) -> bool {
         matches!(
             Self::resolve_batch_model(model),
-            AudioModel::GptTranscribe
-                | AudioModel::Gpt4oTranscribe
-                | AudioModel::Gpt4oMiniTranscribe
-                | AudioModel::Gpt4oMiniTranscribe20251215
+            Some(
+                AudioModel::GptTranscribe
+                    | AudioModel::Gpt4oTranscribe
+                    | AudioModel::Gpt4oMiniTranscribe
+                    | AudioModel::Gpt4oMiniTranscribe20251215
+            )
         )
     }
 
@@ -128,11 +140,30 @@ mod tests {
     }
 
     #[test]
-    fn resolve_batch_model_defaults_to_gpt_transcribe() {
+    fn resolve_batch_model_keeps_unknown_models() {
+        assert_eq!(
+            OpenAIAdapter::resolve_batch_model(Some("whisper-large-v3")),
+            None
+        );
+        assert_eq!(
+            OpenAIAdapter::resolve_batch_model(Some("whisper-1")),
+            Some(AudioModel::Whisper1)
+        );
+        assert_eq!(
+            OpenAIAdapter::resolve_batch_model(Some("auto")),
+            Some(AudioModel::GptTranscribe)
+        );
         assert_eq!(
             OpenAIAdapter::resolve_batch_model(None),
-            AudioModel::GptTranscribe
+            Some(AudioModel::GptTranscribe)
         );
+    }
+
+    #[test]
+    fn progressive_batch_rejects_custom_models() {
+        assert!(!OpenAIAdapter::supports_progressive_batch_model(Some(
+            "whisper-large-v3"
+        )));
     }
 
     #[test]

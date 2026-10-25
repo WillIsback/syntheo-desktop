@@ -9,7 +9,13 @@ pub use url::form_urlencoded::Serializer;
 
 use owhisper_interface::ListenParams;
 
-use super::url_builder::{QueryParamBuilder, resolve_model_for_languages};
+use super::url_builder::QueryParamBuilder;
+#[cfg(feature = "local")]
+use super::url_builder::resolve_model_for_languages;
+
+/// Local Argmax server, the only remaining speaker of this protocol besides
+/// the local `/stt` proxy.
+const DEEPGRAM_COMPAT_FALLBACK_API_BASE: &str = "http://localhost:50060/v1";
 
 pub fn listen_endpoint_url(api_base: &str) -> (url::Url, Vec<(String, String)>) {
     let mut url: url::Url = match api_base.parse() {
@@ -19,8 +25,7 @@ pub fn listen_endpoint_url(api_base: &str) -> (url::Url, Vec<(String, String)>) 
                 error.type = "invalid_api_base",
                 "deepgram_invalid_api_base_using_default"
             );
-            crate::providers::Provider::Deepgram
-                .default_api_base()
+            DEEPGRAM_COMPAT_FALLBACK_API_BASE
                 .parse()
                 .expect("invalid_default_api_base")
         }
@@ -58,7 +63,7 @@ mod tests {
                 "https://api.anarlog.so/listen/",
                 vec![],
             ),
-            ("12", "https://api.deepgram.com/v1/listen", vec![]),
+            ("12", "http://localhost:50060/v1/listen", vec![]),
         ];
 
         for (input, expected_url, expected_params) in cases {
@@ -119,6 +124,7 @@ where
     url
 }
 
+#[cfg(feature = "local")]
 pub fn build_batch_url<L, K>(
     api_base: &str,
     params: &ListenParams,
@@ -129,8 +135,6 @@ where
     L: LanguageQueryStrategy,
     K: KeywordQueryStrategy,
 {
-    use crate::providers::Provider;
-
     let (mut url, existing_params) = listen_endpoint_url(api_base);
 
     let mut builder = QueryParamBuilder::new();
@@ -141,7 +145,7 @@ where
     let model = resolve_model_for_languages(
         params.model.as_deref(),
         &params.languages,
-        Provider::Deepgram.default_batch_model(),
+        super::url_builder::DEEPGRAM_COMPAT_DEFAULT_MODEL,
     );
     builder
         .add("model", model)

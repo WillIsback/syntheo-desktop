@@ -123,8 +123,7 @@ impl LiveTranscriptEngine {
             provider_name: provider_name.to_owned(),
             processor: TranscriptProcessor::new()
                 .with_partial_finalization(normalizer.finalize_partials())
-                .with_flush_partial_finalization(normalizer.flush_partials())
-                .with_final_word_stitching(!matches!(normalizer, TranscriptNormalizer::Nari)),
+                .with_flush_partial_finalization(normalizer.flush_partials()),
             normalizer,
             rendered_segments: RenderedSegmentState::new(
                 Vec::new(),
@@ -139,29 +138,7 @@ impl LiveTranscriptEngine {
     pub fn process(&mut self, response: &StreamResponse) -> Option<LiveTranscriptUpdate> {
         let mut normalized = response.clone();
         self.normalizer.normalize(&mut normalized);
-        let delta = match &normalized {
-            StreamResponse::TranscriptResponse {
-                is_final: true,
-                start,
-                duration,
-                channel,
-                channel_index,
-                ..
-            } if matches!(self.normalizer, TranscriptNormalizer::Nari)
-                && *duration > 0.0
-                && channel
-                    .alternatives
-                    .first()
-                    .is_some_and(|alt| alt.transcript.is_empty() && alt.words.is_empty()) =>
-            {
-                self.processor.clear_partials(
-                    channel_index.first().copied().unwrap_or(0),
-                    (*start * 1000.0) as i64,
-                    ((*start + *duration) * 1000.0) as i64,
-                )
-            }
-            _ => self.processor.process(&normalized)?,
-        };
+        let delta = self.processor.process(&normalized)?;
         let transcript_delta: LiveTranscriptDelta = delta.into();
         let segment_delta = self.rendered_segments.apply_delta(&transcript_delta);
         Some(LiveTranscriptUpdate {

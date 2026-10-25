@@ -5,12 +5,8 @@ use bytes::Bytes;
 use ractor::{ActorProcessingErr, ActorRef};
 
 use owhisper_client::{
-    AdapterKind, AlebexAdapter, AnarlogAdapter, ArgmaxAdapter, AssemblyAIAdapter, CartesiaAdapter,
-    DashScopeAdapter, DashScopeStreamingAdapter, DeepgramAdapter, DeepgramFluxAdapter,
-    ElevenLabsAdapter, FireworksAdapter, GladiaAdapter, GoogleGenerativeAiAdapter, GradiumAdapter,
-    InworldAdapter, MetaAdapter, MistralAdapter, ModulateAdapter, NariAdapter, NvidiaAdapter,
-    OpenAIAdapter, RealtimeSttAdapter, SmallestAIAdapter, SonioxAdapter, WisprFlowAdapter,
-    XaiAdapter, anlg_ws_client,
+    AdapterKind, AnarlogAdapter, ArgmaxAdapter, NvidiaAdapter, OpenAIAdapter, RealtimeSttAdapter,
+    anlg_ws_client,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -148,89 +144,32 @@ pub(super) async fn spawn_rx_task(
         AdapterKind::from_url_and_languages(&args.base_url, &args.languages, Some(&args.model));
     let is_dual = matches!(args.mode, crate::actors::ChannelMode::MicAndSpeaker);
 
-    if adapter_kind == AdapterKind::Deepgram && DeepgramFluxAdapter::is_model(&args.model) {
-        let result = if is_dual {
-            spawn_rx_task_dual_with_adapter::<DeepgramFluxAdapter>(args, myself).await?
-        } else {
-            spawn_rx_task_single_with_adapter::<DeepgramFluxAdapter>(args, myself).await?
-        };
-        return Ok((result.0, result.1, result.2, "deepgram".to_string()));
-    }
-
-    if adapter_kind == AdapterKind::DashScope && DashScopeStreamingAdapter::is_model(&args.model) {
-        let result = if is_dual {
-            spawn_rx_task_dual_with_adapter::<DashScopeStreamingAdapter>(args, myself).await?
-        } else {
-            spawn_rx_task_single_with_adapter::<DashScopeStreamingAdapter>(args, myself).await?
-        };
-        return Ok((result.0, result.1, result.2, "dashscope".to_string()));
-    }
-
-    macro_rules! dispatch_realtime {
-        ($ak:expr, $is_dual:expr, $args:expr, $myself:expr,
-         { $($var:ident => $adapter:ty),+ $(,)? },
-         batch_only: [$($bo:ident),* $(,)?]
-        ) => {
-            match ($ak, $is_dual) {
-                $(
-                    (AdapterKind::$var, false) => {
-                        spawn_rx_task_single_with_adapter::<$adapter>($args, $myself).await
-                    }
-                    (AdapterKind::$var, true) => {
-                        spawn_rx_task_dual_with_adapter::<$adapter>($args, $myself).await
-                    }
-                )+
-                $(
-                    (AdapterKind::$bo, _) => {
-                        return Err(actor_error(
-                            concat!("provider_batch_only: ", stringify!($bo), " only supports batch transcription")
-                        ));
-                    }
-                )*
-            }
-        };
-    }
-
-    let result = dispatch_realtime!(adapter_kind, is_dual, args, myself, {
-        Argmax => ArgmaxAdapter,
-        Cartesia => CartesiaAdapter,
-        Soniox => SonioxAdapter,
-        Fireworks => FireworksAdapter,
-        OpenAI => OpenAIAdapter,
-        Deepgram => DeepgramAdapter,
-        AssemblyAI => AssemblyAIAdapter,
-        Gladia => GladiaAdapter,
-        ElevenLabs => ElevenLabsAdapter,
-        DashScope => DashScopeAdapter,
-        Mistral => MistralAdapter,
-        Meta => MetaAdapter,
-        Xai => XaiAdapter,
-        Nari => NariAdapter,
-        Inworld => InworldAdapter,
-        Gradium => GradiumAdapter,
-        Modulate => ModulateAdapter,
-        Alebex => AlebexAdapter,
-        Nvidia => NvidiaAdapter,
-        SmallestAI => SmallestAIAdapter,
-        WisprFlow => WisprFlowAdapter,
-        GoogleGenerativeAi => GoogleGenerativeAiAdapter,
-        Anarlog => AnarlogAdapter,
-    }, batch_only: [
-        AmazonBedrock,
-        AquaVoice,
-        Pyannote,
-        Cohere,
-        AwsTranscribe,
-        AzureSpeech,
-        GoogleCloud,
-        Groq,
-        OpenRouter,
-        SiliconFlow,
-        Zai,
-        RevAi,
-        Speechmatics,
-        Together
-    ])?;
+    let result = match (adapter_kind, is_dual) {
+        (AdapterKind::Argmax, false) => {
+            spawn_rx_task_single_with_adapter::<ArgmaxAdapter>(args, myself).await
+        }
+        (AdapterKind::Argmax, true) => {
+            spawn_rx_task_dual_with_adapter::<ArgmaxAdapter>(args, myself).await
+        }
+        (AdapterKind::OpenAI, false) => {
+            spawn_rx_task_single_with_adapter::<OpenAIAdapter>(args, myself).await
+        }
+        (AdapterKind::OpenAI, true) => {
+            spawn_rx_task_dual_with_adapter::<OpenAIAdapter>(args, myself).await
+        }
+        (AdapterKind::Nvidia, false) => {
+            spawn_rx_task_single_with_adapter::<NvidiaAdapter>(args, myself).await
+        }
+        (AdapterKind::Nvidia, true) => {
+            spawn_rx_task_dual_with_adapter::<NvidiaAdapter>(args, myself).await
+        }
+        (AdapterKind::Anarlog, false) => {
+            spawn_rx_task_single_with_adapter::<AnarlogAdapter>(args, myself).await
+        }
+        (AdapterKind::Anarlog, true) => {
+            spawn_rx_task_dual_with_adapter::<AnarlogAdapter>(args, myself).await
+        }
+    }?;
 
     Ok((result.0, result.1, result.2, adapter_kind.to_string()))
 }
@@ -708,37 +647,37 @@ mod tests {
     fn listen_params_leave_speaker_counts_open() {
         for (label, base_url, model, participants, self_human_id) in [
             (
-                "assemblyai repeated attendance",
-                "https://api.assemblyai.com",
-                "u3-rt-pro",
+                "openai repeated attendance",
+                "http://192.168.1.87:8000/v1",
+                "mistralai/Voxtral-Mini-4B-Realtime-2602",
                 vec!["remote-a", "self", "remote-b", "remote-a"],
                 Some("self"),
             ),
             (
-                "assemblyai no remote participants",
-                "https://api.assemblyai.com",
-                "u3-rt-pro",
+                "openai no remote participants",
+                "http://192.168.1.87:8000/v1",
+                "mistralai/Voxtral-Mini-4B-Realtime-2602",
                 vec![],
                 Some("self"),
             ),
             (
-                "assemblyai self only",
-                "https://api.assemblyai.com",
-                "u3-rt-pro",
+                "openai self only",
+                "http://192.168.1.87:8000/v1",
+                "mistralai/Voxtral-Mini-4B-Realtime-2602",
                 vec!["self"],
                 Some("self"),
             ),
             (
-                "assemblyai one remote",
-                "https://api.assemblyai.com",
-                "u3-rt-pro",
+                "openai one remote",
+                "http://192.168.1.87:8000/v1",
+                "mistralai/Voxtral-Mini-4B-Realtime-2602",
                 vec!["remote"],
                 Some("self"),
             ),
             (
-                "deepgram",
-                "https://api.deepgram.com/v1",
-                "nova-3",
+                "nvidia",
+                "https://asr.example/v1/realtime?provider=nvidia",
+                "nemotron-asr-streaming",
                 vec!["remote"],
                 Some("self"),
             ),
@@ -771,21 +710,30 @@ mod tests {
 
     #[test]
     fn listen_params_count_only_isolated_mic_as_single_speaker() {
-        let mut args = listener_args("https://api.soniox.com", "stt-rt-v4");
+        let mut args = listener_args(
+            "http://192.168.1.87:8000/v1",
+            "mistralai/Voxtral-Mini-4B-Realtime-2602",
+        );
         args.mic_isolated = true;
 
         let params = build_listen_params(&args);
         assert_eq!(params.mic_num_speakers, Some(1));
         assert_eq!(params.num_speakers, None);
 
-        let args = listener_args("https://api.soniox.com", "stt-rt-v4");
+        let args = listener_args(
+            "http://192.168.1.87:8000/v1",
+            "mistralai/Voxtral-Mini-4B-Realtime-2602",
+        );
         let params = build_listen_params(&args);
         assert_eq!(params.mic_num_speakers, None);
     }
 
     #[test]
     fn build_extra_prefers_explicit_stream_offset() {
-        let mut args = listener_args("https://api.deepgram.com", "nova-3");
+        let mut args = listener_args(
+            "http://192.168.1.87:8000/v1",
+            "mistralai/Voxtral-Mini-4B-Realtime-2602",
+        );
         args.stream_offset_secs = Some(12.5);
 
         let (offset_secs, _) = build_extra(&args);
@@ -805,8 +753,8 @@ mod tests {
             retry_after_secs: None,
         };
         assert!(matches!(
-            classify_ws_connect_failure("deepgram", &error),
-            DegradedError::AuthenticationFailed { provider } if provider == "deepgram"
+            classify_ws_connect_failure("openai", &error),
+            DegradedError::AuthenticationFailed { provider } if provider == "openai"
         ));
 
         let error = anlg_ws_client::Error::ConnectFailed {
@@ -819,9 +767,9 @@ mod tests {
             retry_after_secs: None,
         };
         assert!(matches!(
-            classify_ws_connect_failure("deepgram", &error),
+            classify_ws_connect_failure("openai", &error),
             DegradedError::ProviderConfiguration { provider, message }
-                if provider == "deepgram" && message == "HTTP 400 Bad Request"
+                if provider == "openai" && message == "HTTP 400 Bad Request"
         ));
 
         let error = anlg_ws_client::Error::ConnectRetriesExhausted {
@@ -830,7 +778,7 @@ mod tests {
             retry_after_secs: None,
         };
         assert!(matches!(
-            classify_ws_connect_failure("deepgram", &error),
+            classify_ws_connect_failure("openai", &error),
             DegradedError::UpstreamUnavailable { .. }
         ));
     }

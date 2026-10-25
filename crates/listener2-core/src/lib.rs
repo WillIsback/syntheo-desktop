@@ -26,10 +26,6 @@ pub fn is_supported_languages_live(
     model: Option<&str>,
     languages: &[anlg_language::Language],
 ) -> std::result::Result<bool, String> {
-    if provider == "custom" {
-        return Ok(true);
-    }
-
     if provider == "soniqo" {
         let model = model
             .ok_or_else(|| "missing_model: soniqo".to_string())?
@@ -85,10 +81,6 @@ pub fn is_supported_languages_batch(
     model: Option<&str>,
     languages: &[anlg_language::Language],
 ) -> std::result::Result<bool, String> {
-    if provider == "custom" {
-        return Ok(true);
-    }
-
     if provider == "soniqo" {
         let model = model
             .ok_or_else(|| "missing_model: soniqo".to_string())?
@@ -134,21 +126,8 @@ pub fn is_supported_languages_batch(
 pub fn suggest_providers_for_languages_live(languages: &[anlg_language::Language]) -> Vec<String> {
     let all_providers = [
         AdapterKind::Argmax,
-        AdapterKind::Soniox,
-        AdapterKind::Fireworks,
-        AdapterKind::Deepgram,
-        AdapterKind::AssemblyAI,
         AdapterKind::OpenAI,
-        AdapterKind::Gladia,
-        AdapterKind::ElevenLabs,
-        AdapterKind::DashScope,
-        AdapterKind::Mistral,
-        AdapterKind::Meta,
-        AdapterKind::Xai,
-        AdapterKind::Nari,
-        AdapterKind::SmallestAI,
-        AdapterKind::WisprFlow,
-        AdapterKind::GoogleGenerativeAi,
+        AdapterKind::Nvidia,
     ];
 
     let mut with_support: Vec<_> = all_providers
@@ -169,34 +148,7 @@ pub fn suggest_providers_for_languages_live(languages: &[anlg_language::Language
 }
 
 pub fn suggest_providers_for_languages_batch(languages: &[anlg_language::Language]) -> Vec<String> {
-    let all_providers = [
-        AdapterKind::Argmax,
-        AdapterKind::Soniox,
-        AdapterKind::Fireworks,
-        AdapterKind::Deepgram,
-        AdapterKind::AssemblyAI,
-        AdapterKind::OpenAI,
-        AdapterKind::OpenRouter,
-        AdapterKind::SiliconFlow,
-        AdapterKind::Zai,
-        AdapterKind::Gladia,
-        AdapterKind::ElevenLabs,
-        AdapterKind::DashScope,
-        AdapterKind::Mistral,
-        AdapterKind::Meta,
-        AdapterKind::Cohere,
-        AdapterKind::AwsTranscribe,
-        AdapterKind::AzureSpeech,
-        AdapterKind::GoogleCloud,
-        AdapterKind::GoogleGenerativeAi,
-        AdapterKind::Groq,
-        AdapterKind::RevAi,
-        AdapterKind::Speechmatics,
-        AdapterKind::Together,
-        AdapterKind::Xai,
-        AdapterKind::SmallestAI,
-        AdapterKind::WisprFlow,
-    ];
+    let all_providers = [AdapterKind::Argmax, AdapterKind::OpenAI];
 
     let mut with_support: Vec<_> = all_providers
         .iter()
@@ -230,7 +182,7 @@ mod tests {
             ("anarlog", "soniqo-parakeet-batch", &["ko"], false),
             ("soniqo", "soniqo-omnilingual", &["fr"], true),
             ("anarlog", "cloud", &["fr"], true),
-            ("mistral", "voxtral-mini-2602", &["de-DE", "en-US"], true),
+            ("openai", "whisper-large-v3", &["de-DE", "en-US"], true),
             ("hyprnote", "cloud", &["ko"], true),
         ];
 
@@ -275,14 +227,11 @@ mod tests {
     }
 
     #[test]
-    fn meta_is_suggested_for_documented_languages() {
-        let english = vec!["en-US".parse().unwrap()];
-        let swahili = vec!["sw".parse().unwrap()];
+    fn openai_protocol_is_suggested_for_french() {
+        let french = vec!["fr-FR".parse().unwrap()];
 
-        assert!(suggest_providers_for_languages_live(&english).contains(&"meta".to_string()));
-        assert!(!suggest_providers_for_languages_live(&swahili).contains(&"meta".to_string()));
-        assert!(suggest_providers_for_languages_batch(&english).contains(&"meta".to_string()));
-        assert!(!suggest_providers_for_languages_batch(&swahili).contains(&"meta".to_string()));
+        assert!(suggest_providers_for_languages_live(&french).contains(&"openai".to_string()));
+        assert!(suggest_providers_for_languages_batch(&french).contains(&"openai".to_string()));
     }
 
     #[test]

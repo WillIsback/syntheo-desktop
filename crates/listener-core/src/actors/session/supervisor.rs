@@ -868,16 +868,10 @@ mod tests {
                 "local soniqo live",
             ),
             (
-                "https://api.soniox.com",
-                "stt-v4",
+                "http://192.168.1.87:8000/v1",
+                "mistralai/Voxtral-Mini-4B-Realtime-2602",
                 false,
-                "direct soniox preserves recording",
-            ),
-            (
-                "https://api.anarlog.so/stt?provider=soniox",
-                "cloud",
-                false,
-                "anarlog proxy soniox enters batch fallback",
+                "on-prem openai endpoint keeps the session",
             ),
             (
                 "http://localhost:1234",
@@ -983,8 +977,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn stalled_cloud_and_soniox_listeners_schedule_reconnection_without_stopping_recording() {
-        for base_url in ["https://api.anarlog.so/stt", "https://api.soniox.com"] {
+    async fn stalled_remote_listeners_schedule_reconnection_without_stopping_recording() {
+        for base_url in ["https://api.anarlog.so/stt", "http://192.168.1.87:8000/v1"] {
             let runtime = Arc::new(RecordingRuntime {
                 lifecycle_events: std::sync::Mutex::new(vec![]),
             });

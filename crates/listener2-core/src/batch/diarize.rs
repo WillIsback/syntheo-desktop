@@ -905,8 +905,8 @@ mod tests {
     #[test]
     fn local_providers_are_detected() {
         let mut params = params(
-            BatchProvider::Deepgram,
-            "https://api.deepgram.com/v1",
+            BatchProvider::OpenAI,
+            "http://192.168.1.87:8000/v1",
             "/tmp/a.wav",
         );
         assert!(!is_local_batch(&params));
@@ -1209,8 +1209,8 @@ mod tests {
     #[tokio::test]
     async fn cloud_output_is_left_untouched() {
         let params = params(
-            BatchProvider::Deepgram,
-            "https://api.deepgram.com/v1",
+            BatchProvider::OpenAI,
+            "http://192.168.1.87:8000/v1",
             anlg_data::english_1::AUDIO_PATH,
         );
         let mut output = unlabeled_output(10, 5.0);

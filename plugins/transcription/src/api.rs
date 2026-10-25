@@ -512,7 +512,7 @@ mod tests {
             languages: vec![],
             onboarding: false,
             model: "nova-3-general".to_string(),
-            base_url: "https://api.deepgram.com/v1".to_string(),
+            base_url: "http://192.168.1.87:8000/v1".to_string(),
             api_key: "test-key".to_string(),
             keywords: vec![],
             mic_device: Some("External Microphone".to_string()),

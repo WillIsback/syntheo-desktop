@@ -290,7 +290,7 @@ fn openai_diarize_splits_below_the_shared_openai_duration_cap() {
 #[test]
 fn merges_segment_transcripts_onto_a_single_timeline() {
     let segment = |transcript: &str, start: f64| Response {
-        metadata: serde_json::json!({ "provider": "openrouter" }),
+        metadata: serde_json::json!({ "provider": "openai" }),
         results: owhisper_interface::batch::Results {
             channels: vec![owhisper_interface::batch::Channel {
                 alternatives: vec![owhisper_interface::batch::Alternatives {
@@ -320,7 +320,7 @@ fn merges_segment_transcripts_onto_a_single_timeline() {
     assert_eq!(alternative.words[0].start, 1.0);
     assert_eq!(alternative.words[1].start, 602.0);
     assert_eq!(alternative.words[1].end, 602.5);
-    assert_eq!(merged.metadata["provider"], "openrouter");
+    assert_eq!(merged.metadata["provider"], "openai");
 }
 
 #[test]
@@ -378,10 +378,10 @@ async fn oversized_audio_is_uploaded_one_segment_at_a_time() {
 
     let params = BatchParams {
         session_id: "segment-test".to_string(),
-        provider: super::super::BatchProvider::OpenRouter,
+        provider: super::super::BatchProvider::OpenAI,
         file_path: source.path().to_string_lossy().into_owned(),
         model: None,
-        base_url: "https://openrouter.ai/api/v1".to_string(),
+        base_url: "http://192.168.1.87:8000/v1".to_string(),
         api_key: "test".to_string(),
         languages: vec![anlg_language::ISO639::En.into()],
         keywords: vec![],
@@ -522,10 +522,10 @@ async fn rate_limited_direct_request_is_retried_until_it_succeeds() {
     write_test_wav(audio.path());
     let params = BatchParams {
         session_id: "rate-limit-test".to_string(),
-        provider: super::super::BatchProvider::GoogleGenerativeAi,
+        provider: super::super::BatchProvider::OpenAI,
         file_path: audio.path().to_string_lossy().into_owned(),
         model: None,
-        base_url: "https://generativelanguage.googleapis.com/v1beta".to_string(),
+        base_url: "http://192.168.1.87:8000/v1".to_string(),
         api_key: "test".to_string(),
         languages: vec![anlg_language::ISO639::En.into()],
         keywords: vec![],

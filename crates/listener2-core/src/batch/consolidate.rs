@@ -1,6 +1,7 @@
-//! Post-pass for hosted batch transcripts. Cloud providers label speakers but
-//! never see the session's participant count or voiceprints (Soniox and
-//! Deepgram have no speaker-count parameter, and biometrics stay on device),
+//! Post-pass for hosted batch transcripts. Remote STT servers label speakers
+//! but never see the session's participant count or voiceprints (the
+//! transcription API has no speaker-count parameter, and biometrics stay on
+//! device),
 //! so a remote channel often comes back with more "speakers" than people.
 //! This embeds each provider speaker's clean speech with the same model the
 //! voiceprint store uses, merges labels that are one known voice or that
@@ -892,8 +893,8 @@ mod tests {
     async fn over_split_remote_speaker_collapses_to_the_participant_count() {
         let file = stereo_fixture();
         let mut params = params(
-            BatchProvider::Deepgram,
-            "https://api.deepgram.com/v1",
+            BatchProvider::OpenAI,
+            "http://192.168.1.87:8000/v1",
             file.path().to_str().unwrap(),
         );
         params.num_speakers = Some(2);
@@ -933,8 +934,8 @@ mod tests {
         // merge, and it has to be the two speaker0 labels.
         let file = stereo_fixture();
         let mut params = params(
-            BatchProvider::Deepgram,
-            "https://api.deepgram.com/v1",
+            BatchProvider::OpenAI,
+            "http://192.168.1.87:8000/v1",
             file.path().to_str().unwrap(),
         );
         params.num_speakers = Some(2);
@@ -1032,8 +1033,8 @@ mod tests {
     async fn in_person_mic_is_consolidated_to_the_room_and_shared() {
         let file = in_person_fixture();
         let mut params = params(
-            BatchProvider::Deepgram,
-            "https://api.deepgram.com/v1",
+            BatchProvider::OpenAI,
+            "http://192.168.1.87:8000/v1",
             file.path().to_str().unwrap(),
         );
         params.num_speakers = Some(2);
@@ -1066,8 +1067,8 @@ mod tests {
         // Two labels for two people: nothing to merge, so the recording is
         // never opened, but the words still have to leave the "You" channel.
         let params = params(
-            BatchProvider::Deepgram,
-            "https://api.deepgram.com/v1",
+            BatchProvider::OpenAI,
+            "http://192.168.1.87:8000/v1",
             "/nonexistent/recording.wav",
         );
         let listen_params = owhisper_interface::ListenParams {
@@ -1101,8 +1102,8 @@ mod tests {
         // Far-end speech on the remote channel makes this a call; whatever the
         // provider did to the mic channel, it stays the local user's.
         let params = params(
-            BatchProvider::Deepgram,
-            "https://api.deepgram.com/v1",
+            BatchProvider::OpenAI,
+            "http://192.168.1.87:8000/v1",
             "/nonexistent/recording.wav",
         );
         let listen_params = owhisper_interface::ListenParams {
@@ -1130,8 +1131,8 @@ mod tests {
     #[tokio::test]
     async fn within_cap_without_known_speakers_does_not_touch_the_recording() {
         let params = params(
-            BatchProvider::Deepgram,
-            "https://api.deepgram.com/v1",
+            BatchProvider::OpenAI,
+            "http://192.168.1.87:8000/v1",
             "/nonexistent/recording.wav",
         );
         let listen_params = owhisper_interface::ListenParams {
@@ -1188,8 +1189,8 @@ mod tests {
     #[tokio::test]
     async fn unreadable_recording_keeps_the_transcript() {
         let params = params(
-            BatchProvider::Deepgram,
-            "https://api.deepgram.com/v1",
+            BatchProvider::OpenAI,
+            "http://192.168.1.87:8000/v1",
             "/nonexistent/recording.wav",
         );
         let listen_params = owhisper_interface::ListenParams {

@@ -13,11 +13,11 @@ use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
 
 use crate::{
-    DeepgramAdapter, RealtimeSttAdapter, append_provider_param, is_anarlog_proxy,
+    OpenAIAdapter, RealtimeSttAdapter, append_provider_param, is_anarlog_proxy,
     normalize_listen_params,
 };
 
-pub struct ListenClientBuilder<A: RealtimeSttAdapter = DeepgramAdapter> {
+pub struct ListenClientBuilder<A: RealtimeSttAdapter = OpenAIAdapter> {
     pub(crate) api_base: Option<String>,
     pub(crate) api_key: Option<String>,
     pub(crate) params: Option<ListenParams>,
@@ -187,7 +187,7 @@ pub type ListenClientInput = MixedMessage<bytes::Bytes, ControlMessage>;
 pub type ListenClientDualInput = MixedMessage<(bytes::Bytes, bytes::Bytes), ControlMessage>;
 
 #[derive(Clone)]
-pub struct ListenClient<A: RealtimeSttAdapter = DeepgramAdapter> {
+pub struct ListenClient<A: RealtimeSttAdapter = OpenAIAdapter> {
     pub(crate) adapter: A,
     pub(crate) request: ClientRequestBuilder,
     pub(crate) initial_message: Option<Message>,
@@ -364,8 +364,8 @@ impl WebSocketIO for ListenClientDualIO {
     }
 }
 
-impl ListenClient<DeepgramAdapter> {
-    pub fn builder() -> ListenClientBuilder<DeepgramAdapter> {
+impl ListenClient<OpenAIAdapter> {
+    pub fn builder() -> ListenClientBuilder<OpenAIAdapter> {
         ListenClientBuilder::default()
     }
 }

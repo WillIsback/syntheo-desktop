@@ -463,13 +463,12 @@ fn best_echo_score(mic: &[f32], speaker: &[f32]) -> Option<EchoScore> {
 
     while lag <= max_lag {
         for lag in [-lag, lag] {
-            if let Some(score) = echo_score_at_lag(&mic[..len], &speaker[..len], lag) {
-                if best
+            if let Some(score) = echo_score_at_lag(&mic[..len], &speaker[..len], lag)
+                && best
                     .map(|current| score.correlation > current.correlation)
                     .unwrap_or(true)
-                {
-                    best = Some(score);
-                }
+            {
+                best = Some(score);
             }
         }
         lag += ECHO_GATE_LAG_STEP_SAMPLES;

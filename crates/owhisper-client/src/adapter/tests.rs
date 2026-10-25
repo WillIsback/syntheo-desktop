@@ -57,20 +57,6 @@ fn test_normalize_languages_multiple_variants() {
 }
 
 #[test]
-fn test_simple_documented_language_codes_collapses_variants() {
-    let result = simple_documented_language_codes(["zh", "zh-CN", "zh-Hans", "en-US", "en-GB"]);
-
-    assert_eq!(result, vec!["en".to_string(), "zh".to_string()]);
-}
-
-#[test]
-fn test_simple_documented_language_codes_canonicalizes_aliases() {
-    let result = simple_documented_language_codes(["jw", "jv"]);
-
-    assert_eq!(result, vec!["jv".to_string()]);
-}
-
-#[test]
 fn test_documented_language_codes_are_menu_safe() {
     let result = documented_language_codes_live();
 
@@ -199,31 +185,6 @@ fn test_adapter_kind_from_url_and_languages() {
             None,
             AdapterKind::Argmax,
         ),
-        // Other local endpoints are custom Deepgram-compatible providers.
-        (
-            "http://localhost:8080/v1",
-            &[En],
-            None,
-            AdapterKind::Deepgram,
-        ),
-        (
-            "https://openrouter.ai/api/v1",
-            &[En],
-            Some("openai/gpt-4o-mini-transcribe"),
-            AdapterKind::OpenRouter,
-        ),
-        (
-            "https://api.siliconflow.cn/v1",
-            &[Zh],
-            Some("FunAudioLLM/SenseVoiceSmall"),
-            AdapterKind::SiliconFlow,
-        ),
-        (
-            "https://api.z.ai/api/paas/v4",
-            &[En],
-            Some("glm-asr-2512"),
-            AdapterKind::Zai,
-        ),
     ];
 
     for (url, langs, model, expected) in cases {
@@ -238,53 +199,14 @@ fn test_adapter_kind_from_url_and_languages() {
 
 #[test]
 fn test_has_live_mode() {
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://platform-api.wisprflow.ai", &[], None),
-        AdapterKind::WisprFlow
-    );
-    let live = [
-        AdapterKind::Deepgram,
-        AdapterKind::Soniox,
-        AdapterKind::AssemblyAI,
-        AdapterKind::Gladia,
-        AdapterKind::Fireworks,
+    for kind in [
         AdapterKind::OpenAI,
-        AdapterKind::ElevenLabs,
-        AdapterKind::DashScope,
-        AdapterKind::Mistral,
-        AdapterKind::Meta,
-        AdapterKind::Xai,
-        AdapterKind::SmallestAI,
-        AdapterKind::WisprFlow,
-        AdapterKind::GoogleGenerativeAi,
+        AdapterKind::Nvidia,
         AdapterKind::Anarlog,
-    ];
-    for kind in live {
+    ] {
         assert!(kind.has_live_mode(), "{kind:?} should support live mode");
     }
-
-    let batch_only = [
-        AdapterKind::AquaVoice,
-        AdapterKind::Argmax,
-        AdapterKind::Pyannote,
-        AdapterKind::Cohere,
-        AdapterKind::AwsTranscribe,
-        AdapterKind::AzureSpeech,
-        AdapterKind::GoogleCloud,
-        AdapterKind::Groq,
-        AdapterKind::OpenRouter,
-        AdapterKind::SiliconFlow,
-        AdapterKind::Zai,
-        AdapterKind::RevAi,
-        AdapterKind::Speechmatics,
-        AdapterKind::Together,
-    ];
-    for kind in batch_only {
-        assert!(
-            !kind.has_live_mode(),
-            "{kind:?} should not support live mode"
-        );
-    }
+    assert!(!AdapterKind::Argmax.has_live_mode());
 }
 
 #[test]
@@ -444,89 +366,6 @@ fn test_anarlog_soniqo_live_rejects_batch_only_models() {
 }
 
 #[test]
-fn test_direct_provider_urls_not_affected() {
-    use anlg_language::ISO639::*;
-
-    let en: Vec<anlg_language::Language> = vec![En.into()];
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://api.deepgram.com/v1", &en, None),
-        AdapterKind::Deepgram,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://api.soniox.com", &en, None),
-        AdapterKind::Soniox,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://api.meta.ai/v1", &en, None),
-        AdapterKind::Meta,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://api.pyannote.ai", &en, None),
-        AdapterKind::Pyannote,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://api.cohere.com/v2", &en, None),
-        AdapterKind::Cohere,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages(
-            "https://transcribe.us-east-1.amazonaws.com",
-            &en,
-            None,
-        ),
-        AdapterKind::AwsTranscribe,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages(
-            "https://example.cognitiveservices.azure.com",
-            &en,
-            None,
-        ),
-        AdapterKind::AzureSpeech,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://speech.googleapis.com/v1", &en, None,),
-        AdapterKind::GoogleCloud,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://api.groq.com/openai/v1", &en, None,),
-        AdapterKind::Groq,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://api.rev.ai/speechtotext/v1", &en, None,),
-        AdapterKind::RevAi,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://eu1.asr.api.speechmatics.com/v2", &en, None,),
-        AdapterKind::Speechmatics,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://api.together.xyz/v1", &en, None,),
-        AdapterKind::Together,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://api.x.ai/v1", &en, None),
-        AdapterKind::Xai,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("https://api.smallest.ai", &en, None),
-        AdapterKind::SmallestAI,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages(
-            "https://generativelanguage.googleapis.com/v1beta",
-            &en,
-            None,
-        ),
-        AdapterKind::GoogleGenerativeAi,
-    );
-    assert_eq!(
-        AdapterKind::from_url_and_languages("http://localhost:50060/v1", &en, None),
-        AdapterKind::Argmax,
-    );
-}
-
-#[test]
 fn test_append_provider_param_replaces_existing() {
     let url = append_provider_param("https://api.anarlog.so/stt?provider=deepgram", "anarlog");
     assert!(
@@ -585,11 +424,39 @@ fn openai_diarize_batch_limit_stays_under_api_duration_cap() {
 }
 
 #[test]
-fn openai_compatible_providers_keep_shared_duration_cap() {
-    for kind in [AdapterKind::Groq, AdapterKind::Together, AdapterKind::Xai] {
-        let limit = kind
-            .batch_upload_limit(None)
-            .expect("openai-compatible providers have a batch upload limit");
-        assert_eq!(limit.max_duration, Duration::from_secs(25 * 60));
+fn unknown_on_prem_host_falls_back_to_openai() {
+    for url in [
+        "http://192.168.1.87:8000/v1",
+        "http://localhost:9000/v1/realtime",
+    ] {
+        assert_eq!(
+            AdapterKind::from_url_and_languages(url, &[], None),
+            AdapterKind::OpenAI,
+            "{url}"
+        );
     }
+}
+
+#[test]
+fn provider_query_selects_openai_or_nvidia() {
+    assert_eq!(
+        AdapterKind::from_url_and_languages(
+            "https://asr.example/v1/realtime?provider=nvidia",
+            &[],
+            None
+        ),
+        AdapterKind::Nvidia
+    );
+    assert_eq!(
+        AdapterKind::from_url_and_languages("https://asr.example/v1?provider=openai", &[], None),
+        AdapterKind::OpenAI
+    );
+}
+
+#[test]
+fn removed_provider_query_falls_back_to_openai() {
+    assert_eq!(
+        AdapterKind::from_url_and_languages("https://asr.example/v1?provider=deepgram", &[], None),
+        AdapterKind::OpenAI
+    );
 }
