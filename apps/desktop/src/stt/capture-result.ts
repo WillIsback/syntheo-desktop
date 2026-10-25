@@ -53,7 +53,9 @@ export function useIncompleteCapture(sessionId: string) {
       json_extract(value_json, '$.audioKeptForTranscription') AS audio_kept_for_transcription,
       json_extract(value_json, '$.interruptions') AS interruptions
       FROM app_settings WHERE substr(id, 1, length(?)) = ? AND json_valid(value_json)
-      AND (json_extract(value_json, '$.audioDeletionFailed') = 1 OR id = ? || 'audio-recovery' OR EXISTS (
+      AND (json_extract(value_json, '$.audioDeletionFailed') = 1
+        OR json_extract(value_json, '$.interruptions') IS NOT NULL
+        OR id = ? || 'audio-recovery' OR EXISTS (
         SELECT 1 FROM transcripts WHERE session_id = ? AND deleted_at IS NULL
         AND app_settings.id = ? || transcripts.id
       )) ORDER BY audio_deletion_failed DESC, audio_deleted DESC LIMIT 1`,
@@ -87,10 +89,13 @@ export function clearIncompleteCapture(
   return enqueueDatabaseWrite(`session:${sessionId}`, () =>
     executeTransaction([
       {
-        // Text repair does not prove that private audio was deleted.
+        // Text repair does not prove that private audio was deleted, and a
+        // dated interruption is final (no audio to repair it): both stay.
         sql: `DELETE FROM app_settings WHERE ${transcriptId ? "id = ?" : "substr(id, 1, length(?)) = ?"}
           AND COALESCE(json_extract(CASE WHEN json_valid(value_json) THEN value_json ELSE '{}' END,
-            '$.audioDeletionFailed'), 0) != 1`,
+            '$.audioDeletionFailed'), 0) != 1
+          AND json_extract(CASE WHEN json_valid(value_json) THEN value_json ELSE '{}' END,
+            '$.interruptions') IS NULL`,
         params: transcriptId ? [`${prefix}${transcriptId}`] : [prefix, prefix],
       },
     ]).then(() => undefined),

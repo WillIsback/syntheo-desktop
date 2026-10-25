@@ -49,3 +49,8 @@ it("docs_rgpd_reflects_capture_without_audio", () => {
   expect(rgpd).toContain("dictée");
   expect(rgpd).toContain("import");
 });
+
+it("docs_rgpd_states_failed_import_copy_is_kept", () => {
+  const rgpd = readFileSync(join(ROOT, "docs/conformite/rgpd.md"), "utf8");
+  expect(rgpd).toContain("import dont la transcription échoue");
+});

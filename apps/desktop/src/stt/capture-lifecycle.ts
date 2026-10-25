@@ -1264,7 +1264,11 @@ export function useCaptureLifecycle(sessionId: string) {
                 error,
               ),
             );
-          if (recovery.incomplete || details.audioDeletionFailed) {
+          if (
+            recovery.incomplete ||
+            details.audioDeletionFailed ||
+            (recovery.interruptions?.length ?? 0) > 0
+          ) {
             await saveIncompleteCapture(
               sessionId,
               transcriptId,
@@ -1354,7 +1358,11 @@ export function useCaptureLifecycle(sessionId: string) {
             ...(!retainAudio ? { audioPath: null } : {}),
           };
         }
-        if (usesChunkedAudio && !details.needsBatchRepair) {
+        if (
+          usesChunkedAudio &&
+          !details.needsBatchRepair &&
+          recoveredInterruptions.length === 0
+        ) {
           await clearIncompleteCapture(sessionId, transcriptId);
           await clearInheritedIncomplete();
           toast.dismiss(`capture-incomplete-${sessionId}`);

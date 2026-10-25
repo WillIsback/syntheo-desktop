@@ -234,6 +234,7 @@ export function createCaptureAudioRecovery(options: {
           online = !ledger.awaitingConnection;
         } else if (gapStart === undefined) {
           gaps.push({ start: ledger.openGapStart, end: elapsed() });
+          interrupted.push({ start: ledger.openGapStart, end: elapsed() });
         } else {
           gapStart = Math.min(gapStart, ledger.openGapStart);
         }
@@ -267,10 +268,9 @@ export function createCaptureAudioRecovery(options: {
         controller.signal.throwIfAborted();
       }
       if (sawAudio) return { incomplete: pending || failed, interruptions: [] };
-      return {
-        incomplete: pending || failed || missing.length > 0,
-        interruptions: missing,
-      };
+      // Sans audio, une coupure n'est pas réparable : c'est un résultat final
+      // (trou daté), pas un transcript « à réparer ».
+      return { incomplete: pending || failed, interruptions: missing };
     },
     cancel() {
       active = false;

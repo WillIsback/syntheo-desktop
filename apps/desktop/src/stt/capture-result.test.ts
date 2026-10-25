@@ -111,3 +111,41 @@ it("shows warnings for visible transcript captures and preserves deletion failur
     useLiveQuery.mockReset();
   }
 });
+
+it("clearing_capture_status_keeps_dated_interruptions", async () => {
+  const db = new DatabaseSync(":memory:");
+  db.exec(
+    "CREATE TABLE app_settings (id TEXT PRIMARY KEY, value_json TEXT, updated_at TEXT)",
+  );
+  executeTransaction.mockImplementation(
+    async (statements: { sql: string; params: unknown[] }[]) => {
+      for (const { sql, params } of statements)
+        db.prepare(sql).run(...(params as never[]));
+    },
+  );
+  db.exec(
+    `INSERT INTO app_settings VALUES ('capture_incomplete:s:t', '{"interruptions":[{"startedAt":1,"endedAt":2}]}', 'x');`,
+  );
+  await clearIncompleteCapture("s", "t");
+  await clearIncompleteCapture("s");
+  expect(db.prepare("SELECT COUNT(*) AS n FROM app_settings").get()).toEqual({
+    n: 1,
+  });
+});
+
+it("never_connected_capture_shows_dated_gap_without_transcript", () => {
+  const db = new DatabaseSync(":memory:");
+  db.exec(`CREATE TABLE app_settings (id TEXT PRIMARY KEY, value_json TEXT);
+    CREATE TABLE transcripts (id TEXT PRIMARY KEY, session_id TEXT, deleted_at TEXT);
+    INSERT INTO app_settings VALUES ('capture_incomplete:session:never', '{"interruptions":[{"startedAt":0,"endedAt":60000}]}');`);
+  useLiveQuery.mockImplementation(({ sql, params, mapRows }) => ({
+    data: mapRows(db.prepare(sql).all(...params)),
+  }));
+  try {
+    expect(useIncompleteCapture("session")?.interruptions).toEqual([
+      { startedAt: 0, endedAt: 60_000 },
+    ]);
+  } finally {
+    db.close();
+  }
+});

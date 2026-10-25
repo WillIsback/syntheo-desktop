@@ -292,7 +292,8 @@ describe("capture without audio", () => {
     worker.connected();
     setNow(60_000);
     const result = await worker.stop();
-    expect(result.incomplete).toBe(true);
+    // Trou final, pas une réparation en attente : la réunion se termine.
+    expect(result.incomplete).toBe(false);
     expect(result.interruptions).toHaveLength(1);
     expect(result.interruptions[0]!.start).toBeLessThanOrEqual(10_000);
     expect(result.interruptions[0]!.end).toBe(40_000);
@@ -308,4 +309,29 @@ describe("capture without audio", () => {
     expect(result.interruptions).toEqual([{ start: 0, end: 60_000 }]);
     expect(repair).not.toHaveBeenCalled();
   });
+});
+
+it("restored_open_gap_after_connection_event_is_kept_as_interruption", async () => {
+  let now = 0;
+  const worker = createCaptureAudioRecovery({
+    startedAt: 0,
+    list: vi.fn(async () => []),
+    acknowledge: vi.fn(async () => {}),
+    flush: vi.fn(async () => {}),
+    repair: vi.fn(async () => {}),
+    now: () => now,
+  });
+  worker.start();
+  worker.connected();
+  now = 50_000;
+  worker.restore({
+    gaps: [],
+    openGapStart: 20_000,
+    awaitingConnection: false,
+    storageFailed: false,
+  });
+  now = 60_000;
+  expect((await worker.stop()).interruptions).toEqual([
+    { start: 20_000, end: 50_000 },
+  ]);
 });

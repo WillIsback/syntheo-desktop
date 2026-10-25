@@ -2452,4 +2452,86 @@ describe("useStartListening", () => {
       expect.anything(),
     );
   });
+
+  // Règle audio de Syntheo : une coupure STT est un résultat final (trou
+  // daté), pas une réparation à faire ; la réunion se termine normalement.
+  test("stt_interruption_still_summarizes_and_saves_dated_gap", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(1_000_000);
+      const { result } = renderHook(() => useStartListening("session-1"));
+      await act(async () => {
+        await result.current();
+      });
+      const callbacks = startMock.mock.calls[0]?.[1];
+      callbacks.handlePersist({
+        new_words: [
+          { id: "w1", text: "Bonjour", start_ms: 0, end_ms: 500, channel: 0 },
+        ],
+        replaced_ids: [],
+        partials: [],
+      });
+      const status = vi.mocked(transcriptionEvents.captureStatusEvent.listen)
+        .mock.calls[0]?.[0];
+      vi.setSystemTime(1_010_000);
+      status?.({
+        payload: { type: "connection_error", session_id: "session-1" },
+      } as never);
+      vi.setSystemTime(1_040_000);
+      status?.({
+        payload: { type: "connected", session_id: "session-1" },
+      } as never);
+      vi.setSystemTime(1_060_000);
+      await act(async () => {
+        await callbacks.onStopped("session-1", {
+          chunkedAudio: true,
+          durationSeconds: 60,
+          audioPath: null,
+          requestedLiveTranscription: true,
+          liveTranscriptionActive: true,
+          needsBatchRepair: false,
+        });
+      });
+      expect(requestAutoEnhanceMock).toHaveBeenCalledWith(
+        "session-1",
+        expect.any(String),
+      );
+      expect(requestCaptureRecoveryMock).not.toHaveBeenCalled();
+      const savedCalls = vi.mocked(saveIncompleteCapture).mock.calls;
+      const saved = savedCalls[savedCalls.length - 1];
+      expect(saved?.[5]).toEqual([
+        expect.objectContaining({ endedAt: 1_040_000 }),
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // Plus d'invite « audio sauvegardé » : une capture arrêtée hors de l'interface
+  // est finalisée (résumé, marqueur libéré) au lieu d'attendre indéfiniment.
+  test("stopped_capture_marker_is_finalized_instead_of_awaiting_user", async () => {
+    attachLiveSessionMock.mockResolvedValue("inactive");
+    loadCaptureLifecycleMarkerMock.mockResolvedValue({
+      version: 1,
+      chunkedAudio: true,
+      retainAudio: false,
+      sessionId: "session-1",
+      transcriptId: "transcript-before-crash",
+      startedAt: 1_000,
+      createdAt: "2026-10-25T00:00:00.000Z",
+      audioOffsetMs: 0,
+      preserveExistingTranscript: false,
+      ownerUserId: "user-1",
+      memo: "",
+    });
+    const { result } = renderHook(() =>
+      useResumeListeningLifecycle("session-1"),
+    );
+    let outcome: string | undefined;
+    await act(async () => {
+      outcome = await result.current();
+    });
+    expect(outcome).not.toBe("awaiting_user");
+    expect(markCaptureAudioSavedMock).not.toHaveBeenCalled();
+  });
 });
