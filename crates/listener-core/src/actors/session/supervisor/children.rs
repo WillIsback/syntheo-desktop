@@ -4,7 +4,7 @@ use ractor::{Actor, ActorCell, ActorRef};
 
 use crate::actors::session::types::SessionContext;
 use crate::actors::{
-    ChannelMode, ListenerActor, ListenerArgs, RecArgs, RecMsg, RecorderActor, SourceActor,
+    ChannelMode, ListenerActor, ListenerArgs, SourceActor,
     SourceArgs, SourceMsg,
 };
 
@@ -26,12 +26,6 @@ pub(super) const SOURCE_RESTART_BUDGET: RestartBudget = RestartBudget {
     max_window: Duration::from_secs(
         RESTART_FAILURE_WINDOW_SECS + SOURCE_RESTART_BACKOFF_ALLOWANCE_SECS,
     ),
-    reset_after: Some(Duration::from_secs(30)),
-};
-
-pub(super) const RECORDER_RESTART_BUDGET: RestartBudget = RestartBudget {
-    max_restarts: MAX_RESTARTS,
-    max_window: Duration::from_secs(RESTART_FAILURE_WINDOW_SECS),
     reset_after: Some(Duration::from_secs(30)),
 };
 
@@ -94,31 +88,6 @@ pub(super) async fn spawn_source(
     )
     .await?;
     Ok(source_ref)
-}
-
-pub(super) async fn spawn_recorder(
-    supervisor_cell: ActorCell,
-    ctx: &SessionContext,
-) -> Result<ActorCell, ractor::SpawnErr> {
-    let (recorder_ref, _): (ActorRef<RecMsg>, _) = Actor::spawn_linked(
-        Some(RecorderActor::name(&ctx.params.session_id)),
-        RecorderActor::new(),
-        RecArgs {
-            runtime: ctx.runtime.clone(),
-            app_dir: ctx.app_dir.clone(),
-            retain_audio: ctx.params.retain_audio.unwrap_or(true),
-            capture_started_at: ctx
-                .started_at_system
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_millis() as u64,
-            offset_ms: ctx.started_at_instant.elapsed().as_millis() as u64,
-            session_id: ctx.params.session_id.clone(),
-        },
-        supervisor_cell,
-    )
-    .await?;
-    Ok(recorder_ref.get_cell())
 }
 
 // Returns the listener cell and the mic-isolation verdict the provider session
@@ -226,37 +195,6 @@ pub(super) async fn try_restart_source(
     }
 }
 
-pub(super) async fn try_restart_recorder(
-    supervisor_cell: ActorCell,
-    state: &mut SessionState,
-) -> bool {
-    if !state
-        .recorder_restarts
-        .record_restart(&RECORDER_RESTART_BUDGET)
-    {
-        return false;
-    }
-
-    let sup = supervisor_cell;
-    let ctx = state.ctx.clone();
-
-    let cell = spawn_with_retry(&RETRY_STRATEGY, || {
-        let sup = sup.clone();
-        let ctx = ctx.clone();
-        async move { spawn_recorder(sup, &ctx).await }
-    })
-    .await;
-
-    match cell {
-        Some(c) => {
-            state.recorder_cell = Some(c);
-            sync_source_recorder(state).await;
-            true
-        }
-        None => false,
-    }
-}
-
 pub(super) async fn attach_listener_to_source(state: &SessionState) {
     if let Some(source_cell) = &state.source_cell {
         let source_ref: ActorRef<SourceMsg> = source_cell.clone().into();
@@ -352,7 +290,7 @@ mod tests {
 
         assert_eq!(
             SOURCE_RESTART_BUDGET.max_window,
-            RECORDER_RESTART_BUDGET.max_window + total_backoff
+            Duration::from_secs(RESTART_FAILURE_WINDOW_SECS) + total_backoff
         );
     }
 }
