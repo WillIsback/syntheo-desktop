@@ -165,7 +165,7 @@ describe("capture audio recovery", () => {
     const { worker, repair, acknowledge, list } = setup();
     list.mockResolvedValueOnce(await list()).mockResolvedValue([]);
     worker.persistenceFailed();
-    expect(await worker.stop()).toEqual({ incomplete: false });
+    expect((await worker.stop()).incomplete).toBe(false);
     expect(repair).toHaveBeenCalledOnce();
     expect(acknowledge).toHaveBeenCalledOnce();
   });
@@ -178,7 +178,7 @@ describe("capture audio recovery", () => {
     await worker.tick();
     expect(list).toHaveBeenCalledOnce();
     expect(repair).not.toHaveBeenCalled();
-    expect(await worker.stop()).toEqual({ incomplete: false });
+    expect((await worker.stop()).incomplete).toBe(false);
     expect(repair).not.toHaveBeenCalled();
     expect(acknowledge).toHaveBeenCalledOnce();
   });
@@ -248,7 +248,7 @@ it.each([129, 256])(
     });
     setNow(count * 60_000);
     worker.recoverPending();
-    expect(await worker.stop()).toEqual({ incomplete: false });
+    expect((await worker.stop()).incomplete).toBe(false);
     expect(repair).toHaveBeenCalledTimes(count);
     expect(chunks).toEqual([]);
   },
@@ -260,7 +260,52 @@ it("stops draining when offline instead of spinning on the same page", async () 
   list.mockResolvedValue(Array.from({ length: 128 }, () => chunk));
   list.mockClear();
   worker.interrupted();
-  expect(await worker.stop()).toEqual({ incomplete: true });
+  expect((await worker.stop()).incomplete).toBe(true);
   expect(list).toHaveBeenCalledOnce();
   expect(acknowledge).not.toHaveBeenCalled();
+});
+
+// Règle audio de Syntheo : aucun morceau audio n'existe, les coupures ne
+// peuvent pas être comblées ; elles sont rendues datées, sans batch.
+describe("capture without audio", () => {
+  function setupWithoutAudio() {
+    let now = 0;
+    const repair = vi.fn(async () => {});
+    const worker = createCaptureAudioRecovery({
+      startedAt: 0,
+      list: vi.fn(async () => []),
+      acknowledge: vi.fn(async () => {}),
+      flush: vi.fn(async () => {}),
+      repair,
+      now: () => now,
+    });
+    return { worker, repair, setNow: (value: number) => (now = value) };
+  }
+
+  it("stt_failure_records_dated_gap_without_batch_offer", async () => {
+    const { worker, repair, setNow } = setupWithoutAudio();
+    worker.start();
+    worker.persistedThrough(5_000);
+    setNow(10_000);
+    worker.interrupted();
+    setNow(40_000);
+    worker.connected();
+    setNow(60_000);
+    const result = await worker.stop();
+    expect(result.incomplete).toBe(true);
+    expect(result.interruptions).toHaveLength(1);
+    expect(result.interruptions[0]!.start).toBeLessThanOrEqual(10_000);
+    expect(result.interruptions[0]!.end).toBe(40_000);
+    expect(repair).not.toHaveBeenCalled();
+  });
+
+  it("never_connected_capture_records_gap_from_start", async () => {
+    const { worker, repair, setNow } = setupWithoutAudio();
+    worker.start();
+    worker.batchOnly();
+    setNow(60_000);
+    const result = await worker.stop();
+    expect(result.interruptions).toEqual([{ start: 0, end: 60_000 }]);
+    expect(repair).not.toHaveBeenCalled();
+  });
 });

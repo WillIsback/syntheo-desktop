@@ -40,6 +40,9 @@ import {
   useSessionParticipantHumanIds,
 } from "~/stt/queries";
 
+export const NO_TRANSCRIPTION_PROVIDER_MESSAGE =
+  "Aucun fournisseur de transcription n'est configuré. Syntheo ne conserve pas l'audio : configurez un endpoint de transcription avant d'enregistrer.";
+
 export const BATCH_ONLY_CAPTURE_MESSAGE =
   "Ce modèle ne transcrit qu'après l'enregistrement, ce qui supposerait de conserver l'audio. Choisissez un modèle de transcription en temps réel.";
 
@@ -102,6 +105,19 @@ export function useStartListeningState(
 
   const startListening = useCallback(async () => {
     if (!canStartLiveSession(sessionId)) {
+      return;
+    }
+    // Sans recorder, une capture sans STT ne produirait rien.
+    if (!conn) {
+      toast.error(NO_TRANSCRIPTION_PROVIDER_MESSAGE, {
+        id: "recording-without-transcription",
+        duration: Infinity,
+        action: {
+          label: "Configurer",
+          onClick: () =>
+            openNew({ type: "settings", state: { tab: "transcription" } }),
+        },
+      });
       return;
     }
     // Un modèle « après l'enregistrement » exigerait de conserver l'audio.
@@ -272,7 +288,7 @@ export function useStartListeningState(
 
     const primaryLanguage = liveTranscriptionConfig.languages[0];
     const omittedLanguages = liveTranscriptionConfig.omittedLanguages ?? [];
-    if (conn && primaryLanguage && omittedLanguages.length > 0) {
+    if (primaryLanguage && omittedLanguages.length > 0) {
       const primaryLanguageName = getBaseLanguageDisplayName(primaryLanguage);
       const omittedLanguageNames = omittedLanguages
         .map((language) => getBaseLanguageDisplayName(language))
@@ -281,20 +297,9 @@ export function useStartListeningState(
       toast.warning(`Live transcription is using ${primaryLanguageName}`, {
         id: "recording-with-limited-transcription-languages",
         duration: Infinity,
-        description: `Live transcription won't include ${omittedLanguageNames}. Audio is still being saved.`,
+        description: `Live transcription won't include ${omittedLanguageNames}.`,
         action: {
           label: "Change",
-          onClick: openTranscriptionSettings,
-        },
-      });
-    } else if (!conn) {
-      toast.warning("Live transcription is not configured", {
-        id: "recording-without-transcription",
-        duration: Infinity,
-        description:
-          "Audio is being saved. Choose a transcription provider to ensure this recording can be transcribed.",
-        action: {
-          label: "Configure",
           onClick: openTranscriptionSettings,
         },
       });

@@ -1,5 +1,6 @@
 import { executeTransaction, useLiveQuery } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";
+import type { CaptureInterruption } from "~/stt/interruptions";
 
 export function saveIncompleteCapture(
   sessionId: string,
@@ -7,6 +8,7 @@ export function saveIncompleteCapture(
   audioDeleted: boolean,
   audioDeletionFailed?: boolean,
   audioKeptForTranscription?: boolean,
+  interruptions?: CaptureInterruption[],
 ) {
   return enqueueDatabaseWrite(`session:${sessionId}`, () =>
     executeTransaction([
@@ -22,6 +24,7 @@ export function saveIncompleteCapture(
             audioDeleted,
             audioDeletionFailed,
             audioKeptForTranscription: audioKeptForTranscription ?? false,
+            ...(interruptions?.length ? { interruptions } : {}),
           }),
           new Date().toISOString(),
         ],
@@ -36,16 +39,19 @@ export function useIncompleteCapture(sessionId: string) {
       audio_deleted: number;
       audio_deletion_failed: number;
       audio_kept_for_transcription: number;
+      interruptions: string | null;
     },
     {
       audioDeleted: boolean;
       audioDeletionFailed: boolean;
       audioKeptForTranscription: boolean;
+      interruptions: CaptureInterruption[];
     } | null
   >({
     sql: `SELECT json_extract(value_json, '$.audioDeleted') AS audio_deleted,
       json_extract(value_json, '$.audioDeletionFailed') AS audio_deletion_failed,
-      json_extract(value_json, '$.audioKeptForTranscription') AS audio_kept_for_transcription
+      json_extract(value_json, '$.audioKeptForTranscription') AS audio_kept_for_transcription,
+      json_extract(value_json, '$.interruptions') AS interruptions
       FROM app_settings WHERE substr(id, 1, length(?)) = ? AND json_valid(value_json)
       AND (json_extract(value_json, '$.audioDeletionFailed') = 1 OR id = ? || 'audio-recovery' OR EXISTS (
         SELECT 1 FROM transcripts WHERE session_id = ? AND deleted_at IS NULL
@@ -66,6 +72,7 @@ export function useIncompleteCapture(sessionId: string) {
             audioKeptForTranscription: Boolean(
               rows[0]?.audio_kept_for_transcription,
             ),
+            interruptions: parseInterruptions(rows[0]?.interruptions),
           }
         : null,
   });
@@ -107,4 +114,20 @@ export function clearCaptureAudioDeletionFailure(sessionId: string) {
       },
     ]).then(() => undefined),
   );
+}
+
+function parseInterruptions(json: string | null | undefined) {
+  if (!json) return [];
+  try {
+    const value: unknown = JSON.parse(json);
+    return Array.isArray(value)
+      ? value.filter(
+          (item): item is CaptureInterruption =>
+            typeof item?.startedAt === "number" &&
+            typeof item?.endedAt === "number",
+        )
+      : [];
+  } catch {
+    return [];
+  }
 }

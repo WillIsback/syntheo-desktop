@@ -478,6 +478,13 @@ export function useCaptureLifecycle(sessionId: string) {
           (chunk) => chunk.capture_started_at >= earliestStartedAt - 5_000,
         );
       };
+      const toCaptureInterruptions = (
+        intervals: { start: number; end: number }[] | undefined,
+      ) =>
+        (intervals ?? []).map((interval) => ({
+          startedAt: startedAt + interval.start,
+          endedAt: startedAt + interval.end,
+        }));
       const audioRecovery = createCaptureAudioRecovery({
         startedAt,
         list: listRecoveryChunks,
@@ -663,13 +670,19 @@ export function useCaptureLifecycle(sessionId: string) {
         recoveryUnlisten = [];
         const recovery = await audioRecovery.stop().catch((error) => {
           console.error("[listener] audio recovery did not finish", error);
-          return { incomplete: true };
+          return {
+            incomplete: true,
+            interruptions: audioRecovery.interruptions(),
+          };
         });
         if (retainAudio || recovery.incomplete) return recovery;
         const result =
           await transcriptionCommands.deleteTranscribedCaptureAudio(sessionId);
         if (result.status === "error") throw new Error(result.error);
-        return { incomplete: !result.data };
+        return {
+          incomplete: !result.data,
+          interruptions: recovery.interruptions,
+        };
       };
       // Without the full recording, the chunks are the only audio left to
       // transcribe, so they must be repaired instead of released.
@@ -1233,7 +1246,7 @@ export function useCaptureLifecycle(sessionId: string) {
               error,
             );
             details = { ...details, audioDeletionFailed: true };
-            return { incomplete: false };
+            return { incomplete: false, interruptions: [] };
           });
           details = {
             ...details,
@@ -1241,8 +1254,9 @@ export function useCaptureLifecycle(sessionId: string) {
             liveTranscriptionActive:
               !recovery.incomplete && !batchFromRetainedAudio,
           };
+          // Aucun audio conservé : rien n'est gardé « pour finir le transcript ».
           const audioKeptForTranscription =
-            recovery.incomplete && (!retainAudio || inheritedAudioPending);
+            recovery.incomplete && retainAudio && inheritedAudioPending;
           if (!recovery.incomplete)
             await clearInheritedIncomplete().catch((error) =>
               console.error(
@@ -1257,6 +1271,7 @@ export function useCaptureLifecycle(sessionId: string) {
               false,
               details.audioDeletionFailed ?? false,
               audioKeptForTranscription,
+              toCaptureInterruptions(recovery.interruptions),
             ).catch((error) =>
               console.error(
                 "[listener] failed to save incomplete capture status",
@@ -1270,13 +1285,6 @@ export function useCaptureLifecycle(sessionId: string) {
               duration: Infinity,
               description:
                 "Anarlog could not remove the temporary audio. Cleanup will be retried automatically.",
-            });
-          } else if (audioKeptForTranscription) {
-            toast.warning("Audio kept to finish your transcript", {
-              id: `capture-incomplete-${sessionId}`,
-              duration: Infinity,
-              description:
-                "Part of this meeting could not be transcribed yet, so Anarlog kept its temporary audio on purpose. It will be deleted automatically once transcription succeeds.",
             });
           }
         } else {
@@ -1332,10 +1340,12 @@ export function useCaptureLifecycle(sessionId: string) {
           await releaseCloudsyncLease();
           return;
         }
+        let recoveredInterruptions: { start: number; end: number }[] = [];
         if (usesChunkedAudio) {
           await repairChunksWithoutRecording(details.audioPath);
           if (!batchFromRetainedAudio) await restoreAudioRecovery();
           const recovery = await stopAudioRecovery();
+          recoveredInterruptions = recovery.interruptions ?? [];
           details = {
             ...details,
             needsBatchRepair: recovery.incomplete,
@@ -1354,7 +1364,8 @@ export function useCaptureLifecycle(sessionId: string) {
             transcriptId,
             false,
             false,
-            !retainAudio || inheritedAudioPending,
+            false,
+            toCaptureInterruptions(recoveredInterruptions),
           );
         markExpectedPostStopBatch(details);
         return finalizeStopped(details, false);

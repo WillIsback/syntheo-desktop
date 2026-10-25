@@ -11,6 +11,7 @@ import { useTranscriptScreen } from "./state";
 
 import { useIncompleteCapture } from "~/stt/capture-result";
 import { useListener } from "~/stt/contexts";
+import { formatInterruptions } from "~/stt/interruptions";
 import { useUploadFile } from "~/stt/useUploadFile";
 
 export function Transcript({
@@ -62,18 +63,9 @@ function TranscriptContent({
           role="status"
           className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900"
         >
-          <span className="font-medium">
-            {incompleteCapture.audioDeletionFailed
-              ? "Audio could not be deleted."
-              : "This transcript is incomplete."}
-          </span>{" "}
-          {incompleteCapture.audioDeletionFailed
-            ? "Anarlog could not remove the temporary audio. Cleanup will be retried automatically."
-            : incompleteCapture.audioKeptForTranscription
-              ? "Some audio has not been transcribed yet, so Anarlog kept it temporarily. It will be deleted automatically once transcription succeeds."
-              : incompleteCapture.audioDeleted
-                ? "Recovery did not finish before the meeting ended. Audio was deleted according to your retention setting."
-                : "Some audio could not be transcribed. Available recordings were kept according to your retention setting."}
+          {incompleteCapture.interruptions?.length
+            ? `${formatInterruptions(incompleteCapture.interruptions)}.`
+            : "Ce transcript est incomplet."}
         </div>
       )}
       {screen.kind === "running_batch" && (

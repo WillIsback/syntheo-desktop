@@ -87,6 +87,7 @@ it("shows warnings for visible transcript captures and preserves deletion failur
       audioDeleted: false,
       audioDeletionFailed: false,
       audioKeptForTranscription: false,
+      interruptions: [],
     });
     db.exec(
       `DELETE FROM app_settings WHERE id = 'capture_incomplete:session:audio-recovery';`,
@@ -99,6 +100,7 @@ it("shows warnings for visible transcript captures and preserves deletion failur
       audioDeleted: false,
       audioDeletionFailed: false,
       audioKeptForTranscription: false,
+      interruptions: [],
     });
     db.exec(
       `UPDATE app_settings SET value_json = '{"audioDeletionFailed":true}' WHERE id = 'capture_incomplete:session:old';`,

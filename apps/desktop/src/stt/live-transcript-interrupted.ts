@@ -2,8 +2,10 @@ import type { DegradedError } from "@anlg/plugin-transcription";
 
 import { PROVIDERS } from "~/settings/ai/stt/shared";
 
-const SAVED_AUDIO_NOTE =
-  "Your audio is still being saved, and the missing part will be filled in from the recording.";
+// Règle audio de Syntheo : rien n'est conservé, la coupure manquera au
+// transcript (traduction française avec le lot i18n).
+const NO_AUDIO_KEPT_NOTE =
+  "No audio is kept, so this part will be missing from the transcript. Reconnecting…";
 
 const LOCAL_PROVIDER_IDS = new Set(["soniqo", "apple_speech", "local_file"]);
 
@@ -89,5 +91,5 @@ export function getLiveTranscriptPausedMessage({
   online?: boolean;
 }) {
   const cause = getPauseCause({ degraded, sttProvider, online });
-  return `Live transcript paused because ${cause}. ${SAVED_AUDIO_NOTE}`;
+  return `Live transcript paused because ${cause}. ${NO_AUDIO_KEPT_NOTE}`;
 }

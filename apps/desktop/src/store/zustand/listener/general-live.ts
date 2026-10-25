@@ -213,7 +213,7 @@ const notifyTranscriptionStalled = () => {
     id: "live-transcription-stalled",
     duration: Infinity,
     description:
-      "Anarlog keeps recording while live transcription reconnects. Missing text will be recovered from temporary audio while the meeting continues.",
+      "Anarlog keeps listening while live transcription reconnects. No audio is kept, so the missing part will not be recovered.",
   });
 };
 

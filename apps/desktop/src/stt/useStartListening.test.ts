@@ -14,6 +14,7 @@ import {
 import { saveIncompleteCapture } from "./capture-result";
 import {
   BATCH_ONLY_CAPTURE_MESSAGE,
+  NO_TRANSCRIPTION_PROVIDER_MESSAGE,
   CLOUDSYNC_CAPTURE_LEASE_ATTEMPTS,
   getPostCaptureAction,
   getPostCaptureRepairReasons,
@@ -682,64 +683,6 @@ describe("useStartListening", () => {
     vi.useRealTimers();
   });
 
-  test("zero retention keeps untranscribed audio at stop after a disconnect", async () => {
-    deleteTranscribedCaptureAudioMock.mockResolvedValue({
-      status: "ok",
-      data: false,
-    });
-    useConfigValueMock.mockImplementation((key: string) =>
-      key === "audio_retention" ? "none" : undefined,
-    );
-    const { result } = renderHook(() => useStartListening("session-1"));
-    await act(async () => {
-      await result.current();
-    });
-    expect(startMock.mock.calls[0]?.[0]).toMatchObject({ retain_audio: false });
-    expect(startMock.mock.calls[0]?.[0]).toMatchObject({
-      live_transcript: expect.objectContaining({
-        transcript_id: "generated-id",
-        owner_user_id: "user-1",
-        created_at: expect.any(String),
-        started_at_ms: expect.any(Number),
-        memo: "Existing memo",
-      }),
-    });
-    const progress = vi.mocked(transcriptionEvents.captureStatusEvent.listen)
-      .mock.calls[0]?.[0];
-    progress?.({
-      payload: {
-        type: "connection_error",
-        session_id: "session-1",
-        error: "offline",
-      },
-    } as never);
-    await act(async () => {
-      await startMock.mock.calls[0]?.[1].onStopped("session-1", {
-        chunkedAudio: true,
-        durationSeconds: 60,
-        audioPath: "/tmp/session.mp3",
-        requestedLiveTranscription: true,
-        liveTranscriptionActive: false,
-        needsBatchRepair: true,
-      });
-    });
-    expect(runBatchMock).not.toHaveBeenCalled();
-    expect(deleteTranscribedCaptureAudioMock).toHaveBeenCalledWith("session-1");
-    expect(saveIncompleteCapture).toHaveBeenCalledWith(
-      "session-1",
-      "generated-id",
-      false,
-      false,
-      true,
-    );
-    expect(toastWarningMock).toHaveBeenCalledWith(
-      "Audio kept to finish your transcript",
-      expect.anything(),
-    );
-    expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
-    expect(deleteProcessedAudioForRetentionMock).not.toHaveBeenCalled();
-  });
-
   test("zero retention finalizes the native stop clock before deleting successfully transcribed audio", async () => {
     const stoppedAtMs = Date.now() + 60_000;
     vi.mocked(loadCaptureStop).mockResolvedValueOnce(stoppedAtMs);
@@ -956,6 +899,7 @@ describe("useStartListening", () => {
       false,
       true,
       false,
+      [],
     );
     expect(toastErrorMock).toHaveBeenCalledWith(
       "Audio could not be deleted",
@@ -968,7 +912,8 @@ describe("useStartListening", () => {
     expect(runBatchMock).not.toHaveBeenCalled();
   });
 
-  test("records without STT while offering an actionable transcription setup", async () => {
+  // Sans recorder, une capture sans STT ne produirait rien : elle est refusée.
+  test("no_transcription_provider_refuses_capture", async () => {
     useSTTConnectionMock.mockReturnValue({ conn: null });
     const { result } = renderHook(() => useStartListening("session-1"));
 
@@ -976,26 +921,16 @@ describe("useStartListening", () => {
       await result.current();
     });
 
-    expect(startMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        model: "",
-        base_url: "",
-        api_key: "",
-      }),
-      expect.any(Object),
-    );
-    expect(toastWarningMock).toHaveBeenCalledWith(
-      expect.any(String),
+    expect(startMock).not.toHaveBeenCalled();
+    expect(toastErrorMock).toHaveBeenCalledWith(
+      NO_TRANSCRIPTION_PROVIDER_MESSAGE,
       expect.objectContaining({
         id: "recording-without-transcription",
         action: expect.anything(),
       }),
     );
-
-    const warningCalls = toastWarningMock.mock.calls;
-    const warningOptions = warningCalls[warningCalls.length - 1]?.[1];
-    warningOptions?.action.onClick();
-
+    const errorCalls = toastErrorMock.mock.calls;
+    errorCalls[errorCalls.length - 1]?.[1]?.action.onClick();
     expect(openNewMock).toHaveBeenCalledWith({
       type: "settings",
       state: { tab: "transcription" },

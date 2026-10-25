@@ -64,4 +64,16 @@ describe("getLiveTranscriptPausedMessage", () => {
       }),
     ).toMatch(/the local transcription model stopped responding/);
   });
+
+  it("live_interrupted_notice_mentions_no_saved_audio", () => {
+    const message = getLiveTranscriptPausedMessage({
+      degraded: null,
+      sttProvider: "custom",
+      online: true,
+    });
+    expect(message).not.toMatch(/being saved|filled in from the recording/);
+    expect(message).toContain(
+      "No audio is kept, so this part will be missing from the transcript. Reconnecting…",
+    );
+  });
 });
