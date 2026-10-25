@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Transcript } from "./index";
 
+import { formatInterruptions } from "~/stt/interruptions";
+
 const { useIncompleteCaptureMock } = vi.hoisted(() => ({
   useIncompleteCaptureMock: vi.fn(),
 }));
@@ -15,16 +17,10 @@ const {
   useListenerMock,
   useAudioPlayerMock,
   useSessionTranscriptMetadataMock,
-  regenerateTranscriptMock,
 } = vi.hoisted(() => ({
   useListenerMock: vi.fn(),
   useAudioPlayerMock: vi.fn(),
   useSessionTranscriptMetadataMock: vi.fn(),
-  regenerateTranscriptMock: vi.fn(),
-}));
-
-vi.mock("./actions", () => ({
-  useRegenerateTranscript: () => regenerateTranscriptMock,
 }));
 
 vi.mock("~/stt/queries", () => ({
@@ -33,10 +29,6 @@ vi.mock("~/stt/queries", () => ({
 
 vi.mock("~/stt/contexts", () => ({
   useListener: useListenerMock,
-}));
-
-vi.mock("~/audio-player", () => ({
-  useAudioPlayer: useAudioPlayerMock,
 }));
 
 vi.mock("./screens/batch", () => ({
@@ -288,14 +280,33 @@ describe("Transcript", () => {
       screen.getByTestId("transcript-viewer").getAttribute("data-edit-mode"),
     ).toBe("true");
   });
-  it("keeps the zero-retention incomplete message visible after recording", () => {
+  it("keeps the incomplete message visible after recording", () => {
     listenerState.getSessionMode = () => "inactive";
     transcripts = [{ id: transcriptId, hasWords: true }];
     useIncompleteCaptureMock.mockReturnValue({ audioDeleted: true });
     render(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
     expect(screen.getByTestId("transcript-viewer")).not.toBeNull();
-    expect(screen.getByRole("status").textContent).toContain(
-      "Audio was deleted according to your retention setting",
+    expect(screen.getByRole("status").textContent).toBe(
+      "Ce transcript est incomplet.",
     );
+  });
+  it("incomplete_capture_banner_lists_dated_gaps", () => {
+    listenerState.getSessionMode = () => "inactive";
+    transcripts = [{ id: transcriptId, hasWords: true }];
+    const interruptions = [
+      {
+        startedAt: Date.UTC(2026, 9, 25, 13, 32),
+        endedAt: Date.UTC(2026, 9, 25, 13, 35),
+      },
+      {
+        startedAt: Date.UTC(2026, 9, 25, 14, 1),
+        endedAt: Date.UTC(2026, 9, 25, 14, 2),
+      },
+    ];
+    useIncompleteCaptureMock.mockReturnValue({ interruptions });
+    render(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
+    const banner = screen.getByRole("status").textContent ?? "";
+    expect(banner).toContain(formatInterruptions(interruptions));
+    expect(banner).not.toMatch(/audio|Re-transcribe/i);
   });
 });

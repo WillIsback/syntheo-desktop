@@ -12,24 +12,9 @@ import { useListener } from "./contexts";
 import {
   clearCaptureAudioSaved,
   clearCaptureLifecycleMarker,
-  hasAudioAwaitingUser,
   hasPendingZeroRetentionAudio,
   loadCaptureLifecycleMarker,
-  markCaptureAudioSaved,
 } from "~/stt/capture-lifecycle-storage";
-
-async function isNativelyCapturing(sessionId: string) {
-  try {
-    const result = await listenerCommands.getCaptureSnapshot();
-    return (
-      result.status === "ok" &&
-      (result.data.activeSessionId === sessionId ||
-        result.data.finalizingSessionIds.includes(sessionId))
-    );
-  } catch {
-    return false;
-  }
-}
 
 export function useResumeListeningLifecycle(sessionId: string) {
   const attachLiveSession = useListener((state) => state.attachLiveSession);
@@ -152,11 +137,9 @@ export function useResumeListeningLifecycle(sessionId: string) {
         if (clearMarker) {
           try {
             const marker = await loadCaptureLifecycleMarker(sessionId);
-            if (marker && hasAudioAwaitingUser(marker)) {
-              if (!(await isNativelyCapturing(sessionId))) {
-                await markCaptureAudioSaved(sessionId);
-              }
-            } else if (marker && !hasPendingZeroRetentionAudio(marker)) {
+            // Aucun audio à proposer à l'utilisateur : un marqueur qui
+            // retient encore de l'audio (hérité) est seulement conservé.
+            if (marker && !hasPendingZeroRetentionAudio(marker)) {
               await clearCaptureLifecycleMarker(sessionId, marker.transcriptId);
             }
           } catch (error) {
@@ -251,7 +234,6 @@ export function useResumeListeningLifecycle(sessionId: string) {
       if (stoppedCapture === null) {
         stoppedCapture = await readStoppedCapture();
       }
-      const processStopped = options?.processStopped || stoppedCapture !== null;
       if (result === "error") {
         const stoppedProcessing = stoppedProcessingRef.current;
         if (stoppedProcessing) {
@@ -307,23 +289,9 @@ export function useResumeListeningLifecycle(sessionId: string) {
         return "inactive" as const;
       }
 
-      if (!processStopped && hasAudioAwaitingUser(pendingMarker)) {
-        try {
-          await markCaptureAudioSaved(sessionId);
-        } catch (error) {
-          console.error("[listener] failed to save capture audio state", error);
-          return failRecovery({ clearMarker: false });
-        }
-        try {
-          await state.lifecycle.releaseCloudsyncLease();
-        } catch (error) {
-          console.error("[listener] failed to release capture recovery", error);
-        }
-        if (recoveryAttemptRef.current === attempt) {
-          recoveryAttemptRef.current = null;
-        }
-        return "awaiting_user" as const;
-      }
+      // Syntheo ne conserve pas l'audio : rien n'attend l'utilisateur. Une
+      // capture arrêtée hors de l'interface est finalisée (transcript, résumé)
+      // et l'audio hérité éventuel est traité puis supprimé (rétention nulle).
       if (!ownsRecoveryFinalizationRef.current) {
         if (!beginCaptureRecoveryFinalization(sessionId)) {
           return failRecovery({ clearMarker: false });

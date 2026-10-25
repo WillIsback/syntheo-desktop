@@ -3,7 +3,6 @@ import { useState } from "react";
 
 import {
   AppWindow,
-  ArrowsClockwise,
   CalendarBlank,
   ClockCounterClockwise,
   DotsThree,
@@ -34,10 +33,8 @@ import { ExportModal } from "./export-modal";
 import { Listening } from "./listening";
 import { LockNote } from "./lock-note";
 
-import { useAudioPlayer } from "~/audio-player";
 import { openFloatingMeetingPanel } from "~/meeting-float/host";
 import { isFloatingBarSupported } from "~/meeting-float/support";
-import { useRegenerateTranscript } from "~/session/components/note-input/transcript/actions";
 import {
   useCurrentNoteHasContent,
   useHasTranscript,
@@ -70,17 +67,16 @@ export function OverflowButton({
     sessionId,
     currentView,
   );
-  const { audioExists, audioExistsResolved } = useAudioPlayer();
+  // Syntheo ne conserve jamais l'audio d'une capture.
+  const audioExists = false;
+  const audioExistsResolved = true;
   const { uploadAudio, uploadTranscript } = useUploadFile(sessionId);
-  const regenerateTranscript = useRegenerateTranscript(sessionId);
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const floatingBarEnabled = useConfigValue("floating_bar_enabled");
   const floatingBarSupported = isFloatingBarSupported();
   const isMeetingInProgress =
     sessionMode === "active" || sessionMode === "finalizing";
   const showListeningAction = allowListening;
-  const showRetranscribeAction =
-    audioExistsResolved && sessionMode === "inactive" && audioExists;
   const showUploadActions =
     audioExistsResolved &&
     !audioExists &&
@@ -92,8 +88,7 @@ export function OverflowButton({
     allowListening &&
     floatingBarEnabled &&
     sessionMode === "active";
-  const hasRecordingActions =
-    showListeningAction || showRetranscribeAction || showUploadActions;
+  const hasRecordingActions = showListeningAction || showUploadActions;
   const openExportModal = () => {
     setOpen(false);
     setHasOpenedExportModal(true);
@@ -111,10 +106,6 @@ export function OverflowButton({
   const handleUploadTranscript = () => {
     setOpen(false);
     uploadTranscript();
-  };
-  const handleRetranscribe = () => {
-    setOpen(false);
-    void regenerateTranscript();
   };
   const handleOpenFloatingPanel = () => {
     setOpen(false);
@@ -175,15 +166,6 @@ export function OverflowButton({
                 sessionId={sessionId}
                 resume={audioExists || hasTranscript}
               />
-            )}
-            {showRetranscribeAction && (
-              <DropdownMenuItem
-                onClick={handleRetranscribe}
-                className="cursor-pointer"
-              >
-                <ArrowsClockwise />
-                <span>Re-transcribe</span>
-              </DropdownMenuItem>
             )}
             {showUploadActions && (
               <>

@@ -149,15 +149,6 @@ vi.mock("@anlg/ui/components/ui/dancing-sticks", () => ({
   DancingSticks: () => <span data-testid="dancing-sticks" />,
 }));
 
-vi.mock("~/audio-player", () => ({
-  useAudioPlayer: () => ({
-    audioExists: hoisted.audioExists,
-    audioExistsResolved: hoisted.audioExistsResolved,
-    deleteRecording: hoisted.deleteRecording,
-    isDeletingRecording: hoisted.isDeletingRecording,
-  }),
-}));
-
 vi.mock("~/calendar/hooks", () => ({
   useNow: () => new Date(hoisted.nowMs),
 }));
@@ -214,10 +205,6 @@ vi.mock("~/session/queries", () => ({
     title: hoisted.sessionTitle,
   }),
   useUpdateSession: () => hoisted.updateSession,
-}));
-
-vi.mock("~/session/components/note-input/transcript/actions", () => ({
-  useRegenerateTranscript: () => hoisted.regenerateTranscript,
 }));
 
 vi.mock("~/session/components/note-input/transcript/export-data", () => ({
@@ -549,19 +536,9 @@ describe("SessionViewSwitcher", () => {
 
   it.each([
     [
-      "inactive with audio",
-      { mode: "inactive", audio: true, resolved: true },
-      ["Copy", "Resume listening", "Re-transcribe", "Delete recording"],
-    ],
-    [
       "inactive without audio",
       { mode: "inactive", audio: false, resolved: true },
       ["Copy", "Resume listening"],
-    ],
-    [
-      "audio lookup pending",
-      { mode: "inactive", audio: true, resolved: false },
-      ["Copy", "Resume listening", "Delete recording"],
     ],
     [
       "batch processing",

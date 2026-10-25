@@ -9,7 +9,6 @@ import type { EditorView } from "~/store/zustand/tabs/schema";
 const {
   uploadAudioMock,
   uploadTranscriptMock,
-  regenerateTranscriptMock,
   audioExists,
   audioExistsResolved,
   currentNoteContent,
@@ -22,7 +21,6 @@ const {
 } = vi.hoisted(() => ({
   uploadAudioMock: vi.fn(),
   uploadTranscriptMock: vi.fn(),
-  regenerateTranscriptMock: vi.fn(),
   audioExists: { value: false },
   audioExistsResolved: { value: true },
   currentNoteContent: { value: "" },
@@ -124,17 +122,6 @@ vi.mock("../metadata", () => ({
 
 vi.mock("~/meeting-float/host", () => ({
   openFloatingMeetingPanel: vi.fn(),
-}));
-
-vi.mock("~/audio-player", () => ({
-  useAudioPlayer: () => ({
-    audioExists: audioExists.value,
-    audioExistsResolved: audioExistsResolved.value,
-  }),
-}));
-
-vi.mock("~/session/components/note-input/transcript/actions", () => ({
-  useRegenerateTranscript: () => regenerateTranscriptMock,
 }));
 
 vi.mock("@anlg/plugin-windows", () => ({
@@ -258,27 +245,10 @@ describe("OverflowButton", () => {
       ["Start listening", "Open in New Window", "Delete note"],
     ],
     [
-      "pending audio lookup",
-      { transcript: false, audio: true, audioResolved: false },
-      {},
-      ["Resume listening", "Open in New Window", "Delete note"],
-    ],
-    [
       "transcript without a recording",
       {},
       {},
       ["Resume listening", "Open in New Window", "Delete note"],
-    ],
-    [
-      "recorded audio",
-      { transcript: false, audio: true },
-      {},
-      [
-        "Resume listening",
-        "Re-transcribe",
-        "Open in New Window",
-        "Delete note",
-      ],
     ],
     [
       "active listening",
@@ -331,15 +301,6 @@ describe("OverflowButton", () => {
 
     expect(uploadAudioMock).toHaveBeenCalledTimes(1);
     expect(uploadTranscriptMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("re-transcribes recorded audio", () => {
-    arrange({ transcript: false, audio: true });
-    renderOverflow();
-
-    fireEvent.click(screen.getByRole("button", { name: "Re-transcribe" }));
-
-    expect(regenerateTranscriptMock).toHaveBeenCalledTimes(1);
   });
 
   it.each(["macos", "linux"])(

@@ -46,7 +46,6 @@ import {
   type TranscriptState,
 } from "./transcript";
 
-import { prepareSessionPeaks } from "~/audio-player/waveform";
 import { runMeetingCompletedAutomations } from "~/automations/engine";
 import { getSessionResourcePath } from "~/session/resource-path";
 import { isAppStoreBuild } from "~/shared/app-store";
@@ -213,7 +212,7 @@ const notifyTranscriptionStalled = () => {
     id: "live-transcription-stalled",
     duration: Infinity,
     description:
-      "Anarlog keeps recording while live transcription reconnects. Missing text will be recovered from temporary audio while the meeting continues.",
+      "Anarlog keeps listening while live transcription reconnects. No audio is kept, so the missing part will not be recovered.",
   });
 };
 
@@ -401,7 +400,6 @@ const createSessionEventHandlers = <T extends LiveStore>(
     }
 
     if (payload.audio_path) {
-      void prepareSessionPeaks(targetSessionId);
     }
 
     const dispatchMeetingCompleted = () => {

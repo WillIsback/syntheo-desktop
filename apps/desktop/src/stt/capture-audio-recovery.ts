@@ -9,6 +9,25 @@ export function chunkInterval(chunk: RecoveryAudioChunk, startedAt: number) {
   return { start: offset + chunk.start_ms, end: offset + chunk.end_ms };
 }
 
+export function subtractIntervals(
+  from: RecoveryInterval[],
+  remove: RecoveryInterval[],
+): RecoveryInterval[] {
+  let result = from.filter((gap) => gap.start < gap.end);
+  for (const cut of remove) {
+    result = result.flatMap((gap) => {
+      if (cut.end <= gap.start || cut.start >= gap.end) return [gap];
+      return [
+        ...(cut.start > gap.start
+          ? [{ start: gap.start, end: cut.start }]
+          : []),
+        ...(cut.end < gap.end ? [{ start: cut.end, end: gap.end }] : []),
+      ];
+    });
+  }
+  return result;
+}
+
 export function createCaptureAudioRecovery(options: {
   startedAt: number;
   list: () => Promise<RecoveryAudioChunk[]>;
@@ -33,6 +52,12 @@ export function createCaptureAudioRecovery(options: {
   let acknowledgedThrough = 0;
   let gapStart: number | undefined;
   let gaps: RecoveryInterval[] = [];
+  // Historique des coupures : jamais purgé par la réparation. Sans audio
+  // conservé, il est la seule trace des passages manquants du transcript.
+  let interrupted: RecoveryInterval[] = [];
+  let repaired: RecoveryInterval[] = [];
+  // Audio hérité vu pendant la capture : la complétude suit alors la réparation.
+  let sawAudio = false;
   let pending = false;
   let failed = false;
   let retryAt = 0;
@@ -54,13 +79,32 @@ export function createCaptureAudioRecovery(options: {
   const closeGap = () => {
     if (gapStart === undefined) return;
     revision += 1;
-    gaps.push({ start: gapStart, end: elapsed() });
+    const gap = { start: gapStart, end: elapsed() };
+    gaps.push(gap);
+    interrupted.push(gap);
+    if (interrupted.length > 128)
+      interrupted = [
+        {
+          start: interrupted[0]!.start,
+          end: interrupted[interrupted.length - 1]!.end,
+        },
+      ];
     gapStart = undefined;
     collapseGaps();
   };
+  // Coupures restées sans transcript : l'historique moins ce qu'une
+  // réparation (audio hérité uniquement) a comblé.
+  const interruptions = (): RecoveryInterval[] =>
+    subtractIntervals(
+      gapStart === undefined
+        ? interrupted
+        : [...interrupted, { start: gapStart, end: elapsed() }],
+      repaired,
+    );
 
   const process = async (settle: boolean) => {
     const chunks = await options.list();
+    if (chunks.length > 0) sawAudio = true;
     pending = gapStart !== undefined || gaps.length > 0;
     for (const chunk of chunks) {
       controller.signal.throwIfAborted();
@@ -106,6 +150,7 @@ export function createCaptureAudioRecovery(options: {
         if (!online || now() < retryAt) return false;
         await options.repair(chunk, intervals, controller.signal);
         controller.signal.throwIfAborted();
+        repaired.push(...intervals);
       }
       if (repairRevision !== revision) return false;
       // Network success alone is insufficient: repair resolves after SQLite commits.
@@ -154,7 +199,9 @@ export function createCaptureAudioRecovery(options: {
       online = false;
       markGap();
     },
-    batchOnly(retainAudio: boolean) {
+    // Sans audio conservé (cas de toute capture Syntheo), une capture sans STT
+    // en direct est une coupure ; `true` ne sert qu'à l'audio hérité.
+    batchOnly(retainAudio = false) {
       sawConnectionEvent = true;
       online = true;
       batchFromRetainedAudio = retainAudio;
@@ -179,6 +226,7 @@ export function createCaptureAudioRecovery(options: {
       );
       failed ||= ledger.storageFailed;
       gaps.push(...ledger.gaps);
+      interrupted.push(...ledger.gaps);
       collapseGaps();
       if (ledger.openGapStart !== undefined) {
         if (gapStart === undefined && !sawConnectionEvent) {
@@ -186,6 +234,7 @@ export function createCaptureAudioRecovery(options: {
           online = !ledger.awaitingConnection;
         } else if (gapStart === undefined) {
           gaps.push({ start: ledger.openGapStart, end: elapsed() });
+          interrupted.push({ start: ledger.openGapStart, end: elapsed() });
         } else {
           gapStart = Math.min(gapStart, ledger.openGapStart);
         }
@@ -208,15 +257,20 @@ export function createCaptureAudioRecovery(options: {
       failed = true;
       markGap();
     },
+    interruptions,
     async stop() {
       active = false;
       clearTimeout(timer);
       closeGap();
+      const missing = interruptions();
       await running;
       while (await tick(true)) {
         controller.signal.throwIfAborted();
       }
-      return { incomplete: pending || failed };
+      if (sawAudio) return { incomplete: pending || failed, interruptions: [] };
+      // Sans audio, une coupure n'est pas réparable : c'est un résultat final
+      // (trou daté), pas un transcript « à réparer ».
+      return { incomplete: pending || failed, interruptions: missing };
     },
     cancel() {
       active = false;

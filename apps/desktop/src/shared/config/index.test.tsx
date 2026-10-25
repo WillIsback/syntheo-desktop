@@ -13,10 +13,11 @@ const cases = [
     expected: "none",
   },
   {
-    name: "keeps explicit audio retention over legacy save_recordings",
+    // Règle audio de Syntheo : la rétention vaut toujours « aucune ».
+    name: "audio_retention_config_is_always_none",
     key: "audio_retention",
-    values: { save_recordings: false, audio_retention: "oneMonth" },
-    expected: "oneMonth",
+    values: { save_recordings: true, audio_retention: "forever" },
+    expected: "none",
   },
   {
     name: "parses stored array values without exposing malformed entries",

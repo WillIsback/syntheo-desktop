@@ -113,25 +113,9 @@ msgstr "{value} / {target} conversations"
 msgid "{weeks} weeks ago"
 msgstr "{weeks} weeks ago"
 
-#: src/settings/general/audio-settings.tsx
-msgid "1 day"
-msgstr "1 day"
-
-#: src/settings/general/audio-settings.tsx
-msgid "1 month"
-msgstr "1 month"
-
 #: src/session/components/pending-proposals-banner.tsx
 msgid "1 pending edit"
 msgstr "1 pending edit"
-
-#: src/settings/general/audio-settings.tsx
-msgid "1 week"
-msgstr "1 week"
-
-#: src/settings/general/audio-settings.tsx
-msgid "3 days"
-msgstr "3 days"
 
 #: src/settings/stats/date-range.tsx
 msgid "30 days"
@@ -489,14 +473,6 @@ msgstr "Attach up to three past summaries you like. Anarlog will learn how you p
 msgid "Audio"
 msgstr "Audio"
 
-#: src/session/components/note-input/transcript/screens/empty.tsx
-msgid "Audio available"
-msgstr "Audio available"
-
-#: src/settings/general/audio-settings.tsx
-msgid "Audio file retention"
-msgstr "Audio file retention"
-
 #: src/lock/screen.tsx
 msgid "Authenticate to continue."
 msgstr "Authenticate to continue."
@@ -612,10 +588,6 @@ msgstr "Bright canvas"
 #: src/onboarding/index.tsx
 msgid "Bring your meeting history"
 msgstr "Bring your meeting history"
-
-#: src/settings/general/audio-settings.tsx
-msgid "Build voiceprints from meeting audio so speakers you name in a transcript are recognized in later meetings. Voiceprints never leave this device, and unnamed ones are deleted after 45 days."
-msgstr "Build voiceprints from meeting audio so speakers you name in a transcript are recognized in later meetings. Voiceprints never leave this device, and unnamed ones are deleted after 45 days."
 
 #: src/settings/stats/insights.tsx
 msgid "Busiest day"
@@ -836,10 +808,6 @@ msgstr "Choose how Anarlog looks on this device."
 #: src/templates/auto-form.tsx
 msgid "Choose how Auto structures and styles your summaries."
 msgstr "Choose how Auto structures and styles your summaries."
-
-#: src/settings/general/audio-settings.tsx
-msgid "Choose how long recordings stay on this device."
-msgstr "Choose how long recordings stay on this device."
 
 #: src/templates/template-icon-picker.tsx
 msgid "Choose template icon"
@@ -1418,10 +1386,6 @@ msgstr "Disconnect"
 msgid "Documentation"
 msgstr "Documentation"
 
-#: src/settings/general/audio-settings.tsx
-msgid "Don't save"
-msgstr "Don't save"
-
 #: src/settings/ai/stt/select.tsx
 #: src/sidebar/toast/registry.tsx
 msgid "Download"
@@ -1710,10 +1674,6 @@ msgstr "Food & Drink"
 #: src/settings/general/notification.tsx
 msgid "For enabled notifications"
 msgstr "For enabled notifications"
-
-#: src/settings/general/audio-settings.tsx
-msgid "Forever"
-msgstr "Forever"
 
 #: src/templates/template-icon-picker.tsx
 msgid "Frequently used"
@@ -2923,18 +2883,6 @@ msgstr "Pro"
 msgid "Production"
 msgstr "Production"
 
-#: src/session/components/note-input/transcript/screens/empty.tsx
-msgid "Re-transcribe"
-msgstr "Re-transcribe"
-
-#: src/session/components/note-input/transcript/screens/empty.tsx
-msgid "Re-transcribe this audio, or upload a transcript file."
-msgstr "Re-transcribe this audio, or upload a transcript file."
-
-#: src/session/components/note-input/transcript/actions.ts
-msgid "Re-transcription failed"
-msgstr "Re-transcription failed"
-
 #: src/onboarding/permissions.tsx
 msgid "Read meeting controls and visible chat"
 msgstr "Read meeting controls and visible chat"
@@ -2995,10 +2943,6 @@ msgstr "Record other participants in meetings."
 msgid "Record your voice in meetings and calls."
 msgstr "Record your voice in meetings and calls."
 
-#: src/session/components/note-input/transcript/actions.ts
-msgid "Recording not found. It may have been deleted."
-msgstr "Recording not found. It may have been deleted."
-
 #: src/settings/general/notification.tsx
 msgid "Recording status prompts"
 msgstr "Recording status prompts"
@@ -3026,10 +2970,6 @@ msgstr "Reinstall"
 #: src/contacts/related-notes.tsx
 msgid "Related Notes"
 msgstr "Related Notes"
-
-#: src/settings/general/audio-settings.tsx
-msgid "Remember speakers"
-msgstr "Remember speakers"
 
 #: src/settings/todo/provider-content.tsx
 msgid "Reminders"

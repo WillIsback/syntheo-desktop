@@ -4,7 +4,6 @@ import {
   type ReactNode,
   type RefObject,
   useCallback,
-  useDeferredValue,
   useMemo,
   useRef,
   useState,
@@ -35,13 +34,10 @@ import { RenderTranscript } from "./transcript";
 import {
   preserveScrollPosition,
   useAutoScroll,
-  usePlaybackAutoScroll,
   useScrollDetection,
 } from "./viewport-hooks";
 
 import { trackAnalyticsEvent } from "~/analytics";
-import { useAudioPlayer } from "~/audio-player";
-import { useAudioTime } from "~/audio-player/provider";
 import type { Segment } from "~/stt/live-segment";
 import {
   assignTranscriptSpeaker,
@@ -50,6 +46,9 @@ import {
 } from "~/stt/queries";
 
 const LIVE_TRANSCRIPT_PLACEHOLDER_ID = "__live-transcript__";
+
+const NO_PLAYBACK = () => {};
+const NO_PLAYBACK_SEEK = (_seconds: number) => {};
 
 export function TranscriptViewer({
   transcriptIds,
@@ -117,33 +116,11 @@ export function TranscriptViewer({
     scrollToBottom,
   } = useScrollDetection(containerRef, currentActive);
 
-  const {
-    state: playerState,
-    pause,
-    resume,
-    start,
-    seek,
-    audioExists,
-  } = useAudioPlayer();
-  const time = useAudioTime();
-  const deferredCurrentMs = useDeferredValue(time.current * 1000);
-  const isPlaying = playerState === "playing";
-  useHotkeys(
-    "space",
-    (e) => {
-      e.preventDefault();
-      if (playerState === "playing") {
-        pause();
-      } else if (playerState === "paused") {
-        resume();
-      } else if (playerState === "stopped") {
-        start();
-      }
-    },
-    { enableOnFormTags: false, enabled: !editMode },
-  );
-
-  usePlaybackAutoScroll(containerRef, deferredCurrentMs, isPlaying);
+  // Syntheo ne conserve jamais l'audio : aucune lecture depuis le transcript.
+  const audioExists = false;
+  const deferredCurrentMs = 0;
+  const seek = NO_PLAYBACK_SEEK;
+  const start = NO_PLAYBACK;
   const shouldAutoScroll = currentActive && autoScrollEnabled;
   const shouldScrollLastTranscriptToEnd = currentActive && isNearBottom;
   useAutoScroll(

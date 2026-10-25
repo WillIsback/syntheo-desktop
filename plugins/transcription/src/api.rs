@@ -293,7 +293,8 @@ impl From<CaptureParams> for listener::actors::SessionParams {
 
         Self {
             session_id: value.session_id,
-            retain_audio: value.retain_audio,
+            // Règle audio de Syntheo : l'audio n'est jamais conservé.
+            retain_audio: Some(false),
             languages: value.languages,
             onboarding: value.onboarding,
             transcription_mode,
@@ -491,6 +492,17 @@ impl From<listener2::BatchEvent> for TranscriptionEvent {
 mod tests {
     use super::CaptureParams;
     use anlg_transcription_core::listener::{TranscriptionMode, actors::SessionParams};
+
+    // Règle audio de Syntheo : une capture ne conserve jamais l'audio.
+    #[test]
+    fn capture_params_never_retain_audio() {
+        for requested in [None, Some(true), Some(false)] {
+            let mut params = capture_params(None);
+            params.retain_audio = requested;
+            let session: SessionParams = params.into();
+            assert_eq!(session.retain_audio, Some(false));
+        }
+    }
 
     fn capture_params(transcription_mode: Option<TranscriptionMode>) -> CaptureParams {
         CaptureParams {

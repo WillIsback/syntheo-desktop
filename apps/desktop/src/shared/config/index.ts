@@ -57,11 +57,9 @@ export function resolveConfigValue<K extends SettingKey>(
   const definition = SETTING_DEFINITIONS[key];
   const defaultValue = "default" in definition ? definition.default : undefined;
 
-  if (
-    key === "audio_retention" &&
-    values.save_recordings === false &&
-    !hasValues.has("audio_retention")
-  ) {
+  // Règle audio de Syntheo : l'audio n'est jamais conservé, quel que soit le
+  // réglage hérité stocké.
+  if (key === "audio_retention") {
     return "none" as ConfigValueType<K>;
   }
 

@@ -49,6 +49,19 @@ function withUpdate(update: Partial<RegistryParams["update"]>) {
 }
 
 describe("sidebar toast registry", () => {
+  it.each([
+    ["missing-llm", { hasLLMConfigured: false }],
+    ["missing-stt", { hasSttConfigured: false }],
+  ] as const)(
+    "requires %s setup even if it was dismissed previously",
+    (id, overrides) => {
+      const toast = showToast(overrides, (toast) => toast.id === id);
+
+      expect(toast?.id).toBe(id);
+      expect(toast?.lifecycle).toEqual({ type: "condition-bound" });
+    },
+  );
+
   it("never shows sign-in or upgrade prompts (no account)", () => {
     // Fully configured on-prem providers: nothing to promote.
     expect(showToast()).toBeNull();

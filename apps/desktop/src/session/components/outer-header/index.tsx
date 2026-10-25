@@ -17,7 +17,6 @@ import { RecordingIcon, useHasTranscript } from "../shared";
 import { TitleInput } from "../title-input";
 import { OverflowButton } from "./overflow";
 
-import { useAudioPlayer } from "~/audio-player";
 import { useNow } from "~/calendar/hooks";
 import { useShell } from "~/contexts/shell";
 import {
@@ -63,7 +62,8 @@ export function OuterHeader({
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const sessionEvent = useSessionEvent(sessionId);
   const hasTranscript = useHasTranscript(sessionId);
-  const { audioExists } = useAudioPlayer();
+  // Syntheo ne conserve jamais l'audio d'une capture.
+  const audioExists = false;
   const now = useNow();
   const showWindowControlsGutter = useWindowControlsGutter();
   const showSidebarTimelineHeaderGutter =
@@ -144,7 +144,8 @@ function HeaderMeetingControl({
 }) {
   const sessionEvent = useSessionEvent(sessionId);
   const hasTranscript = useHasTranscript(sessionId);
-  const { audioExists } = useAudioPlayer();
+  // Syntheo ne conserve jamais l'audio d'une capture.
+  const audioExists = false;
   const now = useNow();
   const endedAt = sessionEvent?.ended_at
     ? safeParseDate(sessionEvent.ended_at)

@@ -26,7 +26,6 @@ const LISTENER_RETRY_DELAYS: [Duration; 5] = [
     Duration::from_secs(30),
 ];
 const MAX_LISTENER_RETRY_AFTER: Duration = Duration::from_secs(30);
-const RECORDER_RETRY_DELAY: Duration = Duration::from_secs(5);
 
 pub struct SessionState {
     ctx: SessionContext,
@@ -34,7 +33,6 @@ pub struct SessionState {
     listener_cell: Option<ActorCell>,
     recorder_cell: Option<ActorCell>,
     source_restarts: anlg_supervisor::RestartTracker,
-    recorder_restarts: anlg_supervisor::RestartTracker,
     mode: SessionModeState,
     listener_retry_attempt: usize,
     listener_mic_isolated: bool,
@@ -46,7 +44,6 @@ pub struct SessionActor;
 pub enum SessionMsg {
     Shutdown,
     RetryListener,
-    RetryRecorder,
     SourceHealthy,
     SourceRoutingChanged,
     UpdateCredentials(String),
@@ -72,22 +69,13 @@ impl Actor for SessionActor {
                 ctx.requested_transcription_mode,
                 ctx.params.transcription_mode,
             );
-            let recorder_cell = match children::spawn_recorder(myself.get_cell(), &ctx).await {
-                Ok(cell) => Some(cell),
-                Err(error) => {
-                    emit_storage_error(&ctx, &error.to_string());
-                    myself.send_after(RECORDER_RETRY_DELAY, || SessionMsg::RetryRecorder);
-                    None
-                }
-            };
-            let source_ref = children::spawn_source(
-                myself.get_cell(),
-                &ctx,
-                recorder_cell.as_ref().cloned(),
-                mode.listener_routing(None),
-            )
-            .await
-            .map_err(|e| -> ActorProcessingErr { Box::new(e) })?;
+            // Règle audio de Syntheo : aucun recorder, l'audio ne va que de la
+            // source vers le listener (endpoint STT) et n'est jamais écrit sur disque.
+            let recorder_cell = None;
+            let source_ref =
+                children::spawn_source(myself.get_cell(), &ctx, None, mode.listener_routing(None))
+                    .await
+                    .map_err(|e| -> ActorProcessingErr { Box::new(e) })?;
 
             Ok(SessionState {
                 ctx,
@@ -95,7 +83,6 @@ impl Actor for SessionActor {
                 listener_cell: None,
                 recorder_cell,
                 source_restarts: anlg_supervisor::RestartTracker::new(),
-                recorder_restarts: anlg_supervisor::RestartTracker::new(),
                 mode,
                 listener_retry_attempt: 0,
                 listener_mic_isolated: false,
@@ -166,16 +153,6 @@ impl Actor for SessionActor {
                     }
                 }
             }
-            SessionMsg::RetryRecorder => {
-                if !state.shutting_down && state.recorder_cell.is_none() {
-                    state
-                        .recorder_restarts
-                        .maybe_reset(&children::RECORDER_RESTART_BUDGET);
-                    if !children::try_restart_recorder(myself.get_cell(), state).await {
-                        myself.send_after(RECORDER_RETRY_DELAY, || SessionMsg::RetryRecorder);
-                    }
-                }
-            }
             SessionMsg::RetryListener => {
                 retry_listener(myself, state).await;
             }
@@ -194,10 +171,6 @@ impl Actor for SessionActor {
     ) -> Result<(), ActorProcessingErr> {
         let span = session_span(&state.ctx.params.session_id);
         async {
-            state
-                .recorder_restarts
-                .maybe_reset(&children::RECORDER_RESTART_BUDGET);
-
             if state.shutting_down {
                 return Ok(());
             }
@@ -236,14 +209,9 @@ impl Actor for SessionActor {
                             }
                         }
                         Some(ChildKind::Recorder) => {
-                            tracing::info!(?reason, "recorder_terminated_attempting_restart");
+                            tracing::info!(?reason, "recorder_terminated");
                             state.recorder_cell = None;
                             children::sync_source_recorder(state).await;
-                            emit_storage_error(
-                                &state.ctx,
-                                reason.as_deref().unwrap_or("Audio saving stopped"),
-                            );
-                            myself.send_after(RECORDER_RETRY_DELAY, || SessionMsg::RetryRecorder);
                         }
                         None => {
                             tracing::warn!("unknown_child_terminated");
@@ -276,11 +244,9 @@ impl Actor for SessionActor {
                             }
                         }
                         Some(ChildKind::Recorder) => {
-                            tracing::warn!(?error, "recorder_failed_attempting_restart");
+                            tracing::warn!(?error, "recorder_failed");
                             state.recorder_cell = None;
                             children::sync_source_recorder(state).await;
-                            emit_storage_error(&state.ctx, &error.to_string());
-                            myself.send_after(RECORDER_RETRY_DELAY, || SessionMsg::RetryRecorder);
                         }
                         None => {
                             tracing::warn!("unknown_child_failed");
@@ -325,16 +291,6 @@ impl Actor for SessionActor {
         }
         Ok(())
     }
-}
-
-fn emit_storage_error(ctx: &SessionContext, error: &str) {
-    ctx.runtime
-        .emit_error(crate::SessionErrorEvent::AudioError {
-            session_id: ctx.params.session_id.clone(),
-            error: format!("audio_storage_unavailable: {error}"),
-            device: None,
-            is_fatal: false,
-        });
 }
 
 pub async fn spawn_session_supervisor(
@@ -821,7 +777,6 @@ mod tests {
             listener_cell: None,
             recorder_cell: None,
             source_restarts: RestartTracker::new(),
-            recorder_restarts: RestartTracker::new(),
             mode: SessionModeState::new(TranscriptionMode::Live, TranscriptionMode::Live),
             listener_retry_attempt: 0,
             listener_mic_isolated: false,
@@ -1089,60 +1044,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn recorder_failure_keeps_the_listener_and_session_running() {
-        let (supervisor, supervisor_task) = Actor::spawn(None, SessionStopProbe, ()).await.unwrap();
-        let (tx, _rx) = tokio::sync::mpsc::unbounded_channel();
-        let (recorder, recorder_task) = Actor::spawn(
-            None,
-            StopProbe {
-                label: "recorder",
-                tx: tx.clone(),
-            },
-            (),
-        )
-        .await
-        .unwrap();
-        let (listener, listener_task) = Actor::spawn(
-            None,
-            StopProbe {
-                label: "listener",
-                tx,
-            },
-            (),
-        )
-        .await
-        .unwrap();
-        let mut state = test_state(test_ctx());
-        state.recorder_cell = Some(recorder.get_cell());
-        state.listener_cell = Some(listener.get_cell());
-        tokio::time::timeout(Duration::from_secs(1), async {
-            while listener.get_status() != ractor::ActorStatus::Running {
-                tokio::task::yield_now().await;
-            }
-        })
-        .await
-        .unwrap();
-        SessionActor
-            .handle_supervisor_evt(
-                supervisor.clone(),
-                SupervisionEvent::ActorFailed(
-                    recorder.get_cell(),
-                    std::io::Error::other("No space left on device").into(),
-                ),
-                &mut state,
-            )
-            .await
-            .unwrap();
-        assert!(!state.shutting_down);
-        assert!(state.recorder_cell.is_none());
-        assert_eq!(state.listener_cell.unwrap().get_id(), listener.get_id());
-        assert_eq!(listener.get_status(), ractor::ActorStatus::Running);
-        supervisor_task.abort();
-        recorder_task.abort();
-        listener_task.abort();
-    }
-
-    #[tokio::test]
     async fn shutdown_children_waits_in_source_listener_recorder_order() {
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
         let (source_ref, _) = Actor::spawn(
@@ -1182,7 +1083,6 @@ mod tests {
             listener_cell: Some(listener_ref.get_cell()),
             recorder_cell: Some(recorder_ref.get_cell()),
             source_restarts: RestartTracker::new(),
-            recorder_restarts: RestartTracker::new(),
             mode: SessionModeState::new(TranscriptionMode::Live, TranscriptionMode::Live),
             listener_retry_attempt: 0,
             listener_mic_isolated: false,

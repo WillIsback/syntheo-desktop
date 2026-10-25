@@ -61,10 +61,6 @@ vi.mock("~/calendar/hooks", () => ({
   useNow: () => new Date(mocks.nowMs),
 }));
 
-vi.mock("~/audio-player", () => ({
-  useAudioPlayer: () => ({ audioExists: mocks.audioExists }),
-}));
-
 vi.mock("~/contexts/shell", () => ({
   useShell: () => ({ leftsidebar: mocks.leftsidebar }),
 }));
@@ -231,7 +227,6 @@ describe("OuterHeader", () => {
     ["finalizing", { mode: "finalizing", event: scheduled(MEET_LINK) }, null],
     // Partage retiré (cloud) : plus aucune action une fois la réunion terminée.
     ["inactive with transcript", { transcript: true }, null],
-    ["inactive with audio", { audio: true }, null],
     ["meeting over", { event: scheduled(MEET_LINK), now: AFTER }, null],
     [
       "recorded event without ended_at",
@@ -406,15 +401,15 @@ describe("OuterHeader", () => {
     });
   });
 
-  it.each([
-    ["before recording", false, true],
-    ["after recording", true, false],
-  ])("prompts to try the welcome demo only %s", (_label, audio, prompted) => {
-    arrange({ event: DEMO_EVENT, audio });
-    renderHeader();
+  it.each([["before recording", false, true]])(
+    "prompts to try the welcome demo only %s",
+    (_label, audio, prompted) => {
+      arrange({ event: DEMO_EVENT, audio });
+      renderHeader();
 
-    expect(screen.queryByText("Try the demo") !== null).toBe(prompted);
-  });
+      expect(screen.queryByText("Try the demo") !== null).toBe(prompted);
+    },
+  );
 
   it("shows the meeting countdown before start and hides it while listening", () => {
     vi.useFakeTimers();

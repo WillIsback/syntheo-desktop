@@ -26,20 +26,25 @@ import {
 
 import { trackAnalyticsEvent } from "~/analytics";
 import { useShell } from "~/contexts/shell";
-import { normalizeAudioRetention } from "~/services/audio-retention";
 import { getSessionEvent } from "~/session/utils";
 import { getBaseLanguageDisplayName } from "~/settings/general/language";
 import { useConfigValue } from "~/shared/config";
 import { useTabs } from "~/store/zustand/tabs";
 import {
   getLiveTranscriptionConfig,
+  getSttModelTranscriptionMode,
   getTranscriptionLanguages,
-  requiresRetainedBatchAudio,
 } from "~/stt/capabilities";
 import {
   getSessionParticipantHumanIds,
   useSessionParticipantHumanIds,
 } from "~/stt/queries";
+
+export const NO_TRANSCRIPTION_PROVIDER_MESSAGE =
+  "Aucun fournisseur de transcription n'est configuré. Syntheo ne conserve pas l'audio : configurez un endpoint de transcription avant d'enregistrer.";
+
+export const BATCH_ONLY_CAPTURE_MESSAGE =
+  "Ce modèle ne transcrit qu'après l'enregistrement, ce qui supposerait de conserver l'audio. Choisissez un modèle de transcription en temps réel.";
 
 export {
   CLOUDSYNC_CAPTURE_LEASE_ATTEMPTS,
@@ -74,9 +79,8 @@ export function useStartListeningState(
   const spokenLanguages = useConfigValue("spoken_languages");
   const dictionaryTerms = useConfigValue("personalization_dictionary_terms");
   const microphoneDevice = useConfigValue("microphone_device");
-  const retainAudio =
-    normalizeAudioRetention(useConfigValue("audio_retention")) !== "none" ||
-    requiresRetainedBatchAudio(conn?.provider, conn?.model);
+  // Règle audio de Syntheo : la capture ne conserve jamais l'audio.
+  const retainAudio = false;
   const meetingDisclosureAutoSendChat = useConfigValue(
     "consent_auto_send_chat",
   );
@@ -101,6 +105,27 @@ export function useStartListeningState(
 
   const startListening = useCallback(async () => {
     if (!canStartLiveSession(sessionId)) {
+      return;
+    }
+    // Sans recorder, une capture sans STT ne produirait rien.
+    if (!conn) {
+      toast.error(NO_TRANSCRIPTION_PROVIDER_MESSAGE, {
+        id: "recording-without-transcription",
+        duration: Infinity,
+        action: {
+          label: "Configurer",
+          onClick: () =>
+            openNew({ type: "settings", state: { tab: "transcription" } }),
+        },
+      });
+      return;
+    }
+    // Un modèle « après l'enregistrement » exigerait de conserver l'audio.
+    if (
+      conn &&
+      getSttModelTranscriptionMode(conn.provider, conn.model) === "batch"
+    ) {
+      toast.error(BATCH_ONLY_CAPTURE_MESSAGE, { id: "batch-only-capture" });
       return;
     }
     await stopMeetingChatTasks();
@@ -263,7 +288,7 @@ export function useStartListeningState(
 
     const primaryLanguage = liveTranscriptionConfig.languages[0];
     const omittedLanguages = liveTranscriptionConfig.omittedLanguages ?? [];
-    if (conn && primaryLanguage && omittedLanguages.length > 0) {
+    if (primaryLanguage && omittedLanguages.length > 0) {
       const primaryLanguageName = getBaseLanguageDisplayName(primaryLanguage);
       const omittedLanguageNames = omittedLanguages
         .map((language) => getBaseLanguageDisplayName(language))
@@ -272,20 +297,9 @@ export function useStartListeningState(
       toast.warning(`Live transcription is using ${primaryLanguageName}`, {
         id: "recording-with-limited-transcription-languages",
         duration: Infinity,
-        description: `Live transcription won't include ${omittedLanguageNames}. Audio is still being saved.`,
+        description: `Live transcription won't include ${omittedLanguageNames}.`,
         action: {
           label: "Change",
-          onClick: openTranscriptionSettings,
-        },
-      });
-    } else if (!conn) {
-      toast.warning("Live transcription is not configured", {
-        id: "recording-without-transcription",
-        duration: Infinity,
-        description:
-          "Audio is being saved. Choose a transcription provider to ensure this recording can be transcribed.",
-        action: {
-          label: "Configure",
           onClick: openTranscriptionSettings,
         },
       });

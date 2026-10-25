@@ -57,21 +57,6 @@ vi.mock("~/stt/queries", async (importOriginal) => ({
   updateTranscriptSegmentText: mocks.updateTranscriptSegmentText,
 }));
 
-vi.mock("~/audio-player", () => ({
-  useAudioPlayer: () => ({
-    state: "stopped",
-    pause: vi.fn(),
-    resume: vi.fn(),
-    start: vi.fn(),
-    seek: vi.fn(),
-    audioExists: true,
-  }),
-}));
-
-vi.mock("~/audio-player/provider", () => ({
-  useAudioTime: () => ({ current: 0 }),
-}));
-
 vi.mock("./selection-menu", () => ({
   SelectionMenu: ({
     onChangeSpeaker,
