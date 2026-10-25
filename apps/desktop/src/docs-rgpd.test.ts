@@ -39,3 +39,13 @@ it("docs_rgpd_lists_every_known_flow_and_store", () => {
   expect(rgpd).not.toContain("analytics et Sentry retirés");
   expect(rgpd).not.toContain("**Aucun autre flux**");
 });
+
+it("docs_rgpd_reflects_capture_without_audio", () => {
+  const rgpd = readFileSync(join(ROOT, "docs/conformite/rgpd.md"), "utf8");
+  expect(rgpd).not.toContain("le conserve par défaut (`forever`)");
+  expect(rgpd).not.toContain(
+    "l'enregistrement audio est encore écrit sur\n>   disque pendant la capture",
+  );
+  expect(rgpd).toContain("dictée");
+  expect(rgpd).toContain("import");
+});

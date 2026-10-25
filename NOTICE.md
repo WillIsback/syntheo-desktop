@@ -37,7 +37,9 @@ En résumé :
 - identité Syntheo (nom, identifiant d'application, logo, thème, français) ;
 - providers d'inférence **on-premise uniquement** (protocoles OpenAI-compatible
   et NVIDIA NIM) ; adaptateurs cloud retirés ;
-- aucune conservation de l'audio ;
+- aucune conservation de l'audio d'une réunion : enregistreur de capture,
+  réglage de rétention, lecteur audio, retranscription et empreintes vocales
+  retirés ; une coupure de transcription laisse un trou daté ;
 - intégrations cloud hors IA, télémétrie, compte et abonnement retirés :
   authentification Supabase (`apps/desktop/src/auth`, `plugins/auth`, sous-commande
   CLI `auth` et source `cloud`), partage de notes et de sessions, synchronisation
