@@ -12,11 +12,3 @@ command = '''
 pnpm i
 pnpm -F @anlg/desktop tauri dev
 '''
-
-[[actions]]
-name = "Website"
-icon = "run"
-command = '''
-pnpm i
-pnpm -F @anlg/web dev
-'''
