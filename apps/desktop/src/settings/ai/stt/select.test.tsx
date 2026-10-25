@@ -7,7 +7,7 @@ const { useProviderAvailabilityMock } = vi.hoisted(() => ({
   useProviderAvailabilityMock: vi.fn(),
 }));
 
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({ isPaid: true }),
 }));
 

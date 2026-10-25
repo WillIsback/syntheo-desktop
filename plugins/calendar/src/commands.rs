@@ -2,7 +2,6 @@ use anlg_calendar_interface::{
     CalendarEvent, CalendarListItem, CalendarProviderType, CreateEventInput, EventFilter,
 };
 use tauri::Manager;
-use tauri_plugin_auth::AuthPluginExt;
 #[cfg(target_os = "macos")]
 use tauri_plugin_permissions::PermissionsPluginExt;
 
@@ -183,10 +182,10 @@ contacts_command!(
     crate::contacts::apply_contact_enhancement
 );
 
-fn access_token<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<Option<String>, Error> {
-    app.access_token()
-        .map(|token| token.filter(|token| !token.is_empty()))
-        .map_err(|error| Error::Auth(error.to_string()))
+// Syntheo n'a pas de compte : les calendriers hébergés ne sont jamais
+// authentifiés, seul Apple Calendar (local) reste disponible.
+fn access_token<R: tauri::Runtime>(_app: &tauri::AppHandle<R>) -> Result<Option<String>, Error> {
+    Ok(None)
 }
 
 fn require_access_token<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<String, Error> {

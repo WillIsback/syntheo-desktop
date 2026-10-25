@@ -13,15 +13,6 @@ export type TodoProvider = {
 
 export const TODO_PROVIDERS: TodoProvider[] = [
   {
-    id: "github",
-    displayName: "GitHub",
-    icon: <img src="/assets/github-icon.svg" alt="GitHub" className="size-5" />,
-    nangoIntegrationId: "github",
-    filterLabel: "Repository",
-    filterPlaceholder: "e.g. owner/repo",
-    platform: "all",
-  },
-  {
     id: "apple-reminders",
     displayName: "Apple Reminders",
     icon: (

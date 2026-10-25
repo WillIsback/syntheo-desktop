@@ -20,9 +20,6 @@ const mocks = vi.hoisted(() => ({
   collect: vi.fn(),
   onboarding: vi.fn(),
 }));
-vi.mock("~/auth", () => ({
-  useAuth: () => ({ session: { user: { id: "alice" } } }),
-}));
 vi.mock("./badge-queries", () => ({
   useCollectedBadges: () => mocks.collection,
   collectBadges: mocks.collect,
@@ -33,6 +30,8 @@ vi.mock("~/types/tauri.gen", () => ({
 
 import { BadgeCollection, BadgeGallery } from "./badge-collection";
 import { getBadgeProgress } from "./badges";
+
+import { DEFAULT_USER_ID } from "~/shared/utils";
 
 const now = new Date("2026-09-08T12:00:00Z");
 const record = {
@@ -71,7 +70,7 @@ describe("badge collection", () => {
     );
     const { rerender } = render(view());
     await waitFor(() =>
-      expect(mocks.collect).toHaveBeenCalledWith("alice", [
+      expect(mocks.collect).toHaveBeenCalledWith(DEFAULT_USER_ID, [
         "hello",
         "all-set",
         "first-words",

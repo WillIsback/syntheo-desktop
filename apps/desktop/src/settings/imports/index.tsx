@@ -7,7 +7,8 @@ import { Button } from "@anlg/ui/components/ui/button";
 import { MeetingImportScreen } from "~/imports/screen";
 import { SettingsPageTitle } from "~/settings/page-title";
 
-const IMPORTS_DOCUMENTATION_URL = "https://docs.anarlog.so/imports";
+const IMPORTS_DOCUMENTATION_URL =
+  "https://github.com/WillIsback/syntheo-desktop#readme";
 
 export function SettingsImports() {
   return (

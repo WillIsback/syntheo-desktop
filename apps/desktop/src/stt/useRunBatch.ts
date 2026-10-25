@@ -19,10 +19,7 @@ import { useListener } from "./contexts";
 import { persistTranscriptWrite } from "./persist-retry";
 import { useSTTConnection } from "./useSTTConnection";
 
-import { useAuth } from "~/auth";
-import { useBillingAccess } from "~/auth/billing-context";
 import { withCloudsyncActivity } from "~/db/cloudsync-activity";
-import { env } from "~/env";
 import {
   deleteProcessedAudioForRetention,
   normalizeAudioRetention,
@@ -214,29 +211,14 @@ export function canRunBatchTranscription(
   return true;
 }
 
+// Aucun repli hébergé : sans compte, seul le batch local reste possible.
 export function getBatchFallbackTarget({
-  isPaid,
-  accessToken,
-  apiBaseUrl,
   currentPlatform = platform(),
   currentArch = arch(),
 }: {
-  isPaid: boolean;
-  accessToken?: string | null;
-  apiBaseUrl: string;
   currentPlatform?: ReturnType<typeof platform>;
   currentArch?: ReturnType<typeof arch>;
-}): BatchTarget | null {
-  if (isPaid && accessToken) {
-    return {
-      provider: "anarlog",
-      model: "cloud",
-      baseUrl: new URL("/stt", apiBaseUrl).toString(),
-      apiKey: accessToken,
-      label: "Pro cloud transcription",
-    };
-  }
-
+} = {}): BatchTarget | null {
   return isDesktopLocalSttAvailable(currentPlatform, currentArch)
     ? LOCAL_SONIQO_BATCH_TARGET
     : null;
@@ -318,8 +300,6 @@ export const useRunBatch = (sessionId: string) => {
   const startTranscription = useListener((state) => state.startTranscription);
   const stopTranscription = useListener((state) => state.stopTranscription);
   const { conn } = useSTTConnection();
-  const auth = useAuth();
-  const billing = useBillingAccess();
   const aiLanguage = useConfigValue("ai_language");
   const spokenLanguages = useConfigValue("spoken_languages");
   const dictionaryTerms = useConfigValue("personalization_dictionary_terms");
@@ -373,27 +353,14 @@ export const useRunBatch = (sessionId: string) => {
             )
           : false;
       options?.signal?.throwIfAborted();
-      const requiresCloudSession =
-        billing.isPaid ||
-        (selectedTarget?.provider === "anarlog" &&
-          selectedTarget.model === "cloud");
-      const requestSession = requiresCloudSession
-        ? await auth.getSessionForRequest().catch(() => null)
-        : null;
-      options?.signal?.throwIfAborted();
-      const cloudAccessToken =
-        requestSession?.access_token ?? auth.session?.access_token;
       const fallbackTarget = getBatchFallbackTarget({
-        isPaid: billing.isPaid,
-        accessToken: cloudAccessToken,
-        apiBaseUrl: env.VITE_AI_API_URL ?? env.VITE_API_URL,
         currentPlatform,
         currentArch,
       });
       const shouldUseSelectedTarget =
         selectedTargetSupported ||
         (fallbackTarget && sameBatchTarget(selectedTarget, fallbackTarget));
-      let target = options?.resume
+      const target = options?.resume
         ? {
             provider: options.resume.provider,
             model: options.resume.model,
@@ -413,11 +380,9 @@ export const useRunBatch = (sessionId: string) => {
         );
       }
 
+      // La transcription hébergée exigeait un compte : elle n'existe plus.
       if (target.provider === "anarlog" && target.model === "cloud") {
-        if (!cloudAccessToken) {
-          throw new Error(t`Transcription failed`);
-        }
-        target = { ...target, apiKey: cloudAccessToken };
+        throw new Error(t`Transcription failed`);
       }
 
       if (!shouldUseSelectedTarget && !options?.recovery && !options?.resume) {
@@ -459,11 +424,6 @@ export const useRunBatch = (sessionId: string) => {
         options?.handlePersist;
       let stagedWords: WordWithId[] = [];
       let stagedHints: SpeakerHintWithId[] = [];
-      const resetStagedTranscript = () => {
-        transcriptId = null;
-        stagedWords = [];
-        stagedHints = [];
-      };
 
       const persist =
         handlePersist ??
@@ -584,23 +544,7 @@ export const useRunBatch = (sessionId: string) => {
                 error.message === "No speech was detected in the audio."
               )
             ) {
-              if (
-                target.provider !== "anarlog" ||
-                target.model !== "cloud" ||
-                !isTranscriptionAuthenticationError(error)
-              ) {
-                throw error;
-              }
-
-              const refreshedSession = await auth.refreshSession();
-              if (!refreshedSession?.access_token) {
-                throw error;
-              }
-
-              if (!handlePersist) {
-                resetStagedTranscript();
-              }
-              await run({ ...params, api_key: refreshedSession.access_token });
+              throw error;
             }
           }
 
@@ -693,11 +637,8 @@ export const useRunBatch = (sessionId: string) => {
     },
     [
       conn,
-      auth,
-      auth.session?.access_token,
       aiLanguage,
       audioRetention,
-      billing.isPaid,
       dictionaryTerms,
       rememberSpeakers,
       session,

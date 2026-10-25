@@ -90,11 +90,7 @@ vi.mock("./menu", () => ({
   }) => <div data-hint={description}>{children}</div>,
 }));
 
-vi.mock("~/auth", () => ({
-  useAuth: () => ({ session: mocks.session }),
-}));
-
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => mocks.billing,
 }));
 

@@ -25,37 +25,13 @@ vi.mock("./useNewNote", () => ({
   useNewNote: () => vi.fn(),
 }));
 
-vi.mock("~/auth", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="auth-provider">{children}</div>
-  ),
-}));
-
-vi.mock("~/auth/local-billing", () => ({
+vi.mock("~/billing/local-billing", () => ({
   LocalBillingProvider: ({ children }: { children: React.ReactNode }) =>
     children,
 }));
 
-vi.mock("~/enterprise-capture/lifecycle", () => ({
-  EnterpriseCaptureSync: () => <div data-testid="enterprise-capture-sync" />,
-}));
-
 vi.mock("~/session/queries", () => ({
   getOrCreateSessionForEventId: vi.fn(),
-}));
-
-vi.mock("~/services/meeting-import-sync", () => ({
-  MeetingImportSync: () => <div data-testid="meeting-import-sync" />,
-}));
-
-vi.mock("~/settings/team/mirror", () => ({
-  useMyWorkspacesWithMirror: vi.fn(),
-}));
-
-vi.mock("~/settings/team/invitation-toast", () => ({
-  WorkspaceInvitationToasts: () => (
-    <div data-testid="workspace-invitation-toasts" />
-  ),
 }));
 
 vi.mock("@anlg/ui/hooks/use-mount-effect", () => ({
@@ -80,24 +56,7 @@ describe("MainAppLayout", () => {
 
   afterEach(cleanup);
 
-  it("mounts main-window sync services inside the auth provider", () => {
-    render(<MainAppLayout />);
-
-    const authProvider = screen.getByTestId("auth-provider");
-    expect(
-      authProvider.contains(screen.getByTestId("meeting-import-sync")),
-    ).toBe(true);
-    expect(
-      authProvider.contains(screen.getByTestId("enterprise-capture-sync")),
-    ).toBe(true);
-    expect(
-      authProvider.contains(screen.getByTestId("workspace-invitation-toasts")),
-    ).toBe(true);
-  });
-
-  it("does not mount connected import sync in secondary windows", () => {
-    mocks.windowLabel = "note";
-
+  it("mounts no cloud sync service in any window", () => {
     render(<MainAppLayout />);
 
     expect(screen.queryByTestId("meeting-import-sync")).toBeNull();

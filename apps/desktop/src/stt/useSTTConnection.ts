@@ -4,9 +4,7 @@ import { useMemo } from "react";
 import { commands as localSttCommands } from "@anlg/plugin-local-stt";
 import type { AIProviderStorage } from "@anlg/store";
 
-import { useAuth } from "~/auth";
-import { useBillingAccess } from "~/auth/billing-context";
-import { env } from "~/env";
+import { useBillingAccess } from "~/billing/billing-context";
 import { type ProviderId, PROVIDERS } from "~/settings/ai/stt/shared";
 import { useAiProvidersState } from "~/settings/providers";
 import { useSettingsReady } from "~/settings/queries";
@@ -20,7 +18,6 @@ import {
 import { localSttQueries } from "~/stt/useLocalSttModel";
 
 export const useSTTConnection = () => {
-  const auth = useAuth();
   const billing = useBillingAccess();
   const settingsReady = useSettingsReady();
   const { current_stt_provider, current_stt_model, local_stt_model_path } =
@@ -150,19 +147,9 @@ export const useSTTConnection = () => {
       return local.data?.connection ?? null;
     }
 
+    // STT hébergé par Anarlog : exige un compte, inexistant dans Syntheo.
     if (isCloudModel) {
-      if (!auth?.session || !billing.isPaid) {
-        return null;
-      }
-
-      return {
-        provider: current_stt_provider,
-        model: current_stt_model,
-        baseUrl:
-          baseUrl ||
-          new URL("/stt", env.VITE_AI_API_URL ?? env.VITE_API_URL).toString(),
-        apiKey: auth.session.access_token,
-      };
+      return null;
     }
 
     if (!baseUrl || (!apiKey && current_stt_provider !== "nvidia")) {
@@ -199,8 +186,6 @@ export const useSTTConnection = () => {
     local.data,
     baseUrl,
     apiKey,
-    auth,
-    billing.isPaid,
   ]);
 
   return {

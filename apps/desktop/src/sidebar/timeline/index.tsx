@@ -35,11 +35,9 @@ import {
   useUpcomingMeetingLabelFormatter,
 } from "./upcoming-meeting";
 
-import { useAuth } from "~/auth";
 import { useIgnoredEvents } from "~/calendar/ignored-events";
 import { useTimelineTables } from "~/calendar/queries";
 import { useDeleteSession } from "~/session/hooks/useDeleteSession";
-import { useActivatedSessionShareIds } from "~/shared-notes/cache";
 import { useConfigValue } from "~/shared/config";
 import { scrollElementByWheel } from "~/shared/dom/scroll-wheel";
 import { useNativeContextMenu } from "~/shared/hooks/useNativeContextMenu";
@@ -48,6 +46,9 @@ import { useSidebarNotes } from "~/sidebar/note-filter";
 import { useTabs } from "~/store/zustand/tabs";
 import { useTimelineSelection } from "~/store/zustand/timeline-selection";
 import { useListener } from "~/stt/contexts";
+
+// Partage retiré (cloud) : aucune session partagée gérée.
+const NO_MANAGED_SHARES: ReadonlySet<string> = new Set();
 
 export const TimelineView = memo(function TimelineView({
   folderFilter = null,
@@ -66,8 +67,7 @@ export const TimelineView = memo(function TimelineView({
 } = {}) {
   const { t } = useLingui();
   const timezone = useConfigValue("timezone") || undefined;
-  const { session } = useAuth();
-  const managedSharedSessionIds = useActivatedSessionShareIds(session?.user.id);
+  const managedSharedSessionIds = NO_MANAGED_SHARES;
   const { timelineEventsTable, timelineSessionsTable } = useTimelineTables();
   const groupBy = useSidebarNotes((state) => state.groupBy);
   const sortOrder = useSidebarNotes((state) => state.sortOrder);

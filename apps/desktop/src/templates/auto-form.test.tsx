@@ -120,7 +120,7 @@ vi.mock("~/settings/queries", () => ({
   setSettingValue: mocks.setSettingValue,
 }));
 
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => mocks.billing,
 }));
 

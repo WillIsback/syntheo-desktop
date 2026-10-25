@@ -78,7 +78,7 @@ vi.mock("./custom-sidebar-header", () => ({
   CustomSidebarHeader: () => <div />,
 }));
 
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({
     isPro: mocks.isPro,
     isUpgradingToPro: mocks.isUpgradingToPro,
@@ -138,17 +138,9 @@ describe("SettingsNav", () => {
     mocks.updateSettingsTabState.mock.lastCall?.[1] as
       | { tab: string }
       | undefined;
-  const hasProLock = (name: string | RegExp) =>
-    Boolean(
-      screen
-        .getByRole("button", { name })
-        .querySelector("[aria-label='Requires Anarlog Pro']"),
-    );
-
   it.each([
     ["Permissions", "permissions"],
-    ["Account", "account"],
-    ["Billing", "billing"],
+    ["Dictionary", "dictionary"],
   ])("opens %s inside settings", (label, tab) => {
     render(<SettingsNav />);
 
@@ -189,13 +181,7 @@ describe("SettingsNav", () => {
     mocks.isPro = false;
     render(<SettingsNav />);
 
-    expect(hasProLock(/Sync/)).toBe(true);
-
-    for (const [label, tab] of [
-      ["Sync", "sync"],
-      ["Dictionary", "dictionary"],
-      ["Teams", "team"],
-    ]) {
+    for (const [label, tab] of [["Dictionary", "dictionary"]]) {
       fireEvent.click(screen.getByRole("button", { name: new RegExp(label) }));
       expect(openedSettingsTab()).toEqual({ tab });
     }
@@ -203,25 +189,6 @@ describe("SettingsNav", () => {
 
     expect(mocks.openNew).toHaveBeenCalledWith({ type: "automations" });
     expect(mocks.upgradeToPro).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    ["without a workspace", [], false, true],
-    [
-      "for members of an existing workspace",
-      [{ workspaceId: "ws-1" }],
-      false,
-      false,
-    ],
-    ["while workspaces are loading", undefined, true, false],
-  ])("locks Teams for free users only %s", (_, workspaces, loading, locked) => {
-    mocks.isPro = false;
-    mocks.workspaces = workspaces;
-    mocks.workspacesLoading = loading;
-
-    render(<SettingsNav />);
-
-    expect(hasProLock(/Teams/)).toBe(locked);
   });
 
   it("filters nav items by item or group label", () => {

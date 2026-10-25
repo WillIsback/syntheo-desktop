@@ -9,13 +9,12 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from "ai";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 
 import type { CharTask } from "@anlg/api-client";
 import type { AIProviderStorage } from "@anlg/store";
 
 import { createAppleFoundationModel } from "../apple-foundation-model";
-import { createAuthFetch } from "../auth-fetch";
 import { providerFetch } from "../provider-fetch";
 import {
   normalizeReasoningEffort,
@@ -25,9 +24,7 @@ import {
 import { streamOnlyGenerationMiddleware } from "../stream-only-generation";
 import { createTracedFetch, tracedFetch } from "../traced-fetch";
 
-import { useAuth } from "~/auth";
-import { useBillingAccess } from "~/auth/billing-context";
-import { env } from "~/env";
+import { useBillingAccess } from "~/billing/billing-context";
 import { type ProviderId, PROVIDERS } from "~/settings/ai/llm/shared";
 import {
   CHATGPT_API_BASE_URL,
@@ -47,7 +44,7 @@ import { useConfigValues } from "~/shared/config";
 // APP_CATEGORIES, which only cover the "anarlog" hosted-provider case (it
 // routes through apps/api's llm-proxy); this BYOK "openrouter" case talks to
 // openrouter.ai directly from the client and needs its own headers.
-const OPENROUTER_APP_URL = "https://anarlog.so";
+const OPENROUTER_APP_URL = "https://github.com/WillIsback/syntheo-desktop";
 const OPENROUTER_APP_NAME = "Anarlog";
 const OPENROUTER_APP_CATEGORIES = "writing-assistant,personal-agent";
 
@@ -86,37 +83,15 @@ export const normalizeLLMProviderId = (providerId: string): string =>
 
 export const useLanguageModel = (task?: CharTask): LanguageModelV3 | null => {
   const { conn } = useLLMConnection();
-  const auth = useAuth();
-
-  // Auth is resolved at fetch time (not model construction) so token
-  // refreshes take effect without recreating the chat transport chain.
-  const getSessionForRequestRef = useRef(auth.getSessionForRequest);
-  getSessionForRequestRef.current = auth.getSessionForRequest;
-  const refreshSessionRef = useRef(auth.refreshSession);
-  refreshSessionRef.current = auth.refreshSession;
 
   return useMemo(() => {
     if (!conn) return null;
-
-    const hostedFetch =
-      conn.providerId === "anarlog"
-        ? createAuthFetch(
-            task ? createTracedFetch(task) : tracedFetch,
-            async () => (await getSessionForRequestRef.current())?.access_token,
-            async () => (await refreshSessionRef.current())?.access_token,
-          )
-        : undefined;
-
-    return createLanguageModel(conn, task, hostedFetch);
+    return createLanguageModel(conn, task);
   }, [conn, task]);
 };
 
 export const useLLMConnection = (): LLMConnectionResult => {
   const settingsReady = useSettingsReady();
-  const auth = useAuth();
-  // Only the session feeds the connection; the auth object itself changes
-  // identity on refresh-mutation state and would churn the model chain.
-  const session = auth?.session;
   const billing = useBillingAccess();
 
   const {
@@ -153,13 +128,11 @@ export const useLLMConnection = (): LLMConnectionResult => {
               current_llm_reasoning_effort,
             ),
             providerConfig,
-            session,
             isPaid: billing.isPaid,
           }),
     [
       settingsReady,
       intelligence_disabled,
-      session,
       billing.isPaid,
       current_llm_model,
       current_llm_provider,
@@ -179,7 +152,6 @@ const resolveLLMConnection = (params: {
   modelId: string | undefined;
   reasoningEffort: ReasoningEffort;
   providerConfig: AIProviderStorage | undefined;
-  session: { access_token: string } | null | undefined;
   isPaid: boolean;
 }): LLMConnectionResult => {
   const {
@@ -187,7 +159,6 @@ const resolveLLMConnection = (params: {
     modelId,
     reasoningEffort,
     providerConfig,
-    session,
     isPaid,
   } = params;
 
@@ -227,7 +198,8 @@ const resolveLLMConnection = (params: {
   const apiKey = providerConfig?.api_key?.trim() || "";
 
   const context: ProviderEligibilityContext = {
-    isAuthenticated: !!session,
+    // Syntheo n'a ni compte ni session : le provider hébergé reste bloqué.
+    isAuthenticated: false,
     isPaid,
     config: { base_url: baseUrl, api_key: apiKey },
   };
@@ -264,21 +236,6 @@ const resolveLLMConnection = (params: {
     }
   }
 
-  if (providerId === "anarlog" && session) {
-    return {
-      conn: {
-        providerId,
-        modelId,
-        baseUrl:
-          baseUrl ??
-          new URL("/llm", env.VITE_AI_API_URL ?? env.VITE_API_URL).toString(),
-        apiKey: session.access_token,
-        reasoningEffort,
-      },
-      status: { status: "success", providerId, isHosted: true },
-    };
-  }
-
   return {
     conn: { providerId, modelId, baseUrl, apiKey, reasoningEffort },
     status: { status: "success", providerId, isHosted: false },
@@ -300,9 +257,8 @@ const wrapWithThinkingMiddleware = (
 const createLanguageModel = (
   conn: LLMConnectionInfo,
   task?: CharTask,
-  hostedFetch?: typeof fetch,
 ): LanguageModelV3 => {
-  const model = createProviderModel(conn, task, hostedFetch);
+  const model = createProviderModel(conn, task);
   const providerOptions = reasoningProviderOptions(
     conn.providerId,
     conn.modelId,
@@ -321,12 +277,11 @@ const createLanguageModel = (
 const createProviderModel = (
   conn: LLMConnectionInfo,
   task?: CharTask,
-  hostedFetch?: typeof fetch,
 ): LanguageModelV3 => {
   switch (conn.providerId) {
     case "anarlog": {
       const provider = createOpenRouter({
-        fetch: hostedFetch ?? (task ? createTracedFetch(task) : tracedFetch),
+        fetch: task ? createTracedFetch(task) : tracedFetch,
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
       });

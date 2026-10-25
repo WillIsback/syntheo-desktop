@@ -386,7 +386,8 @@ export function formatModelSize(sizeBytes?: number | null) {
 
 const _PROVIDERS = [
   {
-    disabled: false,
+    // Transcription hébergée : exige un compte, retirée (suppression au 04b).
+    disabled: true,
     id: "anarlog",
     displayName: "Anarlog",
     badge: "Recommended",

@@ -21,8 +21,7 @@ const config = vi.hoisted(() => ({
 
 vi.mock("@tauri-apps/plugin-http", () => ({ fetch: vi.fn() }));
 vi.mock("~/settings/queries", () => ({ useSettingsReady: () => true }));
-vi.mock("~/auth", () => ({ useAuth: () => ({ session: null }) }));
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({ isPaid: false }),
 }));
 vi.mock("~/analytics", () => ({ trackAnalyticsEvent: vi.fn() }));

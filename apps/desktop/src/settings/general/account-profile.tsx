@@ -8,7 +8,6 @@ import { Textarea } from "@anlg/ui/components/ui/textarea";
 
 import { formatProfilePhone } from "./phone";
 
-import { useAuth } from "~/auth";
 import { ContactOrganizationSelector } from "~/contacts/details";
 import { ProfilePhoto } from "~/contacts/profile-photo";
 import {
@@ -20,9 +19,7 @@ import {
 import { useOwnerUserId } from "~/shared/owner-user";
 
 export function AccountProfile() {
-  const auth = useAuth();
-  const localOwnerUserId = useOwnerUserId();
-  const humanId = auth.session?.user.id ?? localOwnerUserId;
+  const humanId = useOwnerUserId();
   if (!humanId)
     return (
       <p role="status">
@@ -59,7 +56,6 @@ function ProfileForm({
   human: HumanRecord | null;
 }) {
   const { t } = useLingui();
-  const auth = useAuth();
   const organizations = useOrganizations();
   const save = useMutation({
     mutationFn: (values: Parameters<typeof savePersonalContact>[1]) =>
@@ -68,12 +64,10 @@ function ProfileForm({
         phone: formatProfilePhone(values.phone, navigator.language),
       }),
   });
-  const metadataName = auth.session?.user.user_metadata?.full_name;
   const form = useForm({
     defaultValues: {
-      name:
-        human?.name ?? (typeof metadataName === "string" ? metadataName : ""),
-      email: human?.email ?? auth.session?.user.email ?? "",
+      name: human?.name ?? "",
+      email: human?.email ?? "",
       phone: formatProfilePhone(human?.phone ?? "", navigator.language),
       jobTitle: human?.jobTitle ?? "",
       linkedinUsername: human?.linkedinUsername ?? "",

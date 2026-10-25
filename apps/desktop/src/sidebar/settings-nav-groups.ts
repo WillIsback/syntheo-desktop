@@ -1,14 +1,11 @@
 import { useLingui } from "@lingui/react/macro";
 
 import {
-  ArrowsClockwise,
   Bell,
   BookOpen,
-  Buildings,
   CalendarDots,
   ChartLineUp,
   Code,
-  CreditCard,
   DownloadSimple,
   FileText,
   FolderSimple,
@@ -20,15 +17,12 @@ import {
   ShieldCheck,
   Sparkle,
   Sun,
-  User,
   Users,
-  UsersThree,
   VideoCamera,
   Waveform,
 } from "@anlg/ui/components/icons";
 
 import { privacyMessages } from "~/settings/general/app-settings";
-import { useMyWorkspacesWithMirror } from "~/settings/team/mirror";
 import { type SettingsTab, type TabInput } from "~/store/zustand/tabs";
 
 type SettingsNavItem =
@@ -50,30 +44,13 @@ export type SettingsNavGroup = { label: string; items: SettingsNavItem[] };
 
 export function useSettingsNavGroups(): SettingsNavGroup[] {
   const { i18n, t } = useLingui();
-  const workspaces = useMyWorkspacesWithMirror();
-  const hasExistingWorkspace = (workspaces.data?.length ?? 0) > 0;
 
   return [
     {
       label: t`App`,
       items: [
         { id: "app", label: t`General`, icon: Gear },
-        { id: "account", label: t`Account`, icon: User },
-        { id: "billing", label: t`Billing`, icon: CreditCard },
-        { id: "referrals", label: t`Invite friends`, icon: Users },
         { id: "insights", label: t`Insights`, icon: ChartLineUp },
-        {
-          id: "team",
-          label: t`Teams`,
-          icon: UsersThree,
-          requiresPro: !workspaces.isLoading && !hasExistingWorkspace,
-        },
-        {
-          id: "sync",
-          label: t`Sync`,
-          icon: ArrowsClockwise,
-          requiresPro: true,
-        },
         { id: "appearance", label: t`Appearance`, icon: Sun },
         { id: "notifications", label: t`Notifications`, icon: Bell },
       ],
@@ -136,10 +113,7 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
     },
     {
       label: t`Data`,
-      items: [
-        { id: "imports", label: t`Imports`, icon: DownloadSimple },
-        { id: "crm", label: t`CRM`, icon: Buildings },
-      ],
+      items: [{ id: "imports", label: t`Imports`, icon: DownloadSimple }],
     },
     {
       label: t`Advanced`,

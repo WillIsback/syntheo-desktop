@@ -35,12 +35,14 @@ import { useAppLock } from "~/lock/store";
 import {
   isCanonicalSessionImportLocked,
   subscribeCanonicalSessionImportLocks,
-} from "~/session-sharing/editor-activity";
+} from "~/session/editor-activity";
 import { useSession } from "~/session/queries";
-import { useSessionSharedNoteIds } from "~/shared-notes/event-keys";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 import { useListener } from "~/stt/contexts";
 import { ScheduledSessionAutoStart } from "~/stt/scheduled-session-auto-start";
+
+// Notes partagées retirées (cloud) : liste toujours vide, référence stable.
+const NO_SHARED_NOTE_IDS: string[] = [];
 
 export function TabContentNote({
   standaloneWindow = false,
@@ -188,7 +190,7 @@ function TabContentNoteInner({
   const { skipReason } = useAutoEnhance(tab);
   const isTranscribing = shouldShowTranscriptTabSpinner(sessionMode);
   const isLiveSessionActive = sessionMode === "active";
-  const sharedNoteIds = useSessionSharedNoteIds(sessionId);
+  const sharedNoteIds = NO_SHARED_NOTE_IDS;
   const editorTabs = React.useMemo(
     () =>
       createEditorTabs({

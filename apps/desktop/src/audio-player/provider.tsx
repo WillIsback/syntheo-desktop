@@ -19,7 +19,7 @@ import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { configureCenteredPlayback, shouldResumeBeforePlay } from "./playback";
 import { loadWaveform } from "./waveform";
 
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import {
   isSessionAudioIdle,
   subscribeToSessionAudioRetention,

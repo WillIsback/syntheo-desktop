@@ -214,7 +214,6 @@ export function sanitizeErrorEvent(event: ErrorEvent): ErrorEvent | null {
 
 // Télémétrie retirée de Syntheo Desktop (voir NOTICE.md) : aucun rapport
 // d'erreur n'est envoyé, Sentry n'est jamais initialisé.
-export function initializeErrorReporting() {}
 
 let sessionReplayInstalled = false;
 let sessionReplayRunning = false;

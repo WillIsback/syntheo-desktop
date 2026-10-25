@@ -53,7 +53,7 @@ const mocks = vi.hoisted(() => ({
   toastWarning: vi.fn(),
 }));
 
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => mocks.billing,
 }));
 
@@ -156,42 +156,6 @@ describe("AutomationsContent", () => {
     mocks.toastWarning.mockClear();
   });
 
-  it("opens the Drive starter without saving and uses the shared template controls", async () => {
-    mocks.selection = { kind: "starter", starterId: "google-drive" };
-    renderAutomations();
-    expect(screen.getByTestId("config-drive")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Save draft" })).toBeTruthy();
-    expect(
-      screen
-        .getByRole("button", { name: "Save & enable" })
-        .hasAttribute("disabled"),
-    ).toBe(true);
-    expect(mocks.setSettingValue).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
-    expect(
-      screen.getByText(
-        "A Markdown file or Google document with the meeting summary and transcript.",
-      ),
-    ).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
-    await waitFor(() =>
-      expect(mocks.setSettingValue).toHaveBeenCalledWith(
-        "automation_draft_template",
-        "google-drive",
-      ),
-    );
-    const call = mocks.setSettingValue.mock.calls.find(
-      ([key]) => key === "automation_workflows",
-    );
-    expect(JSON.parse(call![1] as string)).toMatchObject([
-      {
-        id: "starter-google-drive",
-        enabled: false,
-        steps: [{ type: "google_drive_export" }],
-      },
-    ]);
-  });
-
   it("shows the overview when nothing is selected", () => {
     renderAutomations();
 
@@ -233,7 +197,7 @@ describe("AutomationsContent", () => {
   });
 
   it("shows the selected starter as an inspectable deterministic draft", () => {
-    mocks.selection = { kind: "starter", starterId: "slack-recap" };
+    mocks.selection = { kind: "starter", starterId: "markdown-export" };
 
     renderAutomations();
 
@@ -262,11 +226,11 @@ describe("AutomationsContent", () => {
     },
     {
       name: "starter automation",
-      selection: { kind: "starter", starterId: "slack-recap" },
+      selection: { kind: "starter", starterId: "markdown-export" },
       chatGroup: null,
       menuItem: "Remove automation",
       mock: mocks.removeStarterDraft,
-      id: "slack-recap",
+      id: "markdown-export",
     },
     {
       name: "chat automation",
@@ -316,26 +280,5 @@ describe("AutomationsContent", () => {
       );
     });
     expect(mocks.toastSuccess).toHaveBeenCalledWith("Automation draft saved");
-  });
-
-  it("toasts instead of saving on the free plan", () => {
-    mocks.billing.isPro = false;
-    mocks.selection = { kind: "starter", starterId: "notion-project-notes" };
-
-    renderAutomations();
-
-    fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
-
-    expect(mocks.toastWarning).toHaveBeenCalledWith(
-      "This requires Anarlog Pro",
-      {
-        action: {
-          label: "Upgrade",
-          onClick: expect.any(Function),
-        },
-      },
-    );
-    expect(mocks.billing.upgradeToPro).not.toHaveBeenCalled();
-    expect(mocks.setSettingValue).not.toHaveBeenCalled();
   });
 });

@@ -167,9 +167,6 @@ vi.mock("@anlg/plugin-db", () => ({
   subscribe: vi.fn(async () => () => {}),
 }));
 
-vi.mock("~/auth", () => ({
-  useAuth: () => ({ getSessionForRequest: vi.fn(async () => null) }),
-}));
 vi.mock("@anlg/plugin-transcription", () => ({
   commands: {
     acknowledgeStoppedCapture: acknowledgeStoppedCaptureMock,
@@ -251,11 +248,6 @@ vi.mock("~/ai/task-window-sync", () => ({
   requestMainAutoEnhance: requestMainAutoEnhanceMock,
 }));
 
-vi.mock("./primary-device", () => ({
-  consumePrimaryDeviceYield: () => false,
-  startPrimaryDeviceCoordination: vi.fn(),
-}));
-
 vi.mock("./meeting-chat-capture", () => ({
   startMeetingChatCapture: startMeetingChatCaptureMock,
 }));
@@ -327,7 +319,7 @@ vi.mock("~/session/queries", () => ({
   useSessionTranscriptExistence: useSessionHasTranscriptMock,
 }));
 
-vi.mock("~/session-sharing/editor-activity", () => ({
+vi.mock("~/session/editor-activity", () => ({
   flushCanonicalSessionEditorChanges: flushCanonicalSessionEditorChangesMock,
 }));
 
@@ -4219,12 +4211,12 @@ describe("useStartListening", () => {
     expect(listMicUsingApplicationsMock).toHaveBeenCalledTimes(2);
     expect(sendMeetingChatMessageMock).toHaveBeenNthCalledWith(
       1,
-      expect.stringContaining("https://anarlog.so"),
+      expect.stringContaining("J'utilise Syntheo"),
       ["com.anarlog.dev"],
     );
     expect(sendMeetingChatMessageMock).toHaveBeenNthCalledWith(
       2,
-      expect.stringContaining("https://anarlog.so"),
+      expect.stringContaining("J'utilise Syntheo"),
       ["us.zoom.xos"],
     );
     expect(toastWarningMock).not.toHaveBeenCalled();
@@ -4376,7 +4368,7 @@ describe("useStartListening", () => {
       expect(startMeetingChatCaptureMock).toHaveBeenCalledWith({
         sessionId: "session-1",
         excludedTexts: [
-          "I'm using Anarlog to record and transcribe this meeting. https://anarlog.so",
+          "J'utilise Syntheo pour transcrire cette réunion ; le transcript est conservé sur mon poste.",
         ],
         onParticipantDeclined: expect.any(Function),
       });
@@ -4415,7 +4407,7 @@ describe("useStartListening", () => {
       expect(startMeetingChatCaptureMock).toHaveBeenCalledWith({
         sessionId: "session-1",
         excludedTexts: [
-          "I'm using Anarlog to record and transcribe this meeting. https://anarlog.so",
+          "J'utilise Syntheo pour transcrire cette réunion ; le transcript est conservé sur mon poste.",
         ],
         onParticipantDeclined: expect.any(Function),
       });

@@ -8,7 +8,7 @@ import { cn } from "@anlg/utils";
 import { CustomSidebarHeader } from "./custom-sidebar-header";
 import { useSettingsNavGroups } from "./settings-nav-groups";
 
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import { type SettingsTab, useTabs } from "~/store/zustand/tabs";
 
 export function SettingsNav() {

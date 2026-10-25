@@ -31,16 +31,8 @@ vi.mock("@tanstack/react-query", () => ({
   }),
 }));
 
-vi.mock("~/auth", () => ({
-  useAuth: () => ({ session: null, signOut: vi.fn() }),
-}));
-
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({ isPro: true }),
-}));
-
-vi.mock("~/auth/cloudsync", () => ({
-  applyCloudsyncPreference: vi.fn(),
 }));
 
 vi.mock("~/settings/queries", () => ({
@@ -49,7 +41,9 @@ vi.mock("~/settings/queries", () => ({
   useStoredSettingValuesQuery: mocks.useStoredSettingValuesQuery,
 }));
 
-vi.mock("./account", () => ({ SettingsAccount: () => null }));
+vi.mock("./account-profile", () => ({
+  AccountProfile: () => <span>Profil local</span>,
+}));
 vi.mock("./app-settings", () => ({ AppSettingsView: () => null }));
 vi.mock("./audio-settings", () => ({
   AudioSettingsView: () => <span>Audio settings</span>,
@@ -108,6 +102,18 @@ describe("SettingsApp", () => {
     render(<SettingsApp />);
 
     expect(screen.getByTestId("main-language").textContent).toBe("ko");
+  });
+
+  it("account_profile_is_reachable_from_general", () => {
+    mocks.useStoredSettingValuesQuery.mockReturnValue({
+      data: { values: {}, hasValues: new Set() },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<SettingsApp />);
+
+    expect(screen.getByText("Profil local")).toBeTruthy();
   });
 
   it("persists meeting switch toggles", async () => {

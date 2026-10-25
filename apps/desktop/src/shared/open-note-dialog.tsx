@@ -27,10 +27,8 @@ import {
 import { cn } from "@anlg/utils";
 
 import { trackAnalyticsEvent } from "~/analytics";
-import { useAuth } from "~/auth";
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import { useSessionSummaries } from "~/session/queries";
-import { useDurableSharedNotes } from "~/shared-notes/cache";
 import { useMainContentCenterOffset } from "~/shared/main/content-offset";
 import { useSettingsNavGroups } from "~/sidebar/settings-nav-groups";
 import { type TabInput, useTabs } from "~/store/zustand/tabs";
@@ -123,11 +121,9 @@ export function OpenNoteDialog({
     (state) => state.recentlyOpenedSessionIds,
   );
   const { isPro } = useBillingAccess();
-  const { session } = useAuth();
   const settingsNavGroups = useSettingsNavGroups();
 
   const sessions = useSessionSummaries();
-  const sharedNotes = useDurableSharedNotes(session?.user.id);
 
   const pageResults = useMemo<PageResult[]>(
     () => [
@@ -193,25 +189,11 @@ export function OpenNoteDialog({
   }, [sessions, t]);
 
   const allNotesSortedByDate = useMemo(() => {
-    return [
-      ...sessionsMap.values(),
-      ...sharedNotes
-        .filter(
-          (note) => !(note.manageAccess && sessionsMap.has(note.sessionId)),
-        )
-        .map(
-          (note): NoteResult => ({
-            resourceType: "shared_session",
-            id: note.shareId,
-            title: note.title || t`Untitled`,
-            createdAt: note.publishedAt,
-          }),
-        ),
-    ].sort((a, b) => {
+    return [...sessionsMap.values()].sort((a, b) => {
       if (!a.createdAt || !b.createdAt) return 0;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [sessionsMap, sharedNotes, t]);
+  }, [sessionsMap]);
 
   const recentSessions = useMemo(() => {
     return recentlyOpenedSessionIds

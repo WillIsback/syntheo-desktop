@@ -39,11 +39,6 @@ pub struct Args {
 impl Args {
     pub fn analytics_command_name(&self) -> &'static str {
         match &self.command {
-            Command::Auth { command } => match command {
-                AuthCommand::Login => "auth_login",
-                AuthCommand::Status => "auth_status",
-                AuthCommand::Logout => "auth_logout",
-            },
             Command::Doctor => "doctor",
             Command::Meetings { command, .. } => match command {
                 MeetingCommand::Delete { .. } => "meetings_delete",
@@ -87,16 +82,11 @@ impl Args {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Sign in to an Anarlog account from a browser
-    Auth {
-        #[command(subcommand)]
-        command: AuthCommand,
-    },
     /// Check the local CLI and database connection without changing data
     Doctor,
     /// Browse and export meetings
     Meetings {
-        /// Choose local data, hosted Cloud snapshots, or Cloud only when no local database exists
+        /// Local data only (`auto` is kept as an alias of `local`; no hosted fallback)
         #[arg(long, env = "ANARLOG_SOURCE", value_enum, default_value_t = MeetingSource::Local)]
         source: MeetingSource,
         #[command(subcommand)]
@@ -158,21 +148,10 @@ impl ProposalKind {
     }
 }
 
-#[derive(Debug, Subcommand)]
-pub enum AuthCommand {
-    /// Sign in through a browser on this or another device
-    Login,
-    /// Show the locally stored account session
-    Status,
-    /// Remove the locally stored account session
-    Logout,
-}
-
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, ValueEnum)]
 pub enum MeetingSource {
     #[default]
     Local,
-    Cloud,
     Auto,
 }
 
@@ -372,24 +351,7 @@ mod tests {
             }
         ));
 
-        assert!(matches!(
-            Args::parse_from(["anarlog", "auth", "login"]).command,
-            Command::Auth {
-                command: AuthCommand::Login
-            }
-        ));
-        assert!(matches!(
-            Args::parse_from(["anarlog", "auth", "status"]).command,
-            Command::Auth {
-                command: AuthCommand::Status
-            }
-        ));
-        assert!(matches!(
-            Args::parse_from(["anarlog", "auth", "logout"]).command,
-            Command::Auth {
-                command: AuthCommand::Logout
-            }
-        ));
+        assert!(Args::try_parse_from(["anarlog", "auth", "login"]).is_err());
 
         let Command::Meetings { command, .. } = Args::parse_from([
             "anarlog",
@@ -431,12 +393,9 @@ mod tests {
             MeetingCommand::History { offset: 10, .. }
         ));
 
-        let Command::Meetings { source, .. } =
-            Args::parse_from(["anarlog", "meetings", "--source", "cloud", "list"]).command
-        else {
-            panic!("expected meetings command");
-        };
-        assert_eq!(source, MeetingSource::Cloud);
+        assert!(
+            Args::try_parse_from(["anarlog", "meetings", "--source", "cloud", "list"]).is_err()
+        );
 
         let Command::Meetings { source, .. } =
             Args::parse_from(["anarlog", "meetings", "--source", "auto", "list"]).command
@@ -449,7 +408,12 @@ mod tests {
     #[test]
     fn help_exposes_mcp_and_export() {
         let help = Args::command().render_long_help().to_string();
-        assert!(help.contains("auth"));
+        // Pas de compte : aucune sous-commande `auth`.
+        assert!(
+            !help
+                .lines()
+                .any(|line| line.trim_start().starts_with("auth "))
+        );
         assert!(help.contains("meetings"));
         assert!(help.contains("mcp"));
         assert!(help.contains("doctor"));

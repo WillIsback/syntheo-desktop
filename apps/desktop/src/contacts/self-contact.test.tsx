@@ -11,18 +11,8 @@ const mocks = vi.hoisted(() => ({
   selectContact: vi.fn(),
   contextMenu: vi.fn(),
   ownerId: "self",
-  authId: null as string | null,
 }));
 
-vi.mock("~/auth", () => ({
-  useOptionalAuth: () => ({
-    session: mocks.authId ? { user: { id: mocks.authId } } : null,
-  }),
-  useAuth: () => null,
-}));
-vi.mock("~/auth/useConnections", () => ({
-  useConnections: () => ({ data: [] }),
-}));
 vi.mock("~/shared/owner-user", () => ({ useOwnerUserId: () => mocks.ownerId }));
 vi.mock("~/shared/hooks/useNativeContextMenu", () => ({
   useNativeContextMenu: () => mocks.contextMenu,
@@ -54,12 +44,6 @@ vi.mock("./contact-summary", () => ({
 }));
 vi.mock("./related-notes", () => ({ RelatedNotesSection: () => null }));
 vi.mock("./new-person-form", () => ({ NewPersonForm: () => null }));
-vi.mock("~/crm/connection", () => ({
-  crmProvidersQueryOptions: () => ({
-    queryKey: ["crm", "providers"],
-    queryFn: () => Promise.resolve([{ id: "attio", name: "Attio" }]),
-  }),
-}));
 vi.mock("./shared", () => ({
   ContactFacehash: () => null,
   ColumnHeader: ({
@@ -101,7 +85,6 @@ function human(id: string, name: string, pinned = false): HumanRecord {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.ownerId = "self";
-  mocks.authId = null;
   mocks.humans = [human("other", "Alice", true), human("self", "Zoe")];
   mocks.organizations = [];
   mocks.togglePin.mockResolvedValue(undefined);
@@ -131,16 +114,6 @@ it("keeps your unpinned card before draggable pins and visible during search", (
   expect(screen.getAllByRole("button", { name: /Zoe/ })).toHaveLength(1);
 });
 
-it("prefers the signed-in identity over the local owner fallback", () => {
-  mocks.ownerId = "other";
-  mocks.authId = "self";
-  render(<ContactsNav />);
-  expect(
-    screen.getByRole("img", { name: "Pinned contact" }).parentElement
-      ?.textContent,
-  ).toContain("Zoe");
-});
-
 it("renders your details without edit, photo, merge, enrich, or delete controls", async () => {
   const queryClient = new QueryClient();
   const details = (human: HumanRecord) => (
@@ -159,14 +132,8 @@ it("renders your details without edit, photo, merge, enrich, or delete controls"
   expect(screen.queryByRole("button", { name: "Change photo" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Contact options" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Merge" })).toBeNull();
-  expect(
-    screen.queryByRole("button", { name: "Enrich contact from CRM" }),
-  ).toBeNull();
   expect(screen.getByText("Engineer")).not.toBeNull();
   rerender(details(mocks.humans[0]));
-  expect(
-    await screen.findByRole("button", { name: "Enrich contact from CRM" }),
-  ).not.toBeNull();
   expect(screen.getAllByRole("textbox").length).toBeGreaterThan(0);
   expect(
     screen.getByRole("button", { name: "Contact options" }),

@@ -5,12 +5,7 @@ import { useRef, useState } from "react";
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
 import { commands as openerCommands } from "@anlg/plugin-opener2";
 import { commands as sfxCommands } from "@anlg/plugin-sfx";
-import {
-  CircleNotch,
-  DiscordLogo,
-  GithubLogo,
-  XLogo,
-} from "@anlg/ui/components/icons";
+import { CircleNotch, GithubLogo } from "@anlg/ui/components/icons";
 
 import { OnboardingButton } from "./shared";
 import {
@@ -24,20 +19,9 @@ import { commands } from "~/types/tauri.gen";
 
 const SOCIALS = [
   {
-    label: "Discord",
-    icon: DiscordLogo,
-    url: "https://anarlog.so/discord",
-  },
-  {
     label: "GitHub",
     icon: GithubLogo,
-    url: "https://github.com/fastrepl/anarlog",
-  },
-  {
-    label: "X",
-    icon: XLogo,
-    size: 14,
-    url: "https://x.com/anarlogapp",
+    url: "https://github.com/WillIsback/syntheo-desktop",
   },
 ] as const;
 
@@ -51,7 +35,7 @@ export function FinalDescription() {
       </span>
       <div className="flex items-center gap-2">
         {SOCIALS.map((social) => {
-          const iconSize = "size" in social ? social.size : SOCIAL_ICON_SIZE;
+          const iconSize = SOCIAL_ICON_SIZE;
           const SocialIcon = social.icon;
 
           return (

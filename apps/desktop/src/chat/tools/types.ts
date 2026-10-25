@@ -54,6 +54,5 @@ export interface ToolDependencies {
   getFolderFilter?: () => string | null;
   getEnhancedNoteId: () => string | undefined;
   openEditTab: (requestId: string) => void;
-  getAuthHeaders: () => Record<string, string> | null | undefined;
   fetch?: typeof fetch;
 }

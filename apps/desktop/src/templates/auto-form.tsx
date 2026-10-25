@@ -25,7 +25,7 @@ import { cn } from "@anlg/utils";
 
 import { AutoFormatExamplesDialog } from "./auto-format-examples-dialog";
 
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import { PlanGate, useNotifyPlanRequired } from "~/settings/plan-gate";
 import { setSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";

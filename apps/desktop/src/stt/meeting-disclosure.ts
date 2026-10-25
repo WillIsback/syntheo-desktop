@@ -9,7 +9,7 @@ import {
 import { persistDisclosureAttempt } from "./meeting-consent-store";
 
 export const MEETING_DISCLOSURE_MESSAGE =
-  "I'm using Anarlog to record and transcribe this meeting. https://anarlog.so";
+  "J'utilise Syntheo pour transcrire cette réunion ; le transcript est conservé sur mon poste.";
 
 const MEETING_DISCLOSURE_MAX_ATTEMPTS = 30;
 const MEETING_DISCLOSURE_RETRY_INTERVAL_MS = 1_000;

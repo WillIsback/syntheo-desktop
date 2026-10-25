@@ -9,7 +9,7 @@ import {
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  authId: "account-1" as string | null,
+  ownerId: "account-1",
   save: vi.fn(),
   contact: {
     data: null as Record<string, unknown> | null | undefined,
@@ -18,20 +18,9 @@ const mocks = vi.hoisted(() => ({
   },
   query: vi.fn(),
 }));
-vi.mock("~/auth", () => ({
-  useAuth: () => ({
-    session: mocks.authId
-      ? {
-          user: {
-            id: mocks.authId,
-            email: "login@example.com",
-            user_metadata: { full_name: "Ada" },
-          },
-        }
-      : null,
-  }),
+vi.mock("~/shared/owner-user", () => ({
+  useOwnerUserId: () => mocks.ownerId,
 }));
-vi.mock("~/shared/owner-user", () => ({ useOwnerUserId: () => "local-owner" }));
 vi.mock("~/contacts/queries", () => ({
   usePersonalContact: (id: string) => {
     mocks.query(id);
@@ -84,16 +73,17 @@ function view() {
 }
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.authId = "account-1";
+  mocks.ownerId = "account-1";
   mocks.contact = { data: null, isLoading: false, error: null };
   mocks.save.mockResolvedValue(undefined);
 });
 afterEach(cleanup);
 
-it("saves the contact fields and photo to the signed-in personal card", async () => {
+it("saves the contact fields and photo to the local owner's personal card", async () => {
   render(view());
   expect(mocks.query).toHaveBeenCalledWith("account-1");
-  expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("Ada");
+  // Aucun compte : rien n'est prérempli depuis un profil hébergé.
+  expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("");
   for (const [label, value] of [
     ["Name", "Ada Lovelace"],
     ["Job Title", "Engineer"],
@@ -122,7 +112,7 @@ it("saves the contact fields and photo to the signed-in personal card", async ()
 });
 
 it("preserves a failed draft for retry and saves offline info to the local owner", async () => {
-  mocks.authId = null;
+  mocks.ownerId = "local-owner";
   mocks.save.mockRejectedValueOnce(new Error("Database unavailable"));
   render(view());
   fireEvent.change(screen.getByLabelText("Name"), {
@@ -156,14 +146,14 @@ it("waits for the saved profile and reports read failures without exposing an em
   expect(screen.queryByRole("textbox")).toBeNull();
 });
 
-it("keeps autosaves bound to the account being edited", async () => {
+it("keeps autosaves bound to the owner being edited", async () => {
   const { rerender } = render(view());
   fireEvent.change(screen.getByLabelText("Name"), {
     target: { value: "First account draft" },
   });
-  mocks.authId = "account-2";
+  mocks.ownerId = "account-2";
   rerender(view());
-  expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("Ada");
+  expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("");
   expect(mocks.query).toHaveBeenLastCalledWith("account-2");
   await waitFor(() =>
     expect(mocks.save).toHaveBeenCalledWith(

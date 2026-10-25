@@ -69,7 +69,8 @@ it("creates a prerecorded demo note with normal meeting metadata", async () => {
   const [title, , initial] = mocks.createSession.mock.calls[0];
   const event = JSON.parse(initial.event_json);
   expect(title).toBe("Welcome to Anarlog");
-  expect(event.meeting_link).toBe("https://anarlog.so/onboarding-demo/");
+  // Démo distante retirée : la note de bienvenue n'a pas de lien de réunion.
+  expect(event.meeting_link).toBe("");
   expect(event.tracking_id).toBe("anarlog-onboarding-demo-v1");
   expect(() => JSON.parse(initial.raw_md)).not.toThrow();
 });

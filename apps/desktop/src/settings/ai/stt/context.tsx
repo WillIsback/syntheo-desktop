@@ -13,7 +13,7 @@ import {
 } from "@anlg/plugin-local-stt";
 import { toast } from "@anlg/ui/components/ui/toast";
 
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import { usePendingSttSelection } from "~/store/zustand/pending-stt-selection";
 
 type SttSettingsContextType = {

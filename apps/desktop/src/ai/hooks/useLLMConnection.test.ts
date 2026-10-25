@@ -3,7 +3,11 @@ import { renderHook } from "@testing-library/react";
 import { generateText, streamText } from "ai";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { normalizeLLMProviderId, useLanguageModel } from "./useLLMConnection";
+import {
+  normalizeLLMProviderId,
+  useLanguageModel,
+  useLLMConnection,
+} from "./useLLMConnection";
 
 const mocks = vi.hoisted(() => ({ provider: "custom" as string }));
 const managed = vi.hoisted(() => ({ ready: true, disabled: false }));
@@ -11,8 +15,7 @@ vi.mock("@tauri-apps/plugin-http", () => ({ fetch: vi.fn() }));
 vi.mock("~/settings/queries", () => ({
   useSettingsReady: () => managed.ready,
 }));
-vi.mock("~/auth", () => ({ useAuth: () => ({ session: null }) }));
-vi.mock("~/auth/billing-context", () => ({
+vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => ({ isPaid: false }),
 }));
 vi.mock("~/settings/providers", () => ({
@@ -100,7 +103,9 @@ it("sends OpenRouter app-attribution headers for the BYOK openrouter provider", 
     const headers = new Headers(
       init?.headers ?? (input instanceof Request ? input.headers : undefined),
     );
-    expect(headers.get("HTTP-Referer")).toBe("https://anarlog.so");
+    expect(headers.get("HTTP-Referer")).toBe(
+      "https://github.com/WillIsback/syntheo-desktop",
+    );
     expect(headers.get("X-OpenRouter-Title")).toBe("Anarlog");
     expect(headers.get("X-OpenRouter-Categories")).toBe(
       "writing-assistant,personal-agent",
@@ -157,3 +162,19 @@ it.each([
     }
   },
 );
+
+it("llm_connection_without_session", () => {
+  // Aucun module d'authentification simulé : le provider custom (endpoint
+  // OpenAI-compatible on-premise) donne un modèle utilisable sans session.
+  const { result, unmount } = renderHook(() => useLLMConnection());
+  expect(result.current.conn).toMatchObject({
+    providerId: "custom",
+    baseUrl: "http://127.0.0.1:8000/v1",
+    apiKey: "local-key",
+  });
+  expect(result.current.status).toMatchObject({
+    status: "success",
+    isHosted: false,
+  });
+  unmount();
+});

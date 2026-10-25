@@ -20,7 +20,7 @@ import {
 } from "@anlg/ui/components/ui/input-group";
 
 import { trackAnalyticsEvent } from "~/analytics";
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import { SettingsPageTitle } from "~/settings/page-title";
 import { PlanGate } from "~/settings/plan-gate";
 import { useSetSettingValue } from "~/settings/queries";

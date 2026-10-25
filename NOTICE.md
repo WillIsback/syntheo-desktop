@@ -38,7 +38,12 @@ En résumé :
 - providers d'inférence **on-premise uniquement** (protocoles OpenAI-compatible
   et NVIDIA NIM) ; adaptateurs cloud retirés ;
 - aucune conservation de l'audio ;
-- intégrations cloud hors IA, télémétrie, compte et abonnement retirés ;
+- intégrations cloud hors IA, télémétrie, compte et abonnement retirés :
+  authentification Supabase (`apps/desktop/src/auth`, `plugins/auth`, sous-commande
+  CLI `auth` et source `cloud`), partage de notes et de sessions, synchronisation
+  cloud, intégrations Nango (calendriers Google/Outlook, CRM, Google Drive),
+  facturation et paywall (`@anlg/pricing`) ;
+  conformité RGPD documentée dans [`docs/conformite/rgpd.md`](docs/conformite/rgpd.md) ;
 - templates Syntheo, templates traduits en français, générateur de templates.
 
 ## Correctifs portés depuis Anarlog

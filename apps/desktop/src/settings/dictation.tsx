@@ -10,7 +10,7 @@ import { Textarea } from "@anlg/ui/components/ui/textarea";
 
 import { DictationShortcut } from "./dictation-shortcut";
 
-import { useBillingAccess } from "~/auth/billing-context";
+import { useBillingAccess } from "~/billing/billing-context";
 import { useDictationStatus } from "~/dictation/state";
 import { AudioDeviceRow } from "~/settings/general/audio-settings";
 import { SettingsPageTitle } from "~/settings/page-title";

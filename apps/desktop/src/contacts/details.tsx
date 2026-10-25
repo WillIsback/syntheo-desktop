@@ -39,12 +39,6 @@ import {
 import { RelatedNotesSection } from "./related-notes";
 import { ContactFacehash } from "./shared";
 
-import { useOptionalAuth } from "~/auth";
-import {
-  EnrichContactButton,
-  EnrichContactStatus,
-  useCrmEnrichment,
-} from "~/crm/enrich-contact";
 import { useOwnerUserId } from "~/shared/owner-user";
 
 export function DetailsColumn({
@@ -60,15 +54,9 @@ export function DetailsColumn({
   handleSessionClick: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
-  const localOwnerUserId = useOwnerUserId();
-  const auth = useOptionalAuth();
-  const ownerUserId = auth?.session?.user.id ?? localOwnerUserId;
+  const ownerUserId = useOwnerUserId();
   const readOnly = human?.id === ownerUserId;
   const user = humans.find((candidate) => candidate.id === ownerUserId) ?? null;
-  const enrichment = useCrmEnrichment({
-    human,
-    ownerUserId: ownerUserId ?? "",
-  });
   const { t } = useLingui();
   const [showCompactIdentity, setShowCompactIdentity] = useState(false);
   const [addingEmail, setAddingEmail] = useState(false);
@@ -166,11 +154,6 @@ export function DetailsColumn({
                 ? () => persistContactAvatar("human", human.id, null)
                 : undefined
             }
-            actions={
-              !readOnly && ownerUserId ? (
-                <EnrichContactButton enrichment={enrichment} human={human} />
-              ) : undefined
-            }
           />
 
           <div
@@ -201,10 +184,6 @@ export function DetailsColumn({
                 </AvatarUploadButton>
               )}
             </div>
-
-            {!readOnly && ownerUserId && (
-              <EnrichContactStatus enrichment={enrichment} human={human} />
-            )}
 
             {!readOnly && duplicatesWithData.length > 0 && (
               <div className="border-border border-b bg-red-50 px-6 py-4">

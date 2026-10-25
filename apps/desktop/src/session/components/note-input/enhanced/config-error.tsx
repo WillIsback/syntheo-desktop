@@ -18,8 +18,8 @@ export function ConfigError() {
         </p>
         <p className="text-muted-foreground text-sm leading-relaxed">
           <Trans>
-            Start a Pro trial or add your own LLM API key to generate a summary
-            from this transcript.
+            Configurez un modèle de langage (endpoint compatible OpenAI de votre
+            infrastructure) pour générer un résumé de ce transcript.
           </Trans>
         </p>
       </div>
@@ -27,19 +27,10 @@ export function ConfigError() {
         <Button
           className="shadow-none"
           onClick={() =>
-            openNew({ type: "settings", state: { tab: "billing" } })
-          }
-        >
-          <Trans>Get Pro</Trans>
-        </Button>
-        <Button
-          variant="outline"
-          className="shadow-none"
-          onClick={() =>
             openNew({ type: "settings", state: { tab: "intelligence" } })
           }
         >
-          <Trans>Add API key</Trans>
+          <Trans>Configurer le modèle</Trans>
         </Button>
       </div>
     </div>
