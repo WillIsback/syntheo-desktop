@@ -13,10 +13,6 @@ const mocks = vi.hoisted(() => ({
   ],
 }));
 
-vi.mock("~/audio-player", () => ({
-  useAudioPlayer: () => ({ audioExists: false }),
-}));
-
 vi.mock("~/stt/detect-events", () => ({
   useHandleDetectEvents: vi.fn(),
 }));

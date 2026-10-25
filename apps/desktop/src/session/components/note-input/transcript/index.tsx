@@ -1,7 +1,6 @@
 import type { RefObject } from "react";
 import { useCallback } from "react";
 
-import { useRegenerateTranscript } from "./actions";
 import { TranscriptViewer } from "./renderer";
 import { BatchState } from "./screens/batch";
 import { TranscriptEmptyState } from "./screens/empty";
@@ -50,7 +49,6 @@ function TranscriptContent({
   const screen = useTranscriptScreen({ sessionId });
   const incompleteCapture = useIncompleteCapture(sessionId);
   const { uploadAudio, uploadTranscript } = useUploadFile(sessionId);
-  const regenerateTranscript = useRegenerateTranscript(sessionId);
   const stopTranscription = useListener((state) => state.stopTranscription);
   const handleStopTranscription = useCallback(() => {
     void stopTranscription(sessionId);
@@ -89,9 +87,7 @@ function TranscriptContent({
       {screen.kind === "empty" && (
         <TranscriptEmptyState
           isBatching={false}
-          hasAudio={screen.hasAudio}
           error={screen.error}
-          onRetranscribe={regenerateTranscript}
           onUploadAudio={uploadAudio}
           onUploadTranscript={uploadTranscript}
         />

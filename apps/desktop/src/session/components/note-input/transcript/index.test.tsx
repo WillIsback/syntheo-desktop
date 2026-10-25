@@ -17,16 +17,10 @@ const {
   useListenerMock,
   useAudioPlayerMock,
   useSessionTranscriptMetadataMock,
-  regenerateTranscriptMock,
 } = vi.hoisted(() => ({
   useListenerMock: vi.fn(),
   useAudioPlayerMock: vi.fn(),
   useSessionTranscriptMetadataMock: vi.fn(),
-  regenerateTranscriptMock: vi.fn(),
-}));
-
-vi.mock("./actions", () => ({
-  useRegenerateTranscript: () => regenerateTranscriptMock,
 }));
 
 vi.mock("~/stt/queries", () => ({
@@ -35,10 +29,6 @@ vi.mock("~/stt/queries", () => ({
 
 vi.mock("~/stt/contexts", () => ({
   useListener: useListenerMock,
-}));
-
-vi.mock("~/audio-player", () => ({
-  useAudioPlayer: useAudioPlayerMock,
 }));
 
 vi.mock("./screens/batch", () => ({

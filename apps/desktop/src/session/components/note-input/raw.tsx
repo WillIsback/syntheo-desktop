@@ -20,7 +20,6 @@ import { MeetingChatHighlights } from "./meeting-chat-highlights";
 import { MeetingScreenGallery } from "./meeting-screen-gallery";
 
 import { trackAnalyticsEvent } from "~/analytics";
-import { useAudioPlayer } from "~/audio-player";
 import { useSessionEventParticipants } from "~/calendar/queries";
 import { AppLinkView } from "~/editor-bridge/app-link-view";
 import { useMentionConfig } from "~/editor-bridge/mention-config";
@@ -113,7 +112,9 @@ export const RawEditor = forwardRef<
   ) => {
     const { t } = useLingui();
     const updateSession = useUpdateSession(sessionId);
-    const { audioExists, audioExistsResolved } = useAudioPlayer();
+    // Syntheo ne conserve jamais l'audio d'une capture.
+    const audioExists = false;
+    const audioExistsResolved = true;
     const canShowTranscript = useCanShowTranscript(sessionId, { audioExists });
     const resolveAttachment = useAttachmentResolver(sessionId);
     const { audioDropTargetProps, fileHandlerConfig, isAudioDragActive } =

@@ -1,9 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { convertFileSrc } from "@tauri-apps/api/core";
 import React, { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
 import { computeCurrentNoteTab } from "@anlg/utils/session";
 
 import { FloatingActionButton } from "./components/floating";
@@ -24,10 +21,8 @@ import { SessionSurface } from "./components/session-surface";
 import { getCanShowTranscript, useHasTranscript } from "./components/shared";
 import { useAutoEnhance } from "./hooks/useAutoEnhance";
 import { useEnhancedNotes } from "./hooks/useEnhancedNotes";
-import { shouldShowSessionTopAudioPlayer } from "./top-audio-player";
 import { getSessionEvent } from "./utils";
 
-import * as AudioPlayer from "~/audio-player";
 import { isLockedFlag } from "~/lock/flag";
 import { revealLockedNote } from "~/lock/notes";
 import { NoteLockScreen } from "~/lock/screen";
@@ -104,21 +99,8 @@ function UnlockedTabContentNote({
   tab: Extract<Tab, { type: "sessions" }>;
   lockOverlay: React.ReactNode;
 }) {
-  const sessionMode = useListener((state) => state.getSessionMode(tab.id));
-  const audioExists = AudioPlayer.useAudioExists(tab.id);
-
-  const audioUrlQuery = useQuery({
-    enabled: sessionMode !== "active" && sessionMode !== "finalizing",
-    queryKey: ["audio", tab.id, "url"],
-    queryFn: () => fsSyncCommands.audioPath(tab.id),
-    select: (result) => {
-      if (result.status === "error") {
-        return null;
-      }
-      return convertFileSrc(result.data);
-    },
-  });
-  const audioUrl = audioUrlQuery.data;
+  // Syntheo ne conserve jamais l'audio : ni lecteur ni fichier à relire.
+  const audioExists = false;
 
   return (
     <>
@@ -131,15 +113,12 @@ function UnlockedTabContentNote({
         />
       ) : null}
       <SearchProvider>
-        <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
-          <TabContentNoteInner
-            tab={tab}
-            standaloneWindow={standaloneWindow}
-            audioUrlReady={Boolean(audioUrl)}
-            audioExists={audioExists}
-            lockOverlay={lockOverlay}
-          />
-        </AudioPlayer.Provider>
+        <TabContentNoteInner
+          tab={tab}
+          standaloneWindow={standaloneWindow}
+          audioExists={audioExists}
+          lockOverlay={lockOverlay}
+        />
       </SearchProvider>
     </>
   );
@@ -148,13 +127,11 @@ function UnlockedTabContentNote({
 function TabContentNoteInner({
   tab,
   standaloneWindow,
-  audioUrlReady,
   audioExists,
   lockOverlay,
 }: {
   tab: Extract<Tab, { type: "sessions" }>;
   standaloneWindow: boolean;
-  audioUrlReady: boolean;
   audioExists: boolean;
   lockOverlay: React.ReactNode;
 }) {
@@ -219,13 +196,6 @@ function TabContentNoteInner({
     sessionId,
     noteInputRef,
     enabled: !lockOverlay,
-  });
-
-  const showTopAudioPlayer = shouldShowSessionTopAudioPlayer({
-    audioExists,
-    audioUrlReady,
-    currentView,
-    sessionMode,
   });
 
   const handleTabChange = React.useCallback(
@@ -309,16 +279,6 @@ function TabContentNoteInner({
               <NoteConflictBanner sessionId={sessionId} />
               <PendingProposalsBanner sessionId={sessionId} />
             </>
-          ) : null}
-          {showTopAudioPlayer && !lockOverlay ? (
-            <div
-              data-session-top-audio-player
-              className="shrink-0 px-1 pt-1 pb-2"
-            >
-              <div className="border-border/70 bg-card/80 overflow-hidden rounded-[22px] border">
-                <AudioPlayer.Timeline contentClassName="py-1.5 pr-3 pl-1" />
-              </div>
-            </div>
           ) : null}
           <div className="min-h-0 flex-1">
             {session ? (

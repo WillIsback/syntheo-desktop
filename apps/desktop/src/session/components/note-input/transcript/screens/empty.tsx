@@ -1,31 +1,22 @@
 import { t } from "@lingui/core/macro";
 
-import {
-  ArrowsClockwise,
-  Square,
-  WarningCircle,
-  Waveform,
-} from "@anlg/ui/components/icons";
+import { Square, WarningCircle, Waveform } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
 
 export function TranscriptEmptyState({
   isBatching,
-  hasAudio,
   percentage,
   phase,
   error,
-  onRetranscribe,
   onUploadAudio,
   onUploadTranscript,
   onStopTranscription,
 }: {
   isBatching?: boolean;
-  hasAudio?: boolean;
   percentage?: number;
   phase?: "importing" | "transcribing";
   error?: string | null;
-  onRetranscribe?: () => void;
   onUploadAudio?: () => void;
   onUploadTranscript?: () => void;
   onStopTranscription?: () => void;
@@ -46,12 +37,6 @@ export function TranscriptEmptyState({
             {error}
           </p>
         </div>
-        {onRetranscribe && (
-          <Button size="sm" className="gap-2" onClick={onRetranscribe}>
-            <ArrowsClockwise className="size-4" />
-            {t`Re-transcribe`}
-          </Button>
-        )}
       </div>
     );
   }
@@ -101,24 +86,14 @@ export function TranscriptEmptyState({
         className="text-muted-foreground mb-5 size-9 stroke-[1.5]"
       />
       <div className="mb-6 flex max-w-md flex-col gap-2">
-        <p className="text-base font-medium">
-          {hasAudio ? t`Audio available` : t`No transcript available`}
-        </p>
+        <p className="text-base font-medium">{t`No transcript available`}</p>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          {hasAudio
-            ? t`Re-transcribe this audio, or upload a transcript file.`
-            : t`Upload audio or a transcript file to populate this note.`}
+          {t`Upload audio or a transcript file to populate this note.`}
         </p>
       </div>
-      {(onRetranscribe || onUploadAudio || onUploadTranscript) && (
+      {(onUploadAudio || onUploadTranscript) && (
         <div className="flex items-center gap-2">
-          {hasAudio && onRetranscribe && (
-            <Button size="sm" className="gap-2" onClick={onRetranscribe}>
-              <ArrowsClockwise className="size-4" />
-              {t`Re-transcribe`}
-            </Button>
-          )}
-          {!hasAudio && onUploadAudio && (
+          {onUploadAudio && (
             <Button variant="outline" size="sm" onClick={onUploadAudio}>
               {t`Upload audio`}
             </Button>

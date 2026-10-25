@@ -46,7 +46,6 @@ import {
   type TranscriptState,
 } from "./transcript";
 
-import { prepareSessionPeaks } from "~/audio-player/waveform";
 import { runMeetingCompletedAutomations } from "~/automations/engine";
 import { getSessionResourcePath } from "~/session/resource-path";
 import { isAppStoreBuild } from "~/shared/app-store";
@@ -401,7 +400,6 @@ const createSessionEventHandlers = <T extends LiveStore>(
     }
 
     if (payload.audio_path) {
-      void prepareSessionPeaks(targetSessionId);
     }
 
     const dispatchMeetingCompleted = () => {

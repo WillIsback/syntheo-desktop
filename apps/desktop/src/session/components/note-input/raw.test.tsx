@@ -100,13 +100,6 @@ vi.mock("@anlg/plugin-opener2", () => ({
   commands: { openUrl: vi.fn() },
 }));
 
-vi.mock("~/audio-player", () => ({
-  useAudioPlayer: () => ({
-    audioExists: false,
-    audioExistsResolved: true,
-  }),
-}));
-
 vi.mock("~/editor-bridge/app-link-view", () => ({
   AppLinkView: () => null,
 }));

@@ -10,8 +10,6 @@ import { cn } from "@anlg/utils";
 import { IconHeaderView, copyTextToClipboard } from "./header-shared";
 import { TranscriptAudioIcon } from "./header-transcript-icon";
 
-import * as AudioPlayer from "~/audio-player";
-import { useRegenerateTranscript } from "~/session/components/note-input/transcript/actions";
 import {
   buildTranscriptExportSegments,
   formatTranscriptExportSegments,
@@ -199,16 +197,9 @@ function HeaderViewTranscriptActive({
     muted: boolean;
   };
 }) {
-  const regenerate = useRegenerateTranscript(sessionId);
   const startListening = useStartListeningWithBatchOverride(sessionId);
   const hasTranscript = useHasTranscript(sessionId);
   const transcriptMetadata = useSessionTranscriptMetadata(sessionId);
-  const {
-    audioExists,
-    audioExistsResolved,
-    deleteRecording,
-    isDeletingRecording,
-  } = AudioPlayer.useAudioPlayer();
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const canEdit =
     sessionMode === "inactive" && hasTranscript && Boolean(onEditModeChange);
@@ -246,9 +237,6 @@ function HeaderViewTranscriptActive({
       toast.error("Failed to copy transcript");
     }
   }, [sessionId]);
-  const handleDeleteRecording = useCallback(() => {
-    void deleteRecording();
-  }, [deleteRecording]);
   const handleResumeListening = useCallback(() => {
     if (!isMainWebviewWindow()) {
       void requestMainListenerControl("start", sessionId);
@@ -277,35 +265,13 @@ function HeaderViewTranscriptActive({
       });
     }
 
-    if (audioExistsResolved && sessionMode === "inactive" && audioExists) {
-      items.push({
-        id: `regenerate-transcript-${sessionId}`,
-        text: "Re-transcribe",
-        action: () => {
-          void regenerate();
-        },
-      });
-    }
-
-    if (audioExists) {
-      items.push({
-        id: `delete-recording-${sessionId}`,
-        text: "Delete recording",
-        action: handleDeleteRecording,
-        disabled: isDeletingRecording,
-      });
-    }
-
+    // Ni retranscription ni suppression d'enregistrement : aucun audio n'est
+    // conservé.
     return items;
   }, [
-    audioExists,
-    audioExistsResolved,
     canCopyTranscript,
     handleCopyTranscript,
-    handleDeleteRecording,
     handleResumeListening,
-    isDeletingRecording,
-    regenerate,
     sessionMode,
     sessionId,
   ]);

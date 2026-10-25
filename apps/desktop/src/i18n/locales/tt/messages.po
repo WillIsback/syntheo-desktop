@@ -113,24 +113,8 @@ msgstr ""
 msgid "{weeks} weeks ago"
 msgstr ""
 
-#: src/settings/general/audio-settings.tsx
-msgid "1 day"
-msgstr ""
-
-#: src/settings/general/audio-settings.tsx
-msgid "1 month"
-msgstr ""
-
 #: src/session/components/pending-proposals-banner.tsx
 msgid "1 pending edit"
-msgstr ""
-
-#: src/settings/general/audio-settings.tsx
-msgid "1 week"
-msgstr ""
-
-#: src/settings/general/audio-settings.tsx
-msgid "3 days"
 msgstr ""
 
 #: src/settings/stats/date-range.tsx
@@ -489,14 +473,6 @@ msgstr ""
 msgid "Audio"
 msgstr ""
 
-#: src/session/components/note-input/transcript/screens/empty.tsx
-msgid "Audio available"
-msgstr ""
-
-#: src/settings/general/audio-settings.tsx
-msgid "Audio file retention"
-msgstr ""
-
 #: src/lock/screen.tsx
 msgid "Authenticate to continue."
 msgstr ""
@@ -611,10 +587,6 @@ msgstr ""
 
 #: src/onboarding/index.tsx
 msgid "Bring your meeting history"
-msgstr ""
-
-#: src/settings/general/audio-settings.tsx
-msgid "Build voiceprints from meeting audio so speakers you name in a transcript are recognized in later meetings. Voiceprints never leave this device, and unnamed ones are deleted after 45 days."
 msgstr ""
 
 #: src/settings/stats/insights.tsx
@@ -835,10 +807,6 @@ msgstr ""
 
 #: src/templates/auto-form.tsx
 msgid "Choose how Auto structures and styles your summaries."
-msgstr ""
-
-#: src/settings/general/audio-settings.tsx
-msgid "Choose how long recordings stay on this device."
 msgstr ""
 
 #: src/templates/template-icon-picker.tsx
@@ -1418,10 +1386,6 @@ msgstr ""
 msgid "Documentation"
 msgstr ""
 
-#: src/settings/general/audio-settings.tsx
-msgid "Don't save"
-msgstr ""
-
 #: src/settings/ai/stt/select.tsx
 #: src/sidebar/toast/registry.tsx
 msgid "Download"
@@ -1709,10 +1673,6 @@ msgstr ""
 
 #: src/settings/general/notification.tsx
 msgid "For enabled notifications"
-msgstr ""
-
-#: src/settings/general/audio-settings.tsx
-msgid "Forever"
 msgstr ""
 
 #: src/templates/template-icon-picker.tsx
@@ -2923,18 +2883,6 @@ msgstr ""
 msgid "Production"
 msgstr ""
 
-#: src/session/components/note-input/transcript/screens/empty.tsx
-msgid "Re-transcribe"
-msgstr ""
-
-#: src/session/components/note-input/transcript/screens/empty.tsx
-msgid "Re-transcribe this audio, or upload a transcript file."
-msgstr ""
-
-#: src/session/components/note-input/transcript/actions.ts
-msgid "Re-transcription failed"
-msgstr ""
-
 #: src/onboarding/permissions.tsx
 msgid "Read meeting controls and visible chat"
 msgstr ""
@@ -2995,10 +2943,6 @@ msgstr ""
 msgid "Record your voice in meetings and calls."
 msgstr ""
 
-#: src/session/components/note-input/transcript/actions.ts
-msgid "Recording not found. It may have been deleted."
-msgstr ""
-
 #: src/settings/general/notification.tsx
 msgid "Recording status prompts"
 msgstr ""
@@ -3025,10 +2969,6 @@ msgstr ""
 
 #: src/contacts/related-notes.tsx
 msgid "Related Notes"
-msgstr ""
-
-#: src/settings/general/audio-settings.tsx
-msgid "Remember speakers"
 msgstr ""
 
 #: src/settings/todo/provider-content.tsx

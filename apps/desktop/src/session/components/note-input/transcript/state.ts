@@ -1,4 +1,3 @@
-import { useAudioPlayer } from "~/audio-player";
 import {
   getLiveCaptureUiMode,
   isLiveTranscriptInterrupted,
@@ -65,7 +64,8 @@ export function useTranscriptScreen({
     requestedLiveTranscription: state.live.requestedLiveTranscription,
     sessionMode: state.getSessionMode(sessionId),
   }));
-  const { audioExists } = useAudioPlayer();
+  // Syntheo ne conserve jamais l'audio d'une capture.
+  const audioExists = false;
   const currentActive =
     sessionMode === "active" || sessionMode === "finalizing";
   const { transcriptIds, liveSegments, hasTranscriptWords } =

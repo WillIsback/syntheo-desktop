@@ -12,7 +12,6 @@ const {
   listenCaptureLifecycleMock,
   listenCaptureStatusMock,
   listMicUsingApplicationsMock,
-  prepareSessionPeaksMock,
   runEventHooksMock,
   setRecordingIndicatorMock,
   startCaptureMock,
@@ -28,17 +27,12 @@ const {
   listenCaptureLifecycleMock: vi.fn(),
   listenCaptureStatusMock: vi.fn(),
   listMicUsingApplicationsMock: vi.fn(),
-  prepareSessionPeaksMock: vi.fn(),
   runEventHooksMock: vi.fn(),
   setRecordingIndicatorMock: vi.fn(),
   startCaptureMock: vi.fn(),
   stopCaptureMock: vi.fn(),
   stopTranscriptionMock: vi.fn(),
   vaultBaseMock: vi.fn(),
-}));
-
-vi.mock("~/audio-player/waveform", () => ({
-  prepareSessionPeaks: prepareSessionPeaksMock,
 }));
 
 vi.mock("~/stt/speaker-context-capture", () => ({
@@ -226,7 +220,6 @@ describe("General Listener Slice", () => {
         },
       });
       expect(onStopped).toHaveBeenCalledOnce();
-      expect(prepareSessionPeaksMock).toHaveBeenCalledWith("previous");
       expect(store.getState().live.postStopProcessingBySession.previous).toBe(
         true,
       );
