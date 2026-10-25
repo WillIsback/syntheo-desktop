@@ -439,7 +439,7 @@ describe("SQLite settings", () => {
     let rows = [
       {
         id: "current_stt_provider",
-        value_json: JSON.stringify("deepgram"),
+        value_json: JSON.stringify("nvidia"),
       },
       { id: "current_stt_model", value_json: JSON.stringify("") },
     ];
@@ -456,8 +456,34 @@ describe("SQLite settings", () => {
 
     const statements = mocks.executeTransaction.mock.calls[0][0];
     expect(statements.map((statement) => statement.params.slice(0, 2))).toEqual(
-      [["current_stt_model", JSON.stringify("nova-3-general")]],
+      [["current_stt_model", JSON.stringify("nemotron-asr-streaming")]],
     );
+  });
+
+  it("clears a selected cloud transcription provider that no longer exists", async () => {
+    let rows = [
+      {
+        id: "current_stt_provider",
+        value_json: JSON.stringify("deepgram"),
+      },
+      { id: "current_stt_model", value_json: JSON.stringify("nova-3") },
+    ];
+    mocks.execute.mockImplementation(async () => rows);
+    mocks.executeTransaction.mockImplementation(async (statements) => {
+      rows = statements.map((statement) => ({
+        id: String(statement.params[0]),
+        value_json: String(statement.params[1]),
+      }));
+      return statements.map(() => 1);
+    });
+
+    await initializeApplicationSettings();
+
+    const statements = mocks.executeTransaction.mock.calls[0][0];
+    expect(
+      statements.map((statement) => String(statement.params[0])).sort(),
+    ).toEqual(["current_stt_model", "current_stt_provider"]);
+    expect(JSON.stringify(statements)).not.toContain("deepgram");
   });
 
   it.each([

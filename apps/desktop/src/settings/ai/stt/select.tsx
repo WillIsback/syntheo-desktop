@@ -54,7 +54,6 @@ import {
   displayModelLabel,
   formatDownloadProgress,
   formatModelSize,
-  isDeprecatedSttModel,
   type ProviderId,
   PROVIDERS,
   sttModelQueries,
@@ -87,7 +86,6 @@ import { usePendingSttSelection } from "~/store/zustand/pending-stt-selection";
 import {
   canAppleSpeechTranscribe,
   isConfiguredSttModel,
-  getSttModelTranscriptionMode,
   isDesktopLocalSttAvailable,
   isLiveTranscriptionSupported,
   isLocalFileSttModel,
@@ -174,7 +172,7 @@ export function SelectProviderAndModel() {
     ? (configuredProviders[visibleProvider]?.models ?? [])
     : [];
   const displayedSttModel =
-    visibleProvider === "custom" || visibleProvider === "nvidia"
+    visibleProvider === "openai" || visibleProvider === "nvidia"
       ? effectiveSelection.model
       : effectiveSelection.model
         ? getPreferredProviderModel(effectiveSelection.model, selectedModels, {
@@ -215,7 +213,7 @@ export function SelectProviderAndModel() {
         nextModels,
         {
           allowSavedModelWithoutChoices:
-            providerId === "custom" || providerId === "nvidia",
+            providerId === "openai" || providerId === "nvidia",
         },
       ) ||
       getDefaultSttModel(providerId) ||
@@ -340,7 +338,7 @@ export function SelectProviderAndModel() {
           <div className="min-w-0 flex-3">
             <LocalFileModel healthStatus={health.status} />
           </div>
-        ) : visibleProvider === "custom" || visibleProvider === "nvidia" ? (
+        ) : visibleProvider === "openai" || visibleProvider === "nvidia" ? (
           <div className="min-w-0 flex-3">
             <Input
               value={displayedSttModel || ""}
@@ -654,7 +652,6 @@ type ModelEntry = {
   id: string;
   isDownloaded: boolean;
   displayName?: string;
-  isDeprecated?: boolean;
   category?: ModelCategory;
   sizeBytes?: number | null;
   mode?: "realtime" | "batch";
@@ -802,25 +799,8 @@ export function useConfiguredMapping(): {
         ];
       }
 
-      if (provider.id === "custom" || provider.id === "nvidia") {
-        return [provider.id, { configured: true, models: [] }];
-      }
-
-      return [
-        provider.id,
-        {
-          configured: true,
-          models: provider.models.map((model) => {
-            const mode = getSttModelTranscriptionMode(provider.id, model);
-            return {
-              id: model,
-              isDownloaded: true,
-              mode: mode === "live" ? "realtime" : mode,
-              isDeprecated: isDeprecatedSttModel(provider.id, model),
-            };
-          }),
-        },
-      ];
+      // openai et nvidia : le modèle servi est saisi librement.
+      return [provider.id, { configured: true, models: [] }];
     }),
   ) as Record<
     ProviderId,
@@ -895,7 +875,6 @@ function ModelSelectItem({
   const label = displayModelLabel(model.id, model.displayName);
   const sizeLabel = formatModelSize(model.sizeBytes);
   const showLocalActions = model.isDownloaded && isLocalModelId(model.id);
-  const isDeprecated = model.isDeprecated === true;
   const content = (
     <div
       className={cn([
@@ -916,7 +895,6 @@ function ModelSelectItem({
       />
       <div className="flex shrink-0 items-center gap-2 text-[11px]">
         <LocalModelBackendBadge model={model.id} />
-        {isDeprecated && <DeprecatedBadge />}
         {model.mode !== "realtime" && <ModelModeBadge mode={model.mode} />}
         {!model.isDownloaded && sizeLabel && (
           <span className="text-muted-foreground font-mono">{sizeLabel}</span>
@@ -935,7 +913,6 @@ function ModelSelectItem({
             "group-hover/model-row:bg-accent group-hover/model-row:text-accent-foreground",
             showLocalActions &&
               "pr-20 group-focus-within/model-row:[&>span:first-child]:opacity-0 group-hover/model-row:[&>span:first-child]:opacity-0",
-            isDeprecated && "text-muted-foreground focus:text-muted-foreground",
           ])}
         >
           {content}
@@ -1010,7 +987,6 @@ function ModelSelectItem({
 }
 
 function ModelSelectedValue({ model }: { model: ModelEntry }) {
-  const isDeprecated = model.isDeprecated === true;
   const label = displayModelLabel(model.id, model.displayName);
 
   return (
@@ -1019,27 +995,10 @@ function ModelSelectedValue({ model }: { model: ModelEntry }) {
         model={model.id}
         label={label}
         title={label}
-        className={cn(["min-w-0", isDeprecated && "opacity-60"])}
-        labelClassName={cn([isDeprecated && "text-muted-foreground"])}
+        className="min-w-0"
       />
-      {isDeprecated && <DeprecatedBadge />}
       <ModelModeBadge mode={model.mode} />
     </div>
-  );
-}
-
-function DeprecatedBadge() {
-  const ref = useSquircleRef<HTMLSpanElement>(undefined, chipSquircle);
-  return (
-    <span
-      ref={ref}
-      className={cn([
-        "shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
-        "bg-amber-50 text-amber-800",
-      ])}
-    >
-      <Trans>Deprecated</Trans>
-    </span>
   );
 }
 

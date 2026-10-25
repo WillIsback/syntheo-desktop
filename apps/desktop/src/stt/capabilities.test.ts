@@ -82,75 +82,21 @@ describe("getSttModelTranscriptionMode", () => {
     expect(
       getSttModelTranscriptionMode("openai", "gpt-4o-transcribe-diarize"),
     ).toBe("batch");
-    expect(getSttModelTranscriptionMode("elevenlabs", "scribe_v2")).toBe(
-      "batch",
-    );
-    expect(
-      getSttModelTranscriptionMode("elevenlabs", "scribe_v2_realtime"),
-    ).toBe("live");
-    expect(getSttModelTranscriptionMode("assemblyai", "universal-3-pro")).toBe(
-      "batch",
-    );
-    expect(
-      getSttModelTranscriptionMode("assemblyai", "universal-3-5-pro"),
-    ).toBe("batch");
-    expect(
-      getSttModelTranscriptionMode("assemblyai", "universal-3-5-pro-realtime"),
-    ).toBe("live");
-    expect(getSttModelTranscriptionMode("assemblyai", "u3-rt-pro")).toBe(
-      "live",
-    );
-    expect(getSttModelTranscriptionMode("mistral", "voxtral-mini-2602")).toBe(
-      "batch",
-    );
-    expect(getSttModelTranscriptionMode("deepgram", "flux-general-multi")).toBe(
-      "live",
-    );
-    expect(getSttModelTranscriptionMode("gladia", "solaria-3")).toBe("batch");
+    expect(getSttModelTranscriptionMode("openai", "whisper-1")).toBe("batch");
     expect(
       getSttModelTranscriptionMode(
-        "google_generative_ai",
-        "gemini-3.5-transcribe-live",
+        "openai",
+        "mistralai/Voxtral-Mini-4B-Realtime-2602",
       ),
     ).toBe("live");
     expect(
-      getSttModelTranscriptionMode(
-        "google_generative_ai",
-        "gemini-3.5-transcribe",
-      ),
-    ).toBe("batch");
-    expect(
-      getSttModelTranscriptionMode("cohere", "cohere-transcribe-03-2026"),
-    ).toBe("batch");
-    expect(getSttModelTranscriptionMode("smallestai", "pulse-pro")).toBe(
-      "batch",
-    );
-    for (const [provider, model] of [
-      ["groq", "whisper-large-v3-turbo"],
-      ["openrouter", "openai/gpt-4o-mini-transcribe"],
-      ["together", "openai/whisper-large-v3"],
-      ["speechmatics", "enhanced"],
-      ["azure_speech", "fast-transcription"],
-      ["google_cloud", "latest_long"],
-      ["aws_transcribe", "amazon-transcribe"],
-      ["revai", "machine"],
-      ["pyannote", "parakeet-tdt-0.6b-v3"],
-      ["aquavoice", "avalon-v1.5"],
-      ["cohere", "cohere-transcribe-arabic-07-2026"],
-    ]) {
-      expect(getSttModelTranscriptionMode(provider, model)).toBe("batch");
-    }
+      getSttModelTranscriptionMode("nvidia", "nemotron-asr-streaming"),
+    ).toBe("live");
   });
 
   test("leaves models without an explicit mode to provider inference", () => {
-    expect(getSttModelTranscriptionMode("deepgram", "nova-3-general")).toBe(
-      undefined,
-    );
-    expect(getSttModelTranscriptionMode("xai", "xai-stt")).toBeUndefined();
-    expect(getSttModelTranscriptionMode("smallestai", "pulse")).toBeUndefined();
-    for (const model of ["qwen3-asr", "qwen3-asr-fast"]) {
-      expect(getSttModelTranscriptionMode("nari", model)).toBe("live");
-    }
+    expect(getSttModelTranscriptionMode("openai", undefined)).toBeUndefined();
+    expect(getSttModelTranscriptionMode("deepgram", "nova-3")).toBeUndefined();
   });
 });
 
@@ -398,17 +344,10 @@ describe("getLiveTranscriptionConfig", () => {
       checksLiveLanguages: false,
     },
     {
-      provider: "elevenlabs",
-      model: "scribe_v2",
-      languages: ["en"],
-      expected: { languages: ["en"], transcriptionMode: "batch" },
-      checksLiveLanguages: false,
-    },
-    {
-      provider: "elevenlabs",
-      model: "scribe_v2_realtime",
-      languages: ["en"],
-      expected: { languages: ["en"], transcriptionMode: "live" },
+      provider: "openai",
+      model: "mistralai/Voxtral-Mini-4B-Realtime-2602",
+      languages: ["fr"],
+      expected: { languages: ["fr"], transcriptionMode: "live" },
       checksLiveLanguages: true,
     },
   ])(
@@ -425,14 +364,14 @@ describe("getLiveTranscriptionConfig", () => {
 
   test("keeps all languages when the selected provider supports them live", async () => {
     const config = await getLiveTranscriptionConfig({
-      provider: "deepgram",
-      model: "nova-3-general",
+      provider: "nvidia",
+      model: "nemotron-asr-streaming",
       languages: ["en", "es"],
     });
 
     expect(config).toEqual({
       languages: ["en", "es"],
-      transcriptionMode: undefined,
+      transcriptionMode: "live",
     });
     expect(isSupportedLanguagesLiveMock).toHaveBeenCalledTimes(1);
   });
@@ -448,50 +387,18 @@ describe("getLiveTranscriptionConfig", () => {
 
     await expect(
       getLiveTranscriptionConfig({
-        provider: "deepgram",
-        model: "nova-3-general",
+        provider: "nvidia",
+        model: "nemotron-asr-streaming",
         languages: ["en", "ko"],
       }),
     ).resolves.toEqual({
       languages: ["en"],
       omittedLanguages: ["ko"],
-      transcriptionMode: undefined,
+      transcriptionMode: "live",
     });
   });
 
   test.each([
-    {
-      name: "custom providers check as Deepgram-compatible for language fallback",
-      mockLive: true,
-      invoke: () =>
-        getLiveTranscriptionConfig({
-          provider: "custom",
-          model: "nova-3-general",
-          languages: ["en", "ko"],
-        }),
-      source: "live" as const,
-      expected: ["deepgram"],
-    },
-    {
-      name: "Cloudflare Workers AI checks as Deepgram-compatible for language fallback",
-      mockLive: false,
-      invoke: () =>
-        getLiveTranscriptionConfig({
-          provider: "cloudflare_workers_ai",
-          model: "nova-3",
-          languages: ["en", "ko"],
-        }),
-      source: "live" as const,
-      expected: ["deepgram"],
-    },
-    {
-      name: "Cloudflare Workers AI checks as Deepgram-compatible for live language support",
-      mockLive: false,
-      invoke: () =>
-        isSupportedLanguagesLive("cloudflare_workers_ai", "nova-3", ["en"]),
-      source: "live" as const,
-      expected: ["deepgram", "nova-3", ["en"]],
-    },
     {
       name: "the Apple Speech product provider maps to its runtime provider",
       mockLive: false,
@@ -501,12 +408,12 @@ describe("getLiveTranscriptionConfig", () => {
       expected: ["apple-speech", "apple-speech", ["ko"]],
     },
     {
-      name: "Cloudflare Workers AI checks as Deepgram-compatible for batch language support",
+      name: "the on-prem OpenAI protocol checks batch languages under its own id",
       mockLive: false,
       invoke: () =>
-        isSupportedLanguagesBatch("cloudflare_workers_ai", "nova-3", ["en"]),
+        isSupportedLanguagesBatch("openai", "whisper-large-v3", ["fr"]),
       source: "batch" as const,
-      expected: ["deepgram", "nova-3", ["en"]],
+      expected: ["openai", "whisper-large-v3", ["fr"]],
     },
   ])("$name", async ({ mockLive, invoke, source, expected }) => {
     if (mockLive) {

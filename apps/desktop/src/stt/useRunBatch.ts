@@ -128,35 +128,6 @@ export async function reconcileRefinedSpeakerClusters(
   return result.data.map(toSpeakerHintWithId);
 }
 
-const DIRECT_BATCH_PROVIDERS: Set<TranscriptionParams["provider"]> = new Set([
-  "deepgram",
-  "cartesia",
-  "soniox",
-  "assemblyai",
-  "openai",
-  "openrouter",
-  "siliconflow",
-  "zai",
-  "gladia",
-  "elevenlabs",
-  "mistral",
-  "meta",
-  "pyannote",
-  "aquavoice",
-  "cohere",
-  "aws_transcribe",
-  "azure_speech",
-  "google_cloud",
-  "google_generative_ai",
-  "groq",
-  "revai",
-  "speechmatics",
-  "together",
-  "xai",
-  "smallestai",
-  "wisprflow",
-]);
-
 const STOPPED_TRANSCRIPTION_ERROR_MESSAGE = "Transcription stopped.";
 export const EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE =
   "Batch transcription did not include the current recording.";
@@ -174,12 +145,6 @@ export function getBatchProvider(
   provider: string,
   model: string,
 ): TranscriptionParams["provider"] | null {
-  if (provider === "amazon_bedrock") return "openai";
-
-  if (provider === "custom" || provider === "cloudflare_workers_ai") {
-    return "deepgram";
-  }
-
   if (isLocalFileSttModel(provider, model)) {
     return "whispercpp";
   }
@@ -194,9 +159,9 @@ export function getBatchProvider(
   if (provider === "apple_speech" || provider === "apple-speech") {
     return "applespeech";
   }
-  if (DIRECT_BATCH_PROVIDERS.has(provider as TranscriptionParams["provider"])) {
-    return provider as TranscriptionParams["provider"];
-  }
+  // NVIDIA NIM ne propose que le temps réel ; l'import passe par le protocole
+  // OpenAI (/v1/audio/transcriptions).
+  if (provider === "openai") return "openai";
   return null;
 }
 

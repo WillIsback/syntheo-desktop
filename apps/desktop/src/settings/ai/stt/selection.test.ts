@@ -8,48 +8,11 @@ import {
   resolveLiveLanguageSupportMode,
 } from "./selection";
 
-import { normalizeStoredSttModel } from "~/stt/model-selection";
-
-describe("normalizeStoredSttModel", () => {
-  test("rewrites retired provider model ids to their replacements", () => {
-    expect(normalizeStoredSttModel("assemblyai", "universal-3-pro")).toBe(
-      "universal-3-5-pro",
-    );
-    expect(normalizeStoredSttModel("assemblyai", "u3-rt-pro")).toBe(
-      "universal-3-5-pro-realtime",
-    );
-    expect(normalizeStoredSttModel("aquavoice", "avalon-v1-en")).toBe(
-      "avalon-v1.5",
-    );
-    expect(normalizeStoredSttModel("aquavoice", "avalon-v1.5")).toBe(
-      "avalon-v1.5",
-    );
-    expect(normalizeStoredSttModel("soniox", "stt-rt-v4")).toBe("stt-rt-v5");
-    expect(normalizeStoredSttModel("soniox", "stt-async-v3")).toBe("stt-rt-v5");
-    expect(normalizeStoredSttModel("openai", "gpt-4o-mini-transcribe")).toBe(
-      "gpt-transcribe",
-    );
-    expect(
-      normalizeStoredSttModel("openrouter", "openai/gpt-4o-transcribe"),
-    ).toBe("openai/gpt-transcribe");
-    expect(normalizeStoredSttModel("nari", "qwen3-asr-fast:free")).toBe(
-      "qwen3-asr-fast",
-    );
-    expect(normalizeStoredSttModel("nari", "qwen3-asr:free")).toBe("qwen3-asr");
-    expect(normalizeStoredSttModel("nari", "qwen3-asr")).toBe("qwen3-asr");
-    expect(normalizeStoredSttModel("openai", "whisper-1")).toBe("whisper-1");
-    expect(normalizeStoredSttModel("deepgram", "nova-3-general")).toBe(
-      "nova-3-general",
-    );
-  });
-});
-
 describe("getDefaultSttModel", () => {
   test.each([
     ["local_file", "local-file"],
-    ["deepgram", "nova-3-general"],
-    ["assemblyai", "universal-3-5-pro"],
-    ["custom", undefined],
+    ["nvidia", "nemotron-asr-streaming"],
+    ["openai", undefined],
     ["anarlog", undefined],
   ])("defaults %s to %s", (provider, model) => {
     expect(getDefaultSttModel(provider)).toBe(model);
@@ -113,88 +76,6 @@ describe("getPreferredProviderModel", () => {
       ]),
     ).toBe("");
   });
-
-  test.each([
-    {
-      saved: "qwen3-asr:free",
-      models: [{ id: "qwen3-asr-fast" }, { id: "qwen3-asr" }],
-      expected: "qwen3-asr",
-    },
-    {
-      saved: "qwen3-asr-fast:free",
-      models: [{ id: "qwen3-asr-fast" }, { id: "qwen3-asr" }],
-      expected: "qwen3-asr-fast",
-    },
-    {
-      saved: "universal",
-      models: [
-        { id: "universal-3-5-pro" },
-        { id: "universal-3-5-pro-realtime" },
-      ],
-      expected: "universal-3-5-pro",
-    },
-    {
-      saved: "universal-3-pro",
-      models: [
-        { id: "universal-3-5-pro" },
-        { id: "universal-3-5-pro-realtime" },
-      ],
-      expected: "universal-3-5-pro",
-    },
-    {
-      saved: "u3-rt-pro",
-      models: [
-        { id: "universal-3-5-pro" },
-        { id: "universal-3-5-pro-realtime" },
-      ],
-      expected: "universal-3-5-pro-realtime",
-    },
-    {
-      saved: "avalon-v1-en",
-      models: [{ id: "avalon-v1.5" }],
-      expected: "avalon-v1.5",
-    },
-    {
-      saved: "stt-v5",
-      models: [{ id: "stt-rt-v5" }],
-      expected: "stt-rt-v5",
-    },
-    {
-      saved: "stt-async-v4",
-      models: [{ id: "stt-rt-v5" }],
-      expected: "stt-rt-v5",
-    },
-    {
-      saved: "stt-rt-v4",
-      models: [{ id: "stt-rt-v5" }],
-      expected: "stt-rt-v5",
-    },
-    {
-      saved: "stt-rt-v3",
-      models: [{ id: "stt-rt-v5" }],
-      expected: "stt-rt-v5",
-    },
-    {
-      saved: "gpt-4o-transcribe",
-      models: [{ id: "gpt-transcribe" }, { id: "whisper-1" }],
-      expected: "gpt-transcribe",
-    },
-    {
-      saved: "gpt-4o-mini-transcribe",
-      models: [{ id: "gpt-transcribe" }, { id: "whisper-1" }],
-      expected: "gpt-transcribe",
-    },
-    {
-      saved: "openai/gpt-4o-mini-transcribe",
-      models: [{ id: "openai/gpt-transcribe" }],
-      expected: "openai/gpt-transcribe",
-    },
-  ])(
-    "migrates retired model $saved to $expected",
-    ({ saved, models, expected }) => {
-      expect(getPreferredProviderModel(saved, models)).toBe(expected);
-    },
-  );
 
   test("keeps the remembered value when the provider does not expose a static list", () => {
     expect(

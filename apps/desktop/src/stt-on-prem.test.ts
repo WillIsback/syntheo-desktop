@@ -2,6 +2,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { PROVIDERS } from "~/settings/ai/stt/shared";
+
 // Garde-fou : la transcription ne parle qu'aux protocoles standard des moteurs
 // on-premise (OpenAI Realtime et /v1/audio/transcriptions, NVIDIA NIM). Les
 // adaptateurs STT cloud hérités d'Anarlog sont supprimés.
@@ -48,5 +50,20 @@ describe("stt on-prem", () => {
       "crates/owhisper-client/src/providers.rs",
     ].filter((file) => CLOUD_STT.test(read(file)));
     expect(offenders).toEqual([]);
+  });
+
+  it("stt_settings_offer_only_on_prem_protocols", () => {
+    const enabled = PROVIDERS.filter((provider) => !provider.disabled)
+      .map((provider) => provider.id)
+      .sort();
+    expect(enabled).toEqual([
+      "apple_speech",
+      "local_file",
+      "nvidia",
+      "openai",
+      "soniqo",
+    ]);
+    const openai = PROVIDERS.find((provider) => provider.id === "openai");
+    expect(openai?.baseUrl).toBeUndefined();
   });
 });

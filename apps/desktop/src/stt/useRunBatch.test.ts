@@ -175,27 +175,10 @@ vi.mock("~/store/zustand/listener/general-batch", () => ({
 
 describe("getBatchProvider", () => {
   test.each([
-    ["pyannote", "parakeet-tdt-0.6b-v3", "pyannote"],
     ["openai", "gpt-4o-transcribe", "openai"],
-    ["cartesia", "ink-2", "cartesia"],
-    ["cohere", "cohere-transcribe-03-2026", "cohere"],
-    ["mistral", "voxtral-mini-2602", "mistral"],
-    ["aws_transcribe", "amazon-transcribe", "aws_transcribe"],
-    ["azure_speech", "fast-transcription", "azure_speech"],
-    ["google_cloud", "latest_long", "google_cloud"],
-    ["google_generative_ai", "gemini-3.5-transcribe", "google_generative_ai"],
-    ["groq", "whisper-large-v3-turbo", "groq"],
-    ["openrouter", "openai/gpt-4o-mini-transcribe", "openrouter"],
-    ["siliconflow", "FunAudioLLM/SenseVoiceSmall", "siliconflow"],
-    ["zai", "glm-asr-2512", "zai"],
-    ["revai", "machine", "revai"],
-    ["speechmatics", "enhanced", "speechmatics"],
-    ["together", "openai/whisper-large-v3", "together"],
-    ["xai", "xai-stt", "xai"],
-    ["smallestai", "pulse", "smallestai"],
-    ["meta", "muse-voice-transcribe-1.0", "meta"],
-    ["cloudflare_workers_ai", "nova-3", "deepgram"],
-    ["custom", "nova-3", "deepgram"],
+    ["openai", "mistralai/Voxtral-Mini-3B-2507", "openai"],
+    ["nvidia", "nemotron-asr-streaming", null],
+    ["deepgram", "nova-3", null],
     ["anarlog", "soniqo-parakeet-batch", "soniqo"],
     ["soniqo", "soniqo-parakeet-batch", "soniqo"],
     ["apple_speech", "apple-speech", "applespeech"],
@@ -313,9 +296,9 @@ describe("useRunBatch", () => {
     useSessionParticipantsMock.mockReturnValue([]);
     useSTTConnectionMock.mockReturnValue({
       conn: {
-        provider: "deepgram",
-        model: "nova-3",
-        baseUrl: "https://api.deepgram.com/v1/listen",
+        provider: "openai",
+        model: "whisper-large-v3",
+        baseUrl: "http://192.168.1.87:8000/v1",
         apiKey: "test-key",
       },
     });
@@ -343,7 +326,7 @@ describe("useRunBatch", () => {
     useBillingAccessMock.mockReturnValue({ isPaid: true });
     useSTTConnectionMock.mockReturnValue({
       conn: {
-        provider: "custom",
+        provider: "openai",
         model: "voxtral",
         baseUrl: "http://192.168.1.87:8000/v1",
         apiKey: "local-key",
@@ -353,9 +336,8 @@ describe("useRunBatch", () => {
     const { result } = renderHook(() => useRunBatch("dictation"));
     await result.current("/tmp/voice.wav").catch(() => undefined);
     expect(startTranscriptionMock).toHaveBeenCalledOnce();
-    // custom = endpoint Deepgram-compatible côté plugin de transcription.
     expect(startTranscriptionMock.mock.calls[0]?.[0]).toMatchObject({
-      provider: "deepgram",
+      provider: "openai",
       model: "voxtral",
       base_url: "http://192.168.1.87:8000/v1",
       api_key: "local-key",
@@ -366,8 +348,8 @@ describe("useRunBatch", () => {
     const abort = new AbortController();
     useSTTConnectionMock.mockReturnValue({
       conn: {
-        provider: "custom",
-        model: "nova-3",
+        provider: "openai",
+        model: "whisper-large-v3",
         baseUrl: "http://192.168.1.87:8000/v1",
         apiKey: "local-key",
       },
@@ -482,8 +464,8 @@ describe("useRunBatch", () => {
         created_at: expect.any(String),
         started_at: expect.any(Number),
         memo: "Existing memo",
-        provider: "deepgram",
-        model: "nova-3",
+        provider: "openai",
+        model: "whisper-large-v3",
         promotion: { scope: "whole_session" },
         mark_audio_complete: true,
         words: [
@@ -772,7 +754,7 @@ describe("useRunBatch", () => {
         hints: [
           expect.objectContaining({
             type: "provider_speaker_index",
-            value: '{"provider":"deepgram","channel":1,"speaker_index":3}',
+            value: '{"provider":"openai","channel":1,"speaker_index":3}',
           }),
         ],
       }),
@@ -1065,16 +1047,16 @@ describe("useRunBatch", () => {
   });
 
   test.each(["windows", "linux"] as const)(
-    "reports a language mismatch instead of a platform gap when Mistral is configured on %s",
+    "reports a language mismatch instead of a platform gap when an on-prem model is configured on %s",
     async (currentPlatform) => {
       platformMock.mockReturnValue(currentPlatform);
       isSupportedLanguagesBatchMock.mockResolvedValue(false);
       useSTTConnectionMock.mockReturnValue({
         conn: {
-          provider: "mistral",
+          provider: "openai",
           model: "voxtral-mini-2602",
-          baseUrl: "https://api.mistral.ai/v1",
-          apiKey: "mistral-key",
+          baseUrl: "http://192.168.1.87:8000/v1",
+          apiKey: "",
         },
       });
 
@@ -1094,12 +1076,12 @@ describe("useRunBatch", () => {
   );
 
   test.each(["windows", "linux", "macos"] as const)(
-    "uses custom Deepgram-compatible batch endpoints on %s",
+    "uses on-prem OpenAI-compatible batch endpoints on %s",
     async (currentPlatform) => {
       platformMock.mockReturnValue(currentPlatform);
       useSTTConnectionMock.mockReturnValue({
         conn: {
-          provider: "custom",
+          provider: "openai",
           model: "realtime-only",
           baseUrl: "https://custom.test",
           apiKey: "custom-key",
@@ -1114,7 +1096,7 @@ describe("useRunBatch", () => {
 
       expect(startTranscriptionMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          provider: "deepgram",
+          provider: "openai",
           model: "realtime-only",
           base_url: "https://custom.test",
           api_key: "custom-key",

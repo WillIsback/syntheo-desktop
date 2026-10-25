@@ -152,20 +152,17 @@ export const useSTTConnection = () => {
       return null;
     }
 
-    if (!baseUrl || (!apiKey && current_stt_provider !== "nvidia")) {
+    // Les endpoints on-prem n'exigent pas forcément de clé.
+    if (!baseUrl) {
       return null;
     }
 
+    // Le protocole est désigné explicitement : un hôte on-prem ne permet pas
+    // de le deviner.
     let routedBaseUrl = baseUrl;
     if (
-      [
-        "inworld",
-        "gradium",
-        "modulate",
-        "alebex",
-        "nvidia",
-        "amazon_bedrock",
-      ].includes(current_stt_provider)
+      current_stt_provider === "openai" ||
+      current_stt_provider === "nvidia"
     ) {
       const url = new URL(baseUrl);
       url.searchParams.set("provider", current_stt_provider);

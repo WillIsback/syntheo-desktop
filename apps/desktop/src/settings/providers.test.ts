@@ -122,7 +122,7 @@ describe("SQLite AI providers", () => {
     queryClient.clear();
   });
 
-  it("saves Custom STT without requiring a model-list endpoint", async () => {
+  it("saves an on-prem STT endpoint without requiring a model-list endpoint", async () => {
     const { verifyProviderCredentials } = await vi.importActual<
       typeof import("@anlg/provider-validation")
     >("@anlg/provider-validation");
@@ -133,17 +133,17 @@ describe("SQLite AI providers", () => {
     const wrapper = ({ children }: { children: ReactNode }) =>
       createElement(QueryClientProvider, { client: queryClient }, children);
     const { result, unmount } = renderHook(
-      () => useSetAiProvider("stt", "custom", { verifyCredentials: true }),
+      () => useSetAiProvider("stt", "openai", { verifyCredentials: true }),
       { wrapper },
     );
     await result.current.mutateAsync({
-      base_url: "http://127.0.0.1:8000/v1",
+      base_url: "http://192.168.1.87:8000/v1",
       api_key: "local-key",
     });
     expect(mocks.fetch).not.toHaveBeenCalled();
     expect(mocks.setSecret).toHaveBeenCalledWith(
       "ai-provider-api-keys",
-      "stt:custom",
+      "stt:openai",
       "local-key",
     );
     expect(mocks.executeTransaction).toHaveBeenCalledOnce();

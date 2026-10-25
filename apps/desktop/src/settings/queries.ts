@@ -35,7 +35,6 @@ import { usePendingSttSelection } from "~/store/zustand/pending-stt-selection";
 import { isConfiguredSttModel, isOnDeviceSttModel } from "~/stt/capabilities";
 import {
   getDefaultSttModel,
-  normalizeStoredSttModel,
   normalizeStoredSttSelection,
 } from "~/stt/model-selection";
 
@@ -379,14 +378,6 @@ function readLegacySettingValue(
   }
 
   if (value === undefined) value = mainValuesDocument[key];
-
-  if (key === "current_stt_model") {
-    value = normalizeStoredSttModel(
-      (getByPath(settingsDocument, ["ai", "current_stt_provider"]) ??
-        mainValuesDocument.current_stt_provider) as string | undefined,
-      value as string | undefined,
-    );
-  }
 
   return value;
 }
