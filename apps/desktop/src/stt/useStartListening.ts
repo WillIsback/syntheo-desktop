@@ -26,20 +26,22 @@ import {
 
 import { trackAnalyticsEvent } from "~/analytics";
 import { useShell } from "~/contexts/shell";
-import { normalizeAudioRetention } from "~/services/audio-retention";
 import { getSessionEvent } from "~/session/utils";
 import { getBaseLanguageDisplayName } from "~/settings/general/language";
 import { useConfigValue } from "~/shared/config";
 import { useTabs } from "~/store/zustand/tabs";
 import {
   getLiveTranscriptionConfig,
+  getSttModelTranscriptionMode,
   getTranscriptionLanguages,
-  requiresRetainedBatchAudio,
 } from "~/stt/capabilities";
 import {
   getSessionParticipantHumanIds,
   useSessionParticipantHumanIds,
 } from "~/stt/queries";
+
+export const BATCH_ONLY_CAPTURE_MESSAGE =
+  "Ce modèle ne transcrit qu'après l'enregistrement, ce qui supposerait de conserver l'audio. Choisissez un modèle de transcription en temps réel.";
 
 export {
   CLOUDSYNC_CAPTURE_LEASE_ATTEMPTS,
@@ -74,9 +76,8 @@ export function useStartListeningState(
   const spokenLanguages = useConfigValue("spoken_languages");
   const dictionaryTerms = useConfigValue("personalization_dictionary_terms");
   const microphoneDevice = useConfigValue("microphone_device");
-  const retainAudio =
-    normalizeAudioRetention(useConfigValue("audio_retention")) !== "none" ||
-    requiresRetainedBatchAudio(conn?.provider, conn?.model);
+  // Règle audio de Syntheo : la capture ne conserve jamais l'audio.
+  const retainAudio = false;
   const meetingDisclosureAutoSendChat = useConfigValue(
     "consent_auto_send_chat",
   );
@@ -101,6 +102,14 @@ export function useStartListeningState(
 
   const startListening = useCallback(async () => {
     if (!canStartLiveSession(sessionId)) {
+      return;
+    }
+    // Un modèle « après l'enregistrement » exigerait de conserver l'audio.
+    if (
+      conn &&
+      getSttModelTranscriptionMode(conn.provider, conn.model) === "batch"
+    ) {
+      toast.error(BATCH_ONLY_CAPTURE_MESSAGE, { id: "batch-only-capture" });
       return;
     }
     await stopMeetingChatTasks();

@@ -9,18 +9,8 @@ function renderAudioSettings({
     devices: ["External Microphone"],
     onChange: vi.fn(),
   },
-  rememberSpeakers = {
-    value: false,
-    onChange: vi.fn(),
-  },
 } = {}) {
-  return render(
-    <AudioSettingsView
-      audioRetention={{ value: "forever", onChange: vi.fn() }}
-      microphoneDevice={microphoneDevice}
-      rememberSpeakers={rememberSpeakers}
-    />,
-  );
+  return render(<AudioSettingsView microphoneDevice={microphoneDevice} />);
 }
 
 describe("AudioSettingsView", () => {
@@ -42,19 +32,11 @@ describe("AudioSettingsView", () => {
     );
   });
 
-  it.each([
-    [false, true],
-    [true, false],
-  ])("toggles remember speakers from %s to %s", (value, nextValue) => {
-    const onChange = vi.fn();
-    renderAudioSettings({
-      rememberSpeakers: { value, onChange },
-    });
-
-    const toggle = screen.getByRole("switch", { name: "Remember speakers" });
-    expect(toggle.getAttribute("aria-checked")).toBe(String(value));
-
-    toggle.click();
-    expect(onChange).toHaveBeenCalledWith(nextValue);
+  // Règle audio de Syntheo : rien à conserver, donc ni réglage de rétention ni
+  // empreintes vocales construites à partir de l'audio.
+  it("audio_settings_offer_no_retention_or_voiceprint", () => {
+    const { container } = renderAudioSettings();
+    expect(container.textContent).not.toContain("Audio file retention");
+    expect(container.textContent).not.toContain("Remember speakers");
   });
 });

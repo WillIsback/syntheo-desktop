@@ -33,7 +33,6 @@ const {
   deleteProcessedAudioForRetentionMock,
   saveBatchTranscriptMock,
   reconcileRefinedSpeakerClustersMock,
-  maybeExtractVoiceprintCandidatesMock,
   notifyBatchCompletedMock,
   idMock,
   archMock,
@@ -52,7 +51,6 @@ const {
   deleteProcessedAudioForRetentionMock: vi.fn(),
   saveBatchTranscriptMock: vi.fn(),
   reconcileRefinedSpeakerClustersMock: vi.fn(),
-  maybeExtractVoiceprintCandidatesMock: vi.fn(),
   notifyBatchCompletedMock: vi.fn(),
   idMock: vi.fn(),
   archMock: vi.fn(),
@@ -104,10 +102,6 @@ vi.mock("~/services/audio-retention", () => ({
   deleteProcessedAudioForRetention: deleteProcessedAudioForRetentionMock,
   normalizeAudioRetention: (value: unknown) =>
     typeof value === "string" ? value : "forever",
-}));
-
-vi.mock("~/services/voiceprint", () => ({
-  maybeExtractVoiceprintCandidates: maybeExtractVoiceprintCandidatesMock,
 }));
 
 vi.mock("~/session/queries", () => ({
@@ -428,6 +422,26 @@ describe("useRunBatch", () => {
     expect(stopTranscriptionMock).toHaveBeenCalledTimes(1);
   });
 
+  test("imported_audio_is_deleted_after_transcription", async () => {
+    useConfigValueMock.mockImplementation((key) =>
+      key === "audio_retention" ? "forever" : key === "ai_language" ? "en" : [],
+    );
+    startTranscriptionMock.mockImplementation(async (_params, options) => {
+      options.handlePersist(
+        [{ text: "hello", start_ms: 0, end_ms: 100, channel: 0 }],
+        [],
+      );
+    });
+    const { result } = renderHook(() => useRunBatch("session-1"));
+    await act(async () => {
+      await result.current("/tmp/imported.mp3");
+    });
+    expect(deleteProcessedAudioForRetentionMock).toHaveBeenCalledWith(
+      "none",
+      "session-1",
+    );
+  });
+
   test("promotes the complete streamed transcript before retention", async () => {
     let finishTranscription: (() => void) | undefined;
     startTranscriptionMock.mockImplementation(
@@ -705,14 +719,6 @@ describe("useRunBatch", () => {
         hints: expect.arrayContaining([
           expect.objectContaining({ type: "provider_speaker_index" }),
         ]),
-      }),
-    );
-    expect(maybeExtractVoiceprintCandidatesMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        enabled: true,
-        sessionId: "session-1",
-        transcriptId: "saved-transcript-id",
-        audioPath: "/tmp/session.wav",
       }),
     );
   });

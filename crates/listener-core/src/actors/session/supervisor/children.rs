@@ -3,10 +3,7 @@ use ractor::concurrency::Duration;
 use ractor::{Actor, ActorCell, ActorRef};
 
 use crate::actors::session::types::SessionContext;
-use crate::actors::{
-    ChannelMode, ListenerActor, ListenerArgs, SourceActor,
-    SourceArgs, SourceMsg,
-};
+use crate::actors::{ChannelMode, ListenerActor, ListenerArgs, SourceActor, SourceArgs, SourceMsg};
 
 use super::SessionState;
 

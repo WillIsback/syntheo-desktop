@@ -188,10 +188,6 @@ function SettingsSectionContent({
 }) {
   const { form, submitFieldValue } = useSettingsForm(storedSettings);
   const setSettingValues = useSetSettingValues();
-  const audioRetention =
-    resolveConfigValue("audio_retention", storedSettings) || "forever";
-  const rememberSpeakers =
-    resolveConfigValue("remember_speakers", storedSettings) === true;
   const microphoneDevice = resolveConfigValue(
     "microphone_device",
     storedSettings,
@@ -364,24 +360,11 @@ function SettingsSectionContent({
               <Trans>Audio</Trans>
             </h2>
             <AudioSettingsView
-              audioRetention={{
-                value: audioRetention,
-                onChange: (value) =>
-                  setSettingValues({
-                    audio_retention: value,
-                    save_recordings: value !== "none",
-                  }),
-              }}
               microphoneDevice={{
                 value: microphoneDevice,
                 devices: microphoneDevicesQuery.data ?? [],
                 onChange: (value) =>
                   setSettingValues({ microphone_device: value }),
-              }}
-              rememberSpeakers={{
-                value: rememberSpeakers,
-                onChange: (value) =>
-                  setSettingValues({ remember_speakers: value }),
               }}
             />
           </div>

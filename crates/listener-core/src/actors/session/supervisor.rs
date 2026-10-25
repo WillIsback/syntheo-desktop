@@ -72,14 +72,10 @@ impl Actor for SessionActor {
             // Règle audio de Syntheo : aucun recorder, l'audio ne va que de la
             // source vers le listener (endpoint STT) et n'est jamais écrit sur disque.
             let recorder_cell = None;
-            let source_ref = children::spawn_source(
-                myself.get_cell(),
-                &ctx,
-                None,
-                mode.listener_routing(None),
-            )
-            .await
-            .map_err(|e| -> ActorProcessingErr { Box::new(e) })?;
+            let source_ref =
+                children::spawn_source(myself.get_cell(), &ctx, None, mode.listener_routing(None))
+                    .await
+                    .map_err(|e| -> ActorProcessingErr { Box::new(e) })?;
 
             Ok(SessionState {
                 ctx,
