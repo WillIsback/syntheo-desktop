@@ -28,84 +28,21 @@ pub enum BatchProvider {
     #[serde(rename = "whispercpp")]
     #[strum(serialize = "whispercpp")]
     WhisperLocal,
-    Deepgram,
-    Soniox,
-    AssemblyAI,
-    Fireworks,
     OpenAI,
-    OpenRouter,
-    SiliconFlow,
-    Zai,
-    Gladia,
-    ElevenLabs,
-    Pyannote,
-    DashScope,
-    Mistral,
-    Meta,
     #[serde(alias = "hyprnote")]
     Anarlog,
     Am,
     Soniqo,
     AppleSpeech,
-    AquaVoice,
-    Cartesia,
-    Cohere,
-    #[serde(rename = "aws_transcribe")]
-    #[strum(serialize = "aws_transcribe")]
-    AwsTranscribe,
-    #[serde(rename = "azure_speech")]
-    #[strum(serialize = "azure_speech")]
-    AzureSpeech,
-    #[serde(rename = "google_cloud")]
-    #[strum(serialize = "google_cloud")]
-    GoogleCloud,
-    #[serde(rename = "google_generative_ai")]
-    #[strum(serialize = "google_generative_ai")]
-    GoogleGenerativeAi,
-    Groq,
-    RevAi,
-    Speechmatics,
-    Together,
-    Xai,
-    SmallestAI,
-    WisprFlow,
 }
 
 impl BatchProvider {
     pub fn to_adapter_kind(&self) -> Option<AdapterKind> {
         match self {
             Self::Argmax => Some(AdapterKind::Argmax),
-            Self::Deepgram => Some(AdapterKind::Deepgram),
-            Self::Soniox => Some(AdapterKind::Soniox),
-            Self::AssemblyAI => Some(AdapterKind::AssemblyAI),
-            Self::Fireworks => Some(AdapterKind::Fireworks),
             Self::OpenAI => Some(AdapterKind::OpenAI),
-            Self::OpenRouter => Some(AdapterKind::OpenRouter),
-            Self::SiliconFlow => Some(AdapterKind::SiliconFlow),
-            Self::Zai => Some(AdapterKind::Zai),
-            Self::Gladia => Some(AdapterKind::Gladia),
-            Self::ElevenLabs => Some(AdapterKind::ElevenLabs),
-            Self::Pyannote => Some(AdapterKind::Pyannote),
-            Self::Mistral => Some(AdapterKind::Mistral),
-            Self::Meta => Some(AdapterKind::Meta),
             Self::Anarlog => Some(AdapterKind::Anarlog),
-            Self::AquaVoice => Some(AdapterKind::AquaVoice),
-            Self::Cartesia => Some(AdapterKind::Cartesia),
-            Self::Cohere => Some(AdapterKind::Cohere),
-            Self::AwsTranscribe => Some(AdapterKind::AwsTranscribe),
-            Self::AzureSpeech => Some(AdapterKind::AzureSpeech),
-            Self::GoogleCloud => Some(AdapterKind::GoogleCloud),
-            Self::GoogleGenerativeAi => Some(AdapterKind::GoogleGenerativeAi),
-            Self::Groq => Some(AdapterKind::Groq),
-            Self::RevAi => Some(AdapterKind::RevAi),
-            Self::Speechmatics => Some(AdapterKind::Speechmatics),
-            Self::Together => Some(AdapterKind::Together),
-            Self::Xai => Some(AdapterKind::Xai),
-            Self::SmallestAI => Some(AdapterKind::SmallestAI),
-            Self::WisprFlow => Some(AdapterKind::WisprFlow),
-            Self::Am | Self::WhisperLocal | Self::Soniqo | Self::AppleSpeech | Self::DashScope => {
-                None
-            }
+            Self::Am | Self::WhisperLocal | Self::Soniqo | Self::AppleSpeech => None,
         }
     }
 }
@@ -261,15 +198,11 @@ async fn run_batch_inner(
         }
         BatchProvider::Soniqo => run_soniqo_batch(runtime, params, listen_params).await,
         BatchProvider::AppleSpeech => run_apple_speech_batch(runtime, params, listen_params).await,
-        BatchProvider::DashScope => Err(crate::BatchFailure::BatchCapabilityUnsupported {
-            provider: batch_provider_label(BatchProvider::DashScope),
+        BatchProvider::Argmax => {
+            run_direct_batch_for_adapter_kind(AdapterKind::Argmax, params, listen_params).await
         }
-        .into()),
-        ref provider => {
-            let adapter_kind = provider
-                .to_adapter_kind()
-                .expect("all non-special BatchProvider variants have an AdapterKind mapping");
-            run_direct_batch_for_adapter_kind(adapter_kind, params, listen_params).await
+        BatchProvider::Anarlog => {
+            run_direct_batch_for_adapter_kind(AdapterKind::Anarlog, params, listen_params).await
         }
     }?;
 
@@ -288,7 +221,7 @@ fn resolve_batch_adapter_kind(
         &listen_params.languages,
         listen_params.model.as_deref(),
     );
-    if matches!(params.provider, BatchProvider::OpenAI) && resolved != AdapterKind::AmazonBedrock {
+    if matches!(params.provider, BatchProvider::OpenAI) {
         AdapterKind::OpenAI
     } else {
         resolved
@@ -320,10 +253,6 @@ fn build_listen_params(
         mic_num_speakers: None,
         custom_query: None,
     }
-}
-
-pub(super) fn batch_provider_label(provider: BatchProvider) -> String {
-    provider.to_string()
 }
 
 pub(super) fn session_span(session_id: &str) -> tracing::Span {
@@ -422,7 +351,7 @@ mod tests {
 
     #[test]
     fn build_listen_params_preserves_speaker_options() {
-        let mut params = batch_params(BatchProvider::Pyannote, "https://api.pyannote.ai");
+        let mut params = batch_params(BatchProvider::OpenAI, "http://192.168.1.87:8000/v1");
         params.num_speakers = Some(3);
         params.min_speakers = Some(2);
         params.max_speakers = Some(4);
@@ -440,15 +369,9 @@ mod tests {
     fn am_routes_each_backend_to_its_batch_mode() {
         let cases = [
             (
-                "https://api.pyannote.ai",
-                None,
-                AdapterKind::Pyannote,
-                false,
-            ),
-            (
-                "https://api.deepgram.com/v1",
-                None,
-                AdapterKind::Deepgram,
+                "http://192.168.1.87:8000/v1",
+                Some("whisper-large-v3"),
+                AdapterKind::OpenAI,
                 false,
             ),
             ("http://localhost:50060/v1", None, AdapterKind::Argmax, true),
@@ -485,11 +408,6 @@ mod tests {
             (BatchProvider::Am, "https://api.anarlog.so/stt", false),
             (BatchProvider::Am, "http://localhost:50060/v1", true),
             (BatchProvider::OpenAI, "http://localhost:9000/v1", true),
-            (
-                BatchProvider::OpenAI,
-                "http://localhost:9000/v1?provider=amazon_bedrock",
-                false,
-            ),
         ];
 
         for (provider, base_url, expected) in cases {

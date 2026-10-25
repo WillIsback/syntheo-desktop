@@ -525,12 +525,12 @@ mod tests {
     #[test]
     fn versions_dev_accounts_across_signing_changes() {
         assert_eq!(
-            secure_store_account("com.hyprnote.dev", "provider", "deepgram"),
-            "v2:provider:deepgram"
+            secure_store_account("com.hyprnote.dev", "provider", "openai"),
+            "v2:provider:openai"
         );
         assert_eq!(
-            secure_store_account("com.hyprnote.stable", "provider", "deepgram"),
-            "provider:deepgram"
+            secure_store_account("com.hyprnote.stable", "provider", "openai"),
+            "provider:openai"
         );
     }
 
@@ -542,17 +542,17 @@ mod tests {
                 vec![
                     (
                         "com.anarlog.dev.secure-store".to_string(),
-                        "provider:deepgram".to_string(),
+                        "provider:openai".to_string(),
                     ),
                     (
                         "com.hyprnote.dev.secure-store".to_string(),
-                        "provider:deepgram".to_string(),
+                        "provider:openai".to_string(),
                     ),
                 ],
             ),
             ("com.example.app", vec![]),
         ] {
-            let locations = legacy_secret_locations(identifier, "provider", "deepgram");
+            let locations = legacy_secret_locations(identifier, "provider", "openai");
             assert_eq!(
                 locations, expected,
                 "unexpected legacy locations for {identifier}"
@@ -568,7 +568,7 @@ mod tests {
 
     #[test]
     fn isolates_native_secret_accounts_from_renderer_commands() {
-        assert!(validate_secret_coordinate(SecretCaller::Renderer, "provider", "deepgram").is_ok());
+        assert!(validate_secret_coordinate(SecretCaller::Renderer, "provider", "openai").is_ok());
         assert!(
             validate_secret_coordinate(
                 SecretCaller::Renderer,

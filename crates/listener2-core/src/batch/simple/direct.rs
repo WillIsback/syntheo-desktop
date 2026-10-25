@@ -2,13 +2,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use owhisper_client::{
-    AdapterKind, AnarlogAdapter, AquaVoiceAdapter, ArgmaxAdapter, AssemblyAIAdapter,
-    AwsTranscribeAdapter, AzureSpeechAdapter, BatchSttAdapter, BatchUploadLimit, CartesiaAdapter,
-    CohereAdapter, DeepgramAdapter, ElevenLabsAdapter, FireworksAdapter, GladiaAdapter,
-    GoogleCloudAdapter, GoogleGenerativeAiAdapter, GroqAdapter, MetaAdapter, MistralAdapter,
-    OpenAIAdapter, OpenRouterAdapter, PyannoteAdapter, RevAiAdapter, SiliconFlowAdapter,
-    SmallestAIAdapter, SonioxAdapter, SpeechmaticsAdapter, TogetherAdapter, WisprFlowAdapter,
-    XaiAdapter, ZaiAdapter,
+    AdapterKind, AnarlogAdapter, ArgmaxAdapter, BatchSttAdapter, BatchUploadLimit, OpenAIAdapter,
 };
 use owhisper_interface::batch::{Alternatives, Channel, Response, Results};
 use tracing::Instrument;
@@ -46,71 +40,24 @@ impl PreparedBatchUpload {
     }
 }
 
-macro_rules! dispatch_batch {
-    ($ak:expr, $params:expr, $lp:expr, $limit:expr,
-     { $($var:ident => $adapter:ty),+ $(,)? },
-     unsupported: [$($unsup:ident),* $(,)?]
-    ) => {
-        match $ak {
-            $(AdapterKind::$var => {
-                run_direct_batch::<$adapter>(&AdapterKind::$var.to_string(), $params, $lp, $limit)
-                    .await
-            })+
-            $(AdapterKind::$unsup => {
-                Err(crate::BatchFailure::DirectBatchUnsupported {
-                    provider: AdapterKind::$unsup.to_string(),
-                }.into())
-            })*
-        }
-    };
-}
-
 pub(in crate::batch) async fn run_direct_batch_for_adapter_kind(
     adapter_kind: AdapterKind,
     params: BatchParams,
     listen_params: owhisper_interface::ListenParams,
 ) -> crate::Result<BatchRunOutput> {
-    if adapter_kind == AdapterKind::Anarlog {
-        return run_anarlog_batch(params, listen_params).await;
-    }
-    if adapter_kind == AdapterKind::GoogleCloud {
-        return super::google_cloud::run(params, listen_params).await;
-    }
-
     let limit = adapter_kind.batch_upload_limit(listen_params.model.as_deref());
+    let provider = adapter_kind.to_string();
 
-    dispatch_batch!(adapter_kind, params, listen_params, limit, {
-        Argmax => ArgmaxAdapter,
-        Cartesia => CartesiaAdapter,
-        Deepgram => DeepgramAdapter,
-        Soniox => SonioxAdapter,
-        AssemblyAI => AssemblyAIAdapter,
-        Fireworks => FireworksAdapter,
-        OpenAI => OpenAIAdapter,
-        AmazonBedrock => owhisper_client::AmazonBedrockAdapter,
-        OpenRouter => OpenRouterAdapter,
-        SiliconFlow => SiliconFlowAdapter,
-        Zai => ZaiAdapter,
-        Gladia => GladiaAdapter,
-        ElevenLabs => ElevenLabsAdapter,
-        Pyannote => PyannoteAdapter,
-        Mistral => MistralAdapter,
-        Meta => MetaAdapter,
-        Anarlog => AnarlogAdapter,
-        AquaVoice => AquaVoiceAdapter,
-        Cohere => CohereAdapter,
-        AwsTranscribe => AwsTranscribeAdapter,
-        AzureSpeech => AzureSpeechAdapter,
-        GoogleCloud => GoogleCloudAdapter,
-        GoogleGenerativeAi => GoogleGenerativeAiAdapter,
-        Groq => GroqAdapter,
-        RevAi => RevAiAdapter,
-        Speechmatics => SpeechmaticsAdapter,
-        Together => TogetherAdapter,
-        Xai => XaiAdapter,
-        SmallestAI => SmallestAIAdapter,
-        WisprFlow => WisprFlowAdapter,
-    }, unsupported: [DashScope, Nari, Inworld, Gradium, Modulate, Alebex, Nvidia])
+    match adapter_kind {
+        AdapterKind::Argmax => {
+            run_direct_batch::<ArgmaxAdapter>(&provider, params, listen_params, limit).await
+        }
+        AdapterKind::OpenAI => {
+            run_direct_batch::<OpenAIAdapter>(&provider, params, listen_params, limit).await
+        }
+        AdapterKind::Anarlog => run_anarlog_batch(params, listen_params).await,
+        AdapterKind::Nvidia => Err(crate::BatchFailure::DirectBatchUnsupported { provider }.into()),
+    }
 }
 
 async fn run_anarlog_batch(

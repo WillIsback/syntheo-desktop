@@ -1,5 +1,4 @@
 use super::*;
-use anlg_ws_client::client::Message;
 use owhisper_interface::{ListenParams, stream::StreamResponse};
 
 fn transcript(response: &StreamResponse) -> (&str, bool, f64, f64) {
@@ -18,103 +17,6 @@ fn transcript(response: &StreamResponse) -> (&str, bool, f64, f64) {
         ),
         _ => panic!("expected transcript"),
     }
-}
-
-#[test]
-fn inworld_replaces_partials_and_keeps_each_turn() {
-    let adapter = InworldAdapter::default();
-    adapter.audio_to_message(vec![0; 32000].into());
-    let partial = adapter
-        .parse_response(r#"{"result":{"transcription":{"transcript":"hello","isFinal":false}}}"#);
-    let final_result = adapter.parse_response(
-        r#"{"result":{"transcription":{"transcript":"hello world","isFinal":true}}}"#,
-    );
-    assert_eq!(transcript(&partial[0]), ("hello", false, 0.0, 1.0));
-    assert_eq!(
-        transcript(&final_result[0]),
-        ("hello world", true, 0.0, 1.0)
-    );
-    adapter.audio_to_message(vec![0; 32000].into());
-    let next = adapter.parse_response(
-        r#"{"result":{"transcription":{"transcript":"next turn","isFinal":true}}}"#,
-    );
-    assert_eq!(transcript(&next[0]), ("next turn", true, 1.0, 1.0));
-    let mic = adapter.fork_session();
-    mic.audio_to_message(vec![0; 16000].into());
-    let isolated =
-        mic.parse_response(r#"{"result":{"transcription":{"transcript":"mic","isFinal":true}}}"#);
-    assert_eq!(transcript(&isolated[0]), ("mic", true, 0.0, 0.5));
-}
-
-#[test]
-fn gradium_waits_for_segment_end_before_committing_text() {
-    let adapter = GradiumAdapter::default();
-    adapter.audio_to_message(vec![0; 96000].into());
-    adapter.parse_response(r#"{"type":"text","text":"Hello","start_s":0.5,"stream_id":0}"#);
-    adapter.parse_response(r#"{"type":"text","text":"world","start_s":1.5,"stream_id":0}"#);
-    let final_result = adapter.parse_response(r#"{"type":"end_text","stop_s":2.5,"stream_id":0}"#);
-    assert_eq!(
-        transcript(&final_result[0]),
-        ("Hello world", true, 0.5, 2.0)
-    );
-    let done = adapter.parse_response(r#"{"type":"end_of_stream"}"#);
-    assert!(matches!(
-        done[0],
-        StreamResponse::TranscriptResponse {
-            from_finalize: true,
-            ..
-        }
-    ));
-}
-
-#[tokio::test]
-async fn modulate_sends_pcm_and_retains_segment_speaker_and_timing() {
-    let adapter = ModulateAdapter::default();
-    let url = adapter
-        .build_ws_url_with_api_key(
-            "https://platform.modulate.ai",
-            &ListenParams::default(),
-            1,
-            Some("test+key"),
-        )
-        .await
-        .unwrap();
-    assert!(
-        url.query_pairs()
-            .any(|(key, value)| key == "api_key" && value == "test+key")
-    );
-    assert!(
-        url.query_pairs()
-            .any(|(key, value)| key == "endpointing" && value == "true")
-    );
-    assert!(matches!(adapter.finalize_message(), Message::Text(value) if value.is_empty()));
-    let result = adapter.parse_response(r#"{"type":"utterance","utterance":{"text":"Bonjour","start_ms":1500,"duration_ms":700,"speaker":2}}"#);
-    assert_eq!(
-        transcript(&result[0]),
-        ("Bonjour", true, 1.5, 0.7000000000000002)
-    );
-    match &result[0] {
-        StreamResponse::TranscriptResponse { channel, .. } => {
-            assert_eq!(channel.alternatives[0].words[0].speaker, Some(2))
-        }
-        _ => unreachable!(),
-    }
-}
-
-#[test]
-fn alebex_authenticates_with_subprotocol_and_commits_final() {
-    let adapter = AlebexAdapter::default();
-    assert_eq!(
-        adapter.build_auth_header(Some("wt_test")),
-        Some(("Sec-WebSocket-Protocol", "alebex.token.wt_test".into()))
-    );
-    adapter.audio_to_message(vec![0; 32000].into());
-    let result = adapter.parse_response(r#"{"type":"final","text":"Finished"}"#);
-    assert_eq!(transcript(&result[0]), ("Finished", true, 0.0, 1.0));
-    assert!(matches!(
-        adapter.parse_response(r#"{"type":"error","message":"Invalid token"}"#)[0],
-        StreamResponse::ErrorResponse { .. }
-    ));
 }
 
 #[test]
@@ -140,12 +42,8 @@ fn nvidia_preserves_word_alignment_and_final_drain_marker() {
 #[test]
 fn provider_selection_survives_custom_and_loopback_endpoints() {
     for (provider, expected) in [
-        ("inworld", AdapterKind::Inworld),
-        ("gradium", AdapterKind::Gradium),
-        ("modulate", AdapterKind::Modulate),
-        ("alebex", AdapterKind::Alebex),
         ("nvidia", AdapterKind::Nvidia),
-        ("amazon_bedrock", AdapterKind::AmazonBedrock),
+        ("openai", AdapterKind::OpenAI),
     ] {
         assert_eq!(
             AdapterKind::from_url_and_languages(
@@ -158,7 +56,7 @@ fn provider_selection_survives_custom_and_loopback_endpoints() {
     }
     assert_eq!(
         AdapterKind::from_url_and_languages(
-            "https://api.anarlog.so/stt?provider=inworld",
+            "https://api.anarlog.so/stt?provider=nvidia",
             &[],
             None
         ),

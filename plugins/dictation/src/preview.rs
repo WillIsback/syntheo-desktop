@@ -95,43 +95,9 @@ async fn run(
     }
     match config.provider.as_str() {
         "anarlog" => listen::<AnarlogAdapter>(config, receiver, updates).await,
-        "deepgram"
-            if config
-                .params
-                .model
-                .as_deref()
-                .is_some_and(DeepgramFluxAdapter::is_model) =>
-        {
-            listen::<DeepgramFluxAdapter>(config, receiver, updates).await
-        }
-        "deepgram" => listen::<DeepgramAdapter>(config, receiver, updates).await,
-        "soniox" => listen::<SonioxAdapter>(config, receiver, updates).await,
-        "assemblyai" => listen::<AssemblyAIAdapter>(config, receiver, updates).await,
         "openai" => listen::<OpenAIAdapter>(config, receiver, updates).await,
-        "cartesia" => listen::<CartesiaAdapter>(config, receiver, updates).await,
-        "elevenlabs" => listen::<ElevenLabsAdapter>(config, receiver, updates).await,
-        "gladia" => listen::<GladiaAdapter>(config, receiver, updates).await,
-        "meta" => listen::<MetaAdapter>(config, receiver, updates).await,
-        "dashscope"
-            if config
-                .params
-                .model
-                .as_deref()
-                .is_some_and(DashScopeStreamingAdapter::is_model) =>
-        {
-            listen::<DashScopeStreamingAdapter>(config, receiver, updates).await
-        }
-        "dashscope" => listen::<DashScopeAdapter>(config, receiver, updates).await,
-        "wisprflow" => listen::<WisprFlowAdapter>(config, receiver, updates).await,
-        "smallestai" => listen::<SmallestAIAdapter>(config, receiver, updates).await,
-        "fireworks" => listen::<FireworksAdapter>(config, receiver, updates).await,
-        "mistral" => listen::<MistralAdapter>(config, receiver, updates).await,
-        "xai" => listen::<XaiAdapter>(config, receiver, updates).await,
+        "nvidia" => listen::<NvidiaAdapter>(config, receiver, updates).await,
         "argmax" => listen::<ArgmaxAdapter>(config, receiver, updates).await,
-        "nari" => listen::<NariAdapter>(config, receiver, updates).await,
-        "google_generative_ai" => {
-            listen::<GoogleGenerativeAiAdapter>(config, receiver, updates).await
-        }
         _ => Err(()),
     }
 }
@@ -143,10 +109,7 @@ async fn listen<A: RealtimeSttAdapter>(
 ) -> Result<String, ()> {
     config.params.channels = 1;
     config.params.sample_rate = 16_000;
-    let mut transcript = PreviewTranscript {
-        append_turns: config.provider == "cartesia",
-        ..Default::default()
-    };
+    let mut transcript = PreviewTranscript::default();
     let client = ListenClient::builder()
         .adapter::<A>()
         .api_base(config.base_url)
@@ -192,7 +155,6 @@ async fn listen<A: RealtimeSttAdapter>(
 
 #[derive(Default)]
 struct PreviewTranscript {
-    append_turns: bool,
     segments: Vec<(f64, String)>,
     partial: Option<(f64, String)>,
 }
@@ -212,12 +174,6 @@ impl PreviewTranscript {
         if !start.is_finite() {
             return None;
         }
-        // Cartesia emits ordered turns with a zero start and a connection-wide request ID.
-        let start = if self.append_turns {
-            self.segments.len() as f64
-        } else {
-            start
-        };
         if is_final && !text.is_empty() {
             if let Some(segment) = self.segments.iter_mut().find(|segment| segment.0 == start) {
                 segment.1 = text.clone();
@@ -300,30 +256,6 @@ mod tests {
     }
 
     #[test]
-    fn cartesia_appends_turns_that_reuse_the_same_start() {
-        let mut transcript = PreviewTranscript {
-            append_turns: true,
-            ..Default::default()
-        };
-        transcript.update(response(0.0, "first", false));
-        transcript.update(response(0.0, "First.", true));
-        let Some(RecordingUpdate::Transcript { text, partial }) =
-            transcript.update(response(0.0, "second", false))
-        else {
-            panic!()
-        };
-        assert_eq!(text, "First.");
-        assert_eq!(partial, "second");
-        let Some(RecordingUpdate::Transcript { text, partial }) =
-            transcript.update(response(0.0, "Second.", true))
-        else {
-            panic!()
-        };
-        assert_eq!(text, "First. Second.");
-        assert!(partial.is_empty());
-    }
-
-    #[test]
     fn partials_are_replaced_and_final_retries_are_not_duplicated() {
         let mut transcript = PreviewTranscript::default();
         transcript.update(response(0.0, "hel", false));
@@ -363,70 +295,6 @@ mod tests {
         assert_eq!(bytes.as_ref(), &[1, 128, 0, 0, 255, 127]);
         drop(preview);
         assert!(cancellation.is_cancelled());
-    }
-
-    #[tokio::test]
-    async fn wispr_finalizes_after_all_audio_and_returns_the_final_text() {
-        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let address = listener.local_addr().unwrap();
-        let server = tokio::spawn(async move {
-            let (socket, _) = listener.accept().await.unwrap();
-            let mut ws = tokio_tungstenite::accept_async(socket).await.unwrap();
-            let auth = ws.next().await.unwrap().unwrap().into_text().unwrap();
-            let auth: serde_json::Value = serde_json::from_str(&auth).unwrap();
-            assert_eq!(auth["type"], "auth");
-            assert_eq!(auth["access_token"], "test");
-            ws.send(Message::Text(r#"{"status":"auth"}"#.into()))
-                .await
-                .unwrap();
-            for position in 0..4 {
-                let packet = loop {
-                    if let Message::Text(text) = ws.next().await.unwrap().unwrap() {
-                        break text;
-                    }
-                };
-                let packet: serde_json::Value = serde_json::from_str(&packet).unwrap();
-                assert_eq!(packet["type"], "append");
-                assert_eq!(packet["position"], position);
-                assert_eq!(packet["audio_packets"]["packet_duration"], 0.1);
-            }
-            let commit = ws.next().await.unwrap().unwrap().into_text().unwrap();
-            assert_eq!(
-                serde_json::from_str::<serde_json::Value>(&commit).unwrap(),
-                serde_json::json!({"type":"commit","total_packets":4})
-            );
-            ws.send(Message::Text(
-                r#"{"status":"text","final":false,"body":{"text":"unfinished"}}"#.into(),
-            ))
-            .await
-            .unwrap();
-            ws.send(Message::Text(
-                r#"{"status":"text","final":true,"body":{"text":"Finished sentence."}}"#.into(),
-            ))
-            .await
-            .unwrap();
-        });
-        let preview = Preview::start(
-            PreviewConfig {
-                provider: "wisprflow".into(),
-                base_url: format!("http://{address}"),
-                api_key: "test".into(),
-                params: ListenParams::default(),
-            },
-            Channel::new(|_| Ok(())),
-        );
-        for _ in 0..3 {
-            assert!(preview.send(&[0.5; 1600]));
-        }
-        assert!(preview.send(&[0.5; 300]));
-        assert_eq!(
-            tokio::time::timeout(Duration::from_secs(3), preview.finish())
-                .await
-                .unwrap()
-                .as_deref(),
-            Some("Finished sentence.")
-        );
-        server.await.unwrap();
     }
 
     #[tokio::test]

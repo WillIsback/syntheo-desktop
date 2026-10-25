@@ -53,7 +53,7 @@ export function getDefaultSttSelection(
       status.models,
       {
         allowSavedModelWithoutChoices:
-          provider === "custom" || provider === "nvidia",
+          provider === "openai" || provider === "nvidia",
       },
     );
 

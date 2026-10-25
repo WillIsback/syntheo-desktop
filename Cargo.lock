@@ -10411,11 +10411,8 @@ dependencies = [
  "base64 0.22.1",
  "bytes",
  "data",
- "deepgram",
  "futures-util",
- "hound",
  "language",
- "observability",
  "openai-transcription",
  "owhisper-interface",
  "reqwest 0.13.2",
@@ -10424,7 +10421,6 @@ dependencies = [
  "rodio",
  "serde",
  "serde_json",
- "soniox",
  "strum 0.28.0",
  "tempfile",
  "thiserror 2.0.18",
@@ -10432,12 +10428,10 @@ dependencies = [
  "tokio-stream",
  "tokio-tungstenite 0.29.0",
  "tracing",
- "tracing-subscriber",
  "transcribe-soniqo",
  "transcribe-speechanalyzer",
  "url",
  "user-error",
- "uuid",
  "wiremock",
  "ws-client",
 ]
@@ -13668,17 +13662,6 @@ dependencies = [
  "wasm-bindgen",
  "web-sys",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "soniox"
-version = "0.1.0"
-dependencies = [
- "observability",
- "reqwest 0.13.2",
- "serde",
- "serde_json",
- "tokio",
 ]
 
 [[package]]

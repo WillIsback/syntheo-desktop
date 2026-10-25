@@ -5,6 +5,7 @@ use url::form_urlencoded::Serializer;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TranscriptionMode {
     Live,
+    #[cfg(feature = "local")]
     Batch,
 }
 

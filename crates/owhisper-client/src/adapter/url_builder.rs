@@ -1,8 +1,10 @@
 use owhisper_interface::ListenParams;
 
-use crate::providers::{Provider, is_meta_model};
+use crate::providers::is_meta_model;
 
-use super::deepgram::{DeepgramAdapter, DeepgramModel};
+/// Default model of the Deepgram-compatible `/listen` protocol spoken by the
+/// local Argmax server and the local `/stt` proxy.
+pub(crate) const DEEPGRAM_COMPAT_DEFAULT_MODEL: &str = "nova-3";
 
 #[derive(Default)]
 pub struct QueryParamBuilder {
@@ -31,7 +33,7 @@ impl QueryParamBuilder {
         let model = resolve_model_for_languages(
             params.model.as_deref(),
             &params.languages,
-            Provider::Deepgram.default_live_model(),
+            DEEPGRAM_COMPAT_DEFAULT_MODEL,
         );
         self.add("model", model)
             .add("channels", channels)
@@ -60,21 +62,12 @@ impl QueryParamBuilder {
 
 pub fn resolve_model_for_languages<'a>(
     model: Option<&'a str>,
-    languages: &[anlg_language::Language],
+    _languages: &[anlg_language::Language],
     default: &'a str,
 ) -> &'a str {
     match model {
         Some(m) if !m.is_empty() && !is_meta_model(m) => m,
-        _ => DeepgramAdapter::find_model(languages)
-            .map(|m| match m {
-                DeepgramModel::Nova3General => "nova-3",
-                DeepgramModel::Nova2General => "nova-2",
-                DeepgramModel::Nova3Medical => "nova-3-medical",
-                DeepgramModel::Nova2Specialized => "nova-2-meeting",
-                DeepgramModel::FluxGeneralEn => "flux-general-en",
-                DeepgramModel::FluxGeneralMulti => "flux-general-multi",
-            })
-            .unwrap_or(default),
+        _ => default,
     }
 }
 
@@ -161,7 +154,7 @@ mod tests {
                     sample_rate: 16000,
                     ..Default::default()
                 },
-                "nova-2",
+                "nova-3",
             ),
         ] {
             let mut builder = QueryParamBuilder::new();

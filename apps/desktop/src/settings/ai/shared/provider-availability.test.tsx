@@ -51,7 +51,7 @@ test("makes an authenticated local provider available despite its origin restric
 });
 
 test.each([
-  "http://192.168.1.10/v1",
+  "http://8.8.8.8/v1",
   "https://provider.test/v1?key=invalid",
   "not-a-url",
 ])(
@@ -66,12 +66,11 @@ test.each([
   },
 );
 
-test("keeps a saved Custom STT endpoint available without model-list verification", async () => {
-  mocks.provider = "custom";
-  mocks.baseUrl = "http://127.0.0.1:8000/v1";
+test("keeps a saved on-prem STT endpoint available without model-list verification", async () => {
+  mocks.baseUrl = "http://192.168.1.87:8000/v1";
   mocks.fetch.mockResolvedValue(new Response(null, { status: 404 }));
   const { result, client, unmount } = setup("stt");
-  await waitFor(() => expect(result.current.custom).toBe(true));
+  await waitFor(() => expect(result.current.openai).toBe(true));
   expect(mocks.fetch).not.toHaveBeenCalled();
   unmount();
   client.clear();
@@ -112,7 +111,7 @@ function setup(type: "stt" | "llm") {
   return { ...hook, client };
 }
 
-test.each(["stt", "llm"] as const)(
+test.each(["llm"] as const)(
   "keeps %s availability unknown after a network failure and recovers on retry",
   async (type) => {
     mocks.fetch.mockRejectedValue(new Error("offline"));
@@ -134,7 +133,7 @@ test.each([401, 403, 429, 500])(
   "distinguishes rejected credentials from inconclusive HTTP %i responses",
   async (status) => {
     mocks.fetch.mockResolvedValue(new Response(null, { status }));
-    const { result, client, unmount } = setup("stt");
+    const { result, client, unmount } = setup("llm");
     await waitFor(() => expect(client.isFetching()).toBe(0));
     if (status === 401 || status === 403) {
       await waitFor(() => expect(result.current.openai).toBe(false));

@@ -8,9 +8,9 @@ use reqwest_middleware::ClientWithMiddleware;
 use crate::adapter::{BatchSttAdapter, append_provider_param, is_anarlog_proxy};
 use crate::error::Error;
 use crate::http_client::create_client;
-use crate::{DeepgramAdapter, ListenClientBuilder, normalize_listen_params};
+use crate::{ListenClientBuilder, OpenAIAdapter, normalize_listen_params};
 
-pub struct BatchClientBuilder<A: BatchSttAdapter = DeepgramAdapter> {
+pub struct BatchClientBuilder<A: BatchSttAdapter = OpenAIAdapter> {
     api_base: Option<String>,
     api_key: Option<String>,
     params: Option<ListenParams>,
@@ -63,7 +63,7 @@ impl<A: BatchSttAdapter> BatchClientBuilder<A> {
 }
 
 #[derive(Clone)]
-pub struct BatchClient<A: BatchSttAdapter = DeepgramAdapter> {
+pub struct BatchClient<A: BatchSttAdapter = OpenAIAdapter> {
     client: ClientWithMiddleware,
     api_base: String,
     api_key: String,
@@ -132,7 +132,7 @@ impl<A: crate::RealtimeSttAdapter + BatchSttAdapter> ListenClientBuilder<A> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AnarlogAdapter, DeepgramAdapter, OpenAIAdapter};
+    use crate::{AnarlogAdapter, OpenAIAdapter};
     use anlg_language::{ISO639, Language};
 
     #[test]
@@ -149,12 +149,6 @@ mod tests {
             .build();
         assert_eq!(client.api_base, "https://api.openai.com/v1");
 
-        let client = BatchClient::<DeepgramAdapter>::builder()
-            .api_base("https://api.anarlog.so/stt")
-            .api_key("test")
-            .build();
-        assert!(client.api_base.contains("provider=deepgram"));
-
         let client = BatchClient::<OpenAIAdapter>::builder()
             .api_base("https://api.anarlog.so/stt?provider=anarlog&model=whisper-1")
             .api_key("test")
@@ -166,8 +160,8 @@ mod tests {
 
     #[test]
     fn normalizes_languages_when_constructed() {
-        let client = BatchClient::<DeepgramAdapter>::builder()
-            .api_base("https://api.deepgram.com/v1")
+        let client = BatchClient::<OpenAIAdapter>::builder()
+            .api_base("http://192.168.1.87:8000/v1")
             .api_key("test")
             .params(ListenParams {
                 languages: vec![

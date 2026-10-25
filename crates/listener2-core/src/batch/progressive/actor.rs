@@ -564,13 +564,13 @@ mod test {
     #[test]
     fn provider_error_extracts_fields() {
         let event = BatchStreamEvent::Error {
-            provider: "deepgram".into(),
+            provider: "openai".into(),
             error_message: "boom".into(),
             error_code: Some(429),
         };
         assert_eq!(
             provider_error_from_event(&event),
-            Some(("deepgram", "boom", Some(429)))
+            Some(("openai", "boom", Some(429)))
         );
     }
 

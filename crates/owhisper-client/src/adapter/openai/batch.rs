@@ -20,7 +20,6 @@ use crate::error::Error;
 
 use super::OpenAIAdapter;
 
-const DEFAULT_API_BASE: &str = "https://api.openai.com/v1";
 const OPENAI_PROGRESS_CAP: f64 = 0.99;
 const MAX_SSE_FRAME_BYTES: usize = 8 * 1_024 * 1_024;
 const MAX_SSE_DELIMITER_BYTES: usize = 4;
@@ -62,7 +61,13 @@ impl OpenAIAdapter {
         let file_path = file_path.as_ref().to_path_buf();
         let file_part = build_file_part(&file_path).await?;
 
-        let options = build_transcription_options(params, false, true);
+        let model =
+            OpenAIAdapter::resolve_batch_model(params.model.as_deref()).ok_or_else(|| {
+                Error::AudioProcessing(
+                    "streaming transcription requires an OpenAI model".to_string(),
+                )
+            })?;
+        let options = build_transcription_options(params, model, false, true);
         let form = build_multipart_form(file_part, options)?;
         let url = transcription_url(api_base)?;
 
@@ -133,8 +138,11 @@ async fn do_transcribe_file(
     params: &ListenParams,
     file_path: PathBuf,
 ) -> Result<BatchResponse, Error> {
+    let Some(model) = OpenAIAdapter::resolve_batch_model(params.model.as_deref()) else {
+        return transcribe_custom_model(client, api_base, api_key, params, &file_path).await;
+    };
     let file_part = build_file_part(&file_path).await?;
-    let options = build_transcription_options(params, true, false);
+    let options = build_transcription_options(params, model, true, false);
     let form = build_multipart_form(file_part, options)?;
     let url = transcription_url(api_base)?;
 
@@ -161,21 +169,50 @@ async fn build_file_part(file_path: &Path) -> Result<Part, Error> {
     streaming_file_part(file_path).await
 }
 
+/// On-prem servers (vLLM, speaches, faster-whisper-server) serve models the
+/// OpenAI SDK types do not know; they get the generic multipart request with
+/// the configured model name.
+async fn transcribe_custom_model(
+    client: &ClientWithMiddleware,
+    api_base: &str,
+    api_key: &str,
+    params: &ListenParams,
+    file_path: &Path,
+) -> Result<BatchResponse, Error> {
+    let model = params.model.as_deref().unwrap_or_default();
+    crate::adapter::openai_compatible_batch::transcribe(
+        client,
+        api_base,
+        api_key,
+        params,
+        file_path,
+        crate::adapter::openai_compatible_batch::OpenAICompatibleBatchConfig {
+            provider: "openai",
+            default_model: model,
+            transcription_path: "audio/transcriptions",
+            response_format: Some("verbose_json"),
+            timestamp_field: Some("timestamp_granularities[]"),
+            include_language: true,
+        },
+    )
+    .await
+}
+
 fn build_transcription_options(
     params: &ListenParams,
+    model: openai_transcription::batch::AudioModel,
     use_response_format: bool,
     enable_streaming: bool,
 ) -> CreateTranscriptionOptions {
-    let model = OpenAIAdapter::resolve_batch_model(params.model.as_deref());
     let mut options =
         CreateTranscriptionOptions::for_model(model, use_response_format, enable_streaming);
 
-    if let CreateTranscriptionOptions::Whisper(options) = &mut options {
-        if options.response_format.is_some() {
-            options
-                .timestamp_granularities
-                .push(TimestampGranularity::Word);
-        }
+    if let CreateTranscriptionOptions::Whisper(options) = &mut options
+        && options.response_format.is_some()
+    {
+        options
+            .timestamp_granularities
+            .push(TimestampGranularity::Word);
     }
 
     if model == openai_transcription::batch::AudioModel::GptTranscribe {
@@ -209,15 +246,14 @@ fn build_multipart_form(
 }
 
 fn transcription_url(api_base: &str) -> Result<url::Url, Error> {
-    let mut url: url::Url = if api_base.is_empty() {
-        DEFAULT_API_BASE
-            .parse()
-            .expect("invalid_default_openai_api_base")
-    } else {
-        api_base.parse().map_err(|e: url::ParseError| {
-            Error::AudioProcessing(format!("invalid api_base: {e}"))
-        })?
-    };
+    if api_base.trim().is_empty() {
+        return Err(Error::AudioProcessing(
+            "no transcription endpoint configured".to_string(),
+        ));
+    }
+    let mut url: url::Url = api_base
+        .parse()
+        .map_err(|e: url::ParseError| Error::AudioProcessing(format!("invalid api_base: {e}")))?;
     append_path_if_missing(&mut url, "audio/transcriptions");
     Ok(url)
 }
@@ -428,10 +464,10 @@ fn text_response_metadata(
 ) -> serde_json::Value {
     let mut metadata = transcription_usage_metadata(usage);
 
-    if let Some(duration) = duration {
-        if let Some(object) = metadata.as_object_mut() {
-            object.insert("duration".to_string(), serde_json::json!(duration));
-        }
+    if let Some(duration) = duration
+        && let Some(object) = metadata.as_object_mut()
+    {
+        object.insert("duration".to_string(), serde_json::json!(duration));
     }
 
     metadata
@@ -609,9 +645,82 @@ fn build_batch_response(
 mod tests {
     use super::*;
 
+    #[tokio::test]
+    async fn batch_without_endpoint_is_rejected() {
+        for model in ["whisper-1", "mistralai/Voxtral-Mini-3B-2507"] {
+            let client = crate::BatchClient::<OpenAIAdapter>::builder()
+                .api_base("")
+                .api_key("")
+                .params(ListenParams {
+                    model: Some(model.to_string()),
+                    ..Default::default()
+                })
+                .build();
+            let error = client
+                .transcribe_file(anlg_data::english_1::AUDIO_PATH)
+                .await
+                .expect_err("an empty endpoint must not fall back to a cloud host");
+            assert!(
+                matches!(&error, Error::AudioProcessing(message) if message.contains("no transcription endpoint")),
+                "{model}: {error:?}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn custom_batch_model_is_sent_verbatim() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/audio/transcriptions"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "text": "bonjour",
+                "words": [{ "word": "bonjour", "start": 0.0, "end": 0.5 }]
+            })))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let client = crate::BatchClient::<OpenAIAdapter>::builder()
+            .api_base(format!("{}/v1", server.uri()))
+            .api_key("")
+            .params(ListenParams {
+                model: Some("mistralai/Voxtral-Mini-3B-2507".to_string()),
+                languages: vec![anlg_language::ISO639::Fr.into()],
+                ..Default::default()
+            })
+            .build();
+        let response = client
+            .transcribe_file(anlg_data::english_1::AUDIO_PATH)
+            .await
+            .unwrap();
+
+        let requests = server.received_requests().await.unwrap();
+        let body = String::from_utf8_lossy(&requests[0].body);
+        let field =
+            |name: &str, value: &str| body.contains(&format!("name=\"{name}\"\r\n\r\n{value}\r\n"));
+        assert!(
+            field("model", "mistralai/Voxtral-Mini-3B-2507"),
+            "{body:.400}"
+        );
+        assert!(field("response_format", "verbose_json"));
+        assert!(field("language", "fr"));
+        assert_eq!(
+            response.results.channels[0].alternatives[0].transcript,
+            "bonjour"
+        );
+    }
+
     #[test]
     fn gpt_transcribe_options_request_json_with_all_language_hints() {
-        let options = build_transcription_options(&ListenParams::default(), true, false);
+        let options = build_transcription_options(
+            &ListenParams::default(),
+            openai_transcription::batch::AudioModel::GptTranscribe,
+            true,
+            false,
+        );
         let fields = options
             .multipart_text_fields()
             .expect("serialize multipart");
@@ -630,6 +739,7 @@ mod tests {
                 ],
                 ..Default::default()
             },
+            openai_transcription::batch::AudioModel::GptTranscribe,
             true,
             false,
         );
@@ -653,6 +763,7 @@ mod tests {
                 model: Some("whisper-1".to_string()),
                 ..Default::default()
             },
+            openai_transcription::batch::AudioModel::Whisper1,
             true,
             false,
         );
@@ -670,6 +781,7 @@ mod tests {
                 model: Some("whisper-1".to_string()),
                 ..Default::default()
             },
+            openai_transcription::batch::AudioModel::Whisper1,
             false,
             true,
         );

@@ -12,13 +12,13 @@ vi.mock("~/stt/contexts", () => ({
     selector({
       live: {
         amplitude: { mic: 0, speaker: 0 },
-        degraded: { type: "stream_error", message: "deepgram: overloaded" },
+        degraded: { type: "stream_error", message: "nvidia: overloaded" },
       },
     }),
 }));
 
 vi.mock("~/settings/queries", () => ({
-  useStoredSettingValue: () => ({ value: "deepgram", hasValue: true }),
+  useStoredSettingValue: () => ({ value: "nvidia", hasValue: true }),
 }));
 
 describe("BatchState", () => {
@@ -39,7 +39,7 @@ describe("BatchState", () => {
     render(<BatchState requestedLiveTranscription />);
 
     expect(screen.getByRole("status").textContent).toMatch(
-      /^Live transcript paused because Deepgram is having an outage\./,
+      /^Live transcript paused because NVIDIA Speech NIM is having an outage\./,
     );
   });
 });

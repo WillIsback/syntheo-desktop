@@ -28,16 +28,9 @@ export function usesDeferredProviderAuthentication(
   provider: string,
 ) {
   return (
-    type === "stt" &&
-    [
-      "custom",
-      "inworld",
-      "gradium",
-      "modulate",
-      "alebex",
-      "nvidia",
-      "amazon_bedrock",
-    ].includes(provider)
+    // Les serveurs STT on-prem n'ont pas de sonde d'authentification commune :
+    // la clé est vérifiée à l'ouverture de la session.
+    type === "stt" && ["openai", "nvidia"].includes(provider)
   );
 }
 
@@ -49,7 +42,10 @@ export async function verifyProviderCredentials(
   const apiKey = credential.apiKey.trim();
   if (
     (!apiKey &&
-      !(credential.type === "stt" && credential.provider === "nvidia")) ||
+      !usesDeferredProviderAuthentication(
+        credential.type,
+        credential.provider,
+      )) ||
     apiKey.length > 8192 ||
     /[\r\n]/.test(apiKey)
   )
@@ -66,10 +62,7 @@ export async function verifyProviderCredentials(
     );
   if (
     base.protocol !== "https:" &&
-    !(
-      base.protocol === "http:" &&
-      ["localhost", "127.0.0.1", "[::1]"].includes(base.hostname)
-    )
+    !(base.protocol === "http:" && isPrivateHost(base.hostname))
   )
     throw new ProviderCredentialError("Use HTTPS for provider credentials.");
 
@@ -192,25 +185,6 @@ function credentialRequest({ provider, baseUrl, apiKey }: ProviderCredential) {
     case "azure_ai":
       headers = { "api-key": apiKey };
       break;
-    case "azure_speech":
-      url = `${origin}/sts/v1.0/issueToken`;
-      method = "POST";
-      headers = { "Ocp-Apim-Subscription-Key": apiKey };
-      plainText = true;
-      accept = (value) =>
-        typeof value === "string" && value.split(".").length === 3;
-      break;
-    case "google_cloud":
-      url = `${base}/operations?pageSize=1`;
-      checkAuthentication = new URL(base).hostname !== "speech.googleapis.com";
-      accept = (value) =>
-        value !== null &&
-        typeof value === "object" &&
-        !Array.isArray(value) &&
-        !record(value).error &&
-        (record(value).operations === undefined ||
-          Array.isArray(record(value).operations));
-      break;
     case "google_vertex_ai":
       url = `${origin}/v1beta1/publishers/google/models?pageSize=1`;
       accept = (value) => Array.isArray(record(value).publisherModels);
@@ -225,16 +199,6 @@ function credentialRequest({ provider, baseUrl, apiKey }: ProviderCredential) {
     case "openrouter":
       url = `${base}/key`;
       accept = (value) => typeof record(record(value).data).label === "string";
-      break;
-    case "deepgram":
-      url = `${base}/projects`;
-      headers = { Authorization: `Token ${apiKey}` };
-      accept = (value) => Array.isArray(record(value).projects);
-      break;
-    case "assemblyai":
-      url = `${base}/v2/transcript?limit=1`;
-      headers = { Authorization: apiKey };
-      accept = (value) => Array.isArray(record(value).transcripts);
       break;
     case "siliconflow":
       url = `${base}/user/info`;
@@ -252,29 +216,6 @@ function credentialRequest({ provider, baseUrl, apiKey }: ProviderCredential) {
         record(value).success === true &&
         record(record(value).result).status === "active";
       break;
-    case "cartesia":
-      url = `${base}/voices?limit=1`;
-      headers["Cartesia-Version"] = "2025-04-16";
-      checkAuthentication = true;
-      accept = (value) =>
-        Array.isArray(value) || Array.isArray(record(value).data);
-      break;
-    case "nari":
-      url = `${origin}/v1/voices?model=qwen3-tts`;
-      checkAuthentication = true;
-      accept = (value) =>
-        record(value).object === "list" && Array.isArray(record(value).data);
-      break;
-    case "wisprflow":
-      url = `${origin}/api/v1/dash/warmup_dash`;
-      checkAuthentication = true;
-      accept = (value) => record(value).status === "warmed";
-      break;
-    case "smallestai":
-      url = `${base}/waves/v1/voice-cloning`;
-      checkAuthentication = true;
-      accept = (value) => Array.isArray(record(value).data);
-      break;
     case "fireworks":
       url = `${origin}/inference/v1/models`;
       checkAuthentication = true;
@@ -289,36 +230,6 @@ function credentialRequest({ provider, baseUrl, apiKey }: ProviderCredential) {
       headers["Content-Type"] = "application/json";
       body = "{}";
       accept = (value) => record(value).valid === true;
-      break;
-    case "soniox":
-      url = `${base}/v1/transcriptions?limit=1`;
-      accept = (value) => Array.isArray(record(value).transcriptions);
-      break;
-    case "speechmatics":
-      url = `${base}/jobs`;
-      accept = (value) => Array.isArray(record(value).jobs);
-      break;
-    case "revai":
-      url = `${base}/account`;
-      accept = (value) => typeof record(value).id === "string";
-      break;
-    case "elevenlabs":
-      url = `${base}/v1/user`;
-      headers = { "xi-api-key": apiKey };
-      accept = (value) => typeof record(value).user_id === "string";
-      break;
-    case "gladia":
-      url = `${base}/v2/live?limit=1`;
-      headers = { "x-gladia-key": apiKey };
-      accept = (value) => Array.isArray(record(value).items);
-      break;
-    case "pyannote":
-      url = `${base}/v1/test`;
-      accept = (value) => record(value).status === "OK";
-      break;
-    case "dashscope":
-      url = `${base}/compatible-mode/v1/models`;
-      checkAuthentication = true;
       break;
     case "openai":
       checkAuthentication = new URL(base).hostname !== "api.openai.com";
@@ -339,6 +250,30 @@ function credentialRequest({ provider, baseUrl, apiKey }: ProviderCredential) {
     checkAuthentication,
     plainText,
   };
+}
+
+// Un endpoint on-prem en HTTP clair reste acceptable sur la machine ou un
+// réseau privé (LAN, plage CGNAT de Tailscale, noms .local) ; ailleurs, HTTPS.
+export function isPrivateHost(hostname: string) {
+  const host = hostname.toLowerCase();
+  if (["localhost", "[::1]"].includes(host) || host.endsWith(".local")) {
+    return true;
+  }
+  const octets = host.split(".").map(Number);
+  if (
+    octets.length !== 4 ||
+    octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)
+  ) {
+    return false;
+  }
+  const [a, b] = octets;
+  return (
+    a === 127 ||
+    a === 10 ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 100 && b >= 64 && b <= 127)
+  );
 }
 
 function record(value: unknown): Record<string, unknown> {

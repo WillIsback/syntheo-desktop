@@ -31,6 +31,8 @@ vi.mock("@tauri-apps/plugin-http", () => ({ fetch: mocks.fetch }));
 
 vi.mock("@anlg/provider-validation", () => ({
   verifyProviderCredentials: mocks.verify,
+  usesDeferredProviderAuthentication: (type: string, provider: string) =>
+    type === "stt" && ["openai", "nvidia"].includes(provider),
 }));
 
 vi.mock("@anlg/plugin-store2", () => ({
@@ -122,7 +124,31 @@ describe("SQLite AI providers", () => {
     queryClient.clear();
   });
 
-  it("saves Custom STT without requiring a model-list endpoint", async () => {
+  it("rejects a public plain-HTTP STT endpoint even without key verification", async () => {
+    const { verifyProviderCredentials } = await vi.importActual<
+      typeof import("@anlg/provider-validation")
+    >("@anlg/provider-validation");
+    mocks.verify.mockImplementation(verifyProviderCredentials);
+    mocks.execute.mockResolvedValue([]);
+    const queryClient = new QueryClient();
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+    const { result, unmount } = renderHook(
+      () => useSetAiProvider("stt", "openai"),
+      { wrapper },
+    );
+    await expect(
+      result.current.mutateAsync({
+        base_url: "http://8.8.8.8/v1",
+        api_key: "",
+      }),
+    ).rejects.toThrow("Use HTTPS");
+    expect(mocks.executeTransaction).not.toHaveBeenCalled();
+    unmount();
+    queryClient.clear();
+  });
+
+  it("saves an on-prem STT endpoint without requiring a model-list endpoint", async () => {
     const { verifyProviderCredentials } = await vi.importActual<
       typeof import("@anlg/provider-validation")
     >("@anlg/provider-validation");
@@ -133,17 +159,17 @@ describe("SQLite AI providers", () => {
     const wrapper = ({ children }: { children: ReactNode }) =>
       createElement(QueryClientProvider, { client: queryClient }, children);
     const { result, unmount } = renderHook(
-      () => useSetAiProvider("stt", "custom", { verifyCredentials: true }),
+      () => useSetAiProvider("stt", "openai", { verifyCredentials: true }),
       { wrapper },
     );
     await result.current.mutateAsync({
-      base_url: "http://127.0.0.1:8000/v1",
+      base_url: "http://192.168.1.87:8000/v1",
       api_key: "local-key",
     });
     expect(mocks.fetch).not.toHaveBeenCalled();
     expect(mocks.setSecret).toHaveBeenCalledWith(
       "ai-provider-api-keys",
-      "stt:custom",
+      "stt:openai",
       "local-key",
     );
     expect(mocks.executeTransaction).toHaveBeenCalledOnce();

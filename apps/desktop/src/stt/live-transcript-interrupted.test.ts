@@ -6,11 +6,11 @@ describe("getLiveTranscriptPausedMessage", () => {
   it("names the provider when it reports an outage", () => {
     expect(
       getLiveTranscriptPausedMessage({
-        degraded: { type: "stream_error", message: "deepgram: overloaded" },
-        sttProvider: "deepgram",
+        degraded: { type: "stream_error", message: "nvidia: overloaded" },
+        sttProvider: "nvidia",
         online: true,
       }),
-    ).toMatch(/because Deepgram is having an outage\./);
+    ).toMatch(/because NVIDIA Speech NIM is having an outage\./);
   });
 
   it("separates an upstream outage from Anarlog server issues on cloud", () => {
@@ -49,10 +49,10 @@ describe("getLiveTranscriptPausedMessage", () => {
     expect(
       getLiveTranscriptPausedMessage({
         degraded: { type: "connection_timeout" },
-        sttProvider: "deepgram",
+        sttProvider: "openai",
         online: true,
       }),
-    ).toMatch(/Anarlog can't reach Deepgram/);
+    ).toMatch(/Anarlog can't reach OpenAI-compatible/);
   });
 
   it("does not blame the network for on-device models", () => {

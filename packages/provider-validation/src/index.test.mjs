@@ -78,33 +78,36 @@ test("a public model catalog cannot validate a key", async () => {
   );
 });
 
-test("custom STT validates configuration without probing an OpenAI model catalog", async () => {
+test("on-prem STT validates configuration without probing a model catalog", async () => {
   const fetcher = async () => {
-    assert.fail("Custom STT must not send model-list or control-key requests");
+    assert.fail("On-prem STT must not send model-list or control-key requests");
   };
   for (const baseUrl of [
     "http://127.0.0.1:8000/v1",
+    "http://192.168.1.87:8000/v1",
+    "http://100.101.102.103:9000",
+    "http://dgx.local:8000/v1",
     "https://stt.example/v1",
   ]) {
     await verifyProviderCredentials(
-      { ...credential, type: "stt", provider: "custom", baseUrl },
+      { ...credential, type: "stt", provider: "openai", baseUrl, apiKey: "" },
       fetcher,
     );
   }
 });
 
-test("custom STT still rejects unsafe URLs and malformed keys before saving", async () => {
+test("on-prem STT still rejects unsafe URLs and malformed keys before saving", async () => {
   for (const update of [
     { baseUrl: "not-a-url" },
     { baseUrl: "http://stt.example/v1" },
     { baseUrl: "https://user:password@stt.example/v1" },
+    { baseUrl: "http://8.8.8.8/v1" },
     { baseUrl: "https://stt.example/v1?key=secret" },
-    { apiKey: "" },
     { apiKey: "bad\nkey" },
   ]) {
     await assert.rejects(
       verifyProviderCredentials(
-        { ...credential, type: "stt", provider: "custom", ...update },
+        { ...credential, type: "stt", provider: "openai", ...update },
         async () => assert.fail("Invalid configuration must not send requests"),
       ),
       ProviderCredentialError,
@@ -119,7 +122,10 @@ test("Custom LLM still requires key proof after accepting the same STT configura
     calls++;
     return Response.json({ data: [] });
   };
-  await verifyProviderCredentials({ ...custom, type: "stt" }, fetcher);
+  await verifyProviderCredentials(
+    { ...custom, type: "stt", provider: "openai" },
+    fetcher,
+  );
   assert.equal(calls, 0);
   await assert.rejects(
     verifyProviderCredentials({ ...custom, type: "llm" }, fetcher),
@@ -209,20 +215,6 @@ for (const [provider, path, header, value, payload] of [
     "Bearer synthetic-key",
     { data: { label: "test key" } },
   ],
-  [
-    "deepgram",
-    "/v1/projects",
-    "Authorization",
-    "Token synthetic-key",
-    { projects: [] },
-  ],
-  [
-    "assemblyai",
-    "/v1/v2/transcript?limit=1",
-    "Authorization",
-    "synthetic-key",
-    { transcripts: [] },
-  ],
   ["anthropic", "/v1/models", "x-api-key", "synthetic-key", { data: [] }],
   [
     "google_generative_ai",
@@ -244,20 +236,6 @@ for (const [provider, path, header, value, payload] of [
     "Authorization",
     "Bearer synthetic-key",
     { valid: true },
-  ],
-  [
-    "gladia",
-    "/v1/v2/live?limit=1",
-    "x-gladia-key",
-    "synthetic-key",
-    { items: [] },
-  ],
-  [
-    "elevenlabs",
-    "/v1/v1/user",
-    "xi-api-key",
-    "synthetic-key",
-    { user_id: "test" },
   ],
   [
     "azure_openai",
@@ -389,61 +367,6 @@ test("never caches a failed verification as accepted", async () => {
   assert.equal(calls, 2);
 });
 
-test("Nari verifies keys using its non-billable authenticated voice catalog", async () => {
-  const requests = [];
-  await verifyProviderCredentials(
-    {
-      type: "stt",
-      provider: "nari",
-      baseUrl: "https://api.narilabs.com",
-      apiKey: "synthetic-key",
-    },
-    async (url, init) => {
-      requests.push({ url, init });
-      return requests.length === 1
-        ? Response.json({ object: "list", model: "qwen3-tts", data: [] })
-        : new Response(null, { status: 401 });
-    },
-  );
-  assert.equal(requests.length, 2);
-  assert.equal(
-    requests[0].url,
-    "https://api.narilabs.com/v1/voices?model=qwen3-tts",
-  );
-  assert.equal(requests[0].init.headers.Authorization, "Bearer synthetic-key");
-  assert.equal(
-    requests[1].init.headers.Authorization,
-    "Bearer anarlog-invalid-key-verification",
-  );
-});
-
-test("validates Wispr Flow with its authenticated warmup endpoint", async () => {
-  const requests = [];
-  await verifyProviderCredentials(
-    {
-      provider: "wisprflow",
-      baseUrl: "https://platform-api.wisprflow.ai",
-      apiKey: "synthetic-key",
-    },
-    async (url, init) => {
-      requests.push({ url, init });
-      assert.equal(
-        url,
-        "https://platform-api.wisprflow.ai/api/v1/dash/warmup_dash",
-      );
-      if (init.headers.Authorization !== "Bearer synthetic-key")
-        return new Response(null, { status: 401 });
-      return Response.json({ status: "warmed" });
-    },
-  );
-  assert.equal(requests.length, 2);
-  assert.equal(requests[0].init.headers.Authorization, "Bearer synthetic-key");
-  assert.equal(
-    requests[1].init.headers.Authorization,
-    "Bearer anarlog-invalid-key-verification",
-  );
-});
-
 test("Venice verifies account access instead of its public model catalog", async () => {
   const requests = [];
   await verifyProviderCredentials(
@@ -485,14 +408,7 @@ test("native streaming providers validate input without requiring a model catalo
   const fetcher = async () => {
     throw new Error("No documented credential probe");
   };
-  for (const provider of [
-    "inworld",
-    "gradium",
-    "amazon_bedrock",
-    "modulate",
-    "alebex",
-    "nvidia",
-  ]) {
+  for (const provider of ["openai", "nvidia"]) {
     await verifyProviderCredentials(
       { ...credential, type: "stt", provider },
       fetcher,
@@ -510,7 +426,7 @@ test("native streaming providers validate input without requiring a model catalo
   );
   await assert.rejects(
     verifyProviderCredentials(
-      { ...credential, type: "stt", provider: "inworld", apiKey: "" },
+      { ...credential, type: "llm", provider: "openai", apiKey: "" },
       fetcher,
     ),
     /valid API key/,

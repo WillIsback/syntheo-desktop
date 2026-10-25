@@ -61,8 +61,13 @@ vi.mock("~/settings/providers", () => ({
       },
       "stt:deepgram": {
         type: "stt",
-        base_url: "   ",
-        api_key: "test-key",
+        base_url: "https://api.deepgram.com/v1",
+        api_key: "legacy-key",
+      },
+      "stt:openai": {
+        type: "stt",
+        base_url: "http://192.168.1.87:8000/v1",
+        api_key: "",
       },
     },
   }),
@@ -133,9 +138,23 @@ describe("useSTTConnection", () => {
     expect(result.current.isReady).toBe(false);
   });
 
-  it("uses the provider endpoint when only a Deepgram API key is stored", () => {
+  it("ignores_a_stored_provider_that_no_longer_exists", () => {
     config.current_stt_provider = "deepgram";
-    config.current_stt_model = "nova-3-general";
+    config.current_stt_model = "nova-3";
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+
+    const { result } = renderHook(() => useSTTConnection(), { wrapper });
+
+    expect(result.current.conn).toBeNull();
+  });
+
+  it("openai_connection_accepts_empty_key_and_marks_provider", () => {
+    config.current_stt_provider = "openai";
+    config.current_stt_model = "mistralai/Voxtral-Mini-4B-Realtime-2602";
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -145,10 +164,10 @@ describe("useSTTConnection", () => {
     const { result } = renderHook(() => useSTTConnection(), { wrapper });
 
     expect(result.current.conn).toEqual({
-      provider: "deepgram",
-      model: "nova-3-general",
-      baseUrl: "https://api.deepgram.com/v1",
-      apiKey: "test-key",
+      provider: "openai",
+      model: "mistralai/Voxtral-Mini-4B-Realtime-2602",
+      baseUrl: "http://192.168.1.87:8000/v1?provider=openai",
+      apiKey: "",
     });
   });
 
@@ -171,8 +190,8 @@ describe("useSTTConnection", () => {
   });
 
   it("waits for stored settings and secure provider configuration", () => {
-    config.current_stt_provider = "deepgram";
-    config.current_stt_model = "nova-3-general";
+    config.current_stt_provider = "openai";
+    config.current_stt_model = "whisper-large-v3";
     readiness.provider = false;
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },

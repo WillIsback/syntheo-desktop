@@ -59,60 +59,74 @@ impl OpenAIAdapter {
         Self::language_support_batch(languages).is_supported()
     }
 
-    pub(crate) fn resolve_batch_model(model: Option<&str>) -> AudioModel {
-        let default = Provider::OpenAI.default_batch_model();
+    /// `None` means a model the OpenAI API does not know (Voxtral, Whisper on
+    /// vLLM...): it is sent verbatim through the generic
+    /// `/v1/audio/transcriptions` path instead of being replaced.
+    pub(crate) fn resolve_batch_model(model: Option<&str>) -> Option<AudioModel> {
+        let default = || {
+            Provider::OpenAI
+                .default_batch_model()
+                .parse()
+                .expect("invalid_default_openai_batch_model")
+        };
 
         match model {
-            Some(value) if crate::providers::is_meta_model(value) => {
-                default.parse().expect("invalid_default_openai_batch_model")
-            }
-            Some(value) => value
-                .parse()
-                .unwrap_or_else(|_| default.parse().expect("invalid_default_openai_batch_model")),
-            None => default.parse().expect("invalid_default_openai_batch_model"),
+            Some(value) if crate::providers::is_meta_model(value) => Some(default()),
+            Some(value) => value.parse().ok(),
+            None => Some(default()),
         }
+    }
+
+    /// File-only models of the OpenAI API (`whisper-1`, `gpt-transcribe`...).
+    /// Any other name, notably an on-prem realtime model, can stream live.
+    pub fn is_batch_only_model(model: &str) -> bool {
+        !crate::providers::is_meta_model(model) && model.parse::<AudioModel>().is_ok()
     }
 
     pub fn supports_progressive_batch_model(model: Option<&str>) -> bool {
         matches!(
             Self::resolve_batch_model(model),
-            AudioModel::GptTranscribe
-                | AudioModel::Gpt4oTranscribe
-                | AudioModel::Gpt4oMiniTranscribe
-                | AudioModel::Gpt4oMiniTranscribe20251215
+            Some(
+                AudioModel::GptTranscribe
+                    | AudioModel::Gpt4oTranscribe
+                    | AudioModel::Gpt4oMiniTranscribe
+                    | AudioModel::Gpt4oMiniTranscribe20251215
+            )
         )
     }
 
+    /// The configured base URL is kept as typed: scheme (`http` → `ws`),
+    /// host, port and any reverse-proxy path prefix. Only the local Anarlog
+    /// `/stt` proxy is rewritten. The desktop's `?provider=` marker is dropped.
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
-        if api_base.is_empty() {
-            return (
-                Provider::OpenAI
-                    .default_ws_url()
-                    .parse()
-                    .expect("invalid_default_ws_url"),
-                vec![("intent".to_string(), "transcription".to_string())],
-            );
-        }
-
-        if let Some(proxy_result) = super::build_proxy_ws_url(api_base) {
+        if super::is_anarlog_proxy(api_base)
+            && let Some(proxy_result) = super::build_proxy_ws_url(api_base)
+        {
             return proxy_result;
         }
 
-        let parsed: url::Url = api_base.parse().expect("invalid_api_base");
-        let mut existing_params = super::extract_query_params(&parsed);
-
-        if !existing_params.iter().any(|(key, _)| key == "intent") {
-            existing_params.push(("intent".to_string(), "transcription".to_string()));
+        let mut url: url::Url = api_base.parse().expect("invalid_api_base");
+        let mut params: Vec<(String, String)> = super::extract_query_params(&url)
+            .into_iter()
+            .filter(|(key, _)| key != "provider")
+            .collect();
+        if !params.iter().any(|(key, _)| key == "intent") {
+            params.push(("intent".to_string(), "transcription".to_string()));
         }
 
-        let url = super::build_url_with_scheme(
-            &parsed,
-            Provider::OpenAI.default_ws_host(),
-            Provider::OpenAI.ws_path(),
-            true,
-        );
+        let scheme = if matches!(url.scheme(), "http" | "ws") {
+            "ws"
+        } else {
+            "wss"
+        };
+        url.set_scheme(scheme).expect("invalid_api_base_scheme");
+        url.set_query(None);
+        let path = url.path().trim_end_matches('/').to_string();
+        if !path.ends_with("/realtime") {
+            url.set_path(&format!("{path}/realtime"));
+        }
 
-        (url, existing_params)
+        (url, params)
     }
 }
 
@@ -121,18 +135,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_is_openai_host() {
-        assert!(Provider::OpenAI.is_host("api.openai.com"));
-        assert!(Provider::OpenAI.is_host("openai.com"));
-        assert!(!Provider::OpenAI.is_host("api.deepgram.com"));
+    fn resolve_batch_model_keeps_unknown_models() {
+        assert_eq!(
+            OpenAIAdapter::resolve_batch_model(Some("whisper-large-v3")),
+            None
+        );
+        assert_eq!(
+            OpenAIAdapter::resolve_batch_model(Some("whisper-1")),
+            Some(AudioModel::Whisper1)
+        );
+        assert_eq!(
+            OpenAIAdapter::resolve_batch_model(Some("auto")),
+            Some(AudioModel::GptTranscribe)
+        );
+        assert_eq!(
+            OpenAIAdapter::resolve_batch_model(None),
+            Some(AudioModel::GptTranscribe)
+        );
     }
 
     #[test]
-    fn resolve_batch_model_defaults_to_gpt_transcribe() {
-        assert_eq!(
-            OpenAIAdapter::resolve_batch_model(None),
-            AudioModel::GptTranscribe
-        );
+    fn progressive_batch_rejects_custom_models() {
+        assert!(!OpenAIAdapter::supports_progressive_batch_model(Some(
+            "whisper-large-v3"
+        )));
     }
 
     #[test]
@@ -159,11 +185,6 @@ mod tests {
     fn build_ws_url_resolves_intent_and_proxy_params() {
         for (input, expected_url, expected_params) in [
             (
-                "",
-                "wss://api.openai.com/v1/realtime",
-                vec![("intent", "transcription")],
-            ),
-            (
                 "https://api.anarlog.so?provider=openai",
                 "wss://api.anarlog.so/listen",
                 vec![("provider", "openai")],
@@ -184,6 +205,34 @@ mod tests {
                     .collect::<Vec<_>>(),
                 "input: {input}"
             );
+        }
+    }
+
+    #[test]
+    fn realtime_url_respects_the_on_prem_base_url() {
+        use crate::adapter::RealtimeSttAdapter;
+        use owhisper_interface::ListenParams;
+
+        for (input, expected) in [
+            (
+                "http://192.168.1.87:8000/v1?provider=openai",
+                "ws://192.168.1.87:8000/v1/realtime?intent=transcription",
+            ),
+            (
+                "http://localhost:8000/v1?provider=openai",
+                "ws://localhost:8000/v1/realtime?intent=transcription",
+            ),
+            (
+                "https://gpu.example/stt-gpu/v1/",
+                "wss://gpu.example/stt-gpu/v1/realtime?intent=transcription",
+            ),
+            (
+                "http://localhost:9000/v1/realtime",
+                "ws://localhost:9000/v1/realtime?intent=transcription",
+            ),
+        ] {
+            let url = OpenAIAdapter::default().build_ws_url(input, &ListenParams::default(), 1);
+            assert_eq!(url.as_str(), expected, "input: {input}");
         }
     }
 }

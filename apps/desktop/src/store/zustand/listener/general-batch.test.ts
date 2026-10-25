@@ -187,7 +187,7 @@ describe("runBatchSession", () => {
         session_id: "session-1",
         provider: "am",
         file_path: "/tmp/session.wav",
-        base_url: "https://api.deepgram.com/v1",
+        base_url: "http://192.168.1.87:8000/v1",
         api_key: "",
       }),
     ).toBe(true);
@@ -579,9 +579,9 @@ describe("runBatchSession", () => {
       "session-1",
       {
         session_id: "session-1",
-        provider: "deepgram",
+        provider: "openai",
         file_path: "/tmp/session.wav",
-        base_url: "https://api.deepgram.com/v1",
+        base_url: "http://192.168.1.87:8000/v1",
         api_key: "test-key",
       },
     );
@@ -1303,8 +1303,8 @@ describe("batch recovery after reload", () => {
         {
           session_id: "session-1",
           file_path: "/tmp/session.wav",
-          provider: "deepgram",
-          model: "nova-3",
+          provider: "openai",
+          model: "whisper-large-v3",
           started_at_ms: 0,
         },
       ],

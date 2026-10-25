@@ -132,7 +132,6 @@ progenitor-client = "0.13"
 openai-transcription = { path = "crates/openai-transcription", package = "openai-transcription" }
 owhisper-client = { path = "crates/owhisper-client", package = "owhisper-client" }
 owhisper-interface = { path = "crates/owhisper-interface", package = "owhisper-interface" }
-soniox = { path = "crates/soniox", package = "soniox" }
 
 ashpd = { version = "0.13.13", default-features = false }
 tauri = "2.11.5"

@@ -615,7 +615,7 @@ fn apple_speech_engine_drops_unfinalized_hypothesis_on_flush() {
 
 #[test]
 fn preserves_provider_speakers_beyond_calendar_attendance() {
-    let mut engine = LiveTranscriptEngine::new("deepgram", &["remote".into()], Some("self"));
+    let mut engine = LiveTranscriptEngine::new("openai", &["remote".into()], Some("self"));
     let mut first = word("first", 0.0, 0.5);
     first.speaker = Some(0);
     let mut second = word("second", 0.5, 1.0);
@@ -656,7 +656,7 @@ fn preserves_provider_speakers_beyond_calendar_attendance() {
 // the new stream, where the provider re-transcribes them with slightly different timing.
 #[test]
 fn checkpointed_engine_ignores_replayed_words_and_keeps_segments_continuous() {
-    let mut engine = LiveTranscriptEngine::new("deepgram", &[], Some("self"));
+    let mut engine = LiveTranscriptEngine::new("openai", &[], Some("self"));
     let final_at = |text: &str, start: f64, end: f64| {
         transcript_response_at(
             &format!(" {text}"),
@@ -710,7 +710,7 @@ fn checkpointed_engine_ignores_replayed_words_and_keeps_segments_continuous() {
 
 #[test]
 fn updating_attendance_does_not_merge_remote_voices() {
-    let mut engine = LiveTranscriptEngine::new("deepgram", &[], Some("self"));
+    let mut engine = LiveTranscriptEngine::new("openai", &[], Some("self"));
     engine.update_identities(&["remote".into()], Some("self"), vec![], false, 0);
     let mut spoken = word("hello", 0.0, 0.5);
     spoken.speaker = Some(7);
@@ -727,7 +727,7 @@ fn updating_attendance_does_not_merge_remote_voices() {
 #[test]
 fn speaker_assignment_names_later_segments_from_the_same_speaker() {
     let participants = ["self".to_string(), "artem".to_string(), "guest".to_string()];
-    let mut engine = LiveTranscriptEngine::new("deepgram", &participants, Some("self"));
+    let mut engine = LiveTranscriptEngine::new("openai", &participants, Some("self"));
     let spoken = |text: &str, start: f64, speaker: i32| {
         let mut words = words_from_text(text, start, 1.0);
         for word in &mut words {
@@ -802,7 +802,7 @@ fn speaker_assignment_names_later_segments_from_the_same_speaker() {
 fn isolated_mic_names_indexless_words_as_self() {
     let participants = ["self".to_string()];
     let mut engine = LiveTranscriptEngine::with_speaker_assignments(
-        "deepgram",
+        "openai",
         &participants,
         Some("self"),
         vec![],
@@ -829,7 +829,7 @@ fn isolated_mic_names_indexless_words_as_self() {
 fn shared_mic_keeps_indexless_words_anonymous() {
     let participants = ["self".to_string()];
     let mut engine = LiveTranscriptEngine::with_speaker_assignments(
-        "deepgram",
+        "openai",
         &participants,
         Some("self"),
         vec![],
@@ -856,7 +856,7 @@ fn shared_mic_keeps_indexless_words_anonymous() {
 fn isolation_start_keeps_earlier_words_anonymous() {
     let participants = ["self".to_string()];
     let mut engine = LiveTranscriptEngine::with_speaker_assignments(
-        "deepgram",
+        "openai",
         &participants,
         Some("self"),
         vec![],
@@ -908,7 +908,7 @@ fn isolation_start_keeps_earlier_words_anonymous() {
 fn isolation_end_keeps_earlier_isolated_words_named() {
     let participants = ["self".to_string()];
     let mut engine = LiveTranscriptEngine::with_speaker_assignments(
-        "deepgram",
+        "openai",
         &participants,
         Some("self"),
         vec![],
@@ -961,7 +961,7 @@ fn isolation_end_keeps_earlier_isolated_words_named() {
 fn isolated_mic_self_wins_over_scoped_guest_assignment() {
     let participants = ["self".to_string()];
     let mut engine = LiveTranscriptEngine::with_speaker_assignments(
-        "deepgram",
+        "openai",
         &participants,
         Some("self"),
         vec![IdentityAssignment {
@@ -1016,73 +1016,4 @@ fn live_transcript_delta_keeps_speaker_index_on_words() {
     assert_eq!(converted.new_words[0].speaker_index, Some(1));
     assert_eq!(converted.partials[0].speaker_index, Some(2));
     assert_eq!(converted.replaced_ids, vec!["replaced"]);
-}
-
-#[test]
-fn nari_completed_utterances_finalize_immediately_without_waiting_for_flush() {
-    let mut engine = LiveTranscriptEngine::new("nari", &[], None);
-    for (start, text) in [(0.0, "First answer"), (1.0, "Second answer")] {
-        let preview = transcript_response_at(
-            "provisional",
-            vec![word("provisional", start, start + 1.0)],
-            false,
-            0,
-            start,
-            1.0,
-        );
-        assert!(
-            engine
-                .process(&preview)
-                .unwrap()
-                .transcript_delta
-                .new_words
-                .is_empty()
-        );
-        let completed = transcript_response_at(
-            text,
-            vec![word(text, start, start + 1.0)],
-            true,
-            0,
-            start,
-            1.0,
-        );
-        let update = engine
-            .process(&completed)
-            .expect("completed utterance delta");
-        assert_eq!(update.transcript_delta.new_words.len(), 1);
-        assert_eq!(update.transcript_delta.new_words[0].text.trim(), text);
-        assert!(update.transcript_delta.partials.is_empty());
-        assert!(engine.process(&completed).is_none());
-    }
-    assert!(engine.flush().is_none());
-}
-
-#[test]
-fn nari_empty_final_clears_only_its_preview_and_never_persists_unconfirmed_text() {
-    let mut engine = LiveTranscriptEngine::new("nari", &[], None);
-    let first = transcript_response_at(
-        "discard this",
-        vec![word("discard this", 0.0, 1.0)],
-        false,
-        0,
-        0.0,
-        1.0,
-    );
-    engine.process(&first).unwrap();
-    let second = transcript_response_at(
-        "still pending",
-        vec![word("still pending", 2.0, 3.0)],
-        false,
-        0,
-        2.0,
-        1.0,
-    );
-    engine.process(&second).unwrap();
-    let empty = transcript_response_at("", vec![], true, 0, 0.0, 1.0);
-    let update = engine.process(&empty).unwrap();
-    assert!(update.transcript_delta.new_words.is_empty());
-    assert_eq!(update.transcript_delta.partials.len(), 1);
-    assert_eq!(update.transcript_delta.partials[0].text, "still pending");
-    let flushed = engine.flush();
-    assert!(flushed.is_none_or(|update| update.transcript_delta.new_words.is_empty()));
 }

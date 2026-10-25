@@ -62,7 +62,7 @@ pub fn resolve_transcription_mode(
     model: &str,
     languages: &[anlg_language::Language],
 ) -> TranscriptionMode {
-    use owhisper_client::{AdapterKind, Provider};
+    use owhisper_client::{AdapterKind, OpenAIAdapter};
 
     if requested == TranscriptionMode::Batch {
         return TranscriptionMode::Batch;
@@ -94,19 +94,7 @@ pub fn resolve_transcription_mode(
 
     let adapter_kind = AdapterKind::from_url_and_languages(base_url, languages, Some(model));
 
-    if adapter_kind == AdapterKind::OpenAI && model != Provider::OpenAI.default_live_model() {
-        return TranscriptionMode::Batch;
-    }
-
-    if adapter_kind == AdapterKind::ElevenLabs
-        && model == Provider::ElevenLabs.default_batch_model()
-    {
-        return TranscriptionMode::Batch;
-    }
-
-    if adapter_kind == AdapterKind::GoogleGenerativeAi
-        && !owhisper_client::GoogleGenerativeAiAdapter::is_live_model(model)
-    {
+    if adapter_kind == AdapterKind::OpenAI && OpenAIAdapter::is_batch_only_model(model) {
         return TranscriptionMode::Batch;
     }
 
@@ -242,52 +230,20 @@ mod tests {
                 "openai batch models forced to batch",
             ),
             (
-                "https://api.elevenlabs.io/v1",
-                "scribe_v2",
+                "http://192.168.1.87:8000/v1?provider=openai",
+                "mistralai/Voxtral-Mini-4B-Realtime-2602",
                 TranscriptionMode::Live,
                 vec![],
-                TranscriptionMode::Batch,
-                "elevenlabs scribe_v2 forced to batch",
+                TranscriptionMode::Live,
+                "on-prem realtime model on the openai protocol stays live",
             ),
             (
-                "https://api.elevenlabs.io/v1",
-                "scribe_v2_realtime",
+                "https://asr.example/v1/realtime?provider=nvidia",
+                "nemotron-asr-streaming",
                 TranscriptionMode::Live,
                 vec![],
                 TranscriptionMode::Live,
-                "elevenlabs scribe_v2_realtime stays live",
-            ),
-            (
-                "https://generativelanguage.googleapis.com/v1beta",
-                "gemini-3.5-transcribe-live",
-                TranscriptionMode::Live,
-                vec![],
-                TranscriptionMode::Live,
-                "gemini transcribe live stays live",
-            ),
-            (
-                "https://generativelanguage.googleapis.com/v1beta",
-                "gemini-3.5-transcribe",
-                TranscriptionMode::Live,
-                vec![],
-                TranscriptionMode::Batch,
-                "gemini file model forced to batch",
-            ),
-            (
-                "https://api.groq.com/openai/v1",
-                "whisper-large-v3",
-                TranscriptionMode::Live,
-                vec![],
-                TranscriptionMode::Batch,
-                "adapters without live mode forced to batch",
-            ),
-            (
-                "https://api.deepgram.com/v1",
-                "nova-3-general",
-                TranscriptionMode::Live,
-                vec![],
-                TranscriptionMode::Live,
-                "realtime providers stay live",
+                "nvidia nim stays live",
             ),
             (
                 anlg_transcribe_soniqo::LOCAL_BASE_URL,
@@ -332,8 +288,8 @@ mod tests {
             "session_id": "session",
             "languages": [],
             "onboarding": false,
-            "model": "nova-3-general",
-            "base_url": "https://api.deepgram.com/v1",
+            "model": "nemotron-asr-streaming",
+            "base_url": "https://asr.example/v1/realtime?provider=nvidia",
             "api_key": "test-key",
             "keywords": [],
         });

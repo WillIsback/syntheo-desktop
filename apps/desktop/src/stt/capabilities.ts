@@ -177,101 +177,26 @@ export function getSttModelTranscriptionMode(
     return "batch";
   }
 
-  if (
-    ["nari", "inworld", "gradium", "modulate", "alebex", "nvidia"].includes(
-      provider ?? "",
-    )
-  )
-    return "live";
+  if (provider === "nvidia") return "live";
 
-  if (provider === "smallestai" && model === "pulse-pro") {
-    return "batch";
-  }
-
-  if (
-    provider === "groq" ||
-    provider === "openrouter" ||
-    provider === "siliconflow" ||
-    provider === "together" ||
-    provider === "zai" ||
-    provider === "speechmatics" ||
-    provider === "azure_speech" ||
-    provider === "google_cloud" ||
-    provider === "aws_transcribe" ||
-    provider === "amazon_bedrock" ||
-    provider === "revai" ||
-    provider === "pyannote" ||
-    provider === "aquavoice" ||
-    provider === "cohere"
-  ) {
-    return "batch";
-  }
-
-  if (provider === "google_generative_ai") {
-    if (model?.includes("transcribe-live")) {
-      return "live";
-    }
-    if (model) {
-      return "batch";
-    }
-  }
-
-  if (provider === "openai") {
-    if (model === "gpt-live-transcribe") return "live";
-    if (
-      model === "gpt-transcribe" ||
-      model === "gpt-4o-transcribe-diarize" ||
-      model === "gpt-4o-transcribe" ||
-      model === "gpt-4o-mini-transcribe" ||
-      model === "whisper-1"
-    ) {
-      return "batch";
-    }
-  }
-
-  if (provider === "assemblyai") {
-    if (model === "universal-3-pro" || model === "universal-3-5-pro") {
-      return "batch";
-    }
-    if (model === "u3-rt-pro" || model === "universal-3-5-pro-realtime") {
-      return "live";
-    }
-  }
-
-  if (provider === "elevenlabs") {
-    if (model === "scribe_v2") return "batch";
-    if (model === "scribe_v2_realtime") return "live";
-  }
-
-  if (provider === "mistral") {
-    if (model === "voxtral-mini-2602" || model === "voxtral-mini-latest") {
-      return "batch";
-    }
-    if (model === "voxtral-mini-transcribe-realtime-2602") return "live";
-  }
-
-  if (provider === "soniox") {
-    if (model === "stt-async-v5" || model === "stt-async-v4") return "batch";
-    if (
-      model === "stt-rt-v5" ||
-      model === "stt-rt-v4" ||
-      model === "stt-v5" ||
-      model === "stt-v4"
-    ) {
-      return "live";
-    }
-  }
-
-  if (provider === "deepgram" && model?.startsWith("flux-")) {
-    return "live";
-  }
-
-  if (provider === "gladia" && model === "solaria-3") {
-    return "batch";
+  // Comme côté Rust (OpenAIAdapter::is_batch_only_model) : seuls les modèles
+  // fichier de l'API OpenAI passent en batch ; un modèle on-prem (Voxtral sur
+  // vLLM...) diffuse en temps réel.
+  if (provider === "openai" && model) {
+    return OPENAI_FILE_MODELS.has(model) ? "batch" : "live";
   }
 
   return undefined;
 }
+
+const OPENAI_FILE_MODELS = new Set([
+  "whisper-1",
+  "gpt-transcribe",
+  "gpt-4o-transcribe",
+  "gpt-4o-mini-transcribe",
+  "gpt-4o-mini-transcribe-2025-12-15",
+  "gpt-4o-transcribe-diarize",
+]);
 
 function baseLanguageCode(language: string) {
   return language.split(/[-_]/)[0]?.toLowerCase() ?? "";
@@ -280,10 +205,6 @@ function baseLanguageCode(language: string) {
 function languageSupportProvider(provider: string) {
   if (provider === "local_file") {
     return "anarlog";
-  }
-
-  if (provider === "custom" || provider === "cloudflare_workers_ai") {
-    return "deepgram";
   }
 
   return provider === "apple_speech" ? "apple-speech" : provider;

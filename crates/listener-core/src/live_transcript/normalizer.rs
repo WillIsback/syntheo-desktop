@@ -12,7 +12,6 @@ const SONIQO_INTERNAL_REPEAT_MAX_EXTRA_TOKENS: usize = 3;
 pub(super) enum TranscriptNormalizer {
     Soniqo(SoniqoTranscriptNormalizer),
     AppleSpeech,
-    Nari,
     #[default]
     Passthrough,
 }
@@ -22,7 +21,6 @@ impl TranscriptNormalizer {
         match provider_name {
             "soniqo" => Self::Soniqo(SoniqoTranscriptNormalizer::default()),
             "apple-speech" => Self::AppleSpeech,
-            "nari" => Self::Nari,
             _ => Self::Passthrough,
         }
     }
@@ -30,7 +28,7 @@ impl TranscriptNormalizer {
     pub(super) fn normalize(&mut self, response: &mut StreamResponse) {
         match self {
             Self::Soniqo(normalizer) => normalizer.normalize(response),
-            Self::AppleSpeech | Self::Nari | Self::Passthrough => {}
+            Self::AppleSpeech | Self::Passthrough => {}
         }
     }
 
@@ -39,7 +37,7 @@ impl TranscriptNormalizer {
     }
 
     pub(super) fn flush_partials(&self) -> bool {
-        !matches!(self, Self::AppleSpeech | Self::Nari)
+        !matches!(self, Self::AppleSpeech)
     }
 }
 

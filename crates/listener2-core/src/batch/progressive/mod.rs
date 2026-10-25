@@ -62,10 +62,6 @@ fn resolve_progressive_provider(
         {
             Ok(ProgressiveProvider::OpenAI)
         }
-        AdapterKind::DashScope => Err(crate::BatchFailure::BatchCapabilityUnsupported {
-            provider: adapter_kind.to_string(),
-        }
-        .into()),
         _ => Err(crate::BatchFailure::ProgressiveBatchUnsupported {
             provider: adapter_kind.to_string(),
         }

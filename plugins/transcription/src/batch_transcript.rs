@@ -247,7 +247,7 @@ mod tests {
             created_at: "2026-08-15T12:00:00.000Z".to_string(),
             started_at: 9000.0,
             memo: "new memo".to_string(),
-            provider: "soniox".to_string(),
+            provider: "openai".to_string(),
             model: "batch-v1".to_string(),
             words: vec![stored_word(
                 "new-word",
@@ -365,7 +365,7 @@ mod tests {
         assert_eq!(inserted.get::<String, _>("workspace_id"), "workspace-1");
         assert_eq!(inserted.get::<String, _>("owner_user_id"), "session-owner");
         assert_eq!(inserted.get::<String, _>("source"), "batch_transcription");
-        assert_eq!(inserted.get::<String, _>("provider"), "soniox");
+        assert_eq!(inserted.get::<String, _>("provider"), "openai");
         assert_eq!(inserted.get::<String, _>("model"), "batch-v1");
         assert_eq!(inserted.get::<String, _>("language"), "");
         assert_eq!(inserted.get::<i64, _>("started_at_ms"), 9000);

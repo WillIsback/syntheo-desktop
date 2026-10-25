@@ -1,11 +1,10 @@
 use std::time::Duration;
 
-use anlg_ws_client::client::{IntoClientRequest, Message};
+use anlg_ws_client::client::Message;
 use bytes::Bytes;
 
 use super::{ListenClientDualInput, TransformedInput, forward_dual_to_single, mic_stream_params};
-use crate::test_utils::{run_dual_test, run_single_test};
-use crate::{AssemblyAIAdapter, DeepgramAdapter, ListenClient, RealtimeSttAdapter, SonioxAdapter};
+use crate::{AnarlogAdapter, ListenClient, OpenAIAdapter, RealtimeSttAdapter};
 
 #[derive(Clone, Default)]
 struct TestAdapter;
@@ -53,10 +52,6 @@ impl RealtimeSttAdapter for TestAdapter {
     }
 }
 
-fn proxy_base() -> String {
-    std::env::var("PROXY_URL").unwrap_or_else(|_| "localhost:3001".to_string())
-}
-
 #[tokio::test]
 async fn malformed_custom_endpoint_returns_provider_configuration_error() {
     let api_base = format!("{}://custom.example/listen", "a".repeat(65));
@@ -76,9 +71,9 @@ async fn malformed_custom_endpoint_returns_provider_configuration_error() {
 
 #[tokio::test]
 async fn malformed_direct_endpoint_returns_provider_configuration_error() {
-    let api_base = format!("https://api.deepgram.com/{}", "a".repeat(70 * 1024));
+    let api_base = format!("http://192.168.1.87:8000/v1?pad={}", "a".repeat(70 * 1024));
     let error = ListenClient::builder()
-        .adapter::<DeepgramAdapter>()
+        .adapter::<OpenAIAdapter>()
         .api_base(api_base)
         .build_single()
         .await
@@ -87,18 +82,18 @@ async fn malformed_direct_endpoint_returns_provider_configuration_error() {
 
     assert!(matches!(
         error,
-        crate::Error::ProviderConfiguration { provider, .. } if provider == "deepgram"
+        crate::Error::ProviderConfiguration { provider, .. } if provider == "openai"
     ));
 }
 
 #[tokio::test]
 async fn valid_proxy_and_direct_endpoints_still_build() {
     for api_base in [
-        "https://api.deepgram.com/v1",
-        "https://api.anarlog.so/stt?provider=deepgram",
+        "http://192.168.1.87:8000/v1",
+        "http://localhost:3001/stt?provider=openai",
     ] {
         ListenClient::builder()
-            .adapter::<DeepgramAdapter>()
+            .adapter::<OpenAIAdapter>()
             .api_base(api_base)
             .build_single()
             .await
@@ -107,10 +102,10 @@ async fn valid_proxy_and_direct_endpoints_still_build() {
 }
 
 #[tokio::test]
-async fn split_dual_builds_mic_request_from_mic_speaker_params() {
+async fn split_dual_builds_a_dedicated_mic_request() {
     let client = ListenClient::builder()
-        .adapter::<AssemblyAIAdapter>()
-        .api_base("wss://api.assemblyai.com/v2/realtime/ws")
+        .adapter::<OpenAIAdapter>()
+        .api_base("http://192.168.1.87:8000/v1")
         .api_key("test-key")
         .params(owhisper_interface::ListenParams {
             mic_num_speakers: Some(1),
@@ -120,33 +115,17 @@ async fn split_dual_builds_mic_request_from_mic_speaker_params() {
         .await
         .unwrap();
 
-    // URL-configured providers read the speaker cap from the connection URI, so
-    // the mic side of a split session needs a request built from the mic params.
-    let mic_uri = client
-        .mic_request
-        .as_ref()
-        .expect("split sessions should build a dedicated mic request")
-        .clone()
-        .into_client_request()
-        .unwrap()
-        .uri()
-        .to_string();
-    assert!(mic_uri.contains("max_speakers=1"), "mic URI: {mic_uri}");
-    let spk_uri = client
-        .request
-        .clone()
-        .into_client_request()
-        .unwrap()
-        .uri()
-        .to_string();
-    assert!(!spk_uri.contains("max_speakers"), "spk URI: {spk_uri}");
+    assert!(
+        client.mic_request.is_some(),
+        "split sessions should build a dedicated mic request"
+    );
 }
 
 #[tokio::test]
 async fn native_multichannel_dual_does_not_build_mic_request() {
     let client = ListenClient::builder()
-        .adapter::<DeepgramAdapter>()
-        .api_base("https://api.deepgram.com/v1")
+        .adapter::<AnarlogAdapter>()
+        .api_base("http://localhost:3001/stt")
         .api_key("test-key")
         .params(owhisper_interface::ListenParams {
             mic_num_speakers: Some(1),
@@ -248,162 +227,6 @@ fn mic_stream_params_without_mic_count_keeps_shared_expectation() {
 }
 
 #[tokio::test]
-async fn build_single_normalizes_languages_before_initial_message() {
-    let client = ListenClient::builder()
-        .adapter::<SonioxAdapter>()
-        .api_base("https://api.soniox.com")
-        .params(owhisper_interface::ListenParams {
-            languages: vec![
-                "en-US".parse().unwrap(),
-                "en-GB".parse().unwrap(),
-                anlg_language::ISO639::En.into(),
-                "ko-KR".parse().unwrap(),
-            ],
-            ..Default::default()
-        })
-        .build_single()
-        .await
-        .unwrap();
-
-    let msg = client.initial_message.expect("missing initial message");
-    let Message::Text(text) = msg else {
-        panic!("expected text message");
-    };
-    let json: serde_json::Value = serde_json::from_str(&text).unwrap();
-    let hints = json["language_hints"].as_array().unwrap();
-
-    assert_eq!(hints.len(), 2);
-    assert_eq!(hints[0].as_str().unwrap(), "en");
-    assert_eq!(hints[1].as_str().unwrap(), "ko");
-}
-
-#[tokio::test]
-#[ignore]
-async fn test_proxy_deepgram_single() {
-    let client = ListenClient::builder()
-        .adapter::<DeepgramAdapter>()
-        .api_base(&format!("http://{}", proxy_base()))
-        .params(owhisper_interface::ListenParams {
-            model: Some("nova-3".to_string()),
-            languages: vec![anlg_language::ISO639::En.into()],
-            ..Default::default()
-        })
-        .build_single()
-        .await
-        .unwrap();
-
-    run_single_test(client, "proxy-deepgram").await;
-}
-
-#[tokio::test]
-#[ignore]
-async fn test_proxy_deepgram_dual() {
-    let client = ListenClient::builder()
-        .adapter::<DeepgramAdapter>()
-        .api_base(&format!("http://{}", proxy_base()))
-        .params(owhisper_interface::ListenParams {
-            model: Some("nova-3".to_string()),
-            languages: vec![anlg_language::ISO639::En.into()],
-            ..Default::default()
-        })
-        .build_dual()
-        .await
-        .unwrap();
-
-    run_dual_test(client, "proxy-deepgram").await;
-}
-
-#[tokio::test]
-#[ignore]
-async fn test_proxy_soniox_single() {
-    let client = ListenClient::builder()
-        .adapter::<SonioxAdapter>()
-        .api_base(&format!("http://{}", proxy_base()))
-        .params(owhisper_interface::ListenParams {
-            model: Some("stt-v3".to_string()),
-            languages: vec![anlg_language::ISO639::En.into()],
-            ..Default::default()
-        })
-        .build_single()
-        .await
-        .unwrap();
-
-    run_single_test(client, "proxy-soniox").await;
-}
-
-#[tokio::test]
-#[ignore]
-async fn test_proxy_soniox_dual() {
-    let client = ListenClient::builder()
-        .adapter::<SonioxAdapter>()
-        .api_base(&format!("http://{}", proxy_base()))
-        .params(owhisper_interface::ListenParams {
-            model: Some("stt-v3".to_string()),
-            languages: vec![anlg_language::ISO639::En.into()],
-            ..Default::default()
-        })
-        .build_dual()
-        .await
-        .unwrap();
-
-    run_dual_test(client, "proxy-soniox").await;
-}
-
-#[tokio::test]
-#[ignore]
-async fn test_proxy_assemblyai_single() {
-    let client = ListenClient::builder()
-        .adapter::<AssemblyAIAdapter>()
-        .api_base(&format!("http://{}", proxy_base()))
-        .params(owhisper_interface::ListenParams {
-            model: Some("u3-rt-pro".to_string()),
-            languages: vec![anlg_language::ISO639::En.into()],
-            ..Default::default()
-        })
-        .build_single()
-        .await
-        .unwrap();
-
-    run_single_test(client, "proxy-assemblyai").await;
-}
-
-#[tokio::test]
-#[ignore]
-async fn test_proxy_assemblyai_dual() {
-    let client = ListenClient::builder()
-        .adapter::<AssemblyAIAdapter>()
-        .api_base(&format!("http://{}", proxy_base()))
-        .params(owhisper_interface::ListenParams {
-            model: Some("u3-rt-pro".to_string()),
-            languages: vec![anlg_language::ISO639::En.into()],
-            ..Default::default()
-        })
-        .build_dual()
-        .await
-        .unwrap();
-
-    run_dual_test(client, "proxy-assemblyai").await;
-}
-
-#[tokio::test]
-async fn nari_rejects_audio_at_an_unsupported_sample_rate() {
-    let error = ListenClient::builder()
-        .adapter::<crate::NariAdapter>()
-        .api_base("https://api.narilabs.com")
-        .params(owhisper_interface::ListenParams {
-            sample_rate: 48_000,
-            ..Default::default()
-        })
-        .build_single()
-        .await
-        .err()
-        .expect("Nari only accepts 16 kHz PCM");
-    assert!(
-        matches!(error, crate::Error::ProviderConfiguration {provider,..} if provider == "nari")
-    );
-}
-
-#[tokio::test]
 async fn nvidia_dual_capture_authenticates_each_stream_with_its_own_token() {
     use std::collections::BTreeSet;
     use std::sync::{
@@ -472,4 +295,20 @@ async fn nvidia_dual_capture_authenticates_each_stream_with_its_own_token() {
         .unwrap()
         .unwrap();
     assert_eq!(tokens.lock().unwrap().len(), 2);
+}
+
+#[tokio::test]
+async fn empty_endpoint_is_rejected_instead_of_a_cloud_default() {
+    let error = ListenClient::builder()
+        .adapter::<OpenAIAdapter>()
+        .api_base("")
+        .build_single()
+        .await
+        .err()
+        .expect("an empty endpoint must not fall back to a cloud host");
+
+    assert!(matches!(
+        error,
+        crate::Error::ProviderConfiguration { provider, .. } if provider == "openai"
+    ));
 }

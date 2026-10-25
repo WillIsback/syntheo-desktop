@@ -152,20 +152,24 @@ export const useSTTConnection = () => {
       return null;
     }
 
-    if (!baseUrl || (!apiKey && current_stt_provider !== "nvidia")) {
+    // Un réglage hérité peut désigner un provider retiré ou désactivé : aucune
+    // connexion, même si sa configuration (URL cloud, clé) est encore stockée.
+    const provider = PROVIDERS.find(({ id }) => id === current_stt_provider);
+    if (!provider || provider.disabled) {
       return null;
     }
 
+    // Les endpoints on-prem n'exigent pas forcément de clé.
+    if (!baseUrl) {
+      return null;
+    }
+
+    // Le protocole est désigné explicitement : un hôte on-prem ne permet pas
+    // de le deviner.
     let routedBaseUrl = baseUrl;
     if (
-      [
-        "inworld",
-        "gradium",
-        "modulate",
-        "alebex",
-        "nvidia",
-        "amazon_bedrock",
-      ].includes(current_stt_provider)
+      current_stt_provider === "openai" ||
+      current_stt_provider === "nvidia"
     ) {
       const url = new URL(baseUrl);
       url.searchParams.set("provider", current_stt_provider);

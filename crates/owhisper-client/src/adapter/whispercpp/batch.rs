@@ -115,7 +115,7 @@ fn load_audio_metadata(path: &Path) -> Result<(String, f64), Error> {
     }
     .to_string();
 
-    let duration = audio_duration_secs(&path);
+    let duration = audio_duration_secs(path);
 
     Ok((content_type, duration))
 }

@@ -439,7 +439,7 @@ describe("SQLite settings", () => {
     let rows = [
       {
         id: "current_stt_provider",
-        value_json: JSON.stringify("deepgram"),
+        value_json: JSON.stringify("nvidia"),
       },
       { id: "current_stt_model", value_json: JSON.stringify("") },
     ];
@@ -456,8 +456,42 @@ describe("SQLite settings", () => {
 
     const statements = mocks.executeTransaction.mock.calls[0][0];
     expect(statements.map((statement) => statement.params.slice(0, 2))).toEqual(
-      [["current_stt_model", JSON.stringify("nova-3-general")]],
+      [["current_stt_model", JSON.stringify("nemotron-asr-streaming")]],
     );
+  });
+
+  it("clears a selected cloud transcription provider that no longer exists", async () => {
+    let rows = [
+      {
+        id: "current_stt_provider",
+        value_json: JSON.stringify("deepgram"),
+      },
+      { id: "current_stt_model", value_json: JSON.stringify("nova-3") },
+    ];
+    mocks.execute.mockImplementation(async () => rows);
+    mocks.executeTransaction.mockImplementation(async (statements) => {
+      // value_json est TEXT NOT NULL : SQLite rejette null/undefined.
+      if (statements.some((statement) => statement.params[1] == null)) {
+        throw new Error("NOT NULL constraint failed: app_settings.value_json");
+      }
+      rows = statements.map((statement) => ({
+        id: String(statement.params[0]),
+        value_json: String(statement.params[1]),
+      }));
+      return statements.map(() => 1);
+    });
+
+    await initializeApplicationSettings();
+
+    const statements = mocks.executeTransaction.mock.calls[0][0];
+    expect(
+      statements
+        .map((statement) => statement.params.slice(0, 2))
+        .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    ).toEqual([
+      ["current_stt_model", JSON.stringify("")],
+      ["current_stt_provider", JSON.stringify("")],
+    ]);
   });
 
   it.each([
