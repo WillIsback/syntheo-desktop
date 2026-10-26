@@ -1,11 +1,9 @@
-use std::path::Path;
-
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::{Alternatives, Channel, Response, Results, Word};
 use reqwest::multipart::Form;
 use serde::Deserialize;
 
-use crate::adapter::http::{ensure_success, streaming_file_part};
+use crate::adapter::http::{AudioBody, ensure_success};
 use crate::adapter::{ClientWithMiddleware, MIXED_CAPTURE_CHANNEL, append_path_if_missing};
 use crate::error::Error;
 
@@ -30,7 +28,7 @@ pub(crate) async fn transcribe(
     api_base: &str,
     api_key: &str,
     params: &ListenParams,
-    file_path: &Path,
+    audio: AudioBody,
     config: OpenAICompatibleBatchConfig<'_>,
 ) -> Result<Response, Error> {
     let model = resolve_model(params, config.default_model);
@@ -48,7 +46,7 @@ pub(crate) async fn transcribe(
     {
         form = form.text("language", language.iso639().code().to_string());
     }
-    form = form.part("file", streaming_file_part(file_path).await?);
+    form = form.part("file", audio.to_part().await?);
 
     if api_base.trim().is_empty() {
         return Err(Error::AudioProcessing(

@@ -82,6 +82,41 @@ pub async fn streaming_file_body(file_path: &Path) -> Result<(reqwest::Body, u64
     Ok((reqwest::Body::from(file), length))
 }
 
+/// Construit une partie multipart à partir d'un tampon audio en mémoire. Les
+/// chemins qui ne doivent rien écrire sur disque (dictée, imports) passent par
+/// ici plutôt que par un fichier.
+pub fn streaming_bytes_part(
+    data: Vec<u8>,
+    file_name: &str,
+    mime_type: &str,
+) -> Result<Part, Error> {
+    let length = data.len() as u64;
+    Part::stream_with_length(reqwest::Body::from(data), length)
+        .file_name(file_name.to_string())
+        .mime_str(mime_type)
+        .map_err(|e| Error::AudioProcessing(e.to_string()))
+}
+
+/// Source audio d'un envoi batch : un fichier existant, ou un tampon en mémoire
+/// quand l'audio ne doit jamais toucher le disque.
+#[derive(Debug, Clone)]
+pub(crate) enum AudioBody {
+    Path(std::path::PathBuf),
+    Bytes { data: Vec<u8>, file_name: String },
+}
+
+impl AudioBody {
+    pub(crate) async fn to_part(&self) -> Result<Part, Error> {
+        match self {
+            AudioBody::Path(path) => streaming_file_part(path).await,
+            AudioBody::Bytes { data, file_name } => {
+                let mime = mime_type_from_extension(Path::new(file_name));
+                streaming_bytes_part(data.clone(), file_name, mime)
+            }
+        }
+    }
+}
+
 pub async fn streaming_file_part(file_path: &Path) -> Result<Part, Error> {
     let fallback_name = match file_path.extension().and_then(|e| e.to_str()) {
         Some(ext) => format!("audio.{}", ext),
@@ -107,7 +142,7 @@ pub async fn streaming_file_part(file_path: &Path) -> Result<Part, Error> {
 mod tests {
     use wiremock::{Mock, MockServer, ResponseTemplate, matchers::path};
 
-    use super::error_body_with_limit;
+    use super::{error_body_with_limit, streaming_bytes_part};
 
     #[tokio::test]
     async fn error_body_is_capped_and_marked() {
@@ -125,5 +160,30 @@ mod tests {
             body,
             format!("{}\n[response body truncated]", "x".repeat(16))
         );
+    }
+
+    #[tokio::test]
+    async fn in_memory_audio_is_sent_as_a_multipart_file_part() {
+        let server = MockServer::start().await;
+        Mock::given(path("/v1/audio/transcriptions"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({})))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let part = streaming_bytes_part(b"abc".to_vec(), "dictation.wav", "audio/wav").unwrap();
+        let form = reqwest::multipart::Form::new().part("file", part);
+        reqwest::Client::new()
+            .post(format!("{}/v1/audio/transcriptions", server.uri()))
+            .multipart(form)
+            .send()
+            .await
+            .unwrap();
+
+        let requests = server.received_requests().await.unwrap();
+        let body = String::from_utf8_lossy(&requests[0].body).into_owned();
+        assert!(body.contains("filename=\"dictation.wav\""), "{body:.300}");
+        assert!(body.contains("Content-Type: audio/wav"), "{body:.300}");
+        assert!(body.contains("abc"), "{body:.300}");
     }
 }
