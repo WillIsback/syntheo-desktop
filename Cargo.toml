@@ -206,7 +206,7 @@ image = { version = "0.25.10", default-features = false, features = ["webp"] }
 indexmap = "2"
 indoc = "2"
 isolang = "2.4"
-itertools = "0.14.0"
+itertools = "0.15.0"
 jsonschema = "0.46.0"
 libloading = "0.8"
 open = "5"
