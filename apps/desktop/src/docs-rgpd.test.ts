@@ -46,17 +46,21 @@ it("docs_rgpd_reflects_capture_without_audio", () => {
   expect(rgpd).toContain("import");
 });
 
-it("docs_rgpd_states_failed_import_copy_is_kept", () => {
+it("docs_rgpd_states_no_audio_is_ever_written", () => {
   const rgpd = readFileSync(join(ROOT, "docs/conformite/rgpd.md"), "utf8");
-  expect(rgpd).toContain("import dont la transcription échoue");
+  expect(rgpd).not.toContain("reste dans le dossier temporaire");
+  expect(rgpd).not.toContain("import dont la transcription échoue");
+  expect(rgpd).not.toContain("copie normalisée");
+  expect(rgpd).toMatch(/ne touche plus jamais le disque/i);
+  expect(rgpd).toContain("même temporairement");
 });
 
 it("rgpd_lists_stt_as_on_prem_only", () => {
   const rgpd = readFileSync(join(ROOT, "docs/conformite/rgpd.md"), "utf8");
-  // Les adaptateurs STT cloud sont retirés (04b-1) ; restent les providers
-  // LLM cloud jusqu'au 04b-3.
+  // Adaptateurs STT cloud retirés (04b-1) et providers LLM cloud retirés
+  // (04b-3) : il ne reste que les endpoints configurés.
   expect(rgpd).not.toContain("Deepgram");
-  expect(rgpd).toContain("04b-3");
+  expect(rgpd).toContain("NVIDIA NIM");
 });
 
 it("rgpd_lists_no_model_download", () => {

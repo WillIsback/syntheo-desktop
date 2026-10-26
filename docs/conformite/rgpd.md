@@ -7,20 +7,16 @@ Desktop. Il est mis à jour à chaque changement de flux réseau ou de stockage.
 centrale, ni compte, et n'émet aucune télémétrie. L'éditeur n'accède à aucune donnée et n'est
 pas responsable de traitement : l'utilisateur l'est, sur son poste.
 
-> **État au 2026-10-25 : transition en cours.** Deux écarts avec la cible
-> subsistent jusqu'aux chantiers indiqués ; ils sont repris dans les sections
-> concernées.
+> **État au 2026-10-26 :** l'audio ne touche plus jamais le disque, sur aucun
+> chemin. La capture de réunion, la dictée, l'import et le dépôt d'un fichier
+> audio, ainsi que le découpage interne du traitement batch, travaillent
+> entièrement en mémoire ; le fichier importé est lu à son emplacement
+> d'origine, sans copie dans le dossier de données.
 >
-> - **Audio hors capture** (chantier 04c-B) : la capture de réunion n'écrit
->   plus aucun audio sur disque (chantier 04c-A). Restent des fichiers audio
->   **temporaires** pour la dictée (WAV dans le dossier temporaire du système,
->   supprimé après transcription, mais laissé dans ce dossier temporaire si l'application plante avant), l'import ou le dépôt d'un fichier audio
->   (copie normalisée dans le dossier de la note, supprimée dès la transcription réussie ; pour un import dont la transcription échoue, la copie reste jusqu'au chantier 04c-B) et le découpage interne du traitement batch.
-> - **Providers** : endpoints on-premise uniquement. La transcription parle aux
->   protocoles OpenAI et NVIDIA NIM (chantier 04b-1) ; le résumé, le chat et le
->   générateur de templates parlent à un seul endpoint LLM configuré, une API
->   OpenAI-compatible (vLLM, Ollama, llama.cpp server…, chantier 04b-3). Une
->   sélection LLM cloud héritée est effacée au démarrage.
+> **Providers** : endpoints on-premise uniquement. La transcription parle aux
+> protocoles OpenAI et NVIDIA NIM ; le résumé, le chat et le générateur de
+> templates parlent à un seul endpoint LLM configuré, une API
+> OpenAI-compatible (vLLM, Ollama, llama.cpp server…).
 
 ## Données stockées
 
@@ -28,17 +24,17 @@ Tout est stocké sur le poste, dans le dossier de données de l'application
 (`syntheo` sous le répertoire de données de l'utilisateur, par exemple
 `~/.local/share/syntheo` sous Linux).
 
-| Donnée                                     | Où                                                                                                                                               | Durée                                 | Suppression                                                                              |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Transcripts (texte, horodatage, locuteurs) | base SQLite locale `app.db`                                                                                                                      | jusqu'à suppression par l'utilisateur | suppression de la réunion dans l'application, ou du dossier de données                   |
-| Notes et comptes rendus générés            | base SQLite locale                                                                                                                               | idem                                  | idem                                                                                     |
-| Contacts, dossiers, réglages               | base SQLite locale                                                                                                                               | idem                                  | idem                                                                                     |
-| Clés d'API des endpoints d'inférence       | trousseau du système (Keychain, Secret Service, Credential Manager) ; jamais en clair dans la base                                               | jusqu'à suppression du provider       | retrait du provider dans les réglages                                                    |
-| Index de recherche plein texte (tantivy)   | dossier de données (copie indexée des transcripts et notes)                                                                                      | tant que les réunions existent        | suit la suppression des réunions, ou suppression du dossier de données                   |
-| Journaux techniques `app.log`              | dossier de logs de l'application ; contenu filtré par un module de masquage (`RedactingWriter`), rotation par taille                             | rotation automatique                  | suppression du dossier de logs                                                           |
-| Exports (Markdown, etc.)                   | dossier export choisi par l'utilisateur                                                                                                          | sous le contrôle de l'utilisateur     | suppression des fichiers exportés                                                        |
-| Audio d'une réunion                        | **jamais sur disque** : en mémoire le temps d'être envoyé à l'endpoint STT ; une coupure de transcription laisse un trou daté dans le transcript | —                                     | —                                                                                        |
-| Audio de la dictée ou d'un import          | fichier temporaire (voir l'état en tête de document)                                                                                             | jusqu'à la fin de la transcription    | automatique, sauf WAV de dictée après un plantage et import dont la transcription échoue |
+| Donnée                                     | Où                                                                                                                                               | Durée                                 | Suppression                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- | ---------------------------------------------------------------------- |
+| Transcripts (texte, horodatage, locuteurs) | base SQLite locale `app.db`                                                                                                                      | jusqu'à suppression par l'utilisateur | suppression de la réunion dans l'application, ou du dossier de données |
+| Notes et comptes rendus générés            | base SQLite locale                                                                                                                               | idem                                  | idem                                                                   |
+| Contacts, dossiers, réglages               | base SQLite locale                                                                                                                               | idem                                  | idem                                                                   |
+| Clés d'API des endpoints d'inférence       | trousseau du système (Keychain, Secret Service, Credential Manager) ; jamais en clair dans la base                                               | jusqu'à suppression du provider       | retrait du provider dans les réglages                                  |
+| Index de recherche plein texte (tantivy)   | dossier de données (copie indexée des transcripts et notes)                                                                                      | tant que les réunions existent        | suit la suppression des réunions, ou suppression du dossier de données |
+| Journaux techniques `app.log`              | dossier de logs de l'application ; contenu filtré par un module de masquage (`RedactingWriter`), rotation par taille                             | rotation automatique                  | suppression du dossier de logs                                         |
+| Exports (Markdown, etc.)                   | dossier export choisi par l'utilisateur                                                                                                          | sous le contrôle de l'utilisateur     | suppression des fichiers exportés                                      |
+| Audio d'une réunion                        | **jamais sur disque** : en mémoire le temps d'être envoyé à l'endpoint STT ; une coupure de transcription laisse un trou daté dans le transcript | —                                     | —                                                                      |
+| Audio de la dictée ou d'un import          | **jamais sur disque**, même temporairement : la dictée produit un WAV en mémoire, l'import lit le fichier à son emplacement d'origine sans copie | —                                     | —                                                                      |
 
 Aucune de ces données n'est envoyée à l'éditeur.
 
@@ -91,11 +87,12 @@ une suppression, l'effacement est retenté au lancement suivant.
   d'analytics sans destination, Sentry jamais initialisé) ; leur code et leurs
   dépendances sont encore présents et seront retirés.
 - **Clés dans le trousseau du système**, pas dans la base.
-- **Aucun audio de réunion sur disque** : la session de capture ne démarre plus
-  d'enregistreur, la rétention est figée à « aucune » et un test Rust vérifie
-  qu'aucun fichier audio n'apparaît dans le dossier de session ; ni lecteur, ni
-  retranscription, ni empreintes vocales. Dictée et import : voir l'état en
-  tête de document.
+- **Aucun audio sur disque, sur aucun chemin** : la session de capture ne
+  démarre plus d'enregistreur, la rétention est figée à « aucune » et un test
+  Rust vérifie qu'aucun fichier audio n'apparaît dans le dossier de session ;
+  ni lecteur, ni retranscription, ni empreintes vocales. La dictée produit un
+  WAV en mémoire, l'import et le dépôt d'un fichier transcrivent depuis
+  l'emplacement d'origine sans copie, et le découpage batch se fait en mémoire.
 - **Garde-fou dans les tests** : `apps/desktop/src/no-cloud-imports.test.ts`
   échoue si un module cloud ou d'authentification retiré est réimporté.
 - **Vérification de bout en bout prévue** : une capture réseau pendant une

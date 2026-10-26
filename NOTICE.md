@@ -47,9 +47,11 @@ En résumé :
   Soniqo, Apple Speech, Argmax), LLM Apple Intelligence, diarisation pyannote
   locale, empreintes vocales et téléchargement de modèles (plugins `local-stt`
   et `local-llm`, et les crates qui ne servaient qu'à eux) ;
-- aucune conservation de l'audio d'une réunion : enregistreur de capture,
+- **aucun audio sur disque, sur aucun chemin** : enregistreur de capture,
   réglage de rétention, lecteur audio, retranscription et empreintes vocales
-  retirés ; une coupure de transcription laisse un trou daté ;
+  retirés ; une coupure de transcription laisse un trou daté ; la dictée
+  produit un WAV en mémoire, l'import lit le fichier à son emplacement
+  d'origine sans copie, et le découpage batch se fait en mémoire ;
 - intégrations cloud hors IA, télémétrie, compte et abonnement retirés :
   authentification Supabase (`apps/desktop/src/auth`, `plugins/auth`, sous-commande
   CLI `auth` et source `cloud`), partage de notes et de sessions, synchronisation
