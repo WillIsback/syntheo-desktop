@@ -68,30 +68,6 @@ pub fn resolve_transcription_mode(
         return TranscriptionMode::Batch;
     }
 
-    if let Some(model) = anlg_transcribe_soniqo::local_model_from_request(base_url, model) {
-        return if model.supports_live_on_current_platform() && model.supports_languages(languages) {
-            TranscriptionMode::Live
-        } else {
-            TranscriptionMode::Batch
-        };
-    }
-
-    if anlg_transcribe_soniqo::is_local_base_url(base_url) {
-        return TranscriptionMode::Batch;
-    }
-
-    if let Some(model) = anlg_transcribe_speechanalyzer::local_model_from_request(base_url, model) {
-        return if model.supports_live_on_current_platform() && model.supports_languages(languages) {
-            TranscriptionMode::Live
-        } else {
-            TranscriptionMode::Batch
-        };
-    }
-
-    if anlg_transcribe_speechanalyzer::is_local_base_url(base_url) {
-        return TranscriptionMode::Batch;
-    }
-
     let adapter_kind = AdapterKind::from_url_and_languages(base_url, languages, Some(model));
 
     if adapter_kind == AdapterKind::OpenAI && OpenAIAdapter::is_batch_only_model(model) {
@@ -117,16 +93,6 @@ impl SessionParams {
             &self.model,
             &self.languages,
         )
-    }
-
-    pub fn uses_local_soniqo_live_model(&self) -> bool {
-        anlg_transcribe_soniqo::local_model_from_request(&self.base_url, &self.model)
-            .is_some_and(|model| model.supports_live())
-    }
-
-    pub fn uses_local_apple_speech_live_model(&self) -> bool {
-        anlg_transcribe_speechanalyzer::local_model_from_request(&self.base_url, &self.model)
-            .is_some_and(|model| model.supports_live())
     }
 }
 
@@ -174,45 +140,7 @@ mod tests {
 
     #[test]
     fn effective_transcription_mode_by_provider_and_model() {
-        let soniqo_loopback_expected = if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
-            TranscriptionMode::Live
-        } else {
-            TranscriptionMode::Batch
-        };
-
         for (base_url, model, mode, languages, expected, label) in [
-            (
-                anlg_transcribe_soniqo::LOCAL_BASE_URL,
-                "soniqo-parakeet-streaming",
-                TranscriptionMode::Batch,
-                vec![],
-                TranscriptionMode::Batch,
-                "explicit batch is kept",
-            ),
-            (
-                anlg_transcribe_soniqo::LOCAL_BASE_URL,
-                "soniqo-parakeet-batch",
-                TranscriptionMode::Live,
-                vec![],
-                TranscriptionMode::Batch,
-                "soniqo batch models forced to batch",
-            ),
-            (
-                "http://localhost:50060/v1",
-                "soniqo-parakeet-streaming",
-                TranscriptionMode::Live,
-                vec![],
-                soniqo_loopback_expected,
-                "soniqo loopback base url",
-            ),
-            (
-                anlg_transcribe_soniqo::LOCAL_BASE_URL,
-                "soniqo-parakeet-streaming",
-                TranscriptionMode::Live,
-                vec![anlg_language::ISO639::Ko.into()],
-                TranscriptionMode::Batch,
-                "soniqo live rejected for unsupported language",
-            ),
             (
                 "https://api.openai.com/v1",
                 "gpt-live-transcribe",
@@ -245,14 +173,6 @@ mod tests {
                 TranscriptionMode::Live,
                 "nvidia nim stays live",
             ),
-            (
-                anlg_transcribe_soniqo::LOCAL_BASE_URL,
-                "missing-model",
-                TranscriptionMode::Live,
-                vec![],
-                TranscriptionMode::Batch,
-                "invalid soniqo model defaults to batch",
-            ),
         ] {
             let mut params = session_params(base_url, model, mode);
             params.languages = languages;
@@ -263,23 +183,6 @@ mod tests {
                 "case: {label}"
             );
         }
-    }
-
-    #[test]
-    fn uses_local_soniqo_live_model_only_for_streaming_model() {
-        let params = session_params(
-            anlg_transcribe_soniqo::LOCAL_BASE_URL,
-            "soniqo-parakeet-streaming",
-            TranscriptionMode::Live,
-        );
-        assert!(params.uses_local_soniqo_live_model());
-
-        let params = session_params(
-            anlg_transcribe_soniqo::LOCAL_BASE_URL,
-            "soniqo-parakeet-batch",
-            TranscriptionMode::Live,
-        );
-        assert!(!params.uses_local_soniqo_live_model());
     }
 
     #[test]

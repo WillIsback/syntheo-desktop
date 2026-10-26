@@ -8,7 +8,6 @@ mod ext;
 mod search_index;
 mod startup;
 mod store;
-mod supervisor;
 
 use db::{cloudsync_runtime_config_from_env, open_desktop_db};
 use ext::*;
@@ -152,32 +151,20 @@ pub fn main() {
         }
     };
 
-    let (root_supervisor_ctx, root_supervisor_handle, db, crash_reporting_enabled) = runtime
-        .block_on(async {
-            let (root_supervisor_ctx, root_supervisor_handle) =
-                match supervisor::spawn_root_supervisor().await {
-                    Some((ctx, handle)) => (Some(ctx), Some(handle)),
-                    None => (None, None),
-                };
-
-            let startup_indicator = startup::SlowStartupIndicator::show_after_delay();
-            startup::consolidate_custom_storage(&identifier);
-            let db = match open_desktop_db(&identifier).await {
-                Ok(db) => db,
-                Err(error) => {
-                    startup_indicator.dismiss();
-                    exit_after_startup_failure(&identifier, &error)
-                }
-            };
-            startup_indicator.dismiss();
-            let crash_reporting_enabled = load_crash_reporting_consent(&db).await;
-            (
-                root_supervisor_ctx,
-                root_supervisor_handle,
-                db,
-                crash_reporting_enabled,
-            )
-        });
+    let (db, crash_reporting_enabled) = runtime.block_on(async {
+        let startup_indicator = startup::SlowStartupIndicator::show_after_delay();
+        startup::consolidate_custom_storage(&identifier);
+        let db = match open_desktop_db(&identifier).await {
+            Ok(db) => db,
+            Err(error) => {
+                startup_indicator.dismiss();
+                exit_after_startup_failure(&identifier, &error)
+            }
+        };
+        startup_indicator.dismiss();
+        let crash_reporting_enabled = load_crash_reporting_consent(&db).await;
+        (db, crash_reporting_enabled)
+    });
 
     // Syntheo n'envoie aucun rapport d'erreur : Sentry n'est jamais initialisé
     // (retiré entièrement au chantier 04d).
@@ -313,15 +300,7 @@ pub fn main() {
         )
         .plugin(tauri_plugin_transcription::init())
         .plugin(tauri_plugin_tantivy::init())
-        .plugin(tauri_plugin_audio_priority::init())
-        .plugin(tauri_plugin_local_llm::init())
-        .plugin(tauri_plugin_local_stt::init(
-            tauri_plugin_local_stt::InitOptions {
-                parent_supervisor: root_supervisor_ctx
-                    .as_ref()
-                    .map(|ctx| ctx.supervisor.get_cell()),
-            },
-        ));
+        .plugin(tauri_plugin_audio_priority::init());
 
     #[cfg(not(feature = "app-store"))]
     {
@@ -352,8 +331,6 @@ pub fn main() {
     }
 
     let specta_builder = make_specta_builder::<tauri::Wry>();
-
-    let root_supervisor_ctx_for_run = root_supervisor_ctx.clone();
 
     let app_result = builder
         .invoke_handler(specta_builder.invoke_handler())
@@ -441,17 +418,6 @@ pub fn main() {
                 }
             }
 
-            if let (Some(ctx), Some(handle)) = (&root_supervisor_ctx, root_supervisor_handle) {
-                supervisor::monitor_supervisor(handle, ctx.is_exiting.clone(), app_handle.clone());
-            }
-
-            {
-                use tauri_plugin_local_llm::LocalLlmPluginExt;
-                if false {
-                    app_handle.local_llm().start_server();
-                }
-            }
-
             search_index::spawn(app_handle.clone(), db.clone());
 
             #[cfg(not(feature = "app-store"))]
@@ -517,10 +483,6 @@ pub fn main() {
                 api.prevent_exit();
                 return;
             }
-            if let Some(ref ctx) = root_supervisor_ctx_for_run {
-                ctx.mark_exiting();
-            }
-
             if should_allow_immediate_exit() {
                 return;
             }
@@ -547,11 +509,6 @@ pub fn main() {
             }
         }
         tauri::RunEvent::Exit => {
-            if let Some(ref ctx) = root_supervisor_ctx_for_run {
-                ctx.mark_exiting();
-                ctx.stop();
-            }
-
             anlg_host::kill_processes_by_matcher(anlg_host::ProcessMatcher::Sidecar);
         }
         _ => {}

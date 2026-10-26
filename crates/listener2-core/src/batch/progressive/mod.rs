@@ -12,12 +12,8 @@ use super::{BatchParams, BatchRunOutput};
 
 #[derive(Debug, Clone, Copy, strum::IntoStaticStr)]
 pub(super) enum ProgressiveProvider {
-    #[strum(serialize = "argmax")]
-    Argmax,
     #[strum(serialize = "openai")]
     OpenAI,
-    #[strum(serialize = "whispercpp")]
-    WhisperCpp,
 }
 
 impl ProgressiveProvider {
@@ -36,35 +32,15 @@ pub(super) async fn run_progressive_batch_session(
 }
 
 fn resolve_progressive_provider(
-    params: &BatchParams,
+    _params: &BatchParams,
     listen_params: &owhisper_interface::ListenParams,
 ) -> crate::Result<ProgressiveProvider> {
-    match params.provider {
-        super::BatchProvider::WhisperLocal => return Ok(ProgressiveProvider::WhisperCpp),
-        super::BatchProvider::OpenAI
-            if OpenAIAdapter::supports_progressive_batch_model(listen_params.model.as_deref()) =>
-        {
-            return Ok(ProgressiveProvider::OpenAI);
+    if OpenAIAdapter::supports_progressive_batch_model(listen_params.model.as_deref()) {
+        Ok(ProgressiveProvider::OpenAI)
+    } else {
+        Err(crate::BatchFailure::ProgressiveBatchUnsupported {
+            provider: AdapterKind::OpenAI.to_string(),
         }
-        _ => {}
-    }
-
-    let adapter_kind = AdapterKind::from_url_and_languages(
-        &params.base_url,
-        &listen_params.languages,
-        listen_params.model.as_deref(),
-    );
-
-    match adapter_kind {
-        AdapterKind::Argmax => Ok(ProgressiveProvider::Argmax),
-        AdapterKind::OpenAI
-            if OpenAIAdapter::supports_progressive_batch_model(listen_params.model.as_deref()) =>
-        {
-            Ok(ProgressiveProvider::OpenAI)
-        }
-        _ => Err(crate::BatchFailure::ProgressiveBatchUnsupported {
-            provider: adapter_kind.to_string(),
-        }
-        .into()),
+        .into())
     }
 }

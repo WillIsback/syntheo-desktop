@@ -4,12 +4,8 @@ use anlg_transcript::{
 };
 use owhisper_interface::stream::StreamResponse;
 
-mod normalizer;
 mod segments;
 
-use normalizer::TranscriptNormalizer;
-#[cfg(test)]
-use normalizer::{SoniqoTranscriptNormalizer, drain_soniqo_prefix, normalize_tokens_for_overlap};
 use segments::RenderedSegmentState;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -65,7 +61,6 @@ impl From<TranscriptDelta> for LiveTranscriptDelta {
 pub struct LiveTranscriptEngine {
     provider_name: String,
     processor: TranscriptProcessor,
-    normalizer: TranscriptNormalizer,
     rendered_segments: RenderedSegmentState,
     mic_isolated: bool,
     /// Session-relative ms ranges where the mic verdict was isolated. The
@@ -117,14 +112,11 @@ impl LiveTranscriptEngine {
         segment_options.isolated_mic_human =
             isolated_mic_human(self_human_id, !isolated_ranges.is_empty());
 
-        let normalizer = TranscriptNormalizer::for_provider(provider_name);
-
         Self {
             provider_name: provider_name.to_owned(),
             processor: TranscriptProcessor::new()
-                .with_partial_finalization(normalizer.finalize_partials())
-                .with_flush_partial_finalization(normalizer.flush_partials()),
-            normalizer,
+                .with_partial_finalization(true)
+                .with_flush_partial_finalization(true),
             rendered_segments: RenderedSegmentState::new(
                 Vec::new(),
                 speaker_assignments,
@@ -136,9 +128,7 @@ impl LiveTranscriptEngine {
     }
 
     pub fn process(&mut self, response: &StreamResponse) -> Option<LiveTranscriptUpdate> {
-        let mut normalized = response.clone();
-        self.normalizer.normalize(&mut normalized);
-        let delta = self.processor.process(&normalized)?;
+        let delta = self.processor.process(response)?;
         let transcript_delta: LiveTranscriptDelta = delta.into();
         let segment_delta = self.rendered_segments.apply_delta(&transcript_delta);
         Some(LiveTranscriptUpdate {

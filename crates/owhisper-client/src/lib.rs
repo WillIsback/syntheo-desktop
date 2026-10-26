@@ -3,25 +3,15 @@ mod batch;
 mod error;
 mod http_client;
 mod live;
-#[cfg(feature = "local")]
-mod local_apple_speech_live;
-#[cfg(feature = "local")]
-mod local_soniqo_live;
 mod providers;
-
-#[cfg(test)]
-pub(crate) mod test_utils;
 
 use owhisper_interface::ListenParams;
 pub use providers::{Provider, is_meta_model};
 
-#[cfg(feature = "local")]
-pub use adapter::StreamingBatchConfig;
 pub use adapter::{
-    AdapterKind, AnarlogAdapter, ArgmaxAdapter, BatchSttAdapter, BatchUploadLimit, LanguageQuality,
-    LanguageSupport, NvidiaAdapter, OpenAIAdapter, RealtimeSttAdapter, WhisperCppAdapter,
-    append_provider_param, documented_language_codes_batch, documented_language_codes_live,
-    is_anarlog_proxy, is_local_host, normalize_languages,
+    AdapterKind, BatchSttAdapter, BatchUploadLimit, LanguageQuality, LanguageSupport,
+    NvidiaAdapter, OpenAIAdapter, RealtimeSttAdapter, append_provider_param,
+    documented_language_codes_batch, documented_language_codes_live, normalize_languages,
 };
 pub use adapter::{StreamingBatchEvent, StreamingBatchStream};
 
@@ -70,16 +60,6 @@ pub(crate) fn log_provider_failure(
         );
     }
 }
-
-#[cfg(feature = "local")]
-pub use local_apple_speech_live::{
-    LocalAppleSpeechLiveClient, LocalAppleSpeechLiveError, LocalAppleSpeechLiveHandle,
-    LocalAppleSpeechLiveStream,
-};
-#[cfg(feature = "local")]
-pub use local_soniqo_live::{
-    LocalSoniqoLiveClient, LocalSoniqoLiveError, LocalSoniqoLiveHandle, LocalSoniqoLiveStream,
-};
 
 pub fn normalize_listen_params(mut params: ListenParams) -> ListenParams {
     params.languages = adapter::normalize_languages(&params.languages);

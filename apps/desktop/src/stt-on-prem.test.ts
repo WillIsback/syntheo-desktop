@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -23,22 +23,16 @@ describe("stt on-prem", () => {
       join(REPO_ROOT, "crates/owhisper-client/src/adapter"),
     ).sort();
     expect(entries).toEqual([
-      "anarlog",
-      "argmax",
-      "deepgram_compat",
       "http.rs",
       "language.rs",
       "mod.rs",
       "nvidia.rs",
       "openai",
       "openai_compatible_batch.rs",
-      "owhisper.rs",
       "parsing.rs",
       "segment.rs",
       "streaming_providers_tests.rs",
       "tests.rs",
-      "url_builder.rs",
-      "whispercpp",
     ]);
   });
 
@@ -77,5 +71,34 @@ describe("stt on-prem", () => {
         api_key: "",
       }).success,
     ).toBe(true);
+  });
+
+  it.each([
+    "plugins/local-stt",
+    "plugins/local-llm",
+    "crates/transcribe-soniqo",
+    "crates/transcribe-speechanalyzer",
+    "crates/whisper-local",
+    "crates/pyannote-local",
+    "crates/voiceprint",
+    "crates/embedding",
+    "crates/local-model",
+    "crates/model-downloader",
+  ])("removes_embedded_inference %s", (path) => {
+    expect(existsSync(join(REPO_ROOT, path))).toBe(false);
+  });
+
+  it("rust_consumers_name_no_local_engine", () => {
+    const offenders = [
+      "crates/listener-core/src/actors/listener/adapters.rs",
+      "crates/listener2-core/src/batch/mod.rs",
+      "plugins/dictation/src/preview.rs",
+      "apps/desktop/src-tauri/src/lib.rs",
+    ].filter((file) =>
+      /soniqo|speechanalyzer|apple_speech|whisper_?cpp|argmax|local_stt|local_llm|voiceprint|pyannote/i.test(
+        read(file),
+      ),
+    );
+    expect(offenders).toEqual([]);
   });
 });

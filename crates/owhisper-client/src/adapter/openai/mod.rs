@@ -96,15 +96,9 @@ impl OpenAIAdapter {
     }
 
     /// The configured base URL is kept as typed: scheme (`http` → `ws`),
-    /// host, port and any reverse-proxy path prefix. Only the local Anarlog
-    /// `/stt` proxy is rewritten. The desktop's `?provider=` marker is dropped.
+    /// host, port and any reverse-proxy path prefix. The desktop's
+    /// `?provider=` marker is dropped.
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
-        if super::is_anarlog_proxy(api_base)
-            && let Some(proxy_result) = super::build_proxy_ws_url(api_base)
-        {
-            return proxy_result;
-        }
-
         let mut url: url::Url = api_base.parse().expect("invalid_api_base");
         let mut params: Vec<(String, String)> = super::extract_query_params(&url)
             .into_iter()
@@ -179,33 +173,6 @@ mod tests {
             "whisper-1"
         )));
         assert!(OpenAIAdapter::supports_progressive_batch_model(None));
-    }
-
-    #[test]
-    fn build_ws_url_resolves_intent_and_proxy_params() {
-        for (input, expected_url, expected_params) in [
-            (
-                "https://api.anarlog.so?provider=openai",
-                "wss://api.anarlog.so/listen",
-                vec![("provider", "openai")],
-            ),
-            (
-                "https://stt.example.com:8443/v1",
-                "wss://stt.example.com:8443/v1/realtime",
-                vec![("intent", "transcription")],
-            ),
-        ] {
-            let (url, params) = OpenAIAdapter::build_ws_url_from_base(input);
-            assert_eq!(url.as_str(), expected_url, "input: {input}");
-            assert_eq!(
-                params,
-                expected_params
-                    .into_iter()
-                    .map(|(k, v)| (k.to_string(), v.to_string()))
-                    .collect::<Vec<_>>(),
-                "input: {input}"
-            );
-        }
     }
 
     #[test]

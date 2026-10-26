@@ -94,10 +94,8 @@ async fn run(
         return Err(());
     }
     match config.provider.as_str() {
-        "anarlog" => listen::<AnarlogAdapter>(config, receiver, updates).await,
         "openai" => listen::<OpenAIAdapter>(config, receiver, updates).await,
         "nvidia" => listen::<NvidiaAdapter>(config, receiver, updates).await,
-        "argmax" => listen::<ArgmaxAdapter>(config, receiver, updates).await,
         _ => Err(()),
     }
 }
@@ -304,10 +302,25 @@ mod tests {
         let server = tokio::spawn(async move {
             let (socket, _) = listener.accept().await.unwrap();
             let mut ws = tokio_tungstenite::accept_async(socket).await.unwrap();
-            let audio = ws.next().await.unwrap().unwrap();
-            assert!(matches!(audio, Message::Binary(ref bytes) if bytes.len() == 6));
-            for event in [response(0.0, "hello", false), response(0.0, "Hello!", true)] {
-                ws.send(Message::Text(serde_json::to_string(&event).unwrap().into()))
+            // OpenAI Realtime : message de session, puis l'audio en base64.
+            loop {
+                let message = ws.next().await.unwrap().unwrap();
+                if matches!(&message, Message::Text(text) if text.contains("input_audio_buffer.append"))
+                {
+                    break;
+                }
+            }
+            for event in [
+                serde_json::json!({
+                    "type": "conversation.item.input_audio_transcription.delta",
+                    "event_id": "e1", "item_id": "item-1", "content_index": 0, "delta": "hello",
+                }),
+                serde_json::json!({
+                    "type": "conversation.item.input_audio_transcription.completed",
+                    "event_id": "e2", "item_id": "item-1", "content_index": 0, "transcript": "Hello!",
+                }),
+            ] {
+                ws.send(Message::Text(event.to_string().into()))
                     .await
                     .unwrap();
             }
@@ -332,8 +345,8 @@ mod tests {
         });
         let preview = Preview::start(
             PreviewConfig {
-                provider: "anarlog".into(),
-                base_url: format!("http://{address}"),
+                provider: "openai".into(),
+                base_url: format!("http://{address}/v1"),
                 api_key: "test".into(),
                 params: ListenParams::default(),
             },

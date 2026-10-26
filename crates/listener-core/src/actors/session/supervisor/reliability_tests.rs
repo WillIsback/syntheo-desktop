@@ -38,19 +38,32 @@ impl ListenerRuntime for TranscriptRuntime {
     }
 }
 
+/// OpenAI Realtime transcription event for `word`: a completed item when
+/// final, a delta otherwise. The item ID is derived from the word so a
+/// repeated final replays the same item.
 fn response(word: &str, is_final: bool) -> Message {
-    let raw = serde_json::json!({
-        "type": "Results", "start": 0.0, "duration": 1.0,
-        "is_final": is_final, "speech_final": is_final, "from_finalize": false,
-        "channel_index": [0, 2],
-        "channel": {"alternatives": [{"transcript": format!("{word} speech"), "confidence": 1.0,
-            "words": [
-                {"word": word, "start": 0.0, "end": 0.5, "confidence": 1.0, "speaker": 0},
-                {"word": "speech", "start": 0.5, "end": 1.0, "confidence": 1.0, "speaker": 0}
-            ]}]},
-        "metadata": {"request_id": "test", "model_uuid": "test", "model_info": {"name": "test", "version": "1", "arch": "test"}}
-    });
+    let raw = if is_final {
+        serde_json::json!({
+            "type": "conversation.item.input_audio_transcription.completed",
+            "event_id": format!("event-{word}"),
+            "item_id": format!("item-{word}"),
+            "content_index": 0,
+            "transcript": format!("{word} speech"),
+        })
+    } else {
+        serde_json::json!({
+            "type": "conversation.item.input_audio_transcription.delta",
+            "event_id": format!("event-{word}"),
+            "item_id": format!("item-{word}"),
+            "content_index": 0,
+            "delta": format!("{word} speech"),
+        })
+    };
     Message::Text(raw.to_string().into())
+}
+
+fn is_audio(message: &Message) -> bool {
+    matches!(message, Message::Text(text) if text.contains("input_audio_buffer.append"))
 }
 
 async fn wait_for_word(events: &mut mpsc::UnboundedReceiver<SessionDataEvent>, word: &str) {
@@ -97,7 +110,7 @@ async fn send_audio(listener: &ActorRef<ListenerMsg>) {
             .repeat(crate::actors::SAMPLE_RATE as usize),
     );
     assert_eq!(
-        ractor::call_t!(listener, ListenerMsg::AudioDual, 1000, audio.clone(), audio).unwrap(),
+        ractor::call_t!(listener, ListenerMsg::AudioSingle, 1000, audio).unwrap(),
         ListenerAudioResult::Accepted
     );
 }
@@ -106,7 +119,6 @@ async fn send_audio(listener: &ActorRef<ListenerMsg>) {
 enum StreamFailure {
     Silent,
     Unfinalized,
-    RepeatedFinal,
 }
 
 #[tokio::test]
@@ -145,10 +157,10 @@ async fn refreshed_credentials_resume_live_transcription_after_authentication_fa
             .unwrap();
         while let Some(Ok(message)) = ws.next().await {
             match message {
-                Message::Binary(_) => {
+                message if is_audio(&message) => {
                     ws.send(response("recovered", true)).await.unwrap();
                 }
-                Message::Text(text) if text.contains("Finalize") => {
+                Message::Text(text) if text.contains("input_audio_buffer.commit") => {
                     let _ = ws.close(None).await;
                     break;
                 }
@@ -162,7 +174,9 @@ async fn refreshed_credentials_resume_live_transcription_after_authentication_fa
     ctx.runtime = Arc::new(TranscriptRuntime { events: events_tx });
     ctx.app_dir = vault.path().to_path_buf();
     ctx.params.session_id = uuid::Uuid::new_v4().to_string();
-    ctx.params.base_url = format!("http://{address}/stt");
+    ctx.params.base_url = format!("http://{address}/v1");
+    // Un seul flux : le protocole OpenAI ouvre une connexion par canal.
+    ctx.params.onboarding = true;
     ctx.params.model = "cloud".into();
     ctx.params.retain_audio = Some(false);
     let session_id = ctx.params.session_id.clone();
@@ -227,10 +241,10 @@ async fn supervisor_writes_no_audio_to_session_dir() {
         let mut ws = accept_async(stream).await.unwrap();
         while let Some(Ok(message)) = ws.next().await {
             match message {
-                Message::Binary(_) => {
+                message if is_audio(&message) => {
                     ws.send(response("live", true)).await.unwrap();
                 }
-                Message::Text(text) if text.contains("Finalize") => {
+                Message::Text(text) if text.contains("input_audio_buffer.commit") => {
                     let _ = ws.close(None).await;
                     break;
                 }
@@ -244,7 +258,9 @@ async fn supervisor_writes_no_audio_to_session_dir() {
     ctx.runtime = Arc::new(TranscriptRuntime { events: events_tx });
     ctx.app_dir = vault.path().to_path_buf();
     ctx.params.session_id = uuid::Uuid::new_v4().to_string();
-    ctx.params.base_url = format!("http://{address}/stt");
+    ctx.params.base_url = format!("http://{address}/v1");
+    // Un seul flux : le protocole OpenAI ouvre une connexion par canal.
+    ctx.params.onboarding = true;
     ctx.params.model = "cloud".into();
     ctx.params.retain_audio = Some(true);
     let session_id = ctx.params.session_id.clone();
@@ -272,11 +288,9 @@ async fn supervisor_writes_no_audio_to_session_dir() {
 
 #[tokio::test]
 async fn live_words_resume_after_stalled_streams_without_restarting_source() {
-    for failure in [
-        StreamFailure::Silent,
-        StreamFailure::Unfinalized,
-        StreamFailure::RepeatedFinal,
-    ] {
+    // Un serveur OpenAI Realtime ne renvoie jamais un item déjà complété :
+    // la déduplication des finaux répétés est couverte par stream.rs.
+    for failure in [StreamFailure::Silent, StreamFailure::Unfinalized] {
         let socket = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let address = socket.local_addr().unwrap();
         let server = tokio::spawn(async move {
@@ -286,7 +300,7 @@ async fn live_words_resume_after_stalled_streams_without_restarting_source() {
                 let mut first_audio = true;
                 while let Some(Ok(message)) = ws.next().await {
                     match message {
-                        Message::Binary(_) => {
+                        message if is_audio(&message) => {
                             if first_audio || connection == 1 {
                                 ws.send(response(
                                     if connection == 0 { "before" } else { "after" },
@@ -301,7 +315,6 @@ async fn live_words_resume_after_stalled_streams_without_restarting_source() {
                                     StreamFailure::Unfinalized => {
                                         Some(response("unfinished", false))
                                     }
-                                    StreamFailure::RepeatedFinal => Some(response("before", true)),
                                 };
                                 if let Some(update) = update
                                     && ws.send(update).await.is_err()
@@ -310,7 +323,7 @@ async fn live_words_resume_after_stalled_streams_without_restarting_source() {
                                 }
                             }
                         }
-                        Message::Text(text) if text.contains("Finalize") => {
+                        Message::Text(text) if text.contains("input_audio_buffer.commit") => {
                             let _ = ws.close(None).await;
                             break;
                         }
@@ -325,7 +338,11 @@ async fn live_words_resume_after_stalled_streams_without_restarting_source() {
         ctx.runtime = Arc::new(TranscriptRuntime { events: events_tx });
         ctx.app_dir = vault.path().to_path_buf();
         ctx.params.session_id = uuid::Uuid::new_v4().to_string();
-        ctx.params.base_url = format!("http://{address}/stt");
+        ctx.params.base_url = format!("http://{address}/v1");
+        // Un seul flux : le protocole OpenAI ouvre une connexion par canal.
+        ctx.params.onboarding = true;
+        // Un seul flux : le protocole OpenAI ouvre une connexion par canal.
+        ctx.params.onboarding = true;
         ctx.params.model = "cloud".to_string();
         let session_id = ctx.params.session_id.clone();
         let (supervisor, supervisor_task) = Actor::spawn(None, SessionActor, ctx).await.unwrap();
@@ -345,12 +362,6 @@ async fn live_words_resume_after_stalled_streams_without_restarting_source() {
                 tokio::time::sleep(Duration::from_secs(30)).await;
                 for _ in 0..4 {
                     send_audio(&listener).await;
-                }
-            }
-            StreamFailure::RepeatedFinal => {
-                for _ in 0..5 {
-                    send_audio(&listener).await;
-                    tokio::time::sleep(Duration::from_secs(6)).await;
                 }
             }
         }

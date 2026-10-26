@@ -153,7 +153,6 @@ impl ListenerRuntime for TauriRuntime {
                         }
                     }
                 }
-                crate::voiceprint::persist_mic_isolation(&self.app, &session_id, mic_isolated);
                 self.stopped_capture_registry.record(StoppedCapture {
                     session_id: session_id.clone(),
                     stopped_at_ms,

@@ -1,24 +1,15 @@
 pub mod parsing;
 mod segment;
-mod url_builder;
 
-mod anarlog;
-mod argmax;
-mod deepgram_compat;
 pub mod http;
 mod language;
 mod nvidia;
 mod openai;
 mod openai_compatible_batch;
-mod owhisper;
-mod whispercpp;
 
-pub use anarlog::*;
-pub use argmax::*;
 pub use language::{LanguageQuality, LanguageSupport};
 pub use nvidia::*;
 pub use openai::*;
-pub use whispercpp::*;
 
 use std::collections::{BTreeSet, HashSet};
 use std::future::Future;
@@ -70,12 +61,7 @@ fn whisper_language_codes() -> Vec<String> {
 }
 
 pub fn documented_language_codes_live() -> Vec<String> {
-    let mut codes = whisper_language_codes();
-    codes.extend(
-        argmax::PARAKEET_V3_LANGS
-            .iter()
-            .map(|code| code.to_string()),
-    );
+    let codes = whisper_language_codes();
 
     let set: BTreeSet<String> = codes
         .iter()
@@ -175,20 +161,6 @@ pub trait BatchSttAdapter: Clone + Default + Send + Sync + 'static {
     ) -> BatchFuture<'a>;
 }
 
-pub fn set_scheme_from_host(url: &mut url::Url) {
-    if let Some(host) = url.host_str() {
-        if is_local_host(host) {
-            let _ = url.set_scheme("ws");
-        } else {
-            let _ = url.set_scheme("wss");
-        }
-    }
-}
-
-pub fn is_local_host(host: &str) -> bool {
-    host == "127.0.0.1" || host == "localhost" || host == "0.0.0.0" || host == "::1"
-}
-
 pub fn extract_query_params(url: &url::Url) -> Vec<(String, String)> {
     url.query_pairs()
         .map(|(k, v)| (k.into_owned(), v.into_owned()))
@@ -207,34 +179,6 @@ pub fn append_path_if_missing(url: &mut url::Url, suffix: &str) {
     }
 }
 
-pub(crate) fn host_matches(base_url: &str, predicate: impl Fn(&str) -> bool) -> bool {
-    url::Url::parse(base_url)
-        .ok()
-        .and_then(|u| u.host_str().map(&predicate))
-        .unwrap_or(false)
-}
-
-const ANARLOG_PROXY_HOST: &str = "api.anarlog.so";
-
-fn is_anarlog_cloud_host(host: &str) -> bool {
-    host == ANARLOG_PROXY_HOST
-}
-
-fn is_anarlog_cloud(base_url: &str) -> bool {
-    host_matches(base_url, is_anarlog_cloud_host)
-}
-
-fn is_anarlog_local_proxy(base_url: &str) -> bool {
-    url::Url::parse(base_url)
-        .ok()
-        .map(|u| is_local_host(u.host_str().unwrap_or("")) && u.path().contains("/stt"))
-        .unwrap_or(false)
-}
-
-pub fn is_anarlog_proxy(base_url: &str) -> bool {
-    is_anarlog_cloud(base_url) || is_anarlog_local_proxy(base_url)
-}
-
 pub fn normalize_languages(languages: &[anlg_language::Language]) -> Vec<anlg_language::Language> {
     let mut seen = HashSet::new();
     let mut result = Vec::with_capacity(languages.len());
@@ -251,38 +195,6 @@ pub fn normalize_languages(languages: &[anlg_language::Language]) -> Vec<anlg_la
     }
 
     result
-}
-
-fn is_local_argmax(base_url: &str) -> bool {
-    url::Url::parse(base_url)
-        .ok()
-        .map(|url| {
-            is_local_host(url.host_str().unwrap_or(""))
-                && url.port() == Some(50060)
-                && !is_anarlog_local_proxy(base_url)
-        })
-        .unwrap_or(false)
-}
-
-pub fn build_proxy_ws_url(api_base: &str) -> Option<(url::Url, Vec<(String, String)>)> {
-    if api_base.is_empty() {
-        return None;
-    }
-
-    let parsed: url::Url = api_base.parse().ok()?;
-    let host = parsed.host_str()?;
-
-    if !is_anarlog_cloud_host(host) && !is_local_host(host) {
-        return None;
-    }
-
-    let existing_params = extract_query_params(&parsed);
-    let mut url = parsed;
-    url.set_query(None);
-    append_path_if_missing(&mut url, "listen");
-    set_scheme_from_host(&mut url);
-
-    Some((url, existing_params))
 }
 
 pub fn append_provider_param(base_url: &str, provider: &str) -> String {
@@ -322,12 +234,8 @@ pub struct BatchUploadLimit {
 pub enum AdapterKind {
     #[strum(serialize = "nvidia")]
     Nvidia,
-    #[strum(serialize = "argmax")]
-    Argmax,
     #[strum(serialize = "openai")]
     OpenAI,
-    #[strum(serialize = "anarlog")]
-    Anarlog,
 }
 
 impl AdapterKind {
@@ -341,8 +249,7 @@ impl AdapterKind {
         _languages: &[anlg_language::Language],
         _model: Option<&str>,
     ) -> Self {
-        if !is_anarlog_proxy(base_url)
-            && let Ok(url) = url::Url::parse(base_url)
+        if let Ok(url) = url::Url::parse(base_url)
             && let Some(kind) = url
                 .query_pairs()
                 .find(|(key, _)| key == "provider")
@@ -350,12 +257,6 @@ impl AdapterKind {
                 .filter(|kind| matches!(kind, Self::Nvidia | Self::OpenAI))
         {
             return kind;
-        }
-        if is_anarlog_proxy(base_url) {
-            return Self::Anarlog;
-        }
-        if is_local_argmax(base_url) {
-            return Self::Argmax;
         }
 
         Self::OpenAI
@@ -380,8 +281,7 @@ impl AdapterKind {
 
     pub fn has_live_mode(&self) -> bool {
         match self {
-            Self::Argmax => false,
-            Self::Nvidia | Self::OpenAI | Self::Anarlog => true,
+            Self::Nvidia | Self::OpenAI => true,
         }
     }
 
@@ -393,21 +293,17 @@ impl AdapterKind {
         match self {
             Self::Nvidia => NvidiaAdapter::language_support_live(languages, model),
             Self::OpenAI => OpenAIAdapter::language_support_live(languages),
-            Self::Argmax => ArgmaxAdapter::language_support_live(languages, model),
-            Self::Anarlog => AnarlogAdapter::language_support_live(languages, model),
         }
     }
 
     pub fn language_support_batch(
         &self,
         languages: &[anlg_language::Language],
-        model: Option<&str>,
+        _model: Option<&str>,
     ) -> LanguageSupport {
         match self {
             Self::Nvidia => LanguageSupport::NotSupported,
             Self::OpenAI => OpenAIAdapter::language_support_batch(languages),
-            Self::Argmax => ArgmaxAdapter::language_support_batch(languages, model),
-            Self::Anarlog => AnarlogAdapter::language_support_batch(languages, model),
         }
     }
 

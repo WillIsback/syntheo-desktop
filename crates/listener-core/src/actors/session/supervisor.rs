@@ -417,15 +417,10 @@ async fn handle_listener_failure(
     degraded: DegradedError,
     retry_after: Option<Duration>,
 ) {
-    if should_stop_on_listener_failure(state) {
-        tracing::warn!("listener_failed_stopping_session");
-        stop_after_listener_failure(myself, state, degraded).await;
-    } else {
-        let should_retry = should_retry_listener_failure(&degraded);
-        enter_batch_fallback(state, degraded).await;
-        if should_retry {
-            schedule_listener_retry(myself, state, retry_after);
-        }
+    let should_retry = should_retry_listener_failure(&degraded);
+    enter_batch_fallback(state, degraded).await;
+    if should_retry {
+        schedule_listener_retry(myself, state, retry_after);
     }
 }
 
@@ -447,14 +442,8 @@ fn classify_listener_spawn_failure(
         return degraded.clone();
     }
 
-    if should_stop_on_listener_failure(state) {
-        DegradedError::StreamError {
-            message: error.to_string(),
-        }
-    } else {
-        DegradedError::UpstreamUnavailable {
-            message: mode::classify_connection_failure(&state.ctx.params.base_url),
-        }
+    DegradedError::UpstreamUnavailable {
+        message: mode::classify_connection_failure(&state.ctx.params.base_url),
     }
 }
 
@@ -540,23 +529,6 @@ async fn retry_listener(myself: ActorRef<SessionMsg>, state: &mut SessionState) 
     }
 }
 
-fn should_stop_on_listener_failure(state: &SessionState) -> bool {
-    state.ctx.params.uses_local_soniqo_live_model()
-        || state.ctx.params.uses_local_apple_speech_live_model()
-}
-
-async fn stop_after_listener_failure(
-    myself: &ActorRef<SessionMsg>,
-    state: &mut SessionState,
-    degraded: DegradedError,
-) {
-    emit_active_lifecycle_event(state, Some(degraded.clone())).await;
-    state.shutting_down = true;
-    children::shutdown_children(state, "listener_failure").await;
-    let reason = serde_json::to_string(&degraded).ok();
-    myself.stop(reason);
-}
-
 async fn meltdown(myself: ActorRef<SessionMsg>, state: &mut SessionState) {
     state.shutting_down = true;
     children::shutdown_children(state, "meltdown").await;
@@ -610,7 +582,7 @@ mod tests {
             _sample_rate: u32,
             _chunk_size: usize,
         ) -> Result<CaptureStream, anlg_audio::Error> {
-            unimplemented!()
+            Ok(CaptureStream::new(futures_util::stream::pending()))
         }
         fn open_mic_capture(
             &self,
@@ -671,8 +643,6 @@ mod tests {
         }
     }
 
-    pub(super) struct SessionStopProbe;
-
     struct SessionRetryProbe(tokio::sync::mpsc::UnboundedSender<()>);
 
     #[ractor::async_trait]
@@ -698,21 +668,6 @@ mod tests {
             if matches!(message, SessionMsg::RetryListener) {
                 let _ = self.0.send(());
             }
-            Ok(())
-        }
-    }
-
-    #[ractor::async_trait]
-    impl Actor for SessionStopProbe {
-        type Msg = SessionMsg;
-        type State = ();
-        type Arguments = ();
-
-        async fn pre_start(
-            &self,
-            _myself: ActorRef<Self::Msg>,
-            _args: Self::Arguments,
-        ) -> Result<Self::State, ActorProcessingErr> {
             Ok(())
         }
     }
@@ -859,41 +814,6 @@ mod tests {
     }
 
     #[test]
-    fn only_local_soniqo_live_listener_failure_stops_session() {
-        for (base_url, model, expected_stop, label) in [
-            (
-                anlg_transcribe_soniqo::LOCAL_BASE_URL,
-                "soniqo-parakeet-streaming",
-                true,
-                "local soniqo live",
-            ),
-            (
-                "http://192.168.1.87:8000/v1",
-                "mistralai/Voxtral-Mini-4B-Realtime-2602",
-                false,
-                "on-prem openai endpoint keeps the session",
-            ),
-            (
-                "http://localhost:1234",
-                "test-model",
-                false,
-                "non-soniqo enters batch fallback",
-            ),
-        ] {
-            let mut ctx = test_ctx();
-            ctx.params.base_url = base_url.to_string();
-            ctx.params.model = model.to_string();
-            let state = test_state(ctx);
-
-            assert_eq!(
-                should_stop_on_listener_failure(&state),
-                expected_stop,
-                "case: {label}"
-            );
-        }
-    }
-
-    #[test]
     fn transient_listener_failures_retry_with_capped_backoff() {
         assert!(should_retry_listener_failure(
             &DegradedError::ConnectionTimeout
@@ -937,43 +857,6 @@ mod tests {
             classify_listener_spawn_failure(&test_state(test_ctx()), &error),
             DegradedError::ProviderConfiguration { .. }
         ));
-    }
-
-    #[tokio::test]
-    async fn stop_after_listener_failure_emits_degraded_active_event() {
-        let runtime = Arc::new(RecordingRuntime {
-            lifecycle_events: std::sync::Mutex::new(vec![]),
-        });
-        let mut ctx = test_ctx();
-        ctx.runtime = runtime.clone();
-        let mut state = test_state(ctx);
-        let (actor_ref, handle) = Actor::spawn(None, SessionStopProbe, ()).await.unwrap();
-
-        stop_after_listener_failure(
-            &actor_ref,
-            &mut state,
-            DegradedError::StreamError {
-                message: "listener failed".to_string(),
-            },
-        )
-        .await;
-
-        {
-            let events = runtime.lifecycle_events.lock().unwrap();
-            let Some(crate::SessionLifecycleEvent::Active {
-                requested_transcription_mode,
-                current_transcription_mode,
-                error: Some(DegradedError::StreamError { message }),
-                ..
-            }) = events.first()
-            else {
-                panic!("expected degraded active event");
-            };
-            assert_eq!(*requested_transcription_mode, TranscriptionMode::Live);
-            assert_eq!(*current_transcription_mode, TranscriptionMode::Live);
-            assert_eq!(message, "listener failed");
-        }
-        let _ = handle.await;
     }
 
     #[tokio::test]
