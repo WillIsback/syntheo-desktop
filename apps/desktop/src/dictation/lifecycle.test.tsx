@@ -139,7 +139,12 @@ describe("dictation access and lifecycle", () => {
     useDictationStatus.setState({ capturingShortcut: false });
     mocks.billing = { isPro: true, isReady: true };
     mocks.platform = "macos";
-    mocks.connection = null;
+    mocks.connection = {
+      provider: "openai",
+      model: "whisper-1",
+      apiKey: "",
+      baseUrl: "http://192.168.1.87:30010/v1",
+    };
     mocks.settings.dictation_live_preview = false;
     mocks.settings.dictation_enabled = true;
     mocks.settings.dictation_shortcut = "Control+Alt+Space";
@@ -221,7 +226,7 @@ describe("dictation access and lifecycle", () => {
     expect(mocks.startSystemRecording).toHaveBeenCalledWith(
       null,
       expect.stringMatching(/^system-dictation-/u),
-      null,
+      expect.objectContaining({ provider: "openai" }),
       expect.anything(),
     );
     expect(mocks.discardRecording).toHaveBeenCalledWith("/tmp/dictation.wav");
@@ -327,7 +332,7 @@ describe("dictation access and lifecycle", () => {
       expect(mocks.startSystemRecording).toHaveBeenCalledWith(
         "USB microphone",
         expect.stringMatching(/^system-dictation-/u),
-        null,
+        expect.objectContaining({ provider: "openai" }),
         expect.anything(),
       );
     },
@@ -402,11 +407,11 @@ describe("dictation access and lifecycle", () => {
     expect(mocks.runBatch).not.toHaveBeenCalled();
     expect(mocks.insertText).not.toHaveBeenCalled();
   });
-  it("keeps local preview local", async () => {
+  it("sends the preview only to the configured on-prem endpoint", async () => {
     mocks.settings.dictation_live_preview = true;
     mocks.connection = {
-      provider: "anarlog",
-      model: "soniqo-parakeet-streaming",
+      provider: "openai",
+      model: "whisper-1",
       apiKey: "",
       baseUrl: "http://127.0.0.1:1234",
     };
@@ -420,7 +425,7 @@ describe("dictation access and lifecycle", () => {
     );
   });
 
-  it("keeps recording available without a configured endpoint", async () => {
+  it("dictation_without_on_prem_provider_refuses", async () => {
     mocks.settings.dictation_live_preview = true;
     mocks.connection = null;
     render(<DictationLifecycle />);
@@ -428,10 +433,10 @@ describe("dictation access and lifecycle", () => {
     await act(async () => {
       mocks.listener?.({ payload: { type: "pressed" } });
     });
-    expect(mocks.startSystemRecording.mock.calls[0]![2]).toBeNull();
-    expect(useDictationStatus.getState()).toMatchObject({
-      phase: "recording",
-      previewUnavailable: true,
-    });
+    expect(mocks.captureTarget).not.toHaveBeenCalled();
+    expect(mocks.startSystemRecording).not.toHaveBeenCalled();
+    expect(useDictationStatus.getState().error).toMatch(
+      /endpoint de transcription/u,
+    );
   });
 });

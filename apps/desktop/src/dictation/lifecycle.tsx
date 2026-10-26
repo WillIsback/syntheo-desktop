@@ -128,6 +128,12 @@ function ActiveDictation({
         const owner = `${id}:${crypto.randomUUID()}`;
         const { microphone, livePreview, conn, languages, dictionary } =
           current.current;
+        // Sans endpoint on-prem, rien ne pourrait transcrire l'enregistrement :
+        // on refuse avant d'ouvrir le micro.
+        if (!conn)
+          throw new Error(
+            "Configurez un endpoint de transcription on-prem dans Réglages > IA avant de dicter.",
+          );
         useDictationStatus.setState({
           owner,
           error: null,
@@ -136,7 +142,7 @@ function ActiveDictation({
           amplitude: 0,
           microphone: microphone || "Default microphone",
           previewEnabled: livePreview,
-          previewUnavailable: livePreview && !conn,
+          previewUnavailable: false,
           expanded: livePreview,
         });
         if (platform() === "macos") {
@@ -157,27 +163,22 @@ function ActiveDictation({
         target = unwrap(await dictation.captureTarget());
         // Seuls les endpoints configurés par l'utilisateur alimentent
         // l'aperçu en direct.
-        const preview = conn
-          ? {
-              provider: conn.provider,
-              baseUrl: conn.baseUrl,
-              apiKey: conn.apiKey ?? "",
-              params: {
-                model: conn.model,
-                channels: 1,
-                sample_rate: 16000,
-                languages: languages || [],
-                keywords: dictionary || [],
-                num_speakers: 1,
-                min_speakers: null,
-                max_speakers: null,
-                custom_query: null,
-              },
-            }
-          : null;
-        useDictationStatus.setState({
-          previewUnavailable: livePreview && !preview,
-        });
+        const preview = {
+          provider: conn.provider,
+          baseUrl: conn.baseUrl,
+          apiKey: conn.apiKey ?? "",
+          params: {
+            model: conn.model,
+            channels: 1,
+            sample_rate: 16000,
+            languages: languages || [],
+            keywords: dictionary || [],
+            num_speakers: 1,
+            min_speakers: null,
+            max_speakers: null,
+            custom_query: null,
+          },
+        };
         abort.signal.throwIfAborted();
         await waitForDictationPanel(owner, abort.signal);
         abort.signal.throwIfAborted();
