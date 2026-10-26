@@ -13,6 +13,7 @@ mod batch_transcript;
 mod capture_gaps;
 mod capture_markers;
 mod error;
+mod legacy_voiceprints;
 mod listener;
 mod listener2;
 mod live_journal;
@@ -78,8 +79,7 @@ pub struct SessionStateSnapshot {
 
 pub type SessionStateCache = Arc<StdMutex<HashMap<String, SessionStateSnapshot>>>;
 
-/// Final mic isolation per session, kept after the session snapshot is dropped on stop so
-/// voiceprint extraction, which runs after the recording ends, can still read it.
+/// Final mic isolation per session, kept after the session snapshot is dropped on stop.
 pub type MicIsolationCache = Arc<StdMutex<HashMap<String, bool>>>;
 
 #[derive(Clone, Default)]
@@ -254,6 +254,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 .map(|_| tracing::info!("root_actor_spawned"))
                 .map_err(|e| tracing::error!(?e, "failed_to_spawn_root_actor"))
             });
+            legacy_voiceprints::spawn(app_handle.clone());
             audio_retention::spawn(app_handle);
 
             Ok(())

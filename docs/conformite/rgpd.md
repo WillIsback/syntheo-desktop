@@ -46,7 +46,11 @@ télécharge ni n'exécute aucun modèle (transcription, LLM, diarisation ou
 empreintes vocales). Une version antérieure a pu laisser des fichiers de
 modèles dans les dossiers `models/stt` et `models/llm` du dossier de données,
 ainsi que dans le cache de modèles Soniqo sous macOS : ils ne sont plus ni lus
-ni chargés, et peuvent être supprimés à la main.
+ni chargés, et peuvent être supprimés à la main. Les empreintes vocales
+qu'une version antérieure a pu enregistrer (vecteurs dans le trousseau du
+système, références dans les tables `voiceprint_exemplars` et
+`voiceprint_candidates`) sont effacées au démarrage ; si le trousseau refuse
+une suppression, l'effacement est retenté au lancement suivant.
 
 ## Flux réseau
 

@@ -67,3 +67,9 @@ it("rgpd_lists_no_model_download", () => {
   expect(rgpd).toContain("models/llm");
   expect(rgpd).not.toMatch(/diarisation locale/i);
 });
+
+it("rgpd_documents_legacy_voiceprint_purge", () => {
+  const rgpd = readFileSync(join(ROOT, "docs/conformite/rgpd.md"), "utf8");
+  // Empreintes vocales d'une version antérieure : effacées au démarrage.
+  expect(rgpd).toMatch(/empreintes vocales[^.]*effacées au démarrage/i);
+});

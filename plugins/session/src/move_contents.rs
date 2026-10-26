@@ -52,12 +52,6 @@ pub async fn move_session_contents(
     )
     .await
     .map_err(|error| error.to_string())?;
-    anlg_db_app::move_session_voiceprint_exemplars(&mut transaction, &move_request)
-        .await
-        .map_err(|error| error.to_string())?;
-    anlg_db_app::move_session_voiceprint_candidates(&mut transaction, &move_request)
-        .await
-        .map_err(|error| error.to_string())?;
 
     if let Some(next_target_note) = &request.next_target_note {
         let updated = anlg_db_app::rewrite_session_note_body(

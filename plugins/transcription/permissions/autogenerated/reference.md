@@ -43,8 +43,6 @@ Default permissions for the plugin
 - `allow-list-transcription-sessions`
 - `allow-get-completed-transcription`
 - `allow-acknowledge-completed-transcription`
-- `allow-extract-voiceprint-candidates`
-- `allow-promote-voiceprint-candidates`
 - `allow-delete-processed-session-audio`
 - `allow-parse-subtitle`
 - `allow-export-to-vtt`
@@ -54,8 +52,6 @@ Default permissions for the plugin
 - `allow-refine-batch-transcript`
 - `allow-save-batch-transcript`
 - `allow-reconcile-refined-speaker-clusters`
-- `allow-extract-voiceprint-candidates`
-- `allow-promote-voiceprint-candidates`
 
 ## Permission Table
 
@@ -296,32 +292,6 @@ Enables the export_to_vtt command without any pre-configured scope.
 <td>
 
 Denies the export_to_vtt command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`transcription:allow-extract-voiceprint-candidates`
-
-</td>
-<td>
-
-Enables the extract_voiceprint_candidates command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`transcription:deny-extract-voiceprint-candidates`
-
-</td>
-<td>
-
-Denies the extract_voiceprint_candidates command without any pre-configured scope.
 
 </td>
 </tr>
@@ -894,32 +864,6 @@ Enables the parse_subtitle command without any pre-configured scope.
 <td>
 
 Denies the parse_subtitle command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`transcription:allow-promote-voiceprint-candidates`
-
-</td>
-<td>
-
-Enables the promote_voiceprint_candidates command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`transcription:deny-promote-voiceprint-candidates`
-
-</td>
-<td>
-
-Denies the promote_voiceprint_candidates command without any pre-configured scope.
 
 </td>
 </tr>
