@@ -4,22 +4,11 @@ const mocks = vi.hoisted(() => ({
   execute: vi.fn(),
   getPreferredLanguages: vi.fn(),
   getTemplateSource: vi.fn(),
-  setDisabled: vi.fn(async () => ({ status: "ok", data: null })),
-  setErrorReportingEnabled: vi.fn(async () => undefined),
-  setSessionReplayAnalyticsEnabled: vi.fn(),
   setAutomaticUpdatesEnabled: vi.fn(async () => undefined),
-  setProperties: vi.fn(async () => undefined),
   executeTransaction: vi.fn(
     (_statements: Array<{ sql: string; params: unknown[] }>) =>
       Promise.resolve([1]),
   ),
-}));
-
-vi.mock("@anlg/plugin-analytics", () => ({
-  commands: {
-    setDisabled: mocks.setDisabled,
-    setProperties: mocks.setProperties,
-  },
 }));
 
 vi.mock("@anlg/plugin-detect", () => ({
@@ -60,7 +49,6 @@ describe("SQLite settings", () => {
     await flushDatabaseWrites();
     vi.clearAllMocks();
     mocks.executeTransaction.mockResolvedValue([1]);
-    mocks.setDisabled.mockResolvedValue({ status: "ok", data: null });
     mocks.execute.mockResolvedValue([]);
     mocks.getPreferredLanguages.mockResolvedValue({
       status: "error",
@@ -238,28 +226,6 @@ describe("SQLite settings", () => {
     await setSettingValues({ automatic_updates: false });
 
     expect(mocks.setAutomaticUpdatesEnabled).toHaveBeenCalledWith(false);
-  });
-
-  it("disables PostHog after persisting the analytics opt-out", async () => {
-    let resolveDisabled!: (value: { status: "ok"; data: null }) => void;
-    mocks.setDisabled.mockReturnValueOnce(
-      new Promise((resolve) => {
-        resolveDisabled = resolve;
-      }),
-    );
-
-    await setSettingValues({ telemetry_consent: false });
-
-    expect(mocks.setDisabled).toHaveBeenCalledWith(true);
-
-    resolveDisabled({ status: "ok", data: null });
-  });
-
-  it("updates Sentry independently from PostHog", async () => {
-    await setSettingValues({ crash_reporting_consent: false });
-
-    expect(mocks.setErrorReportingEnabled).toHaveBeenCalledWith(false);
-    expect(mocks.setDisabled).not.toHaveBeenCalled();
   });
 
   it("preserves the legacy telemetry choice when splitting crash reporting", async () => {

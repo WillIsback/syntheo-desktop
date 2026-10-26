@@ -29,7 +29,6 @@ async function flushApplicationStateWithin(timeoutMs: number): Promise<void> {
   try {
     const results = await Promise.race([
       Promise.allSettled([
-        ,
         flushDatabaseWritesWithin(timeoutMs),
         store2Commands.save(),
       ]),
