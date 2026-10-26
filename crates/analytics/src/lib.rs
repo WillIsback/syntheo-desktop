@@ -229,7 +229,8 @@ impl AnalyticsClient {
         for (key, value) in &self.event_properties {
             let _ = event.insert_prop(key, value);
         }
-        state.client.capture(event).await?;
+        // posthog-rs 0.27 rend `capture` synchrone (mise en file interne).
+        state.client.capture(event);
         Ok(())
     }
 
