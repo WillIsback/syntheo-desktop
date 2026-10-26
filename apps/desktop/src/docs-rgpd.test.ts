@@ -23,11 +23,7 @@ it("docs_rgpd_is_referenced", () => {
 it("docs_rgpd_lists_every_known_flow_and_store", () => {
   const rgpd = readFileSync(join(ROOT, "docs/conformite/rgpd.md"), "utf8");
   // Flux réseau hors inférence encore présents dans le code.
-  for (const flow of [
-    "api.github.com",
-    "api.iconify.design",
-    "models.anarlog.so",
-  ]) {
+  for (const flow of ["api.github.com", "api.iconify.design"]) {
     expect(rgpd).toContain(flow);
   }
   // Stockages locaux annexes.
@@ -61,4 +57,13 @@ it("rgpd_lists_stt_as_on_prem_only", () => {
   // LLM cloud jusqu'au 04b-3.
   expect(rgpd).not.toContain("Deepgram");
   expect(rgpd).toContain("04b-3");
+});
+
+it("rgpd_lists_no_model_download", () => {
+  const rgpd = readFileSync(join(ROOT, "docs/conformite/rgpd.md"), "utf8");
+  // Inférence embarquée retirée (04b-2) : plus aucun modèle téléchargé.
+  expect(rgpd).not.toContain("models.anarlog.so");
+  expect(rgpd).toContain("models/stt");
+  expect(rgpd).toContain("models/llm");
+  expect(rgpd).not.toMatch(/diarisation locale/i);
 });
