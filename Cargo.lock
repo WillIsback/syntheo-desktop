@@ -7659,6 +7659,7 @@ dependencies = [
  "async-stream",
  "audio-utils",
  "axum",
+ "base64 0.22.1",
  "futures-util",
  "hound",
  "language",

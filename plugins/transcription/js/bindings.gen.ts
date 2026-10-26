@@ -429,6 +429,15 @@ transcriptionEvent: "plugin:transcription:transcription-event"
 /** user-defined types **/
 
 export type BatchAlternatives = { transcript: string; confidence: number; words?: BatchWord[] }
+/**
+ * Tampon audio transmis en mémoire (dictée) : rien n'est écrit sur le disque.
+ */
+export type BatchAudio = { 
+/**
+ * Tampon audio en base64 : Tauri sérialise `Vec<u8>` en `number[]`, ce qui
+ * ferait exploser la charge IPC d'un enregistrement dicté.
+ */
+data_base64: string; file_name: string }
 export type BatchChannel = { alternatives: BatchAlternatives[] }
 export type BatchErrorCode = "unknown" | "timed_out" | "audio_metadata_join_failed" | "audio_metadata_read_failed" | "batch_capability_unsupported" | "direct_batch_unsupported" | "progressive_batch_unsupported" | "direct_request_failed" | "progressive_actor_spawn_failed" | "progressive_start_cancelled" | "progressive_stopped_without_completion_signal" | "progressive_finished_without_status" | "progressive_start_failed" | "progressive_stream_error" | "progressive_stream_timeout"
 export type BatchProvider = "openai"
@@ -504,7 +513,11 @@ export type SyntheticTiming = { chunk_start_ms?: number | null }
 export type Token = { text: string; start_time: number; end_time: number; speaker: string | null }
 export type TranscriptionEvent = { type: "started"; session_id: string } | { type: "progress"; session_id: string; event: BatchStreamEvent } | { type: "completed"; session_id: string; response: BatchResponse; mode: BatchRunMode } | { type: "stopped"; session_id: string } | { type: "failed"; session_id: string; code: BatchErrorCode; error: string }
 export type TranscriptionMode = "live" | "batch"
-export type TranscriptionParams = { session_id: string; provider: BatchProvider; file_path: string; model?: string | null; base_url: string; api_key: string; languages?: string[]; keywords?: string[]; num_speakers?: number | null; min_speakers?: number | null; max_speakers?: number | null; resume_context?: string | null }
+export type TranscriptionParams = { session_id: string; provider: BatchProvider; file_path?: string; 
+/**
+ * Prioritaire sur `file_path` quand présent.
+ */
+audio?: BatchAudio | null; model?: string | null; base_url: string; api_key: string; languages?: string[]; keywords?: string[]; num_speakers?: number | null; min_speakers?: number | null; max_speakers?: number | null; resume_context?: string | null }
 export type TranscriptionSession = { session_id: string; file_path: string; provider: BatchProvider | null; model: string | null; started_at_ms: number; resume_context: string | null; completed: boolean }
 export type VttWord = { text: string; start_ms: number; end_ms: number; speaker: string | null }
 /**

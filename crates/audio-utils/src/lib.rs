@@ -197,14 +197,18 @@ pub fn source_from_path(
 
 /// Decode audio held in memory. Dictation and imported files must never be
 /// written to disk, so the batch engine decodes straight from bytes.
-pub fn source_from_bytes(
-    data: std::sync::Arc<[u8]>,
-) -> Result<rodio::Decoder<std::io::Cursor<std::sync::Arc<[u8]>>>, crate::Error> {
+pub fn source_from_bytes<T>(data: T) -> Result<rodio::Decoder<std::io::Cursor<T>>, crate::Error>
+where
+    T: AsRef<[u8]> + Send + Sync + 'static,
+{
     let decoder = rodio::Decoder::try_from(std::io::Cursor::new(data))?;
     Ok(decoder)
 }
 
-pub fn audio_bytes_metadata(data: std::sync::Arc<[u8]>) -> Result<AudioMetadata, crate::Error> {
+pub fn audio_bytes_metadata<T>(data: T) -> Result<AudioMetadata, crate::Error>
+where
+    T: AsRef<[u8]> + Send + Sync + 'static,
+{
     let source = source_from_bytes(data)?;
     metadata_from_source(&source)
 }

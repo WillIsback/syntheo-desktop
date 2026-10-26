@@ -13,7 +13,12 @@ use tokio::sync::Notify;
 const TARGET_SAMPLE_RATE: u32 = 16_000;
 
 use super::super::BatchParams;
+use super::super::upload::AudioInputRef;
 use super::*;
+
+fn path_input(path: &str) -> AudioInputRef<'_> {
+    AudioInputRef::Path(path)
+}
 
 #[derive(Clone, Default)]
 struct HangingHttpAdapter;
@@ -103,6 +108,55 @@ impl BatchSttAdapter for RecordingAdapter {
                 },
             })
         })
+    }
+
+    /// Les segments découpés arrivent en mémoire : on enregistre leur nom pour
+    /// vérifier qu'aucun fichier n'a été écrit.
+    fn transcribe_bytes<'a>(
+        &'a self,
+        _client: &'a reqwest_middleware::ClientWithMiddleware,
+        _api_base: &'a str,
+        _api_key: &'a str,
+        _params: &'a owhisper_interface::ListenParams,
+        audio: Vec<u8>,
+        file_name: String,
+    ) -> Pin<
+        Box<dyn Future<Output = std::result::Result<Response, owhisper_client::Error>> + Send + 'a>,
+    > {
+        Box::pin(async move {
+            let index = {
+                let mut uploads = SEGMENT_UPLOADS.lock().unwrap();
+                let index = uploads.len();
+                uploads.push(file_name);
+                index
+            };
+            assert!(!audio.is_empty(), "a segment was uploaded empty");
+
+            Ok(segment_response(index))
+        })
+    }
+}
+
+fn segment_response(index: usize) -> Response {
+    Response {
+        metadata: serde_json::json!({ "provider": "recording" }),
+        results: owhisper_interface::batch::Results {
+            channels: vec![owhisper_interface::batch::Channel {
+                alternatives: vec![owhisper_interface::batch::Alternatives {
+                    transcript: format!("segment {index}"),
+                    confidence: 1.0,
+                    words: vec![owhisper_interface::batch::Word {
+                        word: format!("segment{index}"),
+                        start: 0.25,
+                        end: 0.75,
+                        confidence: 1.0,
+                        channel: 0,
+                        speaker: None,
+                        punctuated_word: None,
+                    }],
+                }],
+            }],
+        },
     }
 }
 
@@ -236,18 +290,26 @@ fn segments_only_when_a_provider_limit_is_exceeded() {
         })
     };
 
-    assert_eq!(segment_plan(path, None, None), None);
+    assert_eq!(segment_plan(&path_input(path), None, None), None);
     assert_eq!(
-        segment_plan(path, None, limit(size, Duration::from_secs(60))),
+        segment_plan(
+            &path_input(path),
+            None,
+            limit(size, Duration::from_secs(60))
+        ),
         None
     );
     assert_eq!(
-        segment_plan(path, None, limit(size - 1, Duration::from_secs(60))),
+        segment_plan(
+            &path_input(path),
+            None,
+            limit(size - 1, Duration::from_secs(60))
+        ),
         Some(Duration::from_secs(60))
     );
     assert_eq!(
         segment_plan(
-            path,
+            &path_input(path),
             Some(Duration::from_secs(61)),
             limit(size, Duration::from_secs(60))
         ),
@@ -274,15 +336,23 @@ fn openai_diarize_splits_below_the_shared_openai_duration_cap() {
         "fixture must be size-eligible so duration is the trigger"
     );
     assert_eq!(
-        segment_plan(path, Some(Duration::from_secs(1450)), Some(transcribe)),
+        segment_plan(
+            &path_input(path),
+            Some(Duration::from_secs(1450)),
+            Some(transcribe)
+        ),
         None
     );
     assert_eq!(
-        segment_plan(path, Some(Duration::from_secs(1450)), Some(diarize)),
+        segment_plan(
+            &path_input(path),
+            Some(Duration::from_secs(1450)),
+            Some(diarize)
+        ),
         Some(diarize.max_duration)
     );
     assert_eq!(
-        segment_plan(path, meeting, Some(diarize)),
+        segment_plan(&path_input(path), meeting, Some(diarize)),
         Some(diarize.max_duration)
     );
     assert!(diarize.max_duration < Duration::from_secs(1400));
@@ -381,6 +451,7 @@ async fn oversized_audio_is_uploaded_one_segment_at_a_time() {
         session_id: "segment-test".to_string(),
         provider: super::super::BatchProvider::OpenAI,
         file_path: source.path().to_string_lossy().into_owned(),
+        audio: None,
         model: None,
         base_url: "http://192.168.1.87:8000/v1".to_string(),
         api_key: "test".to_string(),
@@ -437,6 +508,7 @@ async fn direct_provider_timeout_cancels_non_responding_request() {
         session_id: "timeout-test".to_string(),
         provider: super::super::BatchProvider::OpenAI,
         file_path: audio.path().to_string_lossy().into_owned(),
+        audio: None,
         model: Some("whisper-1".to_string()),
         base_url: format!("http://{address}/v1"),
         api_key: "test".to_string(),
@@ -493,6 +565,7 @@ async fn rate_limited_direct_request_is_retried_until_it_succeeds() {
         session_id: "rate-limit-test".to_string(),
         provider: super::super::BatchProvider::OpenAI,
         file_path: audio.path().to_string_lossy().into_owned(),
+        audio: None,
         model: None,
         base_url: "http://192.168.1.87:8000/v1".to_string(),
         api_key: "test".to_string(),
