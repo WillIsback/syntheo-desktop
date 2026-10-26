@@ -1219,7 +1219,7 @@ dependencies = [
  "fastrand",
  "hex",
  "http 1.4.0",
- "sha1",
+ "sha1 0.10.6",
  "time",
  "tokio",
  "tracing",
@@ -1625,7 +1625,7 @@ dependencies = [
  "serde_json",
  "serde_path_to_error",
  "serde_urlencoded",
- "sha1",
+ "sha1 0.10.6",
  "sync_wrapper",
  "tokio",
  "tokio-tungstenite 0.29.0",
@@ -10573,18 +10573,22 @@ dependencies = [
 
 [[package]]
 name = "posthog-rs"
-version = "0.5.1"
+version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3862eb754386a1273612a885e961b19be0bb08e6d99e483557af41236d0dac12"
+checksum = "48feacce1343c625054b88191f5c6ea28042643e44a27dd5bfd95d17914d06ff"
 dependencies = [
+ "backtrace",
  "chrono",
  "derive_builder",
+ "findshlibs",
+ "flate2",
+ "os_info",
  "regex",
  "reqwest 0.13.2",
  "semver",
  "serde",
  "serde_json",
- "sha1",
+ "sha1 0.11.0",
  "tokio",
  "tracing",
  "uuid",
@@ -12681,13 +12685,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha1"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aacc4cc499359472b4abe1bf11d0b12e688af9a805fa5e3016f9a386dc2d0214"
+dependencies = [
+ "cfg-if",
+ "cpufeatures 0.3.0",
+ "digest 0.11.2",
+]
+
+[[package]]
 name = "sha1-checked"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "89f599ac0c323ebb1c6082821a54962b839832b03984598375bff3975b804423"
 dependencies = [
  "digest 0.10.7",
- "sha1",
+ "sha1 0.10.6",
 ]
 
 [[package]]
@@ -13187,7 +13202,7 @@ dependencies = [
  "percent-encoding",
  "rand 0.8.6",
  "rsa",
- "sha1",
+ "sha1 0.10.6",
  "sha2 0.10.9",
  "smallvec 1.15.1",
  "sqlx-core",
@@ -16442,7 +16457,7 @@ dependencies = [
  "rand 0.9.4",
  "rustls 0.23.46",
  "rustls-pki-types",
- "sha1",
+ "sha1 0.10.6",
  "thiserror 2.0.18",
  "utf-8",
 ]
@@ -16460,7 +16475,7 @@ dependencies = [
  "log",
  "native-tls",
  "rand 0.9.4",
- "sha1",
+ "sha1 0.10.6",
  "thiserror 2.0.18",
 ]
 
