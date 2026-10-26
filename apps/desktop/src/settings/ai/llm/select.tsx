@@ -36,7 +36,7 @@ import {
   type ListModelsResult,
   removeNonStreamingModels,
 } from "~/settings/ai/shared/list-common";
-import { listGenericModels } from "~/settings/ai/shared/list-openai";
+import { listCustomModels } from "~/settings/ai/shared/list-openai";
 import { ModelCombobox } from "~/settings/ai/shared/model-combobox";
 import { PersistAiSelection } from "~/settings/ai/shared/persist-selection";
 import {
@@ -511,7 +511,7 @@ export function getLlmProviderStatus({
   }
 
   const listModelsFunc = (): Promise<ListModelsResult> =>
-    listGenericModels(baseUrl, apiKey);
+    listCustomModels(baseUrl, apiKey);
 
   return {
     configured: true,

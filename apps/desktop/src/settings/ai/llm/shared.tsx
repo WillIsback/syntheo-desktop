@@ -21,18 +21,20 @@ export type Provider = {
   };
 };
 
+// Préréglage modifiable : le vLLM du DGX. La clé se saisit dans l'app,
+// jamais dans le binaire ; le modèle est lu dans /v1/models.
+export const LLM_VLLM_PRESET_URL = "https://spark-787d-1.tail6cba9f.ts.net/v1";
+
 // Syntheo ne parle qu'à un serveur OpenAI-compatible on-premise (vLLM,
 // Ollama, llama.cpp server, LM Studio, TGI, NIM LLM).
 const _PROVIDERS = [
   {
     id: "custom",
-    displayName: "Custom",
+    displayName: "vLLM (OpenAI-compatible)",
     badge: null,
     icon: <Shuffle />,
-    baseUrl: undefined,
-    requirements: [
-      { kind: "requires_config", fields: ["base_url", "api_key"] },
-    ],
+    baseUrl: LLM_VLLM_PRESET_URL,
+    requirements: [{ kind: "requires_config", fields: ["base_url"] }],
   },
 ] as const satisfies readonly Provider[];
 

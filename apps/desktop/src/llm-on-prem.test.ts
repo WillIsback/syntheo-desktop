@@ -2,8 +2,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { aiProviderSchema } from "@anlg/store";
+
 import { normalizeStoredLlmSelection } from "~/settings/ai/llm/selection";
-import { PROVIDERS } from "~/settings/ai/llm/shared";
+import { LLM_VLLM_PRESET_URL, PROVIDERS } from "~/settings/ai/llm/shared";
+import { processCustomModels } from "~/settings/ai/shared/list-openai";
 
 // Garde-fou : le résumé, le chat et le générateur ne parlent qu'à un serveur
 // OpenAI-compatible on-premise (vLLM, Ollama, llama.cpp…). Les providers LLM
@@ -62,5 +65,41 @@ describe("llm on-prem", () => {
       provider: undefined,
       model: undefined,
     });
+  });
+
+  it("custom_llm_preset_points_at_the_dgx_vllm", () => {
+    expect(LLM_VLLM_PRESET_URL).toBe(
+      "https://spark-787d-1.tail6cba9f.ts.net/v1",
+    );
+    const custom = PROVIDERS.find((provider) => provider.id === "custom");
+    expect(custom?.baseUrl).toBe(LLM_VLLM_PRESET_URL);
+    expect(custom?.displayName).toBe("vLLM (OpenAI-compatible)");
+    expect(custom?.requirements).toEqual([
+      { kind: "requires_config", fields: ["base_url"] },
+    ]);
+  });
+
+  it("llm_endpoint_key_is_optional_over_https", () => {
+    expect(
+      aiProviderSchema.safeParse({
+        type: "llm",
+        base_url: LLM_VLLM_PRESET_URL,
+        api_key: "",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("custom_llm_lists_every_served_model", () => {
+    expect(
+      processCustomModels([
+        { id: "nvidia/Qwen3.8-Flash-Next-FP4-Local" },
+        { id: "gpt-3.5-turbo" },
+        { id: "gpt-4o-2024-08-06" },
+      ]).models.sort(),
+    ).toEqual([
+      "gpt-3.5-turbo",
+      "gpt-4o-2024-08-06",
+      "nvidia/Qwen3.8-Flash-Next-FP4-Local",
+    ]);
   });
 });

@@ -1,28 +1,28 @@
 import { describe, expect, test } from "vitest";
 
 import { getLlmProviderStatus } from "./select";
-import { PROVIDERS } from "./shared";
+import { LLM_VLLM_PRESET_URL, PROVIDERS } from "./shared";
 
 const custom = PROVIDERS.find((p) => p.id === "custom")!;
 
 describe("getLlmProviderStatus", () => {
-  test("does not configure the endpoint without a base URL", () => {
+  test("configures the vLLM preset without a key", () => {
     const status = getLlmProviderStatus({
       provider: custom,
-      config: { base_url: "", api_key: "sk-test" },
+      config: { api_key: "" },
       isAuthenticated: false,
       isPaid: false,
     });
 
-    expect(status.configured).toBe(false);
-    expect(status.listModels).toBeUndefined();
+    expect(custom.baseUrl).toBe(LLM_VLLM_PRESET_URL);
+    expect(status.configured).toBe(true);
+    expect(status.listModels).toBeTypeOf("function");
   });
 
-  test("configures the endpoint once its credentials are verified", () => {
+  test("configures a saved on-prem endpoint", () => {
     const status = getLlmProviderStatus({
       provider: custom,
       config: { base_url: "http://192.168.1.87:30000/v1", api_key: "sk-test" },
-      isAvailable: true,
       isAuthenticated: false,
       isPaid: false,
     });
@@ -30,22 +30,4 @@ describe("getLlmProviderStatus", () => {
     expect(status.configured).toBe(true);
     expect(status.listModels).toBeTypeOf("function");
   });
-
-  test.each([undefined, false])(
-    "does not expose an unverified endpoint (%s)",
-    (isAvailable) => {
-      const status = getLlmProviderStatus({
-        provider: custom,
-        config: {
-          base_url: "http://192.168.1.87:30000/v1",
-          api_key: "nonempty-invalid-key",
-        },
-        isAuthenticated: false,
-        isPaid: false,
-        isAvailable,
-      });
-      expect(status.configured).toBe(false);
-      expect(status.listModels).toBeUndefined();
-    },
-  );
 });

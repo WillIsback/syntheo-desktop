@@ -40,15 +40,8 @@ export async function verifyProviderCredentials(
   signal?: AbortSignal,
 ): Promise<void> {
   const apiKey = credential.apiKey.trim();
-  if (
-    (!apiKey &&
-      !usesDeferredProviderAuthentication(
-        credential.type,
-        credential.provider,
-      )) ||
-    apiKey.length > 8192 ||
-    /[\r\n]/.test(apiKey)
-  )
+  // Les serveurs on-prem acceptent d'être lancés sans clé.
+  if (apiKey.length > 8192 || /[\r\n]/.test(apiKey))
     throw new ProviderCredentialError("Enter a valid API key.");
   let base: URL;
   try {
@@ -110,32 +103,6 @@ export async function verifyProviderCredentials(
         "The provider did not confirm this key. Check the key and connection.",
       );
 
-    // A public model catalog cannot prove that credentials work. Gateways must
-    // also reject an invalid credential before their model response is trusted.
-    if (request.checkAuthentication) {
-      const control = credentialRequest({
-        ...credential,
-        apiKey: "anarlog-invalid-key-verification",
-      });
-      const rejected = await fetcher(control.url, {
-        ...control.init,
-        signal: controller.signal,
-        redirect: "error",
-      });
-      await rejected.body?.cancel();
-      if (rejected.status !== 401 && rejected.status !== 403) {
-        if (!rejected.ok)
-          throw new ProviderCredentialError(
-            rejected.status === 429
-              ? "The provider is rate limiting verification. Try again shortly."
-              : "Couldn’t verify this key with the provider. Check the connection and try again.",
-            true,
-          );
-        throw new ProviderCredentialError(
-          "This endpoint doesn’t support API key verification. Use an authenticated model-list endpoint.",
-        );
-      }
-    }
     controller.signal.throwIfAborted();
     // Saving and refreshing availability use the same proof, without retaining
     // raw credentials or turning a temporary network failure into a lost setup.
@@ -153,102 +120,24 @@ export async function verifyProviderCredentials(
   }
 }
 
-function credentialRequest({ provider, baseUrl, apiKey }: ProviderCredential) {
+// Un serveur OpenAI-compatible on-prem prouve sa configuration en listant ses
+// modèles. Aucune contre-épreuve par clé invalide : un vLLM sans --api-key
+// accepte toute clé, ce qui est légitime sur un réseau privé.
+function credentialRequest({ baseUrl, apiKey }: ProviderCredential) {
   const base = baseUrl.replace(/\/+$/, "");
-  const origin = new URL(base).origin;
-  let url = `${base}/models`;
-  let headers: Record<string, string> = { Authorization: `Bearer ${apiKey}` };
-  let method = "GET";
-  let body: string | undefined;
-  let checkAuthentication = false;
-  let plainText = false;
-  let accept = (value: unknown) => {
-    const data = record(value);
-    return (
-      !data.error && (Array.isArray(data.data) || Array.isArray(data.models))
-    );
-  };
-  switch (provider) {
-    case "anthropic":
-      checkAuthentication = new URL(base).hostname !== "api.anthropic.com";
-      headers = { "x-api-key": apiKey, "anthropic-version": "2023-06-01" };
-      break;
-    case "google_generative_ai":
-      checkAuthentication =
-        new URL(base).hostname !== "generativelanguage.googleapis.com";
-      headers = { "x-goog-api-key": apiKey };
-      break;
-    case "azure_openai":
-      url = `${base.replace(/\/openai(?:\/v1)?$/, "")}/openai/models?api-version=2024-10-21`;
-      headers = { "api-key": apiKey };
-      break;
-    case "azure_ai":
-      headers = { "api-key": apiKey };
-      break;
-    case "google_vertex_ai":
-      url = `${origin}/v1beta1/publishers/google/models?pageSize=1`;
-      accept = (value) => Array.isArray(record(value).publisherModels);
-      checkAuthentication = true;
-      break;
-    case "venice":
-      // Venice's model catalog is public, even with an invalid bearer key.
-      url = `${base}/api_keys/rate_limits`;
-      accept = (value) => record(record(value).data).accessPermitted === true;
-      checkAuthentication = new URL(base).hostname !== "api.venice.ai";
-      break;
-    case "openrouter":
-      url = `${base}/key`;
-      accept = (value) => typeof record(record(value).data).label === "string";
-      break;
-    case "siliconflow":
-      url = `${base}/user/info`;
-      accept = (value) => record(value).status === true;
-      break;
-    case "xai":
-      url = `${base}/api-key`;
-      accept = (value) =>
-        record(value).api_key_blocked === false &&
-        record(value).api_key_disabled === false;
-      break;
-    case "cloudflare_workers_ai":
-      url = `${origin}/client/v4/user/tokens/verify`;
-      accept = (value) =>
-        record(value).success === true &&
-        record(record(value).result).status === "active";
-      break;
-    case "fireworks":
-      url = `${origin}/inference/v1/models`;
-      checkAuthentication = true;
-      break;
-    case "deepseek":
-      url = `${base}/user/balance`;
-      accept = (value) => typeof record(value).is_available === "boolean";
-      break;
-    case "cohere":
-      url = `${origin}/v1/check-api-key`;
-      method = "POST";
-      headers["Content-Type"] = "application/json";
-      body = "{}";
-      accept = (value) => record(value).valid === true;
-      break;
-    case "openai":
-      checkAuthentication = new URL(base).hostname !== "api.openai.com";
-      break;
-    case "groq":
-      checkAuthentication = new URL(base).hostname !== "api.groq.com";
-      break;
-    case "mistral":
-      checkAuthentication = new URL(base).hostname !== "api.mistral.ai";
-      break;
-    default:
-      checkAuthentication = true;
-  }
+  const headers: Record<string, string> = apiKey
+    ? { Authorization: `Bearer ${apiKey}` }
+    : {};
   return {
-    url,
-    init: { method, headers, body },
-    accept,
-    checkAuthentication,
-    plainText,
+    url: `${base}/models`,
+    init: { method: "GET", headers, body: undefined as string | undefined },
+    accept: (value: unknown) => {
+      const data = record(value);
+      return (
+        !data.error && (Array.isArray(data.data) || Array.isArray(data.models))
+      );
+    },
+    plainText: false,
   };
 }
 

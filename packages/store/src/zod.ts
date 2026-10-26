@@ -55,23 +55,13 @@ export const speakerHintSchema = z.object({
   value: jsonObject(z.record(z.string(), z.unknown())),
 });
 
-export const aiProviderSchema = z
-  .object({
-    type: z.enum(["stt", "llm"]),
-    base_url: z.url().min(1),
-    api_key: z.string(),
-  })
-  .refine(
-    // Les endpoints STT on-prem n'exigent pas forcément de clé, même en HTTPS.
-    (data) =>
-      data.type === "stt" ||
-      !data.base_url.startsWith("https:") ||
-      data.api_key.length > 0,
-    {
-      message: "API key is required for HTTPS URLs",
-      path: ["api_key"],
-    },
-  );
+// Les serveurs on-prem (STT et LLM) n'exigent pas forcément de clé, même en
+// HTTPS : un vLLM lancé sans --api-key l'ignore.
+export const aiProviderSchema = z.object({
+  type: z.enum(["stt", "llm"]),
+  base_url: z.url().min(1),
+  api_key: z.string(),
+});
 
 export type SessionEvent = z.infer<typeof sessionEventSchema>;
 export type EventParticipant = z.infer<typeof eventParticipantSchema>;
