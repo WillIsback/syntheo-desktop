@@ -71,7 +71,7 @@ la capture de réunion — déjà fusionné).
   `streaming_file_part(bytes: Arc<Vec<u8>>, file_name: &str, mime: &str) -> Part`.
 - `AudioSource::Path` ne doit **jamais** écrire : lecture seule + streaming.
 
-- [ ] **Step 1 :** Écrire les tests qui échouent dans
+- [x] **Step 1 :** Écrire les tests qui échouent dans
   `crates/listener2-core/tests/no_disk_audio.rs` :
   - `segments_are_encoded_in_memory` : une source `Bytes` (WAV synthétique > limite) produit
     ≥ 2 segments non vides et **aucun** fichier `*.mp3` n'existe sous `std::env::temp_dir()` ;
@@ -79,13 +79,13 @@ la capture de réunion — déjà fusionné).
     dossier de données (assertion sur un `tempdir` dédié) ;
   - `missing_source_is_a_configuration_error` : une source `Path` inexistante échoue avec une
     erreur explicite, sans panique.
-- [ ] **Step 2 :** Lancer → échecs attendus (le type `AudioSource` n'existe pas).
-- [ ] **Step 3 :** Implémenter : `AudioSource`, `segment_plan`, `encode_mono_segments` en
+- [x] **Step 2 :** Lancer → échecs attendus (le type `AudioSource` n'existe pas).
+- [x] **Step 3 :** Implémenter : `AudioSource`, `segment_plan`, `encode_mono_segments` en
   mémoire, `streaming_file_part` à partir de bytes, propagation dans les deux chemins batch
   (direct et progressif) et jusqu'à `TranscriptionParams`/`useRunBatch`.
-- [ ] **Step 4 :** `cargo test -p listener2-core -p owhisper-client -p anlg-mp3 --locked`,
+- [x] **Step 4 :** `cargo test -p listener2-core -p owhisper-client -p anlg-mp3 --locked`,
   `cargo check -p tauri-plugin-transcription`, Vitest `src/stt/useRunBatch.test.ts` verts.
-- [ ] **Step 5 :** Commit `refactor(batch): transcrire depuis une source en mémoire`.
+- [x] **Step 5 :** Commit `refactor(batch): transcrire depuis une source en mémoire`.
 
 ### Task 2: La dictée n'écrit plus de WAV temporaire
 
@@ -99,15 +99,15 @@ la capture de réunion — déjà fusionné).
 - Produces : `RecordedAudio { pcm_or_wav: Vec<u8>, mime: String, duration_ms: u64 }` (plus de
   `file_path`) ; `discard_recording` retiré.
 
-- [ ] **Step 1 :** Tests qui échouent : `recording_keeps_no_file_on_disk` (après
+- [x] **Step 1 :** Tests qui échouent : `recording_keeps_no_file_on_disk` (après
   `start`→`stop`, `std::env::temp_dir()` ne contient aucun `anarlog-dictation-*`),
   `recording_returns_playable_wav_bytes` (en-tête WAV valide, durée ≈ attendue).
-- [ ] **Step 2 :** Lancer → échecs attendus.
-- [ ] **Step 3 :** Remplacer `tempfile` + `hound::WavWriter` par un `WavWriter<Cursor<Vec<u8>>>` ;
+- [x] **Step 2 :** Lancer → échecs attendus.
+- [x] **Step 3 :** Remplacer `tempfile` + `hound::WavWriter` par un `WavWriter<Cursor<Vec<u8>>>` ;
   adapter `commands.rs` et le front (plus de `discardTemporaryRecording`, plus de chemin).
-- [ ] **Step 4 :** `cargo test -p tauri-plugin-dictation --locked`, Vitest
+- [x] **Step 4 :** `cargo test -p tauri-plugin-dictation --locked`, Vitest
   `src/dictation/` et `src/chat/components/input/` verts.
-- [ ] **Step 5 :** Commit `feat(dictation): transcription sans fichier temporaire`.
+- [x] **Step 5 :** Commit `feat(dictation): transcription sans fichier temporaire`.
 
 ### Task 3: L'import ne copie plus l'audio dans le dossier de données
 
@@ -123,15 +123,15 @@ la capture de réunion — déjà fusionné).
 - Produces : `audio_import` renvoie une **référence** (chemin d'origine + métadonnées), plus de
   `sessions/<id>/audio.mp3` ; le catalogue ne référence plus d'artefact audio de session.
 
-- [ ] **Step 1 :** Tests qui échouent : `import_does_not_copy_into_the_session_directory`
+- [x] **Step 1 :** Tests qui échouent : `import_does_not_copy_into_the_session_directory`
   (après import, le dossier de session ne contient aucun fichier audio),
   `failed_import_leaves_the_source_intact`, `retention_skips_absent_audio`.
-- [ ] **Step 2 :** Lancer → échecs attendus.
-- [ ] **Step 3 :** Implémenter : suppression de la copie et du staging, batch sur le chemin
+- [x] **Step 2 :** Lancer → échecs attendus.
+- [x] **Step 3 :** Implémenter : suppression de la copie et du staging, batch sur le chemin
   d'origine, ajustement du catalogue, de la rétention et de la reprise (le job CLI/MCP porte
   le chemin d'origine, plus de fichier intermédiaire).
-- [ ] **Step 4 :** Tests Rust concernés, Vitest `src/stt/`, `cargo check` du workspace.
-- [ ] **Step 5 :** Commit `feat(import): transcrire le fichier depuis son emplacement d'origine`.
+- [x] **Step 4 :** Tests Rust concernés, Vitest `src/stt/`, `cargo check` du workspace.
+- [x] **Step 5 :** Commit `feat(import): transcrire le fichier depuis son emplacement d'origine`.
 
 ### Task 4: Retirer le code mort de 04c-A
 
@@ -141,14 +141,14 @@ la capture de réunion — déjà fusionné).
 - Delete: `crates/audio-utils/src/vorbis.rs` (helpers sans appelant), `crates/mp3/src/wav.rs` (si plus d'appelant)
 - Modify: `plugins/transcription/src/listener/commands.rs`, `apps/desktop/src/stt/capture-lifecycle.ts` (appel `deleteTranscribedCaptureAudio` si le balayage disparaît)
 
-- [ ] **Step 1 :** Test garde-fou Rust : `no_recorder_module_is_reachable` (le module recorder
+- [x] **Step 1 :** Test garde-fou Rust : `no_recorder_module_is_reachable` (le module recorder
   n'est plus déclaré) et `startup_sweep_still_removes_legacy_audio` (le filet de sécurité
   supprime bien un `audio.mp3` hérité dans un dossier de session de test).
-- [ ] **Step 2 :** Lancer → échecs attendus.
-- [ ] **Step 3 :** Supprimer, en gardant le balayage de démarrage.
-- [ ] **Step 4 :** `cargo test --locked -p listener-core -p anlg-audio-utils -p anlg-mp3`,
+- [x] **Step 2 :** Lancer → échecs attendus.
+- [x] **Step 3 :** Supprimer, en gardant le balayage de démarrage.
+- [x] **Step 4 :** `cargo test --locked -p listener-core -p anlg-audio-utils -p anlg-mp3`,
   `cargo check -p desktop`.
-- [ ] **Step 5 :** Commit `refactor(audio): retirer l'ancien enregistreur et ses helpers morts`.
+- [x] **Step 5 :** Commit `refactor(audio): retirer l'ancien enregistreur et ses helpers morts`.
 
 ### Task 5: Documentation et garde-fous
 
@@ -157,12 +157,12 @@ la capture de réunion — déjà fusionné).
   chemin ; retirer la mention « WAV de dictée reste si l'app plante »), `NOTICE.md`
 - Test: `apps/desktop/src/docs-rgpd.test.ts`, `apps/desktop/src/no-audio-at-rest.test.ts`
 
-- [ ] **Step 1 :** Test `rgpd_states_no_audio_is_ever_written` : `rgpd.md` affirme l'absence
+- [x] **Step 1 :** Test `rgpd_states_no_audio_is_ever_written` : `rgpd.md` affirme l'absence
   totale d'écriture audio et ne contient plus « reste dans le dossier temporaire ».
-- [ ] **Step 2 :** Échec attendu.
-- [ ] **Step 3 :** Mettre à jour les documents.
-- [ ] **Step 4 :** Tests verts, suite complète.
-- [ ] **Step 5 :** Commit `docs: zéro audio sur disque, sur tous les chemins`.
+- [x] **Step 2 :** Échec attendu.
+- [x] **Step 3 :** Mettre à jour les documents.
+- [x] **Step 4 :** Tests verts, suite complète.
+- [x] **Step 5 :** Commit `docs: zéro audio sur disque, sur tous les chemins`.
 
 ---
 
