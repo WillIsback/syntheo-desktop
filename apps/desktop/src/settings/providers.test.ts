@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   execute: vi.fn(),
+  validateBaseUrl: vi.fn(),
   verify: vi.fn<
     typeof import("@anlg/provider-validation").verifyProviderCredentials
   >(async () => {}),
@@ -30,6 +31,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@tauri-apps/plugin-http", () => ({ fetch: mocks.fetch }));
 
 vi.mock("@anlg/provider-validation", () => ({
+  validateProviderBaseUrl: mocks.validateBaseUrl,
   verifyProviderCredentials: mocks.verify,
   usesDeferredProviderAuthentication: (type: string, provider: string) =>
     type === "stt" && ["openai", "nvidia"].includes(provider),
@@ -71,6 +73,7 @@ import {
 describe("SQLite AI providers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.validateBaseUrl.mockReset();
     mocks.verify.mockResolvedValue(undefined);
     mocks.executeTransaction.mockResolvedValue([1]);
     mocks.getSecret.mockResolvedValue({ status: "ok", data: null });
@@ -213,6 +216,72 @@ describe("SQLite AI providers", () => {
     ).rejects.toThrow("The provider rejected this key");
     expect(mocks.setSecret).toHaveBeenCalledOnce();
     expect(mocks.executeTransaction).toHaveBeenCalledOnce();
+    unmount();
+    queryClient.clear();
+  });
+
+  it("rejects a public plain-HTTP LLM endpoint for the on-prem provider", async () => {
+    // Le seul provider LLM restant est on-prem et sa clé est facultative : sans
+    // sonde, l'URL doit tout de même être contrôlée (HTTPS, ou HTTP privé).
+    const { validateProviderBaseUrl } = await vi.importActual<
+      typeof import("@anlg/provider-validation")
+    >("@anlg/provider-validation");
+    mocks.validateBaseUrl.mockImplementation(validateProviderBaseUrl);
+    mocks.execute.mockResolvedValue([]);
+    const queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+    const { result, unmount } = renderHook(
+      () =>
+        useSetAiProvider("llm", "custom", {
+          defaultBaseUrl: "https://spark-787d-1.tail6cba9f.ts.net/v1",
+        }),
+      { wrapper },
+    );
+
+    await expect(
+      result.current.mutateAsync({
+        base_url: "http://8.8.8.8/v1",
+        api_key: "",
+      }),
+    ).rejects.toThrow("Use HTTPS");
+    expect(mocks.executeTransaction).not.toHaveBeenCalled();
+
+    unmount();
+    queryClient.clear();
+  });
+
+  it("saves an on-prem LLM endpoint over plain HTTP on a private host", async () => {
+    const { validateProviderBaseUrl } = await vi.importActual<
+      typeof import("@anlg/provider-validation")
+    >("@anlg/provider-validation");
+    mocks.validateBaseUrl.mockImplementation(validateProviderBaseUrl);
+    mocks.execute.mockResolvedValue([]);
+    const queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+    const { result, unmount } = renderHook(
+      () =>
+        useSetAiProvider("llm", "custom", {
+          defaultBaseUrl: "https://spark-787d-1.tail6cba9f.ts.net/v1",
+        }),
+      { wrapper },
+    );
+
+    await result.current.mutateAsync({
+      base_url: "http://192.168.1.87:30000/v1",
+      api_key: "",
+    });
+
+    expect(mocks.validateBaseUrl).toHaveBeenCalledWith(
+      "http://192.168.1.87:30000/v1",
+    );
+    expect(mocks.executeTransaction).toHaveBeenCalledOnce();
+
     unmount();
     queryClient.clear();
   });

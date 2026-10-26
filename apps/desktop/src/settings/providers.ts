@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { commands as store2Commands } from "@anlg/plugin-store2";
 import {
   usesDeferredProviderAuthentication,
+  validateProviderBaseUrl,
   verifyProviderCredentials,
 } from "@anlg/provider-validation";
 
@@ -218,17 +219,25 @@ export function useSetAiProvider(
     mutationFn: async (
       changes: Partial<Pick<AiProviderConfig, "base_url" | "api_key">>,
     ) => {
-      // Les endpoints STT on-prem n'ont pas de sonde d'authentification, mais
-      // leur URL est contrôlée (HTTPS, ou HTTP vers un hôte privé).
+      const previous = await getStoredAiProvider(type, providerId);
+      const apiKey = (changes.api_key ?? previous?.api_key ?? "").trim();
+      const baseUrl =
+        (changes.base_url ?? previous?.base_url ?? "").trim() ||
+        defaultBaseUrl.trim();
+
+      // L'URL est contrôlée à chaque écriture (HTTPS, ou HTTP vers un hôte
+      // privé), même pour un provider on-prem dont la clé n'est vérifiée qu'à
+      // l'usage : la sonde de clé ne doit pas être le seul porteur de la règle.
+      if (baseUrl) {
+        validateProviderBaseUrl(baseUrl);
+      }
+
+      // Les endpoints STT on-prem n'ont pas de sonde d'authentification
+      // commune : leur clé est vérifiée à l'ouverture de la session.
       if (
         verifyCredentials ||
         usesDeferredProviderAuthentication(type, providerId)
       ) {
-        const previous = await getStoredAiProvider(type, providerId);
-        const apiKey = (changes.api_key ?? previous?.api_key ?? "").trim();
-        const baseUrl =
-          (changes.base_url ?? previous?.base_url ?? "").trim() ||
-          defaultBaseUrl.trim();
         await verifyProviderCredentials(
           {
             type,

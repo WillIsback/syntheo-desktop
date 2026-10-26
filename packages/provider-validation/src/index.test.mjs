@@ -3,8 +3,9 @@ import { test } from "node:test";
 
 import {
   ProviderCredentialError,
-  verifyProviderCredentials,
   providerCredentialIdentity,
+  validateProviderBaseUrl,
+  verifyProviderCredentials,
 } from "./index.ts";
 
 const credential = {
@@ -247,4 +248,27 @@ test("custom_llm_skips_control_key_probe", async () => {
   );
   assert.equal(requests.length, 1);
   assert.equal(requests[0].init.headers.Authorization, "Bearer vllm-key");
+});
+
+test("validateProviderBaseUrl_rejects_plain_http_on_a_public_host", () => {
+  assert.throws(
+    () => validateProviderBaseUrl("http://8.8.8.8/v1"),
+    /Use HTTPS/,
+  );
+  assert.throws(
+    () => validateProviderBaseUrl("https://user:pass@example.com/v1"),
+    /credentials or query parameters/,
+  );
+  assert.throws(() => validateProviderBaseUrl("not-a-url"), /valid base URL/);
+});
+
+test("validateProviderBaseUrl_accepts_private_hosts_and_https", () => {
+  for (const baseUrl of [
+    "https://spark-787d-1.tail6cba9f.ts.net/v1",
+    "http://192.168.1.87:30000/v1",
+    "http://127.0.0.1:8000/v1",
+    "http://localhost:9000",
+  ]) {
+    assert.ok(validateProviderBaseUrl(baseUrl) instanceof URL);
+  }
 });

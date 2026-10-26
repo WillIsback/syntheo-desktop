@@ -34,18 +34,14 @@ export function usesDeferredProviderAuthentication(
   );
 }
 
-export async function verifyProviderCredentials(
-  credential: ProviderCredential,
-  fetcher: CredentialFetch,
-  signal?: AbortSignal,
-): Promise<void> {
-  const apiKey = credential.apiKey.trim();
-  // Les serveurs on-prem acceptent d'être lancés sans clé.
-  if (apiKey.length > 8192 || /[\r\n]/.test(apiKey))
-    throw new ProviderCredentialError("Enter a valid API key.");
+// Contrôle d'URL partagé : appliqué à l'enregistrement d'un provider, même
+// quand aucune sonde d'authentification n'est déclenchée. Un endpoint on-prem
+// en HTTP clair reste acceptable sur la machine ou un réseau privé ; ailleurs,
+// HTTPS est exigé.
+export function validateProviderBaseUrl(baseUrl: string): URL {
   let base: URL;
   try {
-    base = new URL(credential.baseUrl);
+    base = new URL(baseUrl);
   } catch {
     throw new ProviderCredentialError("Enter a valid base URL.");
   }
@@ -58,6 +54,19 @@ export async function verifyProviderCredentials(
     !(base.protocol === "http:" && isPrivateHost(base.hostname))
   )
     throw new ProviderCredentialError("Use HTTPS for provider credentials.");
+  return base;
+}
+
+export async function verifyProviderCredentials(
+  credential: ProviderCredential,
+  fetcher: CredentialFetch,
+  signal?: AbortSignal,
+): Promise<void> {
+  const apiKey = credential.apiKey.trim();
+  // Les serveurs on-prem acceptent d'être lancés sans clé.
+  if (apiKey.length > 8192 || /[\r\n]/.test(apiKey))
+    throw new ProviderCredentialError("Enter a valid API key.");
+  validateProviderBaseUrl(credential.baseUrl);
 
   signal?.throwIfAborted();
   // These providers have no shared read-only credential probe.
