@@ -286,60 +286,27 @@ fn collect_audio_modified(path: &Path, latest: &mut Option<u64>) -> std::io::Res
     Ok(())
 }
 
+/// Validates the user's file and returns its original path. The audio is read
+/// from where it already lives: nothing is copied into the app's data directory,
+/// so no audio ever touches the disk.
 pub fn import_to_session(
     runtime: &dyn AudioImportRuntime,
     session_id: &str,
-    session_dir: &Path,
     source_path: &Path,
 ) -> Result<PathBuf, AudioImportError> {
     runtime.emit(AudioImportEvent::Started {
         session_id: session_id.to_string(),
     });
 
-    std::fs::create_dir_all(session_dir)?;
-
-    let target_path = session_dir.join("audio.mp3");
-    let tmp_path = session_dir.join("audio.mp3.tmp");
-
-    let on_progress = {
-        let session_id = session_id.to_string();
-        let mut last_emitted: f64 = 0.0;
-        let mut last_time = std::time::Instant::now();
-        move |percentage: f64| {
-            let now = std::time::Instant::now();
-            if (percentage - last_emitted) >= 0.01
-                || now.duration_since(last_time).as_millis() >= 100
-            {
-                runtime.emit(AudioImportEvent::Progress {
-                    session_id: session_id.clone(),
-                    percentage,
-                });
-                last_emitted = percentage;
-                last_time = now;
-            }
-        }
-    };
-
-    let result = anlg_audio_norm::normalize_file(
-        source_path,
-        &tmp_path,
-        &target_path,
-        None,
-        Some(on_progress),
-    )
-    .map(|_| ());
+    let result = validate_import_source(source_path);
     match result {
         Ok(()) => {
-            let final_path = target_path;
             runtime.emit(AudioImportEvent::Completed {
                 session_id: session_id.to_string(),
             });
-            Ok(final_path.to_path_buf())
+            Ok(source_path.to_path_buf())
         }
         Err(error) => {
-            if tmp_path.exists() {
-                let _ = std::fs::remove_file(&tmp_path);
-            }
             runtime.emit(AudioImportEvent::Failed {
                 session_id: session_id.to_string(),
                 error: error.to_string(),
@@ -349,12 +316,15 @@ pub fn import_to_session(
     }
 }
 
-pub fn import_audio(
-    source_path: &Path,
-    tmp_path: &Path,
-    target_path: &Path,
-) -> Result<PathBuf, anlg_audio_norm::Error> {
-    anlg_audio_norm::normalize_file(source_path, tmp_path, target_path, None, None::<fn(f64)>)
+fn validate_import_source(source_path: &Path) -> std::io::Result<()> {
+    let metadata = std::fs::metadata(source_path)?;
+    if !metadata.is_file() || metadata.len() == 0 {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "audio_source_must_be_a_nonempty_file",
+        ));
+    }
+    Ok(())
 }
 
 fn system_time_to_iso(time: std::time::SystemTime) -> String {
@@ -364,11 +334,14 @@ fn system_time_to_iso(time: std::time::SystemTime) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_audio_utils::Source;
     use assert_fs::TempDir;
     use std::time::SystemTime;
 
-    const MIN_MP3_BYTES: u64 = 1024;
+    struct NoopRuntime;
+    impl AudioImportRuntime for NoopRuntime {
+        fn emit(&self, _event: AudioImportEvent) {}
+    }
+
     const KNOWN_SESSION_ID: &str = "11111111-1111-4111-8111-111111111111";
     const ORPHAN_SESSION_ID: &str = "22222222-2222-4222-8222-222222222222";
     const META_SESSION_ID: &str = "33333333-3333-4333-8333-333333333333";
@@ -620,91 +593,30 @@ mod tests {
         assert!(orphan_dir.join("audio.wav").exists());
     }
 
-    macro_rules! test_import_audio {
-        ($($name:ident: $path:expr),* $(,)?) => {
-            $(
-                #[test]
-                fn $name() {
-                    let source_path = std::path::Path::new($path);
-                    let temp = TempDir::new().unwrap();
-                    let tmp_path = temp.path().join("tmp.mp3");
-                    let target_path = temp.path().join("target.mp3");
+    #[test]
+    fn import_returns_the_source_path_without_copying() {
+        let temp = TempDir::new().unwrap();
+        let source_path = temp.path().join("meeting.m4a");
+        std::fs::write(&source_path, b"audio content").unwrap();
 
-                    let result = import_audio(source_path, &tmp_path, &target_path);
-                    assert!(result.is_ok(), "import failed: {:?}", result.err());
-                    assert!(target_path.exists());
+        let runtime = NoopRuntime;
+        let imported = import_to_session(&runtime, "session", &source_path).unwrap();
 
-                    let size = std::fs::metadata(&target_path).unwrap().len();
-                    assert!(
-                        size > MIN_MP3_BYTES,
-                        "Output too small ({size} bytes), likely empty audio"
-                    );
-                }
-            )*
-        };
-    }
-
-    test_import_audio! {
-        test_import_wav: anlg_data::english_1::AUDIO_PATH,
-        test_import_mp3: anlg_data::english_1::AUDIO_MP3_PATH,
-        test_import_mp4: anlg_data::english_1::AUDIO_MP4_PATH,
-        test_import_m4a: anlg_data::english_1::AUDIO_M4A_PATH,
-        test_import_ogg: anlg_data::english_1::AUDIO_OGG_PATH,
-        test_import_flac: anlg_data::english_1::AUDIO_FLAC_PATH,
-        test_import_aac: anlg_data::english_1::AUDIO_AAC_PATH,
-        test_import_aiff: anlg_data::english_1::AUDIO_AIFF_PATH,
-        test_import_caf: anlg_data::english_1::AUDIO_CAF_PATH,
+        assert_eq!(imported, source_path);
+        assert_eq!(std::fs::read(&source_path).unwrap(), b"audio content");
+        assert_eq!(std::fs::read_dir(temp.path()).unwrap().count(), 1);
     }
 
     #[test]
-    fn test_import_stereo_mp3() {
-        let source_path = std::path::Path::new(anlg_data::english_10::AUDIO_MP3_PATH);
+    fn import_rejects_missing_and_empty_sources() {
         let temp = TempDir::new().unwrap();
-        let tmp_path = temp.path().join("tmp.mp3");
-        let target_path = temp.path().join("target.mp3");
+        let runtime = NoopRuntime;
 
-        let result = import_audio(source_path, &tmp_path, &target_path);
-        assert!(result.is_ok(), "import failed: {:?}", result.err());
-        assert!(target_path.exists());
+        let missing = temp.path().join("missing.mp3");
+        assert!(import_to_session(&runtime, "session", &missing).is_err());
 
-        let size = std::fs::metadata(&target_path).unwrap().len();
-        assert!(
-            size > MIN_MP3_BYTES,
-            "Output too small ({size} bytes), likely empty audio"
-        );
-
-        let decoder = anlg_audio_utils::source_from_path(&target_path).unwrap();
-        let channels: u16 = decoder.channels().into();
-        assert_eq!(channels, 2, "stereo input should produce stereo output");
-    }
-
-    #[test]
-    fn test_import_problem_m4a() {
-        let source = match std::env::var("PROBLEM_M4A") {
-            Ok(p) => PathBuf::from(p),
-            Err(_) => return,
-        };
-        let temp = TempDir::new().unwrap();
-        let result = import_audio(
-            &source,
-            &temp.path().join("tmp.mp3"),
-            &temp.path().join("out.mp3"),
-        );
-        assert!(result.is_ok(), "import failed: {:?}", result.err());
-    }
-
-    #[test]
-    fn test_import_problem2_m4a() {
-        let source = match std::env::var("PROBLEM2_M4A") {
-            Ok(p) => PathBuf::from(p),
-            Err(_) => return,
-        };
-        let temp = TempDir::new().unwrap();
-        let result = import_audio(
-            &source,
-            &temp.path().join("tmp.mp3"),
-            &temp.path().join("out.mp3"),
-        );
-        assert!(result.is_ok(), "import failed: {:?}", result.err());
+        let empty = temp.path().join("empty.mp3");
+        std::fs::write(&empty, b"").unwrap();
+        assert!(import_to_session(&runtime, "session", &empty).is_err());
     }
 }

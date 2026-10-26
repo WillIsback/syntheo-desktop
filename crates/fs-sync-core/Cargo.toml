@@ -9,7 +9,6 @@ default = []
 tauri-event = ["dep:tauri-specta"]
 
 [dependencies]
-anlg-audio-norm = { workspace = true }
 anlg-audio-utils = { workspace = true }
 anlg-frontmatter = { workspace = true }
 anlg-fs-format = { workspace = true }
@@ -38,7 +37,3 @@ assert_fs = "1"
 criterion = { workspace = true }
 predicates = "3"
 tempfile = { workspace = true }
-
-[[bench]]
-name = "audio_import"
-harness = false

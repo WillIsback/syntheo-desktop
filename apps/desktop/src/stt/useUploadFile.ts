@@ -19,7 +19,6 @@ import { isStoppedTranscriptionError, useRunBatch } from "./useRunBatch";
 
 import { withCloudsyncActivity } from "~/db/cloudsync-activity";
 import { getEnhancerService } from "~/services/enhancer";
-import { catalogLocalSessionAudio } from "~/session/attachments";
 import { enqueueSessionAudioOperation } from "~/session/audio-operations";
 import { useSession, useUpdateSession } from "~/session/queries";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
@@ -172,11 +171,6 @@ export function useUploadFile(sessionId: string) {
           if (result.status === "error") {
             throw new Error(result.error);
           }
-          try {
-            await catalogLocalSessionAudio(sessionId);
-          } catch (error) {
-            console.error("[upload] failed to catalog imported audio", error);
-          }
           return result.data;
         } finally {
           unlisten();
@@ -189,6 +183,7 @@ export function useUploadFile(sessionId: string) {
     (
       importAudio: () => Promise<string>,
       inspectAudioDate: () => Promise<void>,
+      audio?: { data_base64: string; file_name: string },
     ) => {
       const program = pipe(
         Effect.promise(inspectAudioDate),
@@ -224,6 +219,7 @@ export function useUploadFile(sessionId: string) {
             try: () =>
               runBatch(importedPath, {
                 promotion: { scope: "whole_session" },
+                audio,
               }),
             catch: (error) => error,
           }),
@@ -362,28 +358,41 @@ export function useUploadFile(sessionId: string) {
       }
 
       const filePath = audioUploadFilePath(file);
-      runAudioImport(
-        async () => {
-          if (filePath) {
-            return importWithProgress(() =>
+      if (filePath) {
+        runAudioImport(
+          () =>
+            importWithProgress(() =>
               fsSyncCommands.audioImport(sessionId, filePath),
-            );
-          }
-
-          const data = await readIpcAudioData(file);
-          return importWithProgress(() =>
-            fsSyncCommands.audioImportData(
-              sessionId,
-              data,
-              file.name,
-              options?.contentType || file.type || null,
             ),
+          () => applyDroppedAudioNoteDate(file),
+        );
+        return;
+      }
+
+      // No native path: the dropped file never touches the disk. Its bytes go
+      // straight to the batch over IPC, base64-encoded.
+      void (async () => {
+        try {
+          const dataBase64 = await readIpcAudioBase64(file);
+          runAudioImport(
+            async () => "",
+            () => applyDroppedAudioNoteDate(file),
+            { data_base64: dataBase64, file_name: file.name },
           );
-        },
-        () => applyDroppedAudioNoteDate(file),
-      );
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : String(error);
+          console.error("[upload] audio read failed:", error);
+          handleBatchFailed(sessionId, msg);
+        }
+      })();
     },
-    [applyDroppedAudioNoteDate, importWithProgress, runAudioImport, sessionId],
+    [
+      applyDroppedAudioNoteDate,
+      handleBatchFailed,
+      importWithProgress,
+      runAudioImport,
+      sessionId,
+    ],
   );
 
   const selectAndUpload = useCallback(
@@ -447,9 +456,17 @@ function assertIpcAudioSize(size: number) {
   }
 }
 
-async function readIpcAudioData(file: File) {
+async function readIpcAudioBase64(file: File) {
   assertIpcAudioSize(file.size);
   const arrayBuffer = await file.arrayBuffer();
   assertIpcAudioSize(arrayBuffer.byteLength);
-  return Array.from(new Uint8Array(arrayBuffer));
+  const bytes = new Uint8Array(arrayBuffer);
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(
+      ...bytes.subarray(offset, offset + chunkSize),
+    );
+  }
+  return btoa(binary);
 }

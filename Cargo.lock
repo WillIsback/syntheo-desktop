@@ -212,13 +212,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "afconvert"
-version = "0.1.0"
-dependencies = [
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "agent-access"
 version = "0.1.0"
 dependencies = [
@@ -227,7 +220,6 @@ dependencies = [
  "schemars 1.2.1",
  "serde",
  "serde_json",
- "sha2 0.11.0",
  "specta",
  "sqlx",
  "tempfile",
@@ -1080,21 +1072,6 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "tracing",
-]
-
-[[package]]
-name = "audio-norm"
-version = "0.1.0"
-dependencies = [
- "afconvert",
- "assert_fs",
- "audio-utils",
- "audioadapter-buffers",
- "data",
- "mp3",
- "resampler",
- "rodio",
- "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -4423,7 +4400,6 @@ name = "fs-sync-core"
 version = "0.1.0"
 dependencies = [
  "assert_fs",
- "audio-norm",
  "audio-utils",
  "chrono",
  "criterion",

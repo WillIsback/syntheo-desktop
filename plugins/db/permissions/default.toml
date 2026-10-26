@@ -1,7 +1,6 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
-  "allow-cleanup-recording-imports",
     "allow-apply-session-ingest",
   "allow-execute",
   "allow-execute-proxy",
