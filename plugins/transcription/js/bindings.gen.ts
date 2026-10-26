@@ -390,22 +390,6 @@ async listDocumentedLanguageCodesBatch() : Promise<Result<string[], string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async extractVoiceprintCandidates(sessionId: string, transcriptId: string, audioPath: string) : Promise<Result<number, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:transcription|extract_voiceprint_candidates", { sessionId, transcriptId, audioPath }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async promoteVoiceprintCandidates(transcriptId: string, speakerChannel: number, speakerIndex: number | null, humanId: string) : Promise<Result<number, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:transcription|promote_voiceprint_candidates", { transcriptId, speakerChannel, speakerIndex, humanId }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 /**
  * Deletes local audio right after processing when the retention policy is `none`.
  */
@@ -447,7 +431,7 @@ transcriptionEvent: "plugin:transcription:transcription-event"
 export type BatchAlternatives = { transcript: string; confidence: number; words?: BatchWord[] }
 export type BatchChannel = { alternatives: BatchAlternatives[] }
 export type BatchErrorCode = "unknown" | "timed_out" | "audio_metadata_join_failed" | "audio_metadata_read_failed" | "batch_capability_unsupported" | "direct_batch_unsupported" | "progressive_batch_unsupported" | "direct_request_failed" | "progressive_actor_spawn_failed" | "progressive_start_cancelled" | "progressive_stopped_without_completion_signal" | "progressive_finished_without_status" | "progressive_start_failed" | "progressive_stream_error" | "progressive_stream_timeout"
-export type BatchProvider = "argmax" | "whispercpp" | "openai" | "anarlog" | "am" | "soniqo" | "applespeech"
+export type BatchProvider = "openai"
 export type BatchRefinementOutcome = { status: "ready"; words: StoredTranscriptWord[]; speaker_hints: StoredSpeakerHint[]; replace_session: boolean; replace_transcript_id: string | null; started_at: number | null } | { status: "empty_current_capture" } | { status: "truncated" }
 export type BatchRefinementRequest = { words: StoredTranscriptWord[]; hints: StoredSpeakerHint[]; promotion: BatchTranscriptPromotion; previous_transcripts: BatchRefinementSource[] }
 export type BatchRefinementSource = { id: string; started_at: number; words: StoredTranscriptWord[]; speaker_hints: StoredSpeakerHint[] }
