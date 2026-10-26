@@ -2806,7 +2806,7 @@ describe("General Listener Slice", () => {
       await expect(
         store.getState().startTranscription({
           session_id: sessionId,
-          provider: "anarlog",
+          provider: "openai",
           file_path: "/tmp/session.wav",
           base_url: "",
           api_key: "",

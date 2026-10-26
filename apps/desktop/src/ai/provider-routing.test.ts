@@ -43,7 +43,6 @@ vi.mock("~/settings/ai/shared", () => ({
   ProviderBrandImage: () => null,
   ProviderLobeIcon: () => null,
 }));
-vi.mock("~/stt/useLocalSttModel", () => ({ localSttQueries: {} }));
 
 afterEach(() => {
   vi.doUnmock("~/env");
@@ -60,12 +59,8 @@ it.each([undefined, "https://api.anarlog.so"])(
         VITE_AI_API_URL: aiUrl,
       },
     }));
-    const { PROVIDERS: stt } = await import("~/settings/ai/stt/shared");
     const { PROVIDERS: llm } = await import("~/settings/ai/llm/shared");
     const { env } = await import("~/env");
-    expect(stt.find((provider) => provider.id === "anarlog")?.baseUrl).toBe(
-      `${aiUrl ?? "http://localhost:3001"}/stt`,
-    );
     expect(llm.find((provider) => provider.id === "anarlog")?.baseUrl).toBe(
       `${aiUrl ?? "http://localhost:3001"}/llm`,
     );

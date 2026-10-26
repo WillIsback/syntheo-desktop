@@ -2,7 +2,6 @@ import { act, cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  isCloudModel: false,
   connection: null as {
     provider: string;
     model: string;
@@ -45,7 +44,6 @@ vi.mock("@tauri-apps/api/core", () => ({
 vi.mock("~/stt/useSTTConnection", () => ({
   useSTTConnection: () => ({
     conn: mocks.connection,
-    isCloudModel: mocks.isCloudModel,
   }),
 }));
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
@@ -142,7 +140,6 @@ describe("dictation access and lifecycle", () => {
     mocks.billing = { isPro: true, isReady: true };
     mocks.platform = "macos";
     mocks.connection = null;
-    mocks.isCloudModel = false;
     mocks.settings.dictation_live_preview = false;
     mocks.settings.dictation_enabled = true;
     mocks.settings.dictation_shortcut = "Control+Alt+Space";
@@ -423,15 +420,9 @@ describe("dictation access and lifecycle", () => {
     );
   });
 
-  it("keeps recording available without a hosted preview (no account)", async () => {
+  it("keeps recording available without a configured endpoint", async () => {
     mocks.settings.dictation_live_preview = true;
-    mocks.isCloudModel = true;
-    mocks.connection = {
-      provider: "anarlog",
-      model: "cloud",
-      apiKey: "stale-token",
-      baseUrl: "https://api.anarlog.so/stt",
-    };
+    mocks.connection = null;
     render(<DictationLifecycle />);
     await waitFor(() => expect(useDictationStatus.getState().ready).toBe(true));
     await act(async () => {

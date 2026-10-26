@@ -8,7 +8,6 @@ import { completeCaptureTranscript } from "./capture-completion";
 import {
   canRunBatchTranscription,
   EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE,
-  getBatchFallbackTarget,
   getBatchProvider,
   getSessionSpeakerCount,
   isTerminalTranscriptionError,
@@ -145,25 +144,6 @@ vi.mock("~/stt/capabilities", () => {
 
       return languages;
     },
-    isDesktopLocalSttAvailable: (
-      currentPlatform: string,
-      currentArch: string,
-    ) => currentPlatform === "macos" && currentArch === "aarch64",
-    isLocalFileSttModel: (
-      provider: string | null | undefined,
-      model: string | null | undefined,
-    ) => provider === "local_file" && model === "local-file",
-    isOnDeviceSttModel: (
-      provider: string | null | undefined,
-      model: string | null | undefined,
-    ) =>
-      typeof model === "string" &&
-      ((provider === "soniqo" && model.startsWith("soniqo-")) ||
-        (provider === "apple_speech" && model === "apple-speech") ||
-        (provider === "anarlog" &&
-          (model.startsWith("soniqo-") ||
-            model.startsWith("am-") ||
-            model.startsWith("Quantized")))),
     isSupportedLanguagesBatch: isSupportedLanguagesBatchMock,
   };
 });
@@ -179,10 +159,6 @@ describe("getBatchProvider", () => {
     ["openai", "mistralai/Voxtral-Mini-3B-2507", "openai"],
     ["nvidia", "nemotron-asr-streaming", null],
     ["deepgram", "nova-3", null],
-    ["anarlog", "soniqo-parakeet-batch", "soniqo"],
-    ["soniqo", "soniqo-parakeet-batch", "soniqo"],
-    ["apple_speech", "apple-speech", "applespeech"],
-    ["local_file", "local-file", "whispercpp"],
   ] as const)("maps %s/%s to %s", (provider, model, expected) => {
     expect(getBatchProvider(provider, model)).toBe(expected);
   });
@@ -228,39 +204,6 @@ describe("isTerminalTranscriptionError", () => {
   ])("leaves transient failures retryable: %s", (message) => {
     expect(isTerminalTranscriptionError(new Error(message))).toBe(false);
   });
-});
-
-describe("getBatchFallbackTarget", () => {
-  test("uses local Soniqo batch transcription when available", () => {
-    expect(
-      getBatchFallbackTarget({
-        currentPlatform: "macos",
-        currentArch: "aarch64",
-      }),
-    ).toEqual({
-      provider: "soniqo",
-      model: "soniqo-parakeet-batch",
-      baseUrl: "soniqo://local",
-      apiKey: "",
-      label: "Soniqo batch transcription",
-    });
-  });
-
-  test.each([
-    { currentPlatform: "windows" as const, currentArch: "x86_64" as const },
-    { currentPlatform: "linux" as const, currentArch: "x86_64" as const },
-    { currentPlatform: "macos" as const, currentArch: "x86_64" as const },
-  ])(
-    "does not use local Soniqo on $currentPlatform/$currentArch",
-    ({ currentPlatform, currentArch }) => {
-      expect(
-        getBatchFallbackTarget({
-          currentPlatform,
-          currentArch,
-        }),
-      ).toBeNull();
-    },
-  );
 });
 
 describe("useRunBatch", () => {
@@ -991,9 +934,9 @@ describe("useRunBatch", () => {
   test("passes selected transcription languages to batch transcription", async () => {
     useSTTConnectionMock.mockReturnValue({
       conn: {
-        provider: "anarlog",
-        model: "soniqo-parakeet-batch",
-        baseUrl: "soniqo://local",
+        provider: "openai",
+        model: "whisper-large-v3",
+        baseUrl: "http://192.168.1.87:8000/v1",
         apiKey: "",
       },
     });
@@ -1010,40 +953,12 @@ describe("useRunBatch", () => {
 
     expect(startTranscriptionMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        provider: "soniqo",
-        model: "soniqo-parakeet-batch",
+        provider: "openai",
+        model: "whisper-large-v3",
         languages: ["de", "en"],
       }),
       expect.any(Object),
     );
-  });
-
-  test("uses an explicit local batch target for speaker refinement", async () => {
-    startTranscriptionMock.mockResolvedValue(undefined);
-
-    const { result } = renderHook(() => useRunBatch("session-1"));
-
-    await act(async () => {
-      await result.current("/tmp/session.wav", {
-        provider: "soniqo",
-        model: "soniqo-parakeet-batch",
-        baseUrl: "soniqo://local",
-        apiKey: "",
-        notifyOnCompletion: false,
-      });
-    });
-
-    expect(startTranscriptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        provider: "soniqo",
-        model: "soniqo-parakeet-batch",
-        base_url: "soniqo://local",
-        api_key: "",
-      }),
-      expect.objectContaining({ notifyOnCompletion: false }),
-    );
-    expect(toastWarningMock).not.toHaveBeenCalled();
-    expect(notifyBatchCompletedMock).not.toHaveBeenCalled();
   });
 
   test.each(["windows", "linux"] as const)(
@@ -1106,34 +1021,32 @@ describe("useRunBatch", () => {
       expect(toastWarningMock).not.toHaveBeenCalled();
     },
   );
+});
 
-  test.each([{ isPaid: false }, { isPaid: true }])(
-    "never invokes Soniqo on Intel macOS (isPaid: $isPaid)",
-    async ({ isPaid }) => {
-      archMock.mockReturnValue("x86_64");
-      useBillingAccessMock.mockReturnValue({ isPaid });
-      useSTTConnectionMock.mockReturnValue({
-        conn: {
-          provider: "anarlog",
-          model: "soniqo-parakeet-batch",
-          baseUrl: "soniqo://local",
-          apiKey: "",
-        },
-      });
-      startTranscriptionMock.mockResolvedValue(undefined);
+describe("no local fallback", () => {
+  test("no_local_fallback_when_endpoint_has_no_batch", async () => {
+    platformMock.mockReturnValue("macos");
+    archMock.mockReturnValue("aarch64");
+    useBillingAccessMock.mockReturnValue({ isPaid: true });
+    useSTTConnectionMock.mockReturnValue({
+      conn: {
+        provider: "nvidia",
+        model: "nemotron-asr-streaming",
+        baseUrl: "http://192.168.1.87:9000?provider=nvidia",
+        apiKey: "",
+      },
+    });
+    startTranscriptionMock.mockResolvedValue(undefined);
 
-      const { result } = renderHook(() => useRunBatch("session-1"));
+    const { result } = renderHook(() => useRunBatch("session-1"));
 
-      await expect(
-        act(async () => {
-          await result.current("/tmp/session.wav");
-        }),
-      ).rejects.toThrow(
-        "soniqo-parakeet-batch is not available for batch transcription on this platform",
-      );
-      expect(startTranscriptionMock).not.toHaveBeenCalled();
-    },
-  );
+    await expect(
+      act(async () => {
+        await result.current("/tmp/session.wav");
+      }),
+    ).rejects.toThrow();
+    expect(startTranscriptionMock).not.toHaveBeenCalled();
+  });
 });
 
 describe("getSessionSpeakerCount", () => {

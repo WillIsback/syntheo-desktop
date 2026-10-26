@@ -9,20 +9,12 @@ type PreferredProviderModelOptions = {
 };
 
 const DEFAULT_EXTERNAL_STT_MODELS: Record<string, string> = {
-  local_file: "local-file",
   nvidia: "nemotron-asr-streaming",
 };
 
 // Providers that still exist. A selection saved with a removed cloud provider
 // is cleared so the settings ask for an on-prem endpoint instead.
-const KNOWN_STT_PROVIDERS = new Set([
-  "anarlog",
-  "soniqo",
-  "apple_speech",
-  "local_file",
-  "openai",
-  "nvidia",
-]);
+const KNOWN_STT_PROVIDERS = new Set(["openai", "nvidia"]);
 
 export function getDefaultSttModel(provider?: string | null) {
   return provider ? DEFAULT_EXTERNAL_STT_MODELS[provider] : undefined;
@@ -37,13 +29,6 @@ export function normalizeStoredSttSelection(
 
   if (!provider) {
     return { provider, model };
-  }
-
-  if (provider === "anarlog") {
-    if (model?.startsWith("soniqo-")) return { provider: "soniqo", model };
-    if (model === "apple-speech") return { provider: "apple_speech", model };
-    // Transcription hébergée par Anarlog : exige un compte, inexistant ici.
-    return cleared;
   }
 
   if (!KNOWN_STT_PROVIDERS.has(provider)) {

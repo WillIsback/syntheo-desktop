@@ -322,11 +322,6 @@ export const SETTING_DEFINITIONS = {
     type: "string",
     path: ["ai", "current_stt_model"],
   },
-  local_stt_model_path: {
-    type: "string",
-    path: ["ai", "local_stt_model_path"],
-    default: "" as string,
-  },
   timezone: {
     type: "string",
     path: ["general", "timezone"],

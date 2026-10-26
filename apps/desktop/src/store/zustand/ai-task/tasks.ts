@@ -93,12 +93,7 @@ export const TASK_STREAM_START_TIMEOUT_MS = 60_000;
 // kill them mid-warmup.
 export const TASK_STREAM_LOCAL_START_TIMEOUT_MS = 5 * 60_000;
 
-const LOCAL_MODEL_PROVIDERS = new Set([
-  "apple_foundation",
-  "lmstudio",
-  "ollama",
-  "unsloth",
-]);
+const LOCAL_MODEL_PROVIDERS = new Set(["lmstudio", "ollama", "unsloth"]);
 
 export function isLocalModelProviderId(providerId: string) {
   return LOCAL_MODEL_PROVIDERS.has(providerId);

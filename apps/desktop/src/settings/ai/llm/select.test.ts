@@ -163,7 +163,7 @@ describe("getLlmProviderStatus", () => {
     ]);
   });
 
-  test.each(["ollama", "lmstudio", "apple_foundation"])(
+  test.each(["ollama", "lmstudio"])(
     "only configures %s when its runtime is reachable, without an API key",
     (id) => {
       const pending = getLlmProviderStatus({

@@ -10,7 +10,6 @@ import {
 
 describe("getDefaultSttModel", () => {
   test.each([
-    ["local_file", "local-file"],
     ["nvidia", "nemotron-asr-streaming"],
     ["openai", undefined],
     ["anarlog", undefined],

@@ -60,7 +60,6 @@ import type {
   LiveTranscriptPersistCallback,
   OnStoppedCallback,
 } from "~/store/zustand/listener/transcript";
-import { isRealtimeLocalModel } from "~/stt/capabilities";
 import {
   type CaptureLifecycleMarker,
   clearCaptureLifecycleMarker,
@@ -123,14 +122,12 @@ type PostCaptureDetails = {
   audioPath: string | null;
   liveTranscriptionActive: boolean;
   needsBatchRepair: boolean;
-  refineSpeakerDiarization?: boolean;
   transcriptWriteFailed?: boolean;
 };
 
 export type PostCaptureRepairReason =
   | "live_transcription_unavailable"
   | "live_stream_incomplete"
-  | "settled_speaker_diarization"
   | "transcript_persistence_failed";
 
 export function getPostCaptureRepairReasons(
@@ -142,9 +139,6 @@ export function getPostCaptureRepairReasons(
   }
   if (details.needsBatchRepair) {
     reasons.push("live_stream_incomplete");
-  }
-  if (details.refineSpeakerDiarization) {
-    reasons.push("settled_speaker_diarization");
   }
   if (details.transcriptWriteFailed) {
     reasons.push("transcript_persistence_failed");
@@ -161,7 +155,7 @@ export function getPostCaptureAction(
     !details.needsBatchRepair &&
     !details.transcriptWriteFailed;
 
-  if (liveTranscriptComplete && !details.refineSpeakerDiarization) {
+  if (liveTranscriptComplete) {
     return "enhance_only" as const;
   }
 
@@ -180,11 +174,7 @@ export function useCaptureLifecycle(sessionId: string) {
   const session = useSession(sessionId);
   const transcriptExistence = useSessionTranscriptExistence(sessionId);
   const participantHumanIds = useSessionParticipantHumanIds(sessionId);
-  const {
-    conn,
-    isReady: connectionReady,
-    localBatchDiarizationAvailable,
-  } = useSTTConnection();
+  const { conn, isReady: connectionReady } = useSTTConnection();
   const runBatch = useRunBatch(sessionId);
   const setBatchTranscriptionPending = useListener(
     (state) => state.setBatchTranscriptionPending,
@@ -192,13 +182,9 @@ export function useCaptureLifecycle(sessionId: string) {
 
   const runBatchRef = useRef(runBatch);
   const canRunBatchRef = useRef(canRunBatchTranscription(conn));
-  const localBatchDiarizationAvailableRef = useRef(
-    localBatchDiarizationAvailable,
-  );
   const stopMeetingChatCaptureRef = useRef<(() => Promise<void>) | null>(null);
   runBatchRef.current = runBatch;
   canRunBatchRef.current = canRunBatchTranscription(conn);
-  localBatchDiarizationAvailableRef.current = localBatchDiarizationAvailable;
 
   const stopMeetingChatTasks = useCallback(async () => {
     const stop = stopMeetingChatCaptureRef.current;
@@ -288,20 +274,6 @@ export function useCaptureLifecycle(sessionId: string) {
       // instead of the chunks released during the meeting.
       const postStopBatch = recoveredMarker?.postStopBatch === true;
       let batchFromRetainedAudio = retainAudio && postStopBatch;
-      const hasMultipleRemoteParticipants =
-        new Set(
-          participantHumanIds.filter(
-            (humanId) => humanId && humanId !== ownerUserId,
-          ),
-        ).size > 1;
-      const shouldUseLocalBatchForSpeakerDiarization = () =>
-        hasMultipleRemoteParticipants &&
-        localBatchDiarizationAvailableRef.current &&
-        isRealtimeLocalModel(model);
-      const shouldRefineSpeakerDiarization = () =>
-        hasMultipleRemoteParticipants &&
-        ((provider === "anarlog" && model === "cloud") ||
-          shouldUseLocalBatchForSpeakerDiarization());
       const cloudsyncLeaseKey = `${sessionId}:${transcriptId}`;
       let pendingSummaryMode = recoveredMarker?.summaryMode;
       const refreshSummaryAfterRepair =
@@ -880,10 +852,6 @@ export function useCaptureLifecycle(sessionId: string) {
           }
         }
         transcriptCreated ??= await transcriptExists(transcriptId);
-        const useLocalBatchForSpeakerDiarization =
-          shouldUseLocalBatchForSpeakerDiarization();
-        const refineSpeakerDiarization =
-          !usesChunkedAudio && shouldRefineSpeakerDiarization();
         if (transcriptCreated) {
           try {
             await waitForSessionSearchIndex(sessionId);
@@ -900,7 +868,6 @@ export function useCaptureLifecycle(sessionId: string) {
           : getPostCaptureAction(
               {
                 ...details,
-                refineSpeakerDiarization,
                 transcriptWriteFailed: Boolean(transcriptWriteError),
               },
               canRunBatchRef.current &&
@@ -910,7 +877,6 @@ export function useCaptureLifecycle(sessionId: string) {
           ? []
           : getPostCaptureRepairReasons({
               ...details,
-              refineSpeakerDiarization,
               transcriptWriteFailed: Boolean(transcriptWriteError),
             });
 
@@ -938,14 +904,6 @@ export function useCaptureLifecycle(sessionId: string) {
                 ? { captureInterval: { startedAtMs: startedAt, stoppedAtMs } }
                 : {}),
               notifyOnCompletion: !details.liveTranscriptionActive,
-              ...(useLocalBatchForSpeakerDiarization
-                ? {
-                    provider: "soniqo",
-                    model: "soniqo-parakeet-batch",
-                    baseUrl: "soniqo://local",
-                    apiKey: "",
-                  }
-                : {}),
               promotion:
                 preserveExistingTranscript || transcriptCreated
                   ? {
@@ -1308,9 +1266,7 @@ export function useCaptureLifecycle(sessionId: string) {
           !pendingSummaryMode &&
           details.audioPath &&
           canRunBatchRef.current &&
-          (!details.liveTranscriptionActive ||
-            details.needsBatchRepair ||
-            shouldRefineSpeakerDiarization())
+          (!details.liveTranscriptionActive || details.needsBatchRepair)
         ) {
           updateBatchTranscriptionPending(true);
         }

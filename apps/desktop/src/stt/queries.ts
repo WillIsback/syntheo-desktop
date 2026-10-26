@@ -2,7 +2,6 @@ import type {
   LiveTranscriptDelta,
   RenderTranscriptHuman,
 } from "@anlg/plugin-transcription";
-import { commands as transcriptionCommands } from "@anlg/plugin-transcription";
 
 import type { RecoveryInterval } from "./capture-audio-recovery";
 import { selectRecoveredWords } from "./recovered-transcript";
@@ -703,7 +702,6 @@ async function assignSpeakerInTranscript({
   wordIds?: string[];
   extendToAdjacent?: boolean;
 }): Promise<void> {
-  let assigned = false;
   await mutateTranscript(transcriptId, (store) => {
     const resolvedAnchorWordId =
       anchorWordId ??
@@ -724,41 +722,8 @@ async function assignSpeakerInTranscript({
       resolvedAnchorWordId,
       { mode, wordIds, extendToAdjacent },
     );
-    assigned = true;
     return true;
   });
-
-  if (
-    !assigned ||
-    (mode ?? "all") !== "all" ||
-    !Number.isInteger(segmentKey.speaker_index)
-  ) {
-    return;
-  }
-
-  const channel =
-    segmentKey.channel === "DirectMic"
-      ? 0
-      : segmentKey.channel === "RemoteParty"
-        ? 1
-        : 2;
-  void transcriptionCommands
-    .promoteVoiceprintCandidates(
-      transcriptId,
-      channel,
-      typeof segmentKey.speaker_index === "number"
-        ? segmentKey.speaker_index
-        : null,
-      humanId,
-    )
-    .then((result) => {
-      if (result.status === "error") {
-        console.error("[voiceprint] promotion failed", result.error);
-      }
-    })
-    .catch((error) => {
-      console.error("[voiceprint] promotion failed", error);
-    });
 }
 
 export function updateTranscriptSegmentText({

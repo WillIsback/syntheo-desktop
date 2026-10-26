@@ -87,7 +87,7 @@ function ActiveDictation({
   const livePreview = useConfigValue("dictation_live_preview");
   const dictionary = useConfigValue("personalization_dictionary_terms");
   const languages = useConfigValue("spoken_languages");
-  const { conn, isCloudModel } = useSTTConnection();
+  const { conn } = useSTTConnection();
   const current = useRef({
     runBatch,
     microphone,
@@ -95,7 +95,6 @@ function ActiveDictation({
     languages,
     dictionary,
     conn,
-    isCloudModel,
   });
   current.current = {
     runBatch,
@@ -104,7 +103,6 @@ function ActiveDictation({
     languages,
     dictionary,
     conn,
-    isCloudModel,
   };
 
   useMountEffect(() => {
@@ -128,14 +126,8 @@ function ActiveDictation({
         finalTranscript = null;
         const recordingAbort = abort;
         const owner = `${id}:${crypto.randomUUID()}`;
-        const {
-          microphone,
-          livePreview,
-          conn,
-          isCloudModel,
-          languages,
-          dictionary,
-        } = current.current;
+        const { microphone, livePreview, conn, languages, dictionary } =
+          current.current;
         useDictationStatus.setState({
           owner,
           error: null,
@@ -163,27 +155,26 @@ function ActiveDictation({
           );
         abort.signal.throwIfAborted();
         target = unwrap(await dictation.captureTarget());
-        // L'aperçu hébergé exigeait une session : seuls les endpoints
-        // configurés par l'utilisateur alimentent l'aperçu en direct.
-        const preview =
-          conn && !isCloudModel
-            ? {
-                provider: conn.provider,
-                baseUrl: conn.baseUrl,
-                apiKey: conn.apiKey ?? "",
-                params: {
-                  model: conn.model,
-                  channels: 1,
-                  sample_rate: 16000,
-                  languages: languages || [],
-                  keywords: dictionary || [],
-                  num_speakers: 1,
-                  min_speakers: null,
-                  max_speakers: null,
-                  custom_query: null,
-                },
-              }
-            : null;
+        // Seuls les endpoints configurés par l'utilisateur alimentent
+        // l'aperçu en direct.
+        const preview = conn
+          ? {
+              provider: conn.provider,
+              baseUrl: conn.baseUrl,
+              apiKey: conn.apiKey ?? "",
+              params: {
+                model: conn.model,
+                channels: 1,
+                sample_rate: 16000,
+                languages: languages || [],
+                keywords: dictionary || [],
+                num_speakers: 1,
+                min_speakers: null,
+                max_speakers: null,
+                custom_query: null,
+              },
+            }
+          : null;
         useDictationStatus.setState({
           previewUnavailable: livePreview && !preview,
         });

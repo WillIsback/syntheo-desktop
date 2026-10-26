@@ -13,38 +13,6 @@ describe("getLiveTranscriptPausedMessage", () => {
     ).toMatch(/because NVIDIA Speech NIM is having an outage\./);
   });
 
-  it("separates an upstream outage from Anarlog server issues on cloud", () => {
-    const upstream = getLiveTranscriptPausedMessage({
-      degraded: {
-        type: "stream_error",
-        message: "RemoteClosed(code=Some(4500), reason=provider error)",
-      },
-      sttProvider: "anarlog",
-      online: true,
-    });
-    const server = getLiveTranscriptPausedMessage({
-      degraded: {
-        type: "stream_error",
-        message: "RemoteClosed(code=Some(1011), reason=)",
-      },
-      sttProvider: "anarlog",
-      online: true,
-    });
-
-    expect(upstream).toMatch(/our speech-to-text provider is having an outage/);
-    expect(server).toMatch(/Anarlog's transcription server is having issues/);
-  });
-
-  it("blames the connection when offline", () => {
-    expect(
-      getLiveTranscriptPausedMessage({
-        degraded: { type: "connection_timeout" },
-        sttProvider: "anarlog",
-        online: false,
-      }),
-    ).toMatch(/because you're offline\./);
-  });
-
   it("reports unreachable direct providers", () => {
     expect(
       getLiveTranscriptPausedMessage({
@@ -53,16 +21,6 @@ describe("getLiveTranscriptPausedMessage", () => {
         online: true,
       }),
     ).toMatch(/Anarlog can't reach OpenAI-compatible/);
-  });
-
-  it("does not blame the network for on-device models", () => {
-    expect(
-      getLiveTranscriptPausedMessage({
-        degraded: { type: "connection_timeout" },
-        sttProvider: "soniqo",
-        online: false,
-      }),
-    ).toMatch(/the local transcription model stopped responding/);
   });
 
   it("live_interrupted_notice_mentions_no_saved_audio", () => {

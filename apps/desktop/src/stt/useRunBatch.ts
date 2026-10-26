@@ -1,5 +1,3 @@
-import { t } from "@lingui/core/macro";
-import { arch, platform } from "@tauri-apps/plugin-os";
 import { useCallback } from "react";
 
 import {
@@ -11,7 +9,6 @@ import {
   type StoredTranscriptWord,
   type TranscriptionParams,
 } from "@anlg/plugin-transcription";
-import { toast } from "@anlg/ui/components/ui/toast";
 
 import { BatchResponseProcessingError } from "./batch-response-processing-error";
 import { completeCaptureTranscript } from "./capture-completion";
@@ -32,9 +29,6 @@ import type { BatchPersistCallback } from "~/store/zustand/listener/transcript";
 import { serializeBatchResumeContext } from "~/stt/batch-resume-context";
 import {
   getTranscriptionLanguages,
-  isDesktopLocalSttAvailable,
-  isLocalFileSttModel,
-  isOnDeviceSttModel,
   isSupportedLanguagesBatch,
 } from "~/stt/capabilities";
 import type { TranscriptRecord } from "~/stt/queries";
@@ -68,14 +62,6 @@ type RunOptions = {
         startedAt: number;
       };
   captureInterval?: { startedAtMs: number; stoppedAtMs: number };
-};
-
-type BatchTarget = {
-  provider: TranscriptionParams["provider"];
-  model: string;
-  baseUrl: string;
-  apiKey: string;
-  label: string;
 };
 
 function toStoredTranscriptWord(word: WordWithId): StoredTranscriptWord {
@@ -133,32 +119,10 @@ export const EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE =
   "Batch transcription did not include the current recording.";
 const INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE =
   "The new transcription returned much less text. Your saved transcript and recording were kept. Try transcribing again.";
-const LOCAL_SONIQO_BATCH_TARGET = {
-  provider: "soniqo",
-  model: "soniqo-parakeet-batch",
-  baseUrl: "soniqo://local",
-  apiKey: "",
-  label: "Soniqo batch transcription",
-} satisfies BatchTarget;
-
 export function getBatchProvider(
   provider: string,
-  model: string,
+  _model: string,
 ): TranscriptionParams["provider"] | null {
-  if (isLocalFileSttModel(provider, model)) {
-    return "whispercpp";
-  }
-
-  if (provider === "anarlog") {
-    if (model.startsWith("soniqo-")) return "soniqo";
-    if (model === "apple-speech") return "applespeech";
-    if (model.startsWith("am-")) return "am";
-    return "anarlog";
-  }
-  if (provider === "soniqo") return "soniqo";
-  if (provider === "apple_speech" || provider === "apple-speech") {
-    return "applespeech";
-  }
   // NVIDIA NIM ne propose que le temps réel ; l'import passe par le protocole
   // OpenAI (/v1/audio/transcriptions).
   if (provider === "openai") return "openai";
@@ -170,19 +134,6 @@ export function canRunBatchTranscription(
   _modelOverride?: string,
 ) {
   return true;
-}
-
-// Aucun repli hébergé : sans compte, seul le batch local reste possible.
-export function getBatchFallbackTarget({
-  currentPlatform = platform(),
-  currentArch = arch(),
-}: {
-  currentPlatform?: ReturnType<typeof platform>;
-  currentArch?: ReturnType<typeof arch>;
-} = {}): BatchTarget | null {
-  return isDesktopLocalSttAvailable(currentPlatform, currentArch)
-    ? LOCAL_SONIQO_BATCH_TARGET
-    : null;
 }
 
 async function canUseBatchTarget(
@@ -202,13 +153,6 @@ function selectedProviderLabel(
   }
 
   return modelOverride ?? conn.model ?? conn.provider;
-}
-
-function sameBatchTarget(
-  a: Pick<BatchTarget, "provider" | "model"> | null,
-  b: Pick<BatchTarget, "provider" | "model">,
-) {
-  return a?.provider === b.provider && a.model === b.model;
 }
 
 export function isStoppedTranscriptionError(error: unknown) {
@@ -279,8 +223,6 @@ export const useRunBatch = (sessionId: string) => {
       const languages =
         options?.languages ??
         getTranscriptionLanguages(aiLanguage, spokenLanguages);
-      const currentPlatform = platform();
-      const currentArch = arch();
       const selectedProviderId = options?.provider ?? conn?.provider;
       const selectedModel = options?.model ?? conn?.model;
       const selectedProvider =
@@ -297,28 +239,15 @@ export const useRunBatch = (sessionId: string) => {
               label: selectedModel,
             }
           : null;
-      const selectedOnDeviceUnsupported = !!(
-        selectedTarget &&
-        (isOnDeviceSttModel(selectedProviderId, selectedModel) ||
-          isLocalFileSttModel(selectedProviderId, selectedModel)) &&
-        !isDesktopLocalSttAvailable(currentPlatform, currentArch)
-      );
-      const selectedTargetSupported =
-        selectedTarget && !selectedOnDeviceUnsupported
-          ? await canUseBatchTarget(
-              selectedTarget.provider,
-              selectedTarget.model,
-              languages,
-            )
-          : false;
+      const selectedTargetSupported = selectedTarget
+        ? await canUseBatchTarget(
+            selectedTarget.provider,
+            selectedTarget.model,
+            languages,
+          )
+        : false;
       options?.signal?.throwIfAborted();
-      const fallbackTarget = getBatchFallbackTarget({
-        currentPlatform,
-        currentArch,
-      });
-      const shouldUseSelectedTarget =
-        selectedTargetSupported ||
-        (fallbackTarget && sameBatchTarget(selectedTarget, fallbackTarget));
+      // Aucun repli : sans endpoint on-prem capable de batch, l'import échoue.
       const target = options?.resume
         ? {
             provider: options.resume.provider,
@@ -327,31 +256,16 @@ export const useRunBatch = (sessionId: string) => {
             apiKey: conn?.apiKey ?? "",
             label: options.resume.model,
           }
-        : shouldUseSelectedTarget
-          ? (selectedTarget ?? fallbackTarget)
-          : fallbackTarget;
+        : selectedTargetSupported
+          ? selectedTarget
+          : null;
 
       if (!target) {
         throw new Error(
-          selectedTarget && !selectedOnDeviceUnsupported
+          selectedTarget
             ? `${selectedProviderLabel(conn, selectedModel)} is not available for batch transcription with the selected languages. Choose languages it supports, or configure another speech-to-text provider.`
             : `${selectedProviderLabel(conn, selectedModel)} is not available for batch transcription on this platform. Configure a batch-capable speech-to-text provider.`,
         );
-      }
-
-      // La transcription hébergée exigeait un compte : elle n'existe plus.
-      if (target.provider === "anarlog" && target.model === "cloud") {
-        throw new Error(t`Transcription failed`);
-      }
-
-      if (!shouldUseSelectedTarget && !options?.recovery && !options?.resume) {
-        toast.warning("Using a batch transcription provider", {
-          description: `${
-            selectedTarget
-              ? selectedProviderLabel(conn, selectedModel)
-              : selectedProviderLabel(conn)
-          } is not available for batch transcription. Using ${target.label} instead.`,
-        });
       }
 
       const createdAt = new Date().toISOString();

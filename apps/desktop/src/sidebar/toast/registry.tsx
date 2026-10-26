@@ -1,8 +1,6 @@
 import { t } from "@lingui/core/macro";
 
-import type { ServerStatus } from "@anlg/plugin-local-stt";
-
-import type { DownloadProgress, ToastCondition, ToastType } from "./types";
+import type { ToastCondition, ToastType } from "./types";
 
 import type { DesktopUpdateControl } from "~/main/update-banner";
 import type { DevtoolsToastPreview } from "~/store/zustand/devtools-toast-preview";
@@ -17,17 +15,10 @@ type ToastRegistryEntry = {
 type ToastRegistryParams = {
   hasLLMConfigured: boolean;
   hasSttConfigured: boolean;
-  hasProSttConfigured: boolean;
   hasProLlmConfigured: boolean;
   isAiTranscriptionTabActive: boolean;
   isAiIntelligenceTabActive: boolean;
-  isBatchTranscribingInActiveTranscriptTab: boolean;
   isLiveMeetingActive: boolean;
-  hasActiveDownload: boolean;
-  downloadingModel: string | null;
-  activeDownloads: DownloadProgress[];
-  localSttStatus: ServerStatus | null;
-  isLocalSttModel: boolean;
   update: DesktopUpdateControl;
   onOpenLLMSettings: () => void;
   onOpenSTTSettings: () => void;
@@ -42,52 +33,22 @@ type DevtoolsToastPreviewParams = {
 export function createToastRegistry({
   hasLLMConfigured,
   hasSttConfigured,
-  hasProSttConfigured,
   hasProLlmConfigured,
   isAiTranscriptionTabActive,
   isAiIntelligenceTabActive,
-  isBatchTranscribingInActiveTranscriptTab,
   isLiveMeetingActive,
-  hasActiveDownload,
-  downloadingModel,
-  activeDownloads,
-  localSttStatus,
-  isLocalSttModel,
   update,
   onOpenLLMSettings,
   onOpenSTTSettings,
 }: ToastRegistryParams): ToastRegistryEntry[] {
-  const downloadTitle =
-    activeDownloads.length === 1 && downloadingModel
-      ? t`Downloading ${downloadingModel}`
-      : t`Downloading ${activeDownloads.length} models`;
   // Les modèles hébergés exigeaient un compte : une sélection résiduelle
   // n'est pas utilisable.
-  const hasUsableSttConfigured = hasSttConfigured && !hasProSttConfigured;
+  const hasUsableSttConfigured = hasSttConfigured;
   const hasUsableLlmConfigured = hasLLMConfigured && !hasProLlmConfigured;
   const updateToast = createDesktopUpdateToast(update);
 
   // order matters
   return [
-    {
-      toast: {
-        id: "downloading-model",
-        description: downloadTitle,
-        detail: activeDownloads
-          .map((download) => {
-            const status = download.isStarting
-              ? t`Starting`
-              : `${Math.round(download.progress)}%`;
-            return activeDownloads.length === 1
-              ? status
-              : `${download.displayName}: ${status}`;
-          })
-          .join(", "),
-        lifecycle: { type: "persistent", dismissal: "session" },
-        loading: true,
-      },
-      condition: () => hasActiveDownload,
-    },
     ...(updateToast
       ? [
           {
@@ -97,36 +58,6 @@ export function createToastRegistry({
           },
         ]
       : []),
-    {
-      toast: {
-        id: "local-stt-loading",
-        description: t`Starting transcription...`,
-        lifecycle: { type: "condition-bound" },
-        loading: true,
-      },
-      condition: () =>
-        isLocalSttModel &&
-        localSttStatus === "loading" &&
-        !hasActiveDownload &&
-        !isBatchTranscribingInActiveTranscriptTab,
-    },
-    {
-      toast: {
-        id: "local-stt-unreachable",
-        description: t`Transcription unavailable`,
-        primaryAction: {
-          label: t`Settings`,
-          onClick: onOpenSTTSettings,
-        },
-        lifecycle: { type: "condition-bound" },
-        variant: "error",
-      },
-      condition: () =>
-        isLocalSttModel &&
-        localSttStatus === "unreachable" &&
-        !hasActiveDownload &&
-        !isAiTranscriptionTabActive,
-    },
     {
       toast: {
         id: "missing-stt",
@@ -270,13 +201,6 @@ export function createDevtoolsToastPreview({
         },
         lifecycle: { type: "condition-bound" },
         variant: "error",
-      };
-    case "download":
-      return {
-        id: "devtools-downloading-model",
-        description: t`Downloading model`,
-        lifecycle: { type: "persistent", dismissal: "session" },
-        loading: true,
       };
   }
 }

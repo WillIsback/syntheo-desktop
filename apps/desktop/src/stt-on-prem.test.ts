@@ -52,13 +52,7 @@ describe("stt on-prem", () => {
     const enabled = PROVIDERS.filter((provider) => !provider.disabled)
       .map((provider) => provider.id)
       .sort();
-    expect(enabled).toEqual([
-      "apple_speech",
-      "local_file",
-      "nvidia",
-      "openai",
-      "soniqo",
-    ]);
+    expect(enabled).toEqual(["nvidia", "openai"]);
     const openai = PROVIDERS.find((provider) => provider.id === "openai");
     expect(openai?.baseUrl).toBeUndefined();
   });
@@ -98,6 +92,22 @@ describe("stt on-prem", () => {
       /soniqo|speechanalyzer|apple_speech|whisper_?cpp|argmax|local_stt|local_llm|voiceprint|pyannote/i.test(
         read(file),
       ),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it("desktop_imports_no_local_engine", () => {
+    const files = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+        const path = join(dir, entry.name);
+        if (entry.isDirectory()) return files(path);
+        return /\.(ts|tsx)$/.test(entry.name) && !/\.test\./.test(entry.name)
+          ? [path]
+          : [];
+      });
+    const offenders = files(join(REPO_ROOT, "apps/desktop/src")).filter(
+      (path) =>
+        /@anlg\/plugin-local-(stt|llm)/.test(readFileSync(path, "utf8")),
     );
     expect(offenders).toEqual([]);
   });

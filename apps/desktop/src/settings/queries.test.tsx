@@ -52,22 +52,18 @@ vi.mock("~/db", () => ({
 }));
 
 import {
-  getStoredSettingValues,
   initializeApplicationSettings,
   parseSettingRows,
-  setDownloadedSttSelection,
   setSettingValues,
   updateSettingValue,
 } from "./queries";
 
 import { flushDatabaseWrites } from "~/db/write-queue";
-import { usePendingSttSelection } from "~/store/zustand/pending-stt-selection";
 
 describe("SQLite settings", () => {
   beforeEach(async () => {
     await flushDatabaseWrites();
     vi.clearAllMocks();
-    usePendingSttSelection.setState({ selection: null, queuedDownloads: [] });
     mocks.executeTransaction.mockResolvedValue([1]);
     mocks.setDisabled.mockResolvedValue({ status: "ok", data: null });
     mocks.execute.mockResolvedValue([]);
@@ -78,83 +74,6 @@ describe("SQLite settings", () => {
     mocks.getTemplateSource.mockResolvedValue({
       status: "ok",
       data: "- Use Markdown.",
-    });
-  });
-
-  it("persists download completion without overriding newer provider choices", async () => {
-    const rows = new Map<string, string>();
-    mocks.execute.mockImplementation(async () =>
-      Array.from(rows, ([id, value_json]) => ({ id, value_json })),
-    );
-    let heldKey: string | undefined;
-    let releaseWrite = () => {};
-    let startedWrite = () => {};
-    let writeGate = Promise.resolve();
-    mocks.executeTransaction.mockImplementation(async (statements) => {
-      if (statements.some((statement) => statement.params[0] === heldKey)) {
-        startedWrite();
-        await writeGate;
-      }
-      for (const statement of statements) {
-        rows.set(String(statement.params[0]), String(statement.params[1]));
-      }
-      return [1];
-    });
-    const selection = {
-      provider: "soniqo",
-      model: "soniqo-parakeet-batch",
-    } as const;
-    usePendingSttSelection.setState({ selection });
-    await setDownloadedSttSelection(selection);
-    expect((await getStoredSettingValues()).values).toMatchObject({
-      current_stt_provider: "soniqo",
-      current_stt_model: "soniqo-parakeet-batch",
-    });
-
-    // Hold an earlier write so the newer choice can cancel queued completion.
-    heldKey = "theme";
-    writeGate = new Promise<void>((resolve) => {
-      releaseWrite = resolve;
-    });
-    const started = new Promise<void>((resolve) => {
-      startedWrite = resolve;
-    });
-    const blocker = setSettingValues({ theme: "dark" });
-    await started;
-    usePendingSttSelection.setState({ selection });
-    const completion = setDownloadedSttSelection(selection);
-    const providerOnly = setSettingValues({
-      current_stt_provider: "custom",
-      current_stt_model: "",
-    });
-    releaseWrite();
-    await Promise.all([blocker, completion, providerOnly]);
-    expect((await getStoredSettingValues()).values).toMatchObject({
-      current_stt_provider: "custom",
-      current_stt_model: "",
-    });
-
-    // A provider prompt also wins after completion has started persisting.
-    heldKey = "current_stt_provider";
-    writeGate = new Promise<void>((resolve) => {
-      releaseWrite = resolve;
-    });
-    const persisting = new Promise<void>((resolve) => {
-      startedWrite = resolve;
-    });
-    usePendingSttSelection.setState({ selection });
-    const activeCompletion = setDownloadedSttSelection(selection);
-    await persisting;
-    const promptChoice = setSettingValues({
-      current_stt_provider: "deepgram",
-      current_stt_model: "",
-    });
-    releaseWrite();
-    await Promise.all([activeCompletion, promptChoice]);
-    await setDownloadedSttSelection(selection);
-    expect((await getStoredSettingValues()).values).toMatchObject({
-      current_stt_provider: "deepgram",
-      current_stt_model: "",
     });
   });
 
@@ -493,43 +412,6 @@ describe("SQLite settings", () => {
       ["current_stt_provider", JSON.stringify("")],
     ]);
   });
-
-  it.each([
-    ["soniqo-parakeet-streaming", "soniqo"],
-    ["apple-speech", "apple_speech"],
-  ])(
-    "moves the legacy Anarlog %s selection to its on-device provider",
-    async (model, provider) => {
-      let rows = [
-        {
-          id: "current_stt_provider",
-          value_json: JSON.stringify("anarlog"),
-        },
-        { id: "current_stt_model", value_json: JSON.stringify(model) },
-      ];
-      mocks.execute.mockImplementation(async () => rows);
-      mocks.executeTransaction.mockImplementation(async (statements) => {
-        for (const statement of statements) {
-          const id = String(statement.params[0]);
-          const next = {
-            id,
-            value_json: String(statement.params[1]),
-          };
-          const index = rows.findIndex((row) => row.id === id);
-          if (index === -1) rows.push(next);
-          else rows[index] = next;
-        }
-        return statements.map(() => 1);
-      });
-
-      await initializeApplicationSettings();
-
-      const statements = mocks.executeTransaction.mock.calls[0][0];
-      expect(
-        statements.map((statement) => statement.params.slice(0, 2)),
-      ).toEqual([["current_stt_provider", JSON.stringify(provider)]]);
-    },
-  );
 
   it("migrates legacy summary instructions into the editable Auto format", async () => {
     let rows = [

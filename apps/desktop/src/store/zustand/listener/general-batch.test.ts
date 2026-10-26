@@ -128,7 +128,7 @@ describe("runBatchSession", () => {
         "dictation",
         {
           session_id: "dictation",
-          provider: "anarlog",
+          provider: "openai",
           file_path: "/tmp/dictation.wav",
           base_url: "",
           api_key: "",
@@ -157,36 +157,9 @@ describe("runBatchSession", () => {
     expect(
       shouldUseSyntheticBatchProgress({
         session_id: "session-1",
-        provider: "anarlog",
-        file_path: "/tmp/session.wav",
-        base_url: "",
-        api_key: "",
-      }),
-    ).toBe(true);
-    expect(
-      shouldUseSyntheticBatchProgress({
-        session_id: "session-1",
-        provider: "soniqo",
-        file_path: "/tmp/session.wav",
-        base_url: "soniqo://local",
-        api_key: "",
-      }),
-    ).toBe(false);
-    expect(
-      shouldUseSyntheticBatchProgress({
-        session_id: "session-1",
         provider: "openai",
         file_path: "/tmp/session.wav",
-        model: "gpt-4o-transcribe",
-        base_url: "",
-        api_key: "",
-      }),
-    ).toBe(false);
-    expect(
-      shouldUseSyntheticBatchProgress({
-        session_id: "session-1",
-        provider: "am",
-        file_path: "/tmp/session.wav",
+        model: "mistralai/Voxtral-Mini-3B-2507",
         base_url: "http://192.168.1.87:8000/v1",
         api_key: "",
       }),
@@ -194,19 +167,10 @@ describe("runBatchSession", () => {
     expect(
       shouldUseSyntheticBatchProgress({
         session_id: "session-1",
-        provider: "am",
-        file_path: "/tmp/session.wav",
-        base_url: "http://localhost:50060/v1",
-        api_key: "",
-      }),
-    ).toBe(false);
-    expect(
-      shouldUseSyntheticBatchProgress({
-        session_id: "session-1",
-        provider: "am",
+        provider: "openai",
         file_path: "/tmp/session.wav",
         model: "gpt-4o-transcribe",
-        base_url: "https://api.openai.com/v1",
+        base_url: "",
         api_key: "",
       }),
     ).toBe(false);
@@ -277,7 +241,7 @@ describe("runBatchSession", () => {
         "session-1",
         {
           session_id: "session-1",
-          provider: "anarlog",
+          provider: "openai",
           file_path: "/tmp/session.wav",
           base_url: "",
           api_key: "",
@@ -379,7 +343,7 @@ describe("runBatchSession", () => {
         "session-1",
         {
           session_id: "session-1",
-          provider: "anarlog",
+          provider: "openai",
           file_path: "/tmp/session.wav",
           base_url: "",
           api_key: "",
@@ -489,7 +453,7 @@ describe("runBatchSession", () => {
       "session-1",
       {
         session_id: "session-1",
-        provider: "anarlog",
+        provider: "openai",
         file_path: "/tmp/session.wav",
         base_url: "",
         api_key: "",
@@ -678,7 +642,7 @@ describe("runBatchSession", () => {
         "session-1",
         {
           session_id: "session-1",
-          provider: "anarlog",
+          provider: "openai",
           file_path: "/tmp/session.wav",
           base_url: "",
           api_key: "",
@@ -777,7 +741,7 @@ describe("runBatchSession", () => {
       "session-1",
       {
         session_id: "session-1",
-        provider: "anarlog",
+        provider: "openai",
         file_path: "/tmp/session.wav",
         base_url: "",
         api_key: "",
@@ -876,7 +840,7 @@ describe("runBatchSession", () => {
           "session-1",
           {
             session_id: "session-1",
-            provider: "anarlog",
+            provider: "openai",
             file_path: "/tmp/session.wav",
             base_url: "",
             api_key: "",
@@ -967,7 +931,7 @@ describe("runBatchSession", () => {
         "session-1",
         {
           session_id: "session-1",
-          provider: "anarlog",
+          provider: "openai",
           file_path: "/tmp/session.wav",
           base_url: "",
           api_key: "",
@@ -1049,7 +1013,7 @@ describe("runBatchSession", () => {
           "session-1",
           {
             session_id: "session-1",
-            provider: "anarlog",
+            provider: "openai",
             file_path: "/tmp/session.wav",
             base_url: "",
             api_key: "",
@@ -1070,7 +1034,7 @@ describe("runBatchSession", () => {
         mode: "batch",
         failure_stage: code === "timed_out" ? "timed_out" : "failed",
         error_code: code,
-        provider: "anarlog",
+        provider: "openai",
       });
       expect(handleBatchStopped).not.toHaveBeenCalled();
     },
@@ -1127,7 +1091,7 @@ describe("batch recovery after reload", () => {
           {
             session_id: "session-1",
             file_path: "/tmp/session.wav",
-            provider: "soniqo",
+            provider: "openai",
             model: null,
             started_at_ms: Date.now() - 5_000,
           },
@@ -1141,7 +1105,7 @@ describe("batch recovery after reload", () => {
       "session-1",
       {
         session_id: "session-1",
-        provider: "soniqo",
+        provider: "openai",
         file_path: "/tmp/session.wav",
         base_url: "",
         api_key: "",
@@ -1162,7 +1126,7 @@ describe("batch recovery after reload", () => {
         {
           session_id: "session-1",
           file_path: "/tmp/session.wav",
-          provider: "soniqo",
+          provider: "openai",
           model: null,
           started_at_ms: 0,
           resume_context: null,
@@ -1187,7 +1151,7 @@ describe("batch recovery after reload", () => {
       "session-1",
       {
         session_id: "session-1",
-        provider: "soniqo",
+        provider: "openai",
         file_path: "/tmp/session.wav",
         base_url: "",
         api_key: "",
@@ -1222,7 +1186,7 @@ describe("batch recovery after reload", () => {
           {
             session_id: "session-1",
             file_path: "/tmp/session.wav",
-            provider: "soniqo",
+            provider: "openai",
             model: null,
             started_at_ms: 0,
             resume_context: null,
@@ -1240,7 +1204,7 @@ describe("batch recovery after reload", () => {
       "session-1",
       {
         session_id: "session-1",
-        provider: "soniqo",
+        provider: "openai",
         file_path: "/tmp/session.wav",
         base_url: "",
         api_key: "",
@@ -1267,7 +1231,7 @@ describe("batch recovery after reload", () => {
         {
           session_id: "session-1",
           file_path: "/tmp/other.wav",
-          provider: "soniqo",
+          provider: "openai",
           model: null,
           started_at_ms: 0,
         },
@@ -1281,7 +1245,7 @@ describe("batch recovery after reload", () => {
         "session-1",
         {
           session_id: "session-1",
-          provider: "soniqo",
+          provider: "openai",
           file_path: "/tmp/session.wav",
           base_url: "",
           api_key: "",
@@ -1317,7 +1281,7 @@ describe("batch recovery after reload", () => {
         "session-1",
         {
           session_id: "session-1",
-          provider: "soniqo",
+          provider: "openai",
           file_path: "/tmp/session.wav",
           base_url: "",
           api_key: "",
@@ -1360,7 +1324,7 @@ describe("batch recovery after reload", () => {
     const session = {
       session_id: "session-1",
       file_path: "/tmp/a.wav",
-      provider: "soniqo",
+      provider: "openai",
       model: "whisper",
       started_at_ms: 0,
       resume_context: '{"promotion":"whole_session"}',
