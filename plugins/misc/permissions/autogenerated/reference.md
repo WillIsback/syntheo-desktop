@@ -5,7 +5,6 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-get-git-hash`
-- `allow-get-fingerprint`
 - `allow-get-device-info`
 - `allow-get-process-memory-bytes`
 - `allow-opinionated-md-to-html`
@@ -197,32 +196,6 @@ Enables the get_device_info command without any pre-configured scope.
 <td>
 
 Denies the get_device_info command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`misc:allow-get-fingerprint`
-
-</td>
-<td>
-
-Enables the get_fingerprint command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`misc:deny-get-fingerprint`
-
-</td>
-<td>
-
-Denies the get_fingerprint command without any pre-configured scope.
 
 </td>
 </tr>

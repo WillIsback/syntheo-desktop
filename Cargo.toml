@@ -80,7 +80,6 @@ anlg-notification = { path = "crates/notification", package = "notification" }
 anlg-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }
 anlg-onnx = { path = "crates/onnx", package = "onnx" }
 anlg-opencode = { path = "crates/opencode", package = "opencode" }
-anlg-openrouter = { path = "crates/openrouter", package = "openrouter" }
 anlg-outlook-calendar = { path = "crates/outlook-calendar", package = "outlook-calendar" }
 anlg-overlay-kit = { path = "crates/overlay-kit", package = "overlay-kit" }
 anlg-resampler = { path = "crates/resampler", package = "resampler" }
@@ -91,7 +90,6 @@ anlg-summary = { path = "crates/summary", package = "summary" }
 anlg-tcc = { path = "crates/tcc", package = "tcc" }
 anlg-template-app = { path = "crates/template-app", package = "template-app" }
 anlg-template-app-legacy = { path = "crates/template-app-legacy", package = "template-app-legacy" }
-anlg-template-eval = { path = "crates/template-eval", package = "template-eval" }
 anlg-ticket-interface = { path = "crates/ticket-interface", package = "ticket-interface" }
 anlg-tiptap = { path = "crates/tiptap", package = "tiptap" }
 anlg-transcript = { path = "crates/transcript", package = "transcript" }
@@ -135,7 +133,6 @@ tauri-plugin-agent = { path = "plugins/agent" }
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-attachment-sync = { path = "plugins/attachment-sync" }
 tauri-plugin-audio-priority = { path = "plugins/audio-priority" }
-tauri-plugin-bedrock = { path = "plugins/bedrock" }
 tauri-plugin-calendar = { path = "plugins/calendar" }
 tauri-plugin-db = { path = "plugins/db" }
 tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }

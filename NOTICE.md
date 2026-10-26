@@ -39,7 +39,10 @@ En résumé :
   et NVIDIA NIM) ; les 33 adaptateurs de transcription cloud (Deepgram,
   AssemblyAI, Soniox, ElevenLabs, Gladia, Speechmatics, Azure, Google, AWS…),
   le crate `soniox` et le provider « custom » compatible Deepgram sont
-  supprimés ; les providers LLM cloud suivent ;
+  supprimés ; les 33 providers LLM cloud (Anarlog, Claude, ChatGPT, Copilot,
+  OpenRouter, Bedrock, Gemini, Mistral…) aussi, avec leurs SDK `@ai-sdk/*`, le
+  plugin `bedrock`, la crate `openrouter` et l'évaluation de templates via
+  OpenRouter : seul reste un serveur OpenAI-compatible ;
 - **inférence embarquée retirée** : transcription locale (whisper.cpp,
   Soniqo, Apple Speech, Argmax), LLM Apple Intelligence, diarisation pyannote
   locale, empreintes vocales et téléchargement de modèles (plugins `local-stt`

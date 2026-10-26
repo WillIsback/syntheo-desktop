@@ -32,11 +32,11 @@ fn validate(bytes: &[u8]) -> Result<ManagedSettings, sqlx::Error> {
             "auto_start_scheduled_meetings" | "save_recordings" => value.is_boolean(),
             "current_llm_provider" | "current_llm_model" => value.as_str() == Some(""),
             "audio_retention" => value.as_str() == Some("none"),
-            "current_stt_provider" => value.as_str() == Some("custom"),
+            "current_stt_provider" => matches!(value.as_str(), Some("openai" | "nvidia")),
             "current_stt_model" => value
                 .as_str()
                 .is_some_and(|s| !s.is_empty() && s.len() <= 200),
-            "stt:custom" => value.as_object().is_some_and(|v| {
+            "stt:openai" | "stt:nvidia" => value.as_object().is_some_and(|v| {
                 v.len() == 3
                     && v.get("type").and_then(Value::as_str) == Some("stt")
                     && v.get("api_key").and_then(Value::as_str) == Some("")
@@ -120,6 +120,22 @@ mod tests {
             r#"{"schema_version":2,"settings":{}}"#,
         ] {
             assert!(validate(text.as_bytes()).is_err());
+        }
+    }
+    #[test]
+    fn managed_settings_accept_on_prem_stt_providers() {
+        for provider in ["openai", "nvidia"] {
+            let text = format!(
+                r#"{{"schema_version":1,"settings":{{"current_stt_provider":"{provider}","current_stt_model":"nemotron-asr-streaming","stt:{provider}":{{"type":"stt","api_key":"","base_url":"https://spark-787d-1.tail6cba9f.ts.net/v1/realtime"}}}}}}"#
+            );
+            assert!(validate(text.as_bytes()).is_ok(), "{provider}");
+        }
+        for text in [
+            r#"{"schema_version":1,"settings":{"current_stt_provider":"custom"}}"#,
+            r#"{"schema_version":1,"settings":{"stt:custom":{"type":"stt","api_key":"","base_url":"https://asr.example"}}}"#,
+            r#"{"schema_version":1,"settings":{"stt:nvidia":{"type":"stt","api_key":"secret","base_url":"https://asr.example"}}}"#,
+        ] {
+            assert!(validate(text.as_bytes()).is_err(), "{text}");
         }
     }
     #[tokio::test]

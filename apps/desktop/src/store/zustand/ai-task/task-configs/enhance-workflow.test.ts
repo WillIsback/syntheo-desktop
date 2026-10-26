@@ -124,7 +124,7 @@ it("adds length guidance to prompts rendered from a template with sections", asy
     dictionaryTerms: [],
   };
   for await (const _ of enhanceWorkflow.executeWorkflow!({
-    model: { provider: "anthropic.messages" } as LanguageModel,
+    model: { provider: "custom.chat" } as LanguageModel,
     args,
     onProgress: vi.fn(),
     signal: new AbortController().signal,
@@ -135,5 +135,5 @@ it("adds length guidance to prompts rendered from a template with sections", asy
   expect(request.prompt).toContain("Summary length:");
   expect(request.prompt).toContain("Keep every requested template section");
   expect(request.prompt).not.toMatch(/\d to \d sections/);
-  expect(request.maxOutputTokens).toBe(64_000);
+  expect(request.maxOutputTokens).toBeUndefined();
 });

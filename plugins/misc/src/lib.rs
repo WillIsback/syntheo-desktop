@@ -10,7 +10,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::get_git_hash::<tauri::Wry>,
-            commands::get_fingerprint::<tauri::Wry>,
             commands::get_device_info::<tauri::Wry>,
             commands::get_process_memory_bytes::<tauri::Wry>,
             commands::opinionated_md_to_html::<tauri::Wry>,

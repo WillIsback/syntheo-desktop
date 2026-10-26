@@ -34,8 +34,8 @@ const hoisted = vi.hoisted(() => ({
     | undefined,
   llmStatus: {
     status: "success",
-    providerId: "anarlog",
-    isHosted: true,
+    providerId: "custom",
+    isHosted: false,
   } as LLMConnectionStatus,
   content: "",
   noteExists: true,
@@ -154,8 +154,8 @@ describe("Enhanced", () => {
     hoisted.titleTask = undefined;
     hoisted.llmStatus = {
       status: "success",
-      providerId: "anarlog",
-      isHosted: true,
+      providerId: "custom",
+      isHosted: false,
     };
     hoisted.content = "";
     hoisted.noteExists = true;
@@ -365,19 +365,11 @@ describe("Enhanced", () => {
 
   it.each([
     [
-      "hosted subscription",
-      { status: "error", reason: "not_pro", providerId: "anarlog" },
-    ],
-    [
-      "hosted authentication",
-      { status: "error", reason: "unauthenticated", providerId: "anarlog" },
-    ],
-    [
       "provider API key",
       {
         status: "error",
         reason: "missing_config",
-        providerId: "openai",
+        providerId: "custom",
         missing: ["api_key"],
       },
     ],
@@ -386,14 +378,14 @@ describe("Enhanced", () => {
       {
         status: "error",
         reason: "missing_config",
-        providerId: "openai",
+        providerId: "custom",
         missing: ["base_url"],
       },
     ],
     ["provider setup", { status: "pending", reason: "missing_provider" }],
     [
       "model selection",
-      { status: "pending", reason: "missing_model", providerId: "openai" },
+      { status: "pending", reason: "missing_model", providerId: "custom" },
     ],
   ])(
     "shows a config error instead of the editor for missing %s",

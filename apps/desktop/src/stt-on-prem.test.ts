@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { aiProviderSchema } from "@anlg/store";
 
-import { PROVIDERS } from "~/settings/ai/stt/shared";
+import { PROVIDERS, STT_NIM_PRESET_URL } from "~/settings/ai/stt/shared";
 
 // Garde-fou : la transcription ne parle qu'aux protocoles standard des moteurs
 // on-premise (OpenAI Realtime et /v1/audio/transcriptions, NVIDIA NIM). Les
@@ -139,5 +139,17 @@ describe("stt on-prem", () => {
     expect(read(`${crate}/Cargo.toml`)).not.toMatch(
       new RegExp(`^${dependency} *=`, "m"),
     );
+  });
+
+  it("stt_presets_follow_the_spec", () => {
+    expect(STT_NIM_PRESET_URL).toBe(
+      "https://spark-787d-1.tail6cba9f.ts.net/v1/realtime",
+    );
+    const nvidia = PROVIDERS.find((provider) => provider.id === "nvidia");
+    expect(nvidia?.baseUrl).toBe(STT_NIM_PRESET_URL);
+    expect(nvidia?.displayName).toContain("Nemotron ASR");
+    // Voxtral Realtime (vLLM) : URL à renseigner.
+    const openai = PROVIDERS.find((provider) => provider.id === "openai");
+    expect(openai?.baseUrl).toBeUndefined();
   });
 });

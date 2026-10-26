@@ -8,14 +8,6 @@ pub async fn get_git_hash<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_fingerprint<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<String, String> {
-    Ok(app.misc().get_fingerprint())
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn get_device_info<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     locale: Option<String>,

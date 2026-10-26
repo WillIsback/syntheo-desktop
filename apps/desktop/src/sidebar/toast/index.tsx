@@ -58,7 +58,6 @@ export function ToastNotifications() {
     current_stt_provider,
     current_stt_model,
   );
-  const hasProLlmConfigured = current_llm_provider === "anarlog";
 
   const currentTab = useTabs((state) => state.currentTab);
   const devtoolsPreview = useDevtoolsToastPreview((state) => state.preview);
@@ -106,7 +105,6 @@ export function ToastNotifications() {
       createToastRegistry({
         hasLLMConfigured,
         hasSttConfigured,
-        hasProLlmConfigured,
         isAiTranscriptionTabActive,
         isAiIntelligenceTabActive,
         isLiveMeetingActive,
@@ -117,7 +115,6 @@ export function ToastNotifications() {
     [
       hasLLMConfigured,
       hasSttConfigured,
-      hasProLlmConfigured,
       isAiTranscriptionTabActive,
       isAiIntelligenceTabActive,
       isLiveMeetingActive,

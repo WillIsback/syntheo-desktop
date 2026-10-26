@@ -1,9 +1,4 @@
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { createAzure } from "@ai-sdk/azure";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import {
   defaultSettingsMiddleware,
   extractReasoningMiddleware,
@@ -11,7 +6,6 @@ import {
 } from "ai";
 import { useMemo } from "react";
 
-import type { CharTask } from "@anlg/api-client";
 import type { AIProviderStorage } from "@anlg/store";
 
 import { providerFetch } from "../provider-fetch";
@@ -20,16 +14,8 @@ import {
   type ReasoningEffort,
   reasoningProviderOptions,
 } from "../reasoning-effort";
-import { streamOnlyGenerationMiddleware } from "../stream-only-generation";
-import { createTracedFetch, tracedFetch } from "../traced-fetch";
 
-import { useBillingAccess } from "~/billing/billing-context";
 import { type ProviderId, PROVIDERS } from "~/settings/ai/llm/shared";
-import {
-  CHATGPT_API_BASE_URL,
-  createSubscriptionFetch,
-  usesSubscriptionFetch,
-} from "~/settings/ai/llm/subscriptions";
 import {
   getProviderSelectionBlockers,
   type ProviderEligibilityContext,
@@ -37,15 +23,6 @@ import {
 import { useAiProvider } from "~/settings/providers";
 import { useSettingsReady } from "~/settings/queries";
 import { useConfigValues } from "~/shared/config";
-
-// App attribution per https://openrouter.ai/docs/app-attribution. Mirrors
-// crates/llm-proxy/src/provider/openrouter.rs's APP_REFERER/APP_TITLE/
-// APP_CATEGORIES, which only cover the "anarlog" hosted-provider case (it
-// routes through apps/api's llm-proxy); this BYOK "openrouter" case talks to
-// openrouter.ai directly from the client and needs its own headers.
-const OPENROUTER_APP_URL = "https://github.com/WillIsback/syntheo-desktop";
-const OPENROUTER_APP_NAME = "Anarlog";
-const OPENROUTER_APP_CATEGORIES = "writing-assistant,personal-agent";
 
 type LanguageModelV3 = Parameters<typeof wrapLanguageModel>[0]["model"];
 
@@ -62,8 +39,6 @@ export type LLMConnectionStatus =
   | { status: "pending"; reason: "missing_provider" }
   | { status: "pending"; reason: "missing_model"; providerId: ProviderId }
   | { status: "error"; reason: "provider_not_found"; providerId: string }
-  | { status: "error"; reason: "unauthenticated"; providerId: "anarlog" }
-  | { status: "error"; reason: "not_pro"; providerId: "anarlog" }
   | {
       status: "error";
       reason: "missing_config";
@@ -77,21 +52,17 @@ type LLMConnectionResult = {
   status: LLMConnectionStatus;
 };
 
-export const normalizeLLMProviderId = (providerId: string): string =>
-  providerId === "hyprnote" ? "anarlog" : providerId;
-
-export const useLanguageModel = (task?: CharTask): LanguageModelV3 | null => {
+export const useLanguageModel = (): LanguageModelV3 | null => {
   const { conn } = useLLMConnection();
 
   return useMemo(() => {
     if (!conn) return null;
-    return createLanguageModel(conn, task);
-  }, [conn, task]);
+    return createLanguageModel(conn);
+  }, [conn]);
 };
 
 export const useLLMConnection = (): LLMConnectionResult => {
   const settingsReady = useSettingsReady();
-  const billing = useBillingAccess();
 
   const {
     intelligence_disabled,
@@ -127,12 +98,10 @@ export const useLLMConnection = (): LLMConnectionResult => {
               current_llm_reasoning_effort,
             ),
             providerConfig,
-            isPaid: billing.isPaid,
           }),
     [
       settingsReady,
       intelligence_disabled,
-      billing.isPaid,
       current_llm_model,
       current_llm_provider,
       current_llm_reasoning_effort,
@@ -151,14 +120,12 @@ const resolveLLMConnection = (params: {
   modelId: string | undefined;
   reasoningEffort: ReasoningEffort;
   providerConfig: AIProviderStorage | undefined;
-  isPaid: boolean;
 }): LLMConnectionResult => {
   const {
     providerId: rawProviderId,
     modelId,
     reasoningEffort,
     providerConfig,
-    isPaid,
   } = params;
 
   if (!rawProviderId) {
@@ -168,7 +135,7 @@ const resolveLLMConnection = (params: {
     };
   }
 
-  const providerId = normalizeLLMProviderId(rawProviderId) as ProviderId;
+  const providerId = rawProviderId as ProviderId;
 
   if (!modelId) {
     return {
@@ -197,9 +164,8 @@ const resolveLLMConnection = (params: {
   const apiKey = providerConfig?.api_key?.trim() || "";
 
   const context: ProviderEligibilityContext = {
-    // Syntheo n'a ni compte ni session : le provider hébergé reste bloqué.
     isAuthenticated: false,
-    isPaid,
+    isPaid: true,
     config: { base_url: baseUrl, api_key: apiKey },
   };
 
@@ -210,18 +176,6 @@ const resolveLLMConnection = (params: {
 
   if (blockers.length > 0) {
     const blocker = blockers[0];
-    if (blocker.code === "requires_auth" && providerId === "anarlog") {
-      return {
-        conn: null,
-        status: { status: "error", reason: "unauthenticated", providerId },
-      };
-    }
-    if (blocker.code === "requires_entitlement" && providerId === "anarlog") {
-      return {
-        conn: null,
-        status: { status: "error", reason: "not_pro", providerId },
-      };
-    }
     if (blocker.code === "missing_config") {
       return {
         conn: null,
@@ -253,11 +207,8 @@ const wrapWithThinkingMiddleware = (
   });
 };
 
-const createLanguageModel = (
-  conn: LLMConnectionInfo,
-  task?: CharTask,
-): LanguageModelV3 => {
-  const model = createProviderModel(conn, task);
+const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
+  const model = createProviderModel(conn);
   const providerOptions = reasoningProviderOptions(
     conn.providerId,
     conn.modelId,
@@ -273,163 +224,15 @@ const createLanguageModel = (
   });
 };
 
-const createProviderModel = (
-  conn: LLMConnectionInfo,
-  task?: CharTask,
-): LanguageModelV3 => {
-  switch (conn.providerId) {
-    case "anarlog": {
-      const provider = createOpenRouter({
-        fetch: task ? createTracedFetch(task) : tracedFetch,
-        baseURL: conn.baseUrl,
-        apiKey: conn.apiKey,
-      });
-      return wrapWithThinkingMiddleware(provider.chat(conn.modelId));
-    }
-
-    case "anthropic": {
-      const provider = createAnthropic({
-        fetch: providerFetch,
-        apiKey: conn.apiKey,
-        headers: {
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
-      });
-      return wrapWithThinkingMiddleware(provider(conn.modelId));
-    }
-
-    case "claude": {
-      const oauth = usesSubscriptionFetch(conn.providerId, conn.apiKey);
-      const provider = createAnthropic({
-        fetch: oauth
-          ? createSubscriptionFetch(conn.providerId, conn.apiKey)
-          : providerFetch,
-        apiKey: oauth ? "oauth" : conn.apiKey,
-        headers: {
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
-      });
-      return wrapWithThinkingMiddleware(provider(conn.modelId));
-    }
-
-    case "chatgpt": {
-      const oauth = usesSubscriptionFetch(conn.providerId, conn.apiKey);
-      const provider = createOpenAI({
-        fetch: oauth
-          ? createSubscriptionFetch(conn.providerId, conn.apiKey)
-          : providerFetch,
-        baseURL: oauth ? CHATGPT_API_BASE_URL : conn.baseUrl,
-        apiKey: oauth ? "oauth" : conn.apiKey,
-      });
-      const model = provider.responses(conn.modelId);
-      return wrapWithThinkingMiddleware(
-        oauth
-          ? wrapLanguageModel({
-              model,
-              middleware: [
-                // The SDK must serialize history as stateless before fetch
-                // enforces the Codex request contract.
-                defaultSettingsMiddleware({
-                  settings: { providerOptions: { openai: { store: false } } },
-                }),
-                streamOnlyGenerationMiddleware,
-              ],
-            })
-          : model,
-      );
-    }
-
-    case "grok":
-    case "github_copilot": {
-      const provider = createOpenAICompatible({
-        fetch: createSubscriptionFetch(conn.providerId, conn.apiKey),
-        name: conn.providerId,
-        baseURL: conn.baseUrl,
-        apiKey: "oauth",
-      });
-      return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
-    }
-
-    case "google_generative_ai": {
-      const provider = createGoogleGenerativeAI({
-        fetch: providerFetch,
-        baseURL: conn.baseUrl,
-        apiKey: conn.apiKey,
-      });
-      return wrapWithThinkingMiddleware(provider(conn.modelId));
-    }
-
-    case "openrouter": {
-      const provider = createOpenRouter({
-        fetch: providerFetch,
-        apiKey: conn.apiKey,
-        appName: OPENROUTER_APP_NAME,
-        appUrl: OPENROUTER_APP_URL,
-        headers: { "X-OpenRouter-Categories": OPENROUTER_APP_CATEGORIES },
-      });
-      return wrapWithThinkingMiddleware(provider.chat(conn.modelId));
-    }
-
-    case "openai": {
-      const provider = createOpenAI({
-        fetch: providerFetch,
-        baseURL: conn.baseUrl,
-        apiKey: conn.apiKey,
-      });
-      return wrapWithThinkingMiddleware(provider(conn.modelId));
-    }
-
-    case "azure_openai": {
-      const provider = createAzure({
-        fetch: providerFetch,
-        baseURL: conn.baseUrl,
-        apiKey: conn.apiKey,
-      });
-      return wrapWithThinkingMiddleware(provider(conn.modelId));
-    }
-
-    case "azure_ai": {
-      const provider = createOpenAICompatible({
-        fetch: providerFetch,
-        name: "azure_ai",
-        baseURL: conn.baseUrl,
-        apiKey: conn.apiKey,
-        headers: { "api-key": conn.apiKey },
-      });
-      return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
-    }
-
-    case "ollama": {
-      const ollamaOrigin = new URL(conn.baseUrl.replace(/\/v1\/?$/, "")).origin;
-      const ollamaFetch: typeof fetch = async (input, init) => {
-        const headers = new Headers(init?.headers);
-        headers.set("Origin", ollamaOrigin);
-        return providerFetch(input as RequestInfo | URL, {
-          ...init,
-          headers,
-        });
-      };
-      const provider = createOpenAICompatible({
-        fetch: ollamaFetch,
-        name: conn.providerId,
-        baseURL: conn.baseUrl,
-      });
-      return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
-    }
-
-    default: {
-      const config: Parameters<typeof createOpenAICompatible>[0] = {
-        fetch: providerFetch,
-        name: conn.providerId,
-        baseURL: conn.baseUrl,
-      };
-      if (conn.apiKey) {
-        config.apiKey = conn.apiKey;
-      }
-      const provider = createOpenAICompatible(config);
-      return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
-    }
+const createProviderModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
+  const config: Parameters<typeof createOpenAICompatible>[0] = {
+    fetch: providerFetch,
+    name: conn.providerId,
+    baseURL: conn.baseUrl,
+  };
+  if (conn.apiKey) {
+    config.apiKey = conn.apiKey;
   }
+  const provider = createOpenAICompatible(config);
+  return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
 };

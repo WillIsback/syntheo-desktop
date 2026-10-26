@@ -29,8 +29,6 @@ vi.mock("~/onboarding/welcome-note", () => ({
 
 import { useDeeplinkHandler } from "./useDeeplinkHandler";
 
-import { subscriptionAuthFromCallback } from "~/settings/ai/llm/subscriptions/oauth";
-
 afterEach(() => {
   mocks.handler = null;
   vi.clearAllMocks();
@@ -38,7 +36,7 @@ afterEach(() => {
 
 // Aucun module d'authentification simulé ni AuthProvider : Syntheo n'a pas
 // de compte, les jetons d'un ancien lien de connexion sont ignorés.
-it("auth_callback_tokens_are_ignored_chatgpt_oauth_kept", async () => {
+it("auth_callback_tokens_are_ignored", async () => {
   const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
   renderHook(() => useDeeplinkHandler());
   await waitFor(() => expect(mocks.handler).not.toBeNull());
@@ -52,10 +50,5 @@ it("auth_callback_tokens_are_ignored_chatgpt_oauth_kept", async () => {
 
   expect(consoleError).not.toHaveBeenCalled();
 
-  // Le flux OAuth d'abonnement ChatGPT lit toujours code/state du même lien.
-  expect(subscriptionAuthFromCallback({ code: "codex", state: "s1" })).toEqual({
-    code: "codex",
-    state: "s1",
-  });
   consoleError.mockRestore();
 });

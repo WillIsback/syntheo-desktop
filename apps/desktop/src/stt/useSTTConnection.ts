@@ -23,9 +23,6 @@ export const useSTTConnection = () => {
     current_stt_provider ? providers[`stt:${current_stt_provider}`] : undefined
   ) as AIProviderStorage | undefined;
 
-  const baseUrl = providerConfig?.base_url?.trim();
-  const apiKey = providerConfig?.api_key?.trim();
-
   const connection = useMemo(() => {
     if (!current_stt_provider || !current_stt_model) {
       return null;
@@ -37,6 +34,11 @@ export const useSTTConnection = () => {
     if (!provider || provider.disabled) {
       return null;
     }
+
+    // L'URL enregistrée prime ; à défaut, le préréglage du provider s'applique
+    // (Nemotron ASR sur le DGX), sans qu'une ligne stt:<id> soit nécessaire.
+    const baseUrl =
+      providerConfig?.base_url?.trim() || provider.baseUrl?.trim() || "";
 
     // Les endpoints on-prem n'exigent pas forcément de clé.
     if (!baseUrl) {
@@ -51,9 +53,9 @@ export const useSTTConnection = () => {
       provider: current_stt_provider,
       model: current_stt_model,
       baseUrl: url.toString(),
-      apiKey: apiKey ?? "",
+      apiKey: providerConfig?.api_key?.trim() ?? "",
     };
-  }, [current_stt_provider, current_stt_model, baseUrl, apiKey]);
+  }, [current_stt_provider, current_stt_model, providerConfig]);
 
   return {
     conn: connection,

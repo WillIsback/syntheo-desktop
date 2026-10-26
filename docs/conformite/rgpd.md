@@ -16,10 +16,11 @@ pas responsable de traitement : l'utilisateur l'est, sur son poste.
 >   **temporaires** pour la dictée (WAV dans le dossier temporaire du système,
 >   supprimé après transcription, mais laissé dans ce dossier temporaire si l'application plante avant), l'import ou le dépôt d'un fichier audio
 >   (copie normalisée dans le dossier de la note, supprimée dès la transcription réussie ; pour un import dont la transcription échoue, la copie reste jusqu'au chantier 04c-B) et le découpage interne du traitement batch.
-> - **Providers** : la transcription ne parle plus qu'aux endpoints on-premise
->   (protocoles OpenAI et NVIDIA NIM ; chantier 04b-1). Des providers LLM cloud
->   hérités (OpenAI, Anthropic…) restent sélectionnables jusqu'au chantier
->   04b-3. La cible est **endpoints on-premise uniquement**.
+> - **Providers** : endpoints on-premise uniquement. La transcription parle aux
+>   protocoles OpenAI et NVIDIA NIM (chantier 04b-1) ; le résumé, le chat et le
+>   générateur de templates parlent à un seul endpoint LLM configuré, une API
+>   OpenAI-compatible (vLLM, Ollama, llama.cpp server…, chantier 04b-3). Une
+>   sélection LLM cloud héritée est effacée au démarrage.
 
 ## Données stockées
 
@@ -56,8 +57,9 @@ une suppression, l'effacement est retenté au lancement suivant.
 
 - **Endpoints d'inférence configurés par l'utilisateur**, et eux seuls : ASR
   (protocole OpenAI : Realtime et `/v1/audio/transcriptions` ; NVIDIA NIM
-  WebSocket) et LLM (API OpenAI-compatible). L'audio de la capture et le texte
-  (transcript, notes, prompts) y transitent. Une URL de transcription non
+  WebSocket) et l'endpoint LLM configuré (API OpenAI-compatible). L'audio de
+  la capture et le texte (transcript, notes, prompts) y transitent, sans
+  empreinte d'appareil ni identifiant de tâche dans les en-têtes. Une URL de transcription non
   reconnue est traitée avec le protocole OpenAI, jamais renvoyée vers un
   service tiers.
 - **TLS recommandé** dès que l'endpoint n'est pas sur la machine ou un réseau de

@@ -88,7 +88,7 @@ describe("providerFetch", () => {
   });
 
   it.each(["custom", "openai"])(
-    "verifies %s against an origin-restricted local endpoint and still rejects invalid keys",
+    "verifies %s against an origin-restricted local endpoint without a control-key probe, and still rejects invalid keys",
     async (provider) => {
       vi.mocked(tauriFetch).mockImplementation(async (_input, init) => {
         const headers = new Headers(init?.headers);
@@ -119,10 +119,7 @@ describe("providerFetch", () => {
           .mock.calls.map(([, init]) =>
             new Headers(init?.headers).get("Authorization"),
           ),
-      ).toEqual([
-        "Bearer local-key",
-        "Bearer anarlog-invalid-key-verification",
-      ]);
+      ).toEqual(["Bearer local-key"]);
       await expect(
         verifyProviderCredentials(
           { ...credential, apiKey: "wrong-key" },

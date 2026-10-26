@@ -15,7 +15,6 @@ type ToastRegistryEntry = {
 type ToastRegistryParams = {
   hasLLMConfigured: boolean;
   hasSttConfigured: boolean;
-  hasProLlmConfigured: boolean;
   isAiTranscriptionTabActive: boolean;
   isAiIntelligenceTabActive: boolean;
   isLiveMeetingActive: boolean;
@@ -33,7 +32,6 @@ type DevtoolsToastPreviewParams = {
 export function createToastRegistry({
   hasLLMConfigured,
   hasSttConfigured,
-  hasProLlmConfigured,
   isAiTranscriptionTabActive,
   isAiIntelligenceTabActive,
   isLiveMeetingActive,
@@ -41,10 +39,8 @@ export function createToastRegistry({
   onOpenLLMSettings,
   onOpenSTTSettings,
 }: ToastRegistryParams): ToastRegistryEntry[] {
-  // Les modèles hébergés exigeaient un compte : une sélection résiduelle
-  // n'est pas utilisable.
   const hasUsableSttConfigured = hasSttConfigured;
-  const hasUsableLlmConfigured = hasLLMConfigured && !hasProLlmConfigured;
+  const hasUsableLlmConfigured = hasLLMConfigured;
   const updateToast = createDesktopUpdateToast(update);
 
   // order matters

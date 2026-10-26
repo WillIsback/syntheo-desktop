@@ -3,8 +3,9 @@ import { test } from "node:test";
 
 import {
   ProviderCredentialError,
-  verifyProviderCredentials,
   providerCredentialIdentity,
+  validateProviderBaseUrl,
+  verifyProviderCredentials,
 } from "./index.ts";
 
 const credential = {
@@ -69,15 +70,6 @@ for (const body of [
   });
 }
 
-test("a public model catalog cannot validate a key", async () => {
-  await assert.rejects(
-    verifyProviderCredentials({ ...credential, provider: "custom" }, async () =>
-      Response.json({ data: [] }),
-    ),
-    /doesn’t support API key verification/,
-  );
-});
-
 test("on-prem STT validates configuration without probing a model catalog", async () => {
   const fetcher = async () => {
     assert.fail("On-prem STT must not send model-list or control-key requests");
@@ -115,163 +107,6 @@ test("on-prem STT still rejects unsafe URLs and malformed keys before saving", a
   }
 });
 
-test("Custom LLM still requires key proof after accepting the same STT configuration", async () => {
-  const custom = { ...credential, provider: "custom" };
-  let calls = 0;
-  const fetcher = async () => {
-    calls++;
-    return Response.json({ data: [] });
-  };
-  await verifyProviderCredentials(
-    { ...custom, type: "stt", provider: "openai" },
-    fetcher,
-  );
-  assert.equal(calls, 0);
-  await assert.rejects(
-    verifyProviderCredentials({ ...custom, type: "llm" }, fetcher),
-    /doesn’t support API key verification/,
-  );
-  assert.equal(calls, 2);
-});
-
-test("a gateway must accept the candidate key and reject the control key", async () => {
-  const keys = [];
-  await verifyProviderCredentials(
-    { ...credential, provider: "custom" },
-    async (_url, init) => {
-      keys.push(init.headers.Authorization);
-      return keys.length === 1
-        ? Response.json({ data: [] })
-        : new Response(null, { status: 401 });
-    },
-  );
-  assert.deepEqual(keys, [
-    "Bearer synthetic-key",
-    "Bearer anarlog-invalid-key-verification",
-  ]);
-});
-
-for (const status of [429, 500, 404]) {
-  test(`an inconclusive control response (${status}) is retryable and never cached as proof`, async () => {
-    let calls = 0;
-    let controlStatus = status;
-    const fetcher = async (_url, init) => {
-      calls++;
-      return init.headers.Authorization === "Bearer synthetic-key"
-        ? Response.json({ data: [] })
-        : new Response(null, { status: controlStatus });
-    };
-    const custom = { ...credential, provider: "custom" };
-    await assert.rejects(
-      verifyProviderCredentials(custom, fetcher),
-      (error) => {
-        assert.ok(error instanceof ProviderCredentialError);
-        assert.equal(error.retryable, true);
-        assert.doesNotMatch(error.message, /doesn’t support/);
-        return true;
-      },
-    );
-    controlStatus = 401;
-    await verifyProviderCredentials(custom, fetcher);
-    assert.equal(calls, 4);
-  });
-}
-
-test("Vertex verifies tokens through the beta publisher catalog, separate from the project inference path", async () => {
-  const requests = [];
-  await verifyProviderCredentials(
-    {
-      ...credential,
-      provider: "google_vertex_ai",
-      baseUrl:
-        "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/endpoints/openapi",
-    },
-    async (url, init) => {
-      requests.push({ url, authorization: init.headers.Authorization });
-      return requests.length === 1
-        ? Response.json({
-            publisherModels: [{ name: "publishers/google/models/test" }],
-          })
-        : new Response(null, { status: 401 });
-    },
-  );
-  assert.deepEqual(requests, [
-    {
-      url: "https://us-central1-aiplatform.googleapis.com/v1beta1/publishers/google/models?pageSize=1",
-      authorization: "Bearer synthetic-key",
-    },
-    {
-      url: "https://us-central1-aiplatform.googleapis.com/v1beta1/publishers/google/models?pageSize=1",
-      authorization: "Bearer anarlog-invalid-key-verification",
-    },
-  ]);
-});
-
-for (const [provider, path, header, value, payload] of [
-  [
-    "openrouter",
-    "/v1/key",
-    "Authorization",
-    "Bearer synthetic-key",
-    { data: { label: "test key" } },
-  ],
-  ["anthropic", "/v1/models", "x-api-key", "synthetic-key", { data: [] }],
-  [
-    "google_generative_ai",
-    "/v1/models",
-    "x-goog-api-key",
-    "synthetic-key",
-    { models: [] },
-  ],
-  [
-    "siliconflow",
-    "/v1/user/info",
-    "Authorization",
-    "Bearer synthetic-key",
-    { status: true },
-  ],
-  [
-    "cohere",
-    "/v1/check-api-key",
-    "Authorization",
-    "Bearer synthetic-key",
-    { valid: true },
-  ],
-  [
-    "azure_openai",
-    "/v1/openai/models?api-version=2024-10-21",
-    "api-key",
-    "synthetic-key",
-    { data: [] },
-  ],
-]) {
-  test(`uses ${provider}'s authentication protocol`, async () => {
-    const host =
-      provider === "anthropic"
-        ? "api.anthropic.com"
-        : provider === "google_generative_ai"
-          ? "generativelanguage.googleapis.com"
-          : "api.openai.com";
-    await verifyProviderCredentials(
-      { ...credential, provider, baseUrl: `https://${host}/v1` },
-      async (url, init) => {
-        assert.equal(url, `https://${host}${path}`);
-        assert.equal(init.headers[header], value);
-        return Response.json(payload);
-      },
-    );
-  });
-}
-
-test("a negative Cohere validity result is rejected despite HTTP 200", async () => {
-  await assert.rejects(
-    verifyProviderCredentials({ ...credential, provider: "cohere" }, async () =>
-      Response.json({ valid: false }),
-    ),
-    /did not confirm/,
-  );
-});
-
 test("cancellation does not validate a key", async () => {
   const controller = new AbortController();
   await assert.rejects(
@@ -298,7 +133,6 @@ test("network failures are not mislabeled as invalid credentials", async () => {
 
 test("rejects malformed credentials and unsafe endpoints before a request", async () => {
   for (const update of [
-    { apiKey: "" },
     { apiKey: "a\nb" },
     { baseUrl: "not-a-url" },
     { baseUrl: "http://remote.test" },
@@ -316,16 +150,6 @@ test("rejects malformed credentials and unsafe endpoints before a request", asyn
       },
     );
   }
-});
-
-test("public catalogs at overridden OpenAI endpoints are not trusted", async () => {
-  await assert.rejects(
-    verifyProviderCredentials(
-      { ...credential, baseUrl: "https://public.example/v1" },
-      async () => Response.json({ data: [] }),
-    ),
-    /doesn’t support API key verification/,
-  );
 });
 
 test("reuses recent proof only for the same credential and endpoint", async () => {
@@ -367,43 +191,6 @@ test("never caches a failed verification as accepted", async () => {
   assert.equal(calls, 2);
 });
 
-test("Venice verifies account access instead of its public model catalog", async () => {
-  const requests = [];
-  await verifyProviderCredentials(
-    {
-      ...credential,
-      provider: "venice",
-      baseUrl: "https://api.venice.ai/api/v1",
-    },
-    async (url, init) => {
-      requests.push({ url, init });
-      return Response.json({ data: { accessPermitted: true } });
-    },
-  );
-  assert.equal(requests.length, 1);
-  assert.equal(
-    requests[0].url,
-    "https://api.venice.ai/api/v1/api_keys/rate_limits",
-  );
-  assert.equal(requests[0].init.headers.Authorization, "Bearer synthetic-key");
-});
-
-for (const data of [{ accessPermitted: false }, [], {}]) {
-  test(`Venice rejects unconfirmed access: ${JSON.stringify(data)}`, async () => {
-    await assert.rejects(
-      verifyProviderCredentials(
-        {
-          ...credential,
-          provider: "venice",
-          baseUrl: "https://api.venice.ai/api/v1",
-        },
-        async () => Response.json({ data }),
-      ),
-      ProviderCredentialError,
-    );
-  });
-}
-
 test("native streaming providers validate input without requiring a model catalog", async () => {
   const fetcher = async () => {
     throw new Error("No documented credential probe");
@@ -424,11 +211,64 @@ test("native streaming providers validate input without requiring a model catalo
     },
     fetcher,
   );
-  await assert.rejects(
-    verifyProviderCredentials(
-      { ...credential, type: "llm", provider: "openai", apiKey: "" },
-      fetcher,
-    ),
-    /valid API key/,
+});
+
+test("custom_llm_without_key_lists_models", async () => {
+  const requests = [];
+  await verifyProviderCredentials(
+    {
+      type: "llm",
+      provider: "custom",
+      baseUrl: "http://192.168.1.87:30000/v1",
+      apiKey: "",
+    },
+    async (url, init) => {
+      requests.push({ url, init });
+      return Response.json({ data: [{ id: "m" }] });
+    },
   );
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].url, "http://192.168.1.87:30000/v1/models");
+  assert.equal(requests[0].init.headers.Authorization, undefined);
+});
+
+test("custom_llm_skips_control_key_probe", async () => {
+  const requests = [];
+  await verifyProviderCredentials(
+    {
+      type: "llm",
+      provider: "custom",
+      baseUrl: "https://spark-787d-1.tail6cba9f.ts.net/v1",
+      apiKey: "vllm-key",
+    },
+    async (url, init) => {
+      requests.push({ url, init });
+      return Response.json({ data: [{ id: "m" }] });
+    },
+  );
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].init.headers.Authorization, "Bearer vllm-key");
+});
+
+test("validateProviderBaseUrl_rejects_plain_http_on_a_public_host", () => {
+  assert.throws(
+    () => validateProviderBaseUrl("http://8.8.8.8/v1"),
+    /Use HTTPS/,
+  );
+  assert.throws(
+    () => validateProviderBaseUrl("https://user:pass@example.com/v1"),
+    /credentials or query parameters/,
+  );
+  assert.throws(() => validateProviderBaseUrl("not-a-url"), /valid base URL/);
+});
+
+test("validateProviderBaseUrl_accepts_private_hosts_and_https", () => {
+  for (const baseUrl of [
+    "https://spark-787d-1.tail6cba9f.ts.net/v1",
+    "http://192.168.1.87:30000/v1",
+    "http://127.0.0.1:8000/v1",
+    "http://localhost:9000",
+  ]) {
+    assert.ok(validateProviderBaseUrl(baseUrl) instanceof URL);
+  }
 });

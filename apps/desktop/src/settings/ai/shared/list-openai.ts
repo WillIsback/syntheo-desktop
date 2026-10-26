@@ -126,3 +126,53 @@ export function processGenericModels(
     ),
   };
 }
+
+// Un serveur on-prem expose les modèles qu'il sert : aucun n'est écarté par
+// les heuristiques propres au catalogue OpenAI (anciens, datés, gpt-4o-*) ;
+// seuls les modèles d'embedding, d'audio ou d'image le sont.
+export async function listCustomModels(
+  baseUrl: string,
+  apiKey: string,
+): Promise<ListModelsResult> {
+  if (!baseUrl) {
+    return DEFAULT_RESULT;
+  }
+
+  return pipe(
+    fetchJson(
+      `${baseUrl}/models`,
+      apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+    ),
+    Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
+    Effect.map(({ data }) => processCustomModels(data)),
+    Effect.timeout(REQUEST_TIMEOUT),
+    Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
+    Effect.runPromise,
+  );
+}
+
+export function processCustomModels(
+  data: readonly { id: string }[],
+): ListModelsResult {
+  const result = partition(
+    data,
+    (model) => {
+      const reasons: ModelIgnoreReason[] = [];
+      if (shouldIgnoreCommonKeywords(model.id)) {
+        reasons.push("common_keyword");
+      }
+      return reasons.length > 0 ? reasons : null;
+    },
+    (model) => model.id,
+  );
+
+  return {
+    models: sortModelsByRecency(result.models),
+    ignored: result.ignored,
+    metadata: extractMetadataMap(
+      data,
+      (model) => model.id,
+      () => ({ input_modalities: ["text"] }),
+    ),
+  };
+}

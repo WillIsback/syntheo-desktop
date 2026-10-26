@@ -10,7 +10,7 @@ describe("getLiveTranscriptPausedMessage", () => {
         sttProvider: "nvidia",
         online: true,
       }),
-    ).toMatch(/because NVIDIA Speech NIM is having an outage\./);
+    ).toMatch(/because Nemotron ASR \(NIM, WebSocket\) is having an outage\./);
   });
 
   it("reports unreachable direct providers", () => {

@@ -73,3 +73,12 @@ it("rgpd_documents_legacy_voiceprint_purge", () => {
   // Empreintes vocales d'une version antérieure : effacées au démarrage.
   expect(rgpd).toMatch(/empreintes vocales[^.]*effacées au démarrage/i);
 });
+
+it("rgpd_lists_only_the_configured_llm_endpoint", () => {
+  const rgpd = readFileSync(join(ROOT, "docs/conformite/rgpd.md"), "utf8");
+  // Providers LLM cloud retirés (04b-3) : seul l'endpoint configuré reçoit
+  // les prompts, sans en-tête d'empreinte d'appareil.
+  expect(rgpd).not.toMatch(/openrouter|anthropic/i);
+  expect(rgpd).toContain("endpoint LLM configuré");
+  expect(rgpd).toMatch(/empreinte d'appareil/);
+});

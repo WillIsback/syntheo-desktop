@@ -8,6 +8,7 @@ const {
   config,
   getServerForModelMock,
   isModelDownloadedMock,
+  providersState,
   readiness,
   startServerForPathMock,
 } = vi.hoisted(() => ({
@@ -21,12 +22,36 @@ const {
   },
   getServerForModelMock: vi.fn(),
   isModelDownloadedMock: vi.fn(),
+  providersState: {} as Record<string, unknown>,
   readiness: {
     provider: true,
     settings: true,
   },
   startServerForPathMock: vi.fn(),
 }));
+
+const storedProviders = () => ({
+  "stt:anarlog": {
+    type: "stt",
+    base_url: "   ",
+    api_key: "test-key",
+  },
+  "stt:nvidia": {
+    type: "stt",
+    base_url: "http://localhost:9000",
+    api_key: "",
+  },
+  "stt:deepgram": {
+    type: "stt",
+    base_url: "https://api.deepgram.com/v1",
+    api_key: "legacy-key",
+  },
+  "stt:openai": {
+    type: "stt",
+    base_url: "http://192.168.1.87:8000/v1",
+    api_key: "",
+  },
+});
 
 vi.mock("@anlg/plugin-local-stt", () => ({
   commands: {
@@ -47,28 +72,7 @@ vi.mock("~/env", () => ({
 vi.mock("~/settings/providers", () => ({
   useAiProvidersState: () => ({
     isReady: readiness.provider,
-    providers: {
-      "stt:anarlog": {
-        type: "stt",
-        base_url: "   ",
-        api_key: "test-key",
-      },
-      "stt:nvidia": {
-        type: "stt",
-        base_url: "http://localhost:9000",
-        api_key: "",
-      },
-      "stt:deepgram": {
-        type: "stt",
-        base_url: "https://api.deepgram.com/v1",
-        api_key: "legacy-key",
-      },
-      "stt:openai": {
-        type: "stt",
-        base_url: "http://192.168.1.87:8000/v1",
-        api_key: "",
-      },
-    },
+    providers: providersState,
   }),
 }));
 
@@ -101,6 +105,8 @@ describe("useSTTConnection", () => {
     billingState.isReady = true;
     readiness.provider = true;
     readiness.settings = true;
+    for (const key of Object.keys(providersState)) delete providersState[key];
+    Object.assign(providersState, storedProviders());
     getServerForModelMock.mockReset();
     isModelDownloadedMock.mockReset();
     startServerForPathMock.mockReset();
@@ -182,6 +188,31 @@ describe("useSTTConnection", () => {
       provider: "nvidia",
       model: "nemotron-asr-streaming",
       baseUrl: "http://localhost:9000/?provider=nvidia",
+      apiKey: "",
+    });
+    expect(result.current.isReady).toBe(true);
+  });
+
+  it("applies_the_nvidia_preset_without_a_stored_config_row", () => {
+    // Un provider on-prem préréglé doit fonctionner sans qu'une ligne
+    // stt:nvidia ait été enregistrée : l'URL par défaut fait office de
+    // configuration.
+    delete providersState["stt:nvidia"];
+    config.current_stt_provider = "nvidia";
+    config.current_stt_model = "nemotron-asr-streaming";
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+
+    const { result } = renderHook(() => useSTTConnection(), { wrapper });
+
+    expect(result.current.conn).toEqual({
+      provider: "nvidia",
+      model: "nemotron-asr-streaming",
+      baseUrl:
+        "https://spark-787d-1.tail6cba9f.ts.net/v1/realtime?provider=nvidia",
       apiKey: "",
     });
     expect(result.current.isReady).toBe(true);
