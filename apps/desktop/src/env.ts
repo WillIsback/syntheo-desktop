@@ -7,7 +7,6 @@ export const env = createEnv({
     VITE_API_URL: z.string().min(1).default("http://localhost:3001"),
     // Pas de CDN distant : les icônes sont servies depuis les assets locaux.
     VITE_STATIC_ASSETS_URL: z.string().url().optional(),
-    VITE_AI_API_URL: z.string().url().optional(),
   },
   runtimeEnv: import.meta.env,
   emptyStringAsUndefined: true,
