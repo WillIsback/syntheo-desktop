@@ -4238,7 +4238,7 @@ dependencies = [
  "base64 0.22.1",
  "chacha20poly1305",
  "getrandom 0.4.2",
- "hkdf",
+ "hkdf 0.13.0",
  "hmac 0.12.1",
  "serde",
  "serde_json",
@@ -6596,6 +6596,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b5f8eb2ad728638ea2c7d47a21db23b7b58a72ed6a38256b8a1849f15fbbdf7"
 dependencies = [
  "hmac 0.12.1",
+]
+
+[[package]]
+name = "hkdf"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4aaa26c720c68b866f2c96ef5c1264b3e6f473fe5d4ce61cd44bbe913e553018"
+dependencies = [
+ "hmac 0.13.0",
 ]
 
 [[package]]
@@ -12179,7 +12188,7 @@ dependencies = [
  "futures-util",
  "generic-array",
  "getrandom 0.2.17",
- "hkdf",
+ "hkdf 0.12.4",
  "num",
  "once_cell",
  "serde",
@@ -13178,7 +13187,7 @@ dependencies = [
  "futures-util",
  "generic-array",
  "hex",
- "hkdf",
+ "hkdf 0.12.4",
  "hmac 0.12.1",
  "itoa",
  "log",
@@ -13214,7 +13223,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "hex",
- "hkdf",
+ "hkdf 0.12.4",
  "hmac 0.12.1",
  "home",
  "itoa",
