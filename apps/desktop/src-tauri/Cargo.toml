@@ -92,7 +92,6 @@ anlg-db-sync = { workspace = true }
 anlg-host = { workspace = true }
 anlg-intercept = { workspace = true }
 anlg-storage = { workspace = true }
-anlg-supervisor = { workspace = true }
 
 chrono = { workspace = true }
 dirs = { workspace = true }

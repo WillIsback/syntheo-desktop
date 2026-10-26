@@ -3811,7 +3811,6 @@ dependencies = [
  "sqlx",
  "storage",
  "strum 0.28.0",
- "supervisor",
  "tauri",
  "tauri-build",
  "tauri-plugin-agent",
@@ -8022,7 +8021,6 @@ dependencies = [
  "data",
  "device-monitor",
  "futures-util",
- "host",
  "hound",
  "language",
  "mp3",
@@ -8057,7 +8055,6 @@ dependencies = [
  "async-stream",
  "audio-utils",
  "axum",
- "data",
  "futures-util",
  "hound",
  "language",
@@ -8066,7 +8063,6 @@ dependencies = [
  "owhisper-interface",
  "ractor",
  "reqwest-middleware",
- "rodio",
  "serde",
  "serde_json",
  "specta",
@@ -9781,7 +9777,6 @@ dependencies = [
 name = "owhisper-client"
 version = "0.0.1"
 dependencies = [
- "audio-utils",
  "base64 0.22.1",
  "bytes",
  "data",
@@ -9792,7 +9787,6 @@ dependencies = [
  "reqwest 0.13.2",
  "reqwest-middleware",
  "reqwest-tracing",
- "rodio",
  "serde",
  "serde_json",
  "strum 0.28.0",
@@ -15227,8 +15221,6 @@ name = "tauri-plugin-transcription"
 version = "0.1.0"
 dependencies = [
  "audio",
- "audio-utils",
- "base64 0.22.1",
  "chrono",
  "db-app",
  "db-core",
@@ -15237,7 +15229,6 @@ dependencies = [
  "owhisper-client",
  "owhisper-interface",
  "ractor",
- "rodio",
  "serde",
  "serde_json",
  "specta",

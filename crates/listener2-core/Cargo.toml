@@ -38,8 +38,6 @@ tracing = { workspace = true }
 aspasia = "0.2.1"
 
 [dev-dependencies]
-anlg-data = { workspace = true }
 axum = { workspace = true }
 reqwest-middleware = { workspace = true }
-rodio = { workspace = true }
 tokio = { workspace = true, features = ["net", "test-util", "time"] }
