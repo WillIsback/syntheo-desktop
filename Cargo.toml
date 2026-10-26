@@ -101,7 +101,7 @@ anlg-whisper = { path = "crates/whisper", package = "whisper" }
 anlg-ws-client = { path = "crates/ws-client", package = "ws-client" }
 anlg-zoom = { path = "crates/zoom", package = "zoom" }
 keyring = "4.1.4"
-posthog-rs = "0.5"
+posthog-rs = "0.27"
 progenitor-client = "0.13"
 
 openai-transcription = { path = "crates/openai-transcription", package = "openai-transcription" }
@@ -183,7 +183,7 @@ ractor = "0.15.10"
 rayon = "1.11"
 reqwest = "0.13"
 reqwest-middleware = "0.5"
-reqwest-tracing = "0.6"
+reqwest-tracing = "0.7"
 tokio = "1"
 tokio-stream = "0.1.17"
 tokio-tungstenite = "0.29"
@@ -203,7 +203,7 @@ image = { version = "0.25.10", default-features = false, features = ["webp"] }
 indexmap = "2"
 indoc = "2"
 isolang = "2.4"
-itertools = "0.14.0"
+itertools = "0.15.0"
 jsonschema = "0.46.0"
 libloading = "0.8"
 open = "5"
@@ -271,7 +271,7 @@ dasp = { version = "0.11.0", features = ["interpolate", "interpolate-linear"] }
 earshot = "0.1.0"
 hound = "3.5.1"
 htmd = "0.5.0"
-macos-accessibility-client = "0.0.1"
+macos-accessibility-client = "0.0.2"
 mp3lame-encoder = "0.2.2"
 realfft = "3.5.0"
 ringbuf = "0.4.8"
