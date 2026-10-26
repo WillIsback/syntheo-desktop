@@ -34,6 +34,7 @@
 ### Task 1: LLM réduit au provider `custom`
 
 **Files:**
+
 - Modify: `apps/desktop/src/settings/ai/llm/shared.tsx`, `select.tsx`, `configure.tsx`, `selection.ts`, `index.tsx`
 - Delete: `apps/desktop/src/settings/ai/llm/subscriptions/`, `apps/desktop/src/ai/traced-fetch.ts`, `apps/desktop/src/settings/ai/shared/anarlog-pro-models.ts`, les `list-*.ts` des providers retirés (anthropic, azure-ai, azure-openai, cloudflare-workers-ai, google, lmstudio, mistral, ollama, openrouter, unsloth, venice) et `local-provider-availability.ts`, `apps/desktop/src/shared/config/configure-paid-settings.ts` (et leurs tests)
 - Modify: `apps/desktop/src/ai/hooks/useLLMConnection.ts`, `ai/reasoning-effort.ts`, `settings/ai/shared/{model-capabilities,model-display,sort-providers}.ts`, `ai/tasks.ts` (`LOCAL_MODEL_PROVIDERS` → `custom`), `error-source.ts`, `enhance-workflow.ts`, `session/enhance-config.ts`, `sidebar/toast` (`hasProLlmConfigured`), `shared/utils.ts` (constantes d'en-tête d'empreinte), `settings/queries.ts`
@@ -41,6 +42,7 @@
 - Create: `apps/desktop/src/llm-on-prem.test.ts`
 
 **Interfaces:**
+
 - Produces: `PROVIDERS` (LLM) = `[{ id: "custom", … }]` ; `normalizeStoredLlmSelection(provider: string, model: string): { provider: string; model: string }` dans `settings/queries.ts` (provider ≠ `custom` → `{ provider: "", model: "" }`) ; `useLanguageModel(): LanguageModelV3 | null` (paramètre `task` retiré).
 
 - [ ] **Step 1: Écrire les tests qui échouent** dans `llm-on-prem.test.ts` :
@@ -56,10 +58,12 @@
 ### Task 2: Préréglages et vérification d'un endpoint on-prem
 
 **Files:**
+
 - Modify: `apps/desktop/src/settings/ai/llm/shared.tsx` (entrée `custom`), `apps/desktop/src/settings/ai/stt/shared.tsx` (préréglages), `packages/store/src/…` (`aiProviderSchema` : clé LLM facultative), `packages/provider-validation/src/index.ts`, `apps/desktop/src/settings/ai/shared/list-openai.ts` (ou nouvel `list-custom.ts`)
 - Test: `packages/provider-validation/src/index.test.mjs`, `apps/desktop/src/llm-on-prem.test.ts`, `apps/desktop/src/stt-on-prem.test.ts`
 
 **Interfaces:**
+
 - Consumes: `PROVIDERS` (Task 1).
 - Produces: `LLM_VLLM_PRESET_URL = "https://spark-787d-1.tail6cba9f.ts.net/v1"` et `STT_NIM_PRESET_URL = "https://spark-787d-1.tail6cba9f.ts.net/v1/realtime"` exportées de leurs `shared.tsx` ; `usesDeferredProviderAuthentication` inchangé.
 
@@ -77,6 +81,7 @@
 ### Task 3: Rust — plugins et crates des LLM cloud, réglages gérés
 
 **Files:**
+
 - Delete: `plugins/bedrock/`, `crates/openrouter/`, `crates/template-eval/`, `crates/template-app/tests/llm_eval/`
 - Modify: `Cargo.toml` (membres et dépendances workspace), `apps/desktop/src-tauri/{Cargo.toml,src/lib.rs,capabilities/default.json}`, `crates/template-app/Cargo.toml` (`[[test]] llm_eval`, dev-dep), `plugins/misc` (commande `get_fingerprint` retirée si plus aucun consommateur), `plugins/settings/src/state.rs` (`normalize_legacy_names` des providers LLM), `crates/db-app/src/managed_settings.rs`, `Cargo.lock`, `apps/desktop/package.json` (paquet JS du plugin bedrock s'il existe)
 - Test: `crates/db-app/src/managed_settings.rs` (tests), `apps/desktop/src/llm-on-prem.test.ts`
@@ -92,6 +97,7 @@
 ### Task 4: Documentation
 
 **Files:**
+
 - Modify: `docs/conformite/rgpd.md` (flux LLM : uniquement l'endpoint configuré ; plus d'en-tête d'empreinte), `NOTICE.md` (providers LLM retirés), `apps/desktop/src/env.ts` (`VITE_AI_API_URL` s'il n'a plus de lecteur)
 - Test: `apps/desktop/src/docs-rgpd.test.ts`
 

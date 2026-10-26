@@ -225,11 +225,10 @@ pub fn main() {
         builder = builder.plugin(tauri_plugin_agent::init());
     }
 
-    builder = builder
-        .plugin(tauri_plugin_db::init_with_cloudsync(
-            db.clone(),
-            cloudsync_config,
-        ));
+    builder = builder.plugin(tauri_plugin_db::init_with_cloudsync(
+        db.clone(),
+        cloudsync_config,
+    ));
 
     builder = builder
         .plugin(tauri_plugin_importer::init())
