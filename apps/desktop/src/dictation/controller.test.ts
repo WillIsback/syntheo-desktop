@@ -6,11 +6,12 @@ function setup(handsFree = false) {
   const dependencies = {
     handsFree,
     start: vi.fn().mockResolvedValue(undefined),
-    stop: vi.fn().mockResolvedValue("/tmp/dictation.wav"),
+    stop: vi
+      .fn()
+      .mockResolvedValue({ data_base64: "AAAA", file_name: "dictation.wav" }),
     cancel: vi.fn().mockResolvedValue(undefined),
     transcribe: vi.fn().mockResolvedValue("안녕하세요, world."),
     insert: vi.fn().mockResolvedValue(undefined),
-    discard: vi.fn().mockResolvedValue(undefined),
     onPhase: vi.fn(),
     onTranscript: vi.fn(),
     onError: vi.fn(),
@@ -31,7 +32,6 @@ describe("system dictation", () => {
     state.controller.release();
     await settle(state);
     expect(state.insert).toHaveBeenCalledWith("안녕하세요, world.");
-    expect(state.discard).toHaveBeenCalledWith("/tmp/dictation.wav");
     expect(state.onPhase).toHaveBeenLastCalledWith("idle");
   });
 
@@ -81,7 +81,6 @@ describe("system dictation", () => {
     await cancel;
     expect(state.insert).not.toHaveBeenCalled();
     expect(state.onTranscript).not.toHaveBeenCalled();
-    expect(state.discard).toHaveBeenCalledOnce();
   });
 
   it("keeps the transcript recoverable when the focused field changed", async () => {
@@ -92,7 +91,6 @@ describe("system dictation", () => {
     await settle(state);
     expect(state.onTranscript).toHaveBeenCalledWith("안녕하세요, world.");
     expect(state.onError).toHaveBeenCalledOnce();
-    expect(state.discard).toHaveBeenCalledOnce();
   });
 
   it("cleans up failed and silent transcriptions without inserting", async () => {
@@ -106,7 +104,6 @@ describe("system dictation", () => {
       state.controller.release();
       await settle(state);
       expect(state.insert).not.toHaveBeenCalled();
-      expect(state.discard).toHaveBeenCalledOnce();
       expect(state.onError).toHaveBeenCalledOnce();
     }
   });

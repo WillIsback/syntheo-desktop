@@ -1,5 +1,8 @@
 export type DictationPhase = "idle" | "starting" | "recording" | "transcribing";
 
+/** Enregistrement de dictée gardé en mémoire, jamais écrit sur le disque. */
+export type DictationAudio = { data_base64: string; file_name: string };
+
 export class DictationController {
   private phase: DictationPhase = "idle";
   private cancelled = false;
@@ -10,11 +13,10 @@ export class DictationController {
   constructor(
     private readonly dependencies: {
       start: () => Promise<void>;
-      stop: () => Promise<string>;
+      stop: () => Promise<DictationAudio>;
       cancel: () => Promise<void>;
-      transcribe: (path: string) => Promise<string>;
+      transcribe: (audio: DictationAudio) => Promise<string>;
       insert: (text: string) => Promise<void>;
-      discard: (path: string) => Promise<void>;
       onPhase: (phase: DictationPhase) => void;
       onTranscript: (text: string) => void;
       onError: (error: unknown) => void;
@@ -85,11 +87,10 @@ export class DictationController {
   }
 
   private async finish() {
-    let path: string | undefined;
     try {
-      path = await this.dependencies.stop();
+      const audio = await this.dependencies.stop();
       if (this.cancelled) return;
-      const text = (await this.dependencies.transcribe(path)).trim();
+      const text = (await this.dependencies.transcribe(audio)).trim();
       if (this.cancelled) return;
       if (!text) throw new Error("No speech detected. Please try again.");
       this.dependencies.onTranscript(text);
@@ -97,9 +98,6 @@ export class DictationController {
     } catch (error) {
       if (!this.cancelled) this.dependencies.onError(error);
     } finally {
-      if (path) {
-        await this.dependencies.discard(path).catch(this.dependencies.onError);
-      }
       this.setPhase("idle");
     }
   }

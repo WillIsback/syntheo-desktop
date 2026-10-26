@@ -220,15 +220,19 @@ function ActiveDictation({
       stop: async () => {
         const recorded = unwrap(await dictation.stopRecording(id));
         finalTranscript = recorded.transcript ?? null;
-        return recorded.filePath;
+        return {
+          data_base64: recorded.audioBase64,
+          file_name: "dictation.wav",
+        };
       },
       cancel: async () => {
         unwrap(await dictation.cancelRecording(id));
       },
-      transcribe: async (path) => {
+      transcribe: async (audio) => {
         if (finalTranscript !== null) return finalTranscript;
         let text = "";
-        await current.current.runBatch(path, {
+        await current.current.runBatch("", {
+          audio,
           signal: abort.signal,
           deferAudioFinalization: true,
           notifyOnCompletion: false,
@@ -247,9 +251,6 @@ function ActiveDictation({
       },
       insert: async (text) => {
         if (!disposed) unwrap(await dictation.insertText(target, text));
-      },
-      discard: async (path) => {
-        unwrap(await dictation.discardRecording(path));
       },
       onTranscript: (lastTranscript) => {
         if (!disposed) useDictationStatus.setState({ lastTranscript });

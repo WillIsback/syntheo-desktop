@@ -29,7 +29,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::start_system_recording::<tauri::Wry>,
             commands::stop_recording::<tauri::Wry>,
             commands::cancel_recording::<tauri::Wry>,
-            commands::discard_recording::<tauri::Wry>,
             commands::capture_target,
             commands::insert_text,
         ])

@@ -100,17 +100,6 @@ pub(crate) async fn cancel_recording<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn discard_recording<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    file_path: String,
-) -> Result<(), String> {
-    app.state::<Recorder>()
-        .discard(file_path)
-        .map_err(|error| error.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
 pub(crate) async fn start_system_recording<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     microphone_device: Option<String>,

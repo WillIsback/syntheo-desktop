@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   cancelRecording: vi.fn(),
-  discardRecording: vi.fn(),
   getCaptureState: vi.fn(),
   runBatch: vi.fn(),
   startRecording: vi.fn(),
@@ -17,7 +16,6 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@anlg/plugin-dictation", () => ({
   commands: {
     cancelRecording: mocks.cancelRecording,
-    discardRecording: mocks.discardRecording,
     startRecording: mocks.startRecording,
     stopRecording: mocks.stopRecording,
   },
@@ -67,9 +65,8 @@ describe("useDictation", () => {
     mocks.startRecording.mockResolvedValue({ status: "ok", data: null });
     mocks.stopRecording.mockResolvedValue({
       status: "ok",
-      data: { filePath: "/tmp/voice.wav", durationMs: 1_200 },
+      data: { audioBase64: "AAAA", durationMs: 1_200 },
     });
-    mocks.discardRecording.mockResolvedValue({ status: "ok", data: null });
     mocks.cancelRecording.mockResolvedValue({ status: "ok", data: null });
     mocks.runBatch.mockImplementation(async (_filePath, options) => {
       options.handlePersist([
@@ -89,7 +86,7 @@ describe("useDictation", () => {
     });
   });
 
-  it("records, transcribes, inserts, and removes temporary audio", async () => {
+  it("records, transcribes and inserts without a temporary file", async () => {
     const editor = {
       focus: vi.fn(() => true),
       insertText: vi.fn(),
@@ -116,15 +113,15 @@ describe("useDictation", () => {
     });
 
     expect(mocks.runBatch).toHaveBeenCalledWith(
-      "/tmp/voice.wav",
+      "",
       expect.objectContaining({
+        audio: { data_base64: "AAAA", file_name: "dictation.wav" },
         deferAudioFinalization: true,
         notifyOnCompletion: false,
         numSpeakers: 1,
       }),
     );
     expect(editor.insertText).toHaveBeenCalledWith("Hello world.");
-    expect(mocks.discardRecording).toHaveBeenCalledWith("/tmp/voice.wav");
     expect(result.current.phase).toBe("idle");
   });
 

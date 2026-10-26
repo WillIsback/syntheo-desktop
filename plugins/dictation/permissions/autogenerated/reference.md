@@ -80,32 +80,6 @@ Denies the capture_target command without any pre-configured scope.
 <tr>
 <td>
 
-`dictation:allow-discard-recording`
-
-</td>
-<td>
-
-Enables the discard_recording command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`dictation:deny-discard-recording`
-
-</td>
-<td>
-
-Denies the discard_recording command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `dictation:allow-hide`
 
 </td>
