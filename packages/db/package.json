@@ -11,12 +11,12 @@
   "types": "./src/index.ts",
   "dependencies": {
     "@anlg/db-runtime": "workspace:*",
-    "drizzle-orm": "^0.45.2"
+    "drizzle-orm": "^0.45.4"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.3",
+    "drizzle-kit": "^0.31.11",
     "typescript": "~5.8.3",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.5"
   },
   "scripts": {
     "introspect": "drizzle-kit introspect",

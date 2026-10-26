@@ -7,9 +7,9 @@
     "./summary-eligibility": "./src/summary-eligibility.ts"
   },
   "dependencies": {
-    "@date-fns/tz": "^1.4.1",
+    "@date-fns/tz": "^1.5.0",
     "clsx": "^2.1.1",
-    "date-fns": "^4.1.0",
+    "date-fns": "^4.4.0",
     "tailwind-merge": "^2.6.1"
   },
   "scripts": {
