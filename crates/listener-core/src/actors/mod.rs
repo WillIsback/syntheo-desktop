@@ -1,11 +1,11 @@
+pub mod audio_sweep;
 pub mod listener;
-pub mod recorder;
 pub mod root;
 pub mod session;
 pub mod source;
 
+pub use audio_sweep::*;
 pub use listener::*;
-pub use recorder::*;
 pub use root::*;
 pub use session::*;
 pub use source::*;

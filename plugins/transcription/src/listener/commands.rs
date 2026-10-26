@@ -6,7 +6,7 @@ use crate::{
     StoppedCapture,
 };
 use anlg_transcript::{RenderTranscriptRequest, RenderedTranscriptSegment};
-use anlg_transcription_core::listener::actors::recorder::{self, RecoveryAudioChunk};
+use anlg_transcription_core::listener::actors::audio_sweep::{self, RecoveryAudioChunk};
 use anlg_transcription_core::listener2 as listener2_core;
 use tauri_plugin_fs_sync::FsSyncPluginExt;
 
@@ -20,7 +20,7 @@ fn session_audio_dir<R: tauri::Runtime>(
         .settings()
         .vault_base()
         .map_err(|error| error.to_string())?;
-    Ok(recorder::find_session_dir(
+    Ok(audio_sweep::find_session_dir(
         base.join("sessions").as_std_path(),
         session_id,
     ))
@@ -59,7 +59,7 @@ pub async fn list_capture_audio_chunks<R: tauri::Runtime>(
 ) -> Result<Vec<RecoveryAudioChunk>, String> {
     tokio::task::spawn_blocking(move || {
         let dir = session_audio_dir(&app, &session_id)?;
-        recorder::list_recovery_chunks(&dir).map_err(|error| error.to_string())
+        audio_sweep::list_recovery_chunks(&dir).map_err(|error| error.to_string())
     })
     .await
     .map_err(|error| error.to_string())?
@@ -74,7 +74,7 @@ pub async fn acknowledge_capture_audio_chunk<R: tauri::Runtime>(
 ) -> Result<(), String> {
     tokio::task::spawn_blocking(move || {
         let dir = session_audio_dir(&app, &session_id)?;
-        recorder::acknowledge_recovery_chunk(&dir, &chunk_id).map_err(|error| error.to_string())
+        audio_sweep::acknowledge_recovery_chunk(&dir, &chunk_id).map_err(|error| error.to_string())
     })
     .await
     .map_err(|error| error.to_string())?
@@ -88,7 +88,7 @@ pub async fn delete_transcribed_capture_audio<R: tauri::Runtime>(
 ) -> Result<bool, String> {
     tokio::task::spawn_blocking(move || {
         let dir = session_audio_dir(&app, &session_id)?;
-        recorder::delete_transcribed_capture_audio(&dir).map_err(|error| error.to_string())
+        audio_sweep::delete_transcribed_capture_audio(&dir).map_err(|error| error.to_string())
     })
     .await
     .map_err(|error| error.to_string())?

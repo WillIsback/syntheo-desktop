@@ -10,7 +10,7 @@ use tokio_tungstenite::{accept_async, tungstenite::Message};
 
 use super::tests::test_ctx;
 use super::{SessionActor, SessionMsg};
-use crate::actors::{ListenerActor, ListenerAudioResult, ListenerMsg, RecorderActor, SourceActor};
+use crate::actors::{ListenerActor, ListenerAudioResult, ListenerMsg, SourceActor};
 use crate::{
     ListenerRuntime, SessionDataEvent, SessionErrorEvent, SessionLifecycleEvent,
     SessionProgressEvent,
@@ -309,10 +309,6 @@ async fn supervisor_writes_no_audio_to_session_dir() {
         send_audio(&listener).await;
     }
     wait_for_word(&mut events, "live").await;
-    assert!(
-        registry::where_is(RecorderActor::name(&session_id)).is_none(),
-        "no recorder actor may run for a capture session"
-    );
     supervisor.cast(SessionMsg::Shutdown).unwrap();
     timeout(Duration::from_secs(10), supervisor_task)
         .await

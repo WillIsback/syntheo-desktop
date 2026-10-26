@@ -31,7 +31,6 @@ pub struct SessionState {
     ctx: SessionContext,
     source_cell: Option<ActorCell>,
     listener_cell: Option<ActorCell>,
-    recorder_cell: Option<ActorCell>,
     source_restarts: anlg_supervisor::RestartTracker,
     mode: SessionModeState,
     listener_retry_attempt: usize,
@@ -69,11 +68,10 @@ impl Actor for SessionActor {
                 ctx.requested_transcription_mode,
                 ctx.params.transcription_mode,
             );
-            // Règle audio de Syntheo : aucun recorder, l'audio ne va que de la
-            // source vers le listener (endpoint STT) et n'est jamais écrit sur disque.
-            let recorder_cell = None;
+            // Règle audio de Syntheo : la source va directement au listener
+            // (endpoint STT) et l'audio n'est jamais écrit sur disque.
             let source_ref =
-                children::spawn_source(myself.get_cell(), &ctx, None, mode.listener_routing(None))
+                children::spawn_source(myself.get_cell(), &ctx, mode.listener_routing(None))
                     .await
                     .map_err(|e| -> ActorProcessingErr { Box::new(e) })?;
 
@@ -81,7 +79,6 @@ impl Actor for SessionActor {
                 ctx,
                 source_cell: Some(source_ref.get_cell()),
                 listener_cell: None,
-                recorder_cell,
                 source_restarts: anlg_supervisor::RestartTracker::new(),
                 mode,
                 listener_retry_attempt: 0,
@@ -208,11 +205,6 @@ impl Actor for SessionActor {
                                 refresh_listener_on_isolation_change(&myself, state).await;
                             }
                         }
-                        Some(ChildKind::Recorder) => {
-                            tracing::info!(?reason, "recorder_terminated");
-                            state.recorder_cell = None;
-                            children::sync_source_recorder(state).await;
-                        }
                         None => {
                             tracing::warn!("unknown_child_terminated");
                         }
@@ -243,11 +235,6 @@ impl Actor for SessionActor {
                                 refresh_listener_on_isolation_change(&myself, state).await;
                             }
                         }
-                        Some(ChildKind::Recorder) => {
-                            tracing::warn!(?error, "recorder_failed");
-                            state.recorder_cell = None;
-                            children::sync_source_recorder(state).await;
-                        }
                         None => {
                             tracing::warn!("unknown_child_failed");
                         }
@@ -267,12 +254,12 @@ impl Actor for SessionActor {
     ) -> Result<(), ActorProcessingErr> {
         children::shutdown_children(state, "session_stop").await;
         if state.ctx.params.retain_audio == Some(false) {
-            let dir = crate::actors::recorder::find_session_dir(
+            let dir = crate::actors::audio_sweep::find_session_dir(
                 &state.ctx.app_dir,
                 &state.ctx.params.session_id,
             );
             if let Err(error) = tokio::task::spawn_blocking(move || {
-                crate::actors::recorder::delete_transcribed_capture_audio(&dir).map(|_| ())
+                crate::actors::audio_sweep::delete_transcribed_capture_audio(&dir).map(|_| ())
             })
             .await?
             {
@@ -730,7 +717,6 @@ mod tests {
             ctx,
             source_cell: None,
             listener_cell: None,
-            recorder_cell: None,
             source_restarts: RestartTracker::new(),
             mode: SessionModeState::new(TranscriptionMode::Live, TranscriptionMode::Live),
             listener_retry_attempt: 0,
@@ -869,18 +855,6 @@ mod tests {
             ctx.runtime = runtime.clone();
             ctx.params.base_url = base_url.to_string();
             let mut state = test_state(ctx);
-            let (stop_tx, mut stop_rx) = tokio::sync::mpsc::unbounded_channel();
-            let (recorder, recorder_handle) = Actor::spawn(
-                None,
-                StopProbe {
-                    label: "recorder",
-                    tx: stop_tx,
-                },
-                (),
-            )
-            .await
-            .unwrap();
-            state.recorder_cell = Some(recorder.get_cell());
             let (retry_tx, mut retry_rx) = tokio::sync::mpsc::unbounded_channel();
             let (supervisor, supervisor_handle) =
                 Actor::spawn(None, SessionRetryProbe(retry_tx), ())
@@ -901,8 +875,6 @@ mod tests {
                 .unwrap();
             assert!(!state.shutting_down);
             assert!(state.mode.should_retry_listener());
-            assert_eq!(recorder.get_status(), ActorStatus::Running);
-            assert!(stop_rx.try_recv().is_err());
             assert!(matches!(
                 runtime.lifecycle_events.lock().unwrap().last(),
                 Some(crate::SessionLifecycleEvent::Active {
@@ -913,15 +885,13 @@ mod tests {
                 })
             ));
 
-            recorder.stop(None);
             supervisor.stop(None);
-            recorder_handle.await.unwrap();
             supervisor_handle.await.unwrap();
         }
     }
 
     #[tokio::test]
-    async fn shutdown_children_waits_in_source_listener_recorder_order() {
+    async fn shutdown_children_waits_in_source_then_listener_order() {
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
         let (source_ref, _) = Actor::spawn(
             None,
@@ -937,16 +907,6 @@ mod tests {
             None,
             StopProbe {
                 label: "listener",
-                tx: tx.clone(),
-            },
-            (),
-        )
-        .await
-        .unwrap();
-        let (recorder_ref, _) = Actor::spawn(
-            None,
-            StopProbe {
-                label: "recorder",
                 tx,
             },
             (),
@@ -958,7 +918,6 @@ mod tests {
             ctx: test_ctx(),
             source_cell: Some(source_ref.get_cell()),
             listener_cell: Some(listener_ref.get_cell()),
-            recorder_cell: Some(recorder_ref.get_cell()),
             source_restarts: RestartTracker::new(),
             mode: SessionModeState::new(TranscriptionMode::Live, TranscriptionMode::Live),
             listener_retry_attempt: 0,
@@ -976,14 +935,9 @@ mod tests {
             .await
             .unwrap()
             .unwrap();
-        let third = tokio::time::timeout(std::time::Duration::from_secs(1), rx.recv())
-            .await
-            .unwrap()
-            .unwrap();
 
-        assert_eq!([first, second, third], ["source", "listener", "recorder"]);
+        assert_eq!([first, second], ["source", "listener"]);
         assert_eq!(source_ref.get_status(), ActorStatus::Stopped);
         assert_eq!(listener_ref.get_status(), ActorStatus::Stopped);
-        assert_eq!(recorder_ref.get_status(), ActorStatus::Stopped);
     }
 }
