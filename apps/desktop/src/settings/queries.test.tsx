@@ -22,11 +22,6 @@ vi.mock("@anlg/plugin-analytics", () => ({
   },
 }));
 
-vi.mock("~/error-reporting", () => ({
-  setErrorReportingEnabled: mocks.setErrorReportingEnabled,
-  setSessionReplayAnalyticsEnabled: mocks.setSessionReplayAnalyticsEnabled,
-}));
-
 vi.mock("@anlg/plugin-detect", () => ({
   commands: {
     getPreferredLanguages: mocks.getPreferredLanguages,

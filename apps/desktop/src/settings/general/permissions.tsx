@@ -8,10 +8,6 @@ import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
 import {
-  trackPermissionRequested,
-  usePermissionAnalytics,
-} from "~/shared/hooks/usePermissionAnalytics";
-import {
   closePermissionAssistant,
   usePermission,
   usePermissionGuidance,
@@ -23,7 +19,7 @@ function PermissionRow({
   status,
   isPending,
   error,
-  permission,
+  permission: _permission,
   onRequest,
   onOpen,
   assisted = false,
@@ -47,17 +43,14 @@ function PermissionRow({
   const handleButtonClick = () => {
     if (runtimeCapability) {
       if (!isAuthorized) {
-        trackPermissionRequested(permission, status, "settings", "request");
         onRequest();
       }
       return;
     }
 
     if (assisted || isAuthorized || isDenied) {
-      trackPermissionRequested(permission, status, "settings", "open_settings");
       onOpen();
     } else {
-      trackPermissionRequested(permission, status, "settings", "request");
       onRequest();
     }
   };
@@ -148,12 +141,6 @@ function AudioPermissions({
   const { t } = useLingui();
   const mic = usePermission("microphone");
   const systemAudio = usePermission("systemAudio");
-  usePermissionAnalytics("microphone", mic.confirmedStatus, "settings");
-  usePermissionAnalytics(
-    "system_audio",
-    systemAudio.confirmedStatus,
-    "settings",
-  );
 
   return (
     <PermissionGroup title={<Trans>Audio</Trans>}>
@@ -188,12 +175,6 @@ function MacOSPermissions() {
   const calendar = usePermission("calendar");
   const accessibility = usePermission("accessibility");
   const accessibilityGuidance = usePermissionGuidance("accessibility");
-  usePermissionAnalytics("calendar", calendar.confirmedStatus, "settings");
-  usePermissionAnalytics(
-    "accessibility",
-    accessibility.confirmedStatus,
-    "settings",
-  );
 
   // Leaving settings while the assistant is up would strand its overlay on top
   // of System Settings with nothing left to dismiss it.

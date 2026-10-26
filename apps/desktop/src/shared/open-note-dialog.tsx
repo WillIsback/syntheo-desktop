@@ -26,7 +26,6 @@ import {
 } from "@anlg/ui/components/ui/dialog";
 import { cn } from "@anlg/utils";
 
-import { trackAnalyticsEvent } from "~/analytics";
 import { useBillingAccess } from "~/billing/billing-context";
 import { useSessionSummaries } from "~/session/queries";
 import { useMainContentCenterOffset } from "~/shared/main/content-offset";
@@ -238,21 +237,6 @@ export function OpenNoteDialog({
   useEffect(() => {
     if (!open || !query.trim()) return;
     const timeout = setTimeout(() => {
-      trackAnalyticsEvent("search_performed", {
-        entry_point: "open_note_dialog",
-        result_count:
-          filteredPages.length +
-          filteredRecentSessions.length +
-          filteredOtherNotes.length,
-        entity_types: [
-          ...new Set([
-            ...[...filteredRecentSessions, ...filteredOtherNotes].map(
-              (note) => note.resourceType,
-            ),
-            ...(filteredPages.length > 0 ? ["page"] : []),
-          ]),
-        ].sort(),
-      });
     }, 300);
     return () => clearTimeout(timeout);
   }, [
@@ -279,11 +263,6 @@ export function OpenNoteDialog({
 
   const handleSelect = useCallback(
     (note: NoteResult) => {
-      trackAnalyticsEvent("search_result_opened", {
-        entry_point: "open_note_dialog",
-        result_type: note.resourceType,
-        had_query: Boolean(query.trim()),
-      });
       handleOpenChange(false);
       openCurrent(
         note.resourceType === "shared_session"
@@ -296,12 +275,6 @@ export function OpenNoteDialog({
 
   const handleSelectPage = useCallback(
     (page: PageResult) => {
-      trackAnalyticsEvent("search_result_opened", {
-        entry_point: "open_note_dialog",
-        result_type: "page",
-        page_id: page.id,
-        had_query: Boolean(query.trim()),
-      });
       handleOpenChange(false);
       openNew(page.destination);
     },

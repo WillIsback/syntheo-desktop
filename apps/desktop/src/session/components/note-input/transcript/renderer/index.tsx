@@ -37,7 +37,6 @@ import {
   useScrollDetection,
 } from "./viewport-hooks";
 
-import { trackAnalyticsEvent } from "~/analytics";
 import type { Segment } from "~/stt/live-segment";
 import {
   assignTranscriptSpeaker,
@@ -172,13 +171,6 @@ export function TranscriptViewer({
           ),
         ),
       );
-      trackAnalyticsEvent("participant_assigned", {
-        assignment_scope: "selection",
-        word_count: selection.groups.reduce(
-          (count, group) => count + group.wordIds.length,
-          0,
-        ),
-      });
     },
     [],
   );
@@ -236,13 +228,6 @@ export function TranscriptViewer({
         ),
       ),
     );
-    trackAnalyticsEvent("participant_assigned", {
-      assignment_scope: "merge",
-      word_count: groups.reduce(
-        (count, group) => count + group.wordIds.length,
-        0,
-      ),
-    });
   }, [collectEntries, selectedEntries]);
   const handleDeleteSelection = useCallback(
     async (selection: TranscriptWordSelection) => {

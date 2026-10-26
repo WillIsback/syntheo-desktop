@@ -15,10 +15,6 @@ import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
 import {
-  trackPermissionRequested,
-  usePermissionAnalytics,
-} from "~/shared/hooks/usePermissionAnalytics";
-import {
   closePermissionAssistant,
   usePermission,
   usePermissionGuidance,
@@ -143,17 +139,6 @@ function PermissionsSectionContent({
   const mic = usePermission("microphone");
   const systemAudio = usePermission("systemAudio");
   const hasContinuedRef = useRef(false);
-  usePermissionAnalytics("microphone", mic.confirmedStatus, "onboarding");
-  usePermissionAnalytics(
-    "system_audio",
-    systemAudio.confirmedStatus,
-    "onboarding",
-  );
-  usePermissionAnalytics(
-    "accessibility",
-    accessibility?.confirmedStatus,
-    "onboarding",
-  );
 
   const isComplete =
     mic.status === "authorized" &&
@@ -161,7 +146,7 @@ function PermissionsSectionContent({
     (!accessibility || accessibility.status === "authorized");
 
   const handleAction = (
-    permission: string,
+    _permission: string,
     perm: ReturnType<typeof usePermission>,
     opensSettingsWhenDenied: boolean,
     assisted = false,
@@ -169,20 +154,8 @@ function PermissionsSectionContent({
     // Assisted panes are granted by hand in System Settings; their request API
     // only prompts once, so every click after that would be a silent no-op.
     if (assisted || (opensSettingsWhenDenied && perm.status === "denied")) {
-      trackPermissionRequested(
-        permission,
-        perm.status,
-        "onboarding",
-        "open_settings",
-      );
       perm.open();
     } else {
-      trackPermissionRequested(
-        permission,
-        perm.status,
-        "onboarding",
-        "request",
-      );
       perm.request();
     }
   };

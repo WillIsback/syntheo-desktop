@@ -9,7 +9,6 @@ import {
   type NoteEditorRef,
   normalizePortableAttachmentUrls,
 } from "@anlg/editor/note";
-import { commands as analyticsCommands } from "@anlg/plugin-analytics";
 import { Plus } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
@@ -19,7 +18,6 @@ import { useNoteFileHandlerConfig } from "./file-handler";
 import { MeetingChatHighlights } from "./meeting-chat-highlights";
 import { MeetingScreenGallery } from "./meeting-screen-gallery";
 
-import { trackAnalyticsEvent } from "~/analytics";
 import { useSessionEventParticipants } from "~/calendar/queries";
 import { AppLinkView } from "~/editor-bridge/app-link-view";
 import { useMentionConfig } from "~/editor-bridge/mention-config";
@@ -282,9 +280,6 @@ export const RawEditor = forwardRef<
       };
       editor.commands.replaceContent(nextContent);
       editor.flushPendingChanges();
-      trackAnalyticsEvent("template_applied", {
-        entry_point: "memo",
-      });
     }, []);
 
     const mentionConfig = useMentionConfig();
@@ -542,10 +537,6 @@ function TemplateSection({
 
 async function trackNoteEdited() {
   try {
-    await analyticsCommands.event({
-      event: "note_edited",
-      has_content: true,
-    });
   } catch (error) {
     console.error("[raw-editor] failed to record note analytics", error);
   }

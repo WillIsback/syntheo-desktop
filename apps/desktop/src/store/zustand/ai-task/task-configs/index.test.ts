@@ -33,10 +33,6 @@ vi.mock("./title-workflow", () => ({
   titleWorkflow: {},
 }));
 
-vi.mock("~/onboarding/meeting-note-analytics", () => ({
-  trackMeetingNoteCompletion: mocks.trackMeetingNoteCompletion,
-}));
-
 type EnhanceSuccessParams = Parameters<
   NonNullable<TaskConfig<"enhance">["onSuccess"]>
 >[0];

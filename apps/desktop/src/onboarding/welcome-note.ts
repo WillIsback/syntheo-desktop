@@ -14,12 +14,9 @@ const PENDING_WELCOME_SESSION_KEY = "anarlog.pending-welcome-session";
 
 const WELCOME_NOTE = `Welcome to Anarlog 👋
 
-
 This note is a quick way to see how Anarlog works.
 
-
 Click **Join & record** in the top-right corner. It will open a private, prerecorded demo meeting, so you don't have to worry about your camera or microphone. Anarlog will save the audio. To create a transcript and notes, choose a provider in **Settings → Transcription**; if one is not ready, Anarlog will show you a setup shortcut.
-
 
 When the video ends, Anarlog will stop listening. If transcription and intelligence are configured, it will start creating your summary automatically.`;
 

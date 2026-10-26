@@ -21,7 +21,6 @@ import { ImportSection } from "./imports";
 import { PermissionsSection } from "./permissions";
 import { OnboardingSection } from "./shared";
 
-import { trackAnalyticsEvent } from "~/analytics";
 import { StandaloneWindowShell } from "~/shared/window-shell";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 
@@ -88,19 +87,11 @@ function OnboardingScreenContent({
   const currentPlatform = platform();
 
   const goNext = useCallback(() => {
-    trackAnalyticsEvent("onboarding_step_completed", {
-      step: currentStep,
-      platform: currentPlatform,
-    });
     const next = getNextStep(currentStep);
     if (next) setCurrentStep(next);
   }, [currentPlatform, currentStep]);
 
   const skipCurrentStep = useCallback(() => {
-    trackAnalyticsEvent("onboarding_step_skipped", {
-      step: currentStep,
-      platform: currentPlatform,
-    });
     const next = getNextStep(currentStep);
     if (next) setCurrentStep(next);
   }, [currentPlatform, currentStep]);
@@ -111,10 +102,6 @@ function OnboardingScreenContent({
   }, [currentStep]);
 
   useEffect(() => {
-    trackAnalyticsEvent("onboarding_step_viewed", {
-      step: currentStep,
-      platform: currentPlatform,
-    });
   }, [currentPlatform, currentStep]);
 
   useMountEffect(() => {
@@ -136,10 +123,6 @@ function OnboardingScreenContent({
 
   const handleFinish = useCallback(
     (sessionId: string) => {
-      trackAnalyticsEvent("onboarding_step_completed", {
-        step: "final",
-        platform: currentPlatform,
-      });
       void queryClient.invalidateQueries({ queryKey: ["onboarding-needed"] });
       onFinish(sessionId);
     },

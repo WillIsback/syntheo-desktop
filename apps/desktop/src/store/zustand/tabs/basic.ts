@@ -1,7 +1,5 @@
 import type { StoreApi } from "zustand";
 
-import { commands as analyticsCommands } from "@anlg/plugin-analytics";
-
 import type { ChatModeState } from "./chat-mode";
 import type { LifecycleState } from "./lifecycle";
 import type { NavigationState, TabHistory } from "./navigation";
@@ -98,10 +96,6 @@ export const createBasicSlice = <
       addRecentlyOpened(tab.id);
     }
 
-    void analyticsCommands.event({
-      event: "tab_opened",
-      view: tab.type,
-    });
   },
   openNew: (tab, options) => {
     const { tabs, history, addRecentlyOpened, chatMode } = get();
@@ -123,10 +117,6 @@ export const createBasicSlice = <
       addRecentlyOpened(tab.id);
     }
 
-    void analyticsCommands.event({
-      event: "tab_opened",
-      view: tab.type,
-    });
   },
   select: (tab) => {
     const { tabs, addRecentlyOpened, chatMode } = get();

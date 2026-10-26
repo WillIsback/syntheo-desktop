@@ -15,7 +15,6 @@ import {
   type BatchState,
 } from "./batch";
 
-import { trackAnalyticsEvent } from "~/analytics";
 import { playCompletionSound } from "~/shared/completion-sound";
 import { BatchResponseProcessingError } from "~/stt/batch-response-processing-error";
 
@@ -107,10 +106,6 @@ export const runBatchSession = async <T extends BatchStore>(
         emptyResponse = true;
         throw new Error(EMPTY_BATCH_TRANSCRIPT_ERROR);
       }
-      trackAnalyticsEvent("transcription_completed", {
-        mode: "batch",
-        provider: params.provider,
-      });
       cleanup();
     } catch (error) {
       console.error("[runBatch] error handling batch response", error);
@@ -118,10 +113,6 @@ export const runBatchSession = async <T extends BatchStore>(
         error instanceof Error ? error.message : String(error);
       get().handleBatchFailed(sessionId, errorMessage);
       if (!(options?.recovery && emptyResponse)) {
-        trackAnalyticsEvent("transcription_failed", {
-          mode: "batch",
-          failure_stage: "persist",
-        });
       }
       cleanup(false);
       reject(
@@ -157,12 +148,6 @@ export const runBatchSession = async <T extends BatchStore>(
       options?.terminalReason,
       options?.errorCode,
     );
-    trackAnalyticsEvent("transcription_failed", {
-      mode: "batch",
-      failure_stage: options?.terminalReason ?? "provider",
-      error_code: options?.errorCode ?? "unknown",
-      provider: params.provider,
-    });
     cleanup(options?.clearSession ?? false);
     reject(error);
   };
