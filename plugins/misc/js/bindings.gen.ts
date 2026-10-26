@@ -14,14 +14,6 @@ async getGitHash() : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async getFingerprint() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:misc|get_fingerprint") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async getDeviceInfo(locale: string | null) : Promise<Result<DeviceInfo, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:misc|get_device_info", { locale }) };

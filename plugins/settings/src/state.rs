@@ -42,14 +42,14 @@ impl StartupSnapshot {
 
     pub async fn load(&self) -> crate::Result<serde_json::Value> {
         let _guard = self.io_lock.read().await;
-        self.read_or_default().await.map(normalize_legacy_names)
+        self.read_or_default().await
     }
 
     pub async fn save(&self, settings: serde_json::Value) -> crate::Result<()> {
         let _guard = self.io_lock.write().await;
 
         let existing = self.read_or_default().await?;
-        let merged = normalize_legacy_names(merge_settings(existing, settings));
+        let merged = merge_settings(existing, settings);
         let content = serde_json::to_string_pretty(&merged)?;
 
         anlg_storage::fs::atomic_write_async(&self.settings_path(), &content).await?;
@@ -60,26 +60,6 @@ impl StartupSnapshot {
         anlg_storage::fs::atomic_write(&self.settings_path(), "{}")?;
         Ok(())
     }
-}
-
-fn normalize_legacy_names(mut settings: serde_json::Value) -> serde_json::Value {
-    let Some(ai) = settings
-        .get_mut("ai")
-        .and_then(serde_json::Value::as_object_mut)
-    else {
-        return settings;
-    };
-
-    for key in ["current_llm_provider", "current_stt_provider"] {
-        if ai.get(key).and_then(serde_json::Value::as_str) == Some("hyprnote") {
-            ai.insert(
-                key.to_string(),
-                serde_json::Value::String("anarlog".to_string()),
-            );
-        }
-    }
-
-    settings
 }
 
 fn merge_settings(existing: serde_json::Value, incoming: serde_json::Value) -> serde_json::Value {
@@ -100,27 +80,10 @@ mod tests {
     use serde_json::json;
     use tempfile::tempdir;
 
+    // Les sélections héritées (hyprnote, anarlog…) sont vidées par la
+    // normalisation des réglages du desktop : le fichier n'est pas réécrit ici.
     #[tokio::test]
-    async fn load_normalizes_legacy_provider_names() {
-        let temp = tempdir().unwrap();
-        let vault_base = temp.path().join("vault");
-        std::fs::create_dir_all(&vault_base).unwrap();
-        std::fs::write(
-            anlg_storage::vault::compute_settings_path(&vault_base),
-            r#"{"ai":{"current_llm_provider":"hyprnote"}}"#,
-        )
-        .unwrap();
-
-        let snapshot = StartupSnapshot::new(vault_base);
-
-        assert_eq!(
-            snapshot.load().await.unwrap(),
-            json!({"ai": {"current_llm_provider": "anarlog"}}),
-        );
-    }
-
-    #[tokio::test]
-    async fn save_migrates_legacy_provider_names() {
+    async fn load_and_save_keep_stored_provider_names() {
         let temp = tempdir().unwrap();
         let vault_base = temp.path().join("vault");
         std::fs::create_dir_all(&vault_base).unwrap();
@@ -130,7 +93,7 @@ mod tests {
             .save(json!({
                 "ai": {
                     "current_llm_provider": "hyprnote",
-                    "current_stt_provider": "hyprnote"
+                    "current_stt_provider": "nvidia"
                 }
             }))
             .await
@@ -140,8 +103,8 @@ mod tests {
             snapshot.load().await.unwrap(),
             json!({
                 "ai": {
-                    "current_llm_provider": "anarlog",
-                    "current_stt_provider": "anarlog"
+                    "current_llm_provider": "hyprnote",
+                    "current_stt_provider": "nvidia"
                 }
             }),
         );

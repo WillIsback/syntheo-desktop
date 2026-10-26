@@ -17,7 +17,6 @@ specta-typescript = { workspace = true }
 
 [dependencies]
 anlg-buffer = { workspace = true }
-anlg-host = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }

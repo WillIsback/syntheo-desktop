@@ -379,18 +379,6 @@
           "markdownDescription": "Denies the get_device_info command without any pre-configured scope."
         },
         {
-          "description": "Enables the get_fingerprint command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-get-fingerprint",
-          "markdownDescription": "Enables the get_fingerprint command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the get_fingerprint command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-get-fingerprint",
-          "markdownDescription": "Denies the get_fingerprint command without any pre-configured scope."
-        },
-        {
           "description": "Enables the get_git_hash command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-git-hash",
@@ -439,10 +427,10 @@
           "markdownDescription": "Denies the reveal_session_in_finder command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-get-device-info`\n- `allow-get-process-memory-bytes`\n- `allow-opinionated-md-to-html`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-device-info`\n- `allow-get-process-memory-bytes`\n- `allow-opinionated-md-to-html`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-get-device-info`\n- `allow-get-process-memory-bytes`\n- `allow-opinionated-md-to-html`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-device-info`\n- `allow-get-process-memory-bytes`\n- `allow-opinionated-md-to-html`"
         }
       ]
     }

@@ -229,8 +229,7 @@ pub fn main() {
         .plugin(tauri_plugin_db::init_with_cloudsync(
             db.clone(),
             cloudsync_config,
-        ))
-        .plugin(tauri_plugin_bedrock::init());
+        ));
 
     builder = builder
         .plugin(tauri_plugin_importer::init())

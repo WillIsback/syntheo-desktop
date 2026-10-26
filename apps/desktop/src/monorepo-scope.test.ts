@@ -154,5 +154,7 @@ describe("monorepo scope", () => {
       .filter((path) => /apps\/web\b/.test(readFileSync(path, "utf8")))
       .map((path) => relative(REPO_ROOT, path));
     expect(offenders).toEqual([]);
-  });
+    // Parcourt tous les fichiers Rust du dépôt : plusieurs secondes sur un
+    // volume monté.
+  }, 30_000);
 });

@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -101,5 +101,24 @@ describe("llm on-prem", () => {
       "gpt-4o-2024-08-06",
       "nvidia/Qwen3.8-Flash-Next-FP4-Local",
     ]);
+  });
+
+  it.each(["plugins/bedrock", "crates/openrouter", "crates/template-eval"])(
+    "removes_cloud_llm_crates %s",
+    (path) => {
+      expect(existsSync(join(REPO_ROOT, path))).toBe(false);
+      expect(read("Cargo.toml")).not.toContain(path);
+    },
+  );
+
+  it("misc_plugin_exposes_no_device_fingerprint", () => {
+    for (const file of [
+      "plugins/misc/build.rs",
+      "plugins/misc/src/lib.rs",
+      "plugins/misc/permissions/default.toml",
+      "plugins/misc/js/bindings.gen.ts",
+    ]) {
+      expect(read(file)).not.toContain("fingerprint");
+    }
   });
 });

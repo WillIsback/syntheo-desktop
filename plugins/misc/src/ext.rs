@@ -23,10 +23,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Misc<'a, R, M> {
         env!("VERGEN_GIT_SHA").to_string()
     }
 
-    pub fn get_fingerprint(&self) -> String {
-        anlg_host::fingerprint()
-    }
-
     pub fn get_device_info(&self, locale: Option<String>) -> DeviceInfo {
         let mut system = sysinfo::System::new();
         system.refresh_memory();
