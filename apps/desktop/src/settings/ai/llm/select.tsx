@@ -20,47 +20,23 @@ import {
   shouldShowMissingModelWarning,
 } from "./selection";
 import { type Provider, PROVIDERS } from "./shared";
-import {
-  isSubscriptionProviderId,
-  listSubscriptionModels,
-} from "./subscriptions";
 
 import {
   normalizeReasoningEffort,
   supportsReasoningEffort,
 } from "~/ai/reasoning-effort";
-import { useBillingAccess } from "~/billing/billing-context";
 import {
   providerRowId,
   ProviderIconSlot,
   requiresKeyVerification,
   useProviderAvailability,
 } from "~/settings/ai/shared";
-import { ANARLOG_PRO_LLM_MODELS } from "~/settings/ai/shared/anarlog-pro-models";
+import { getProviderSelectionBlockers } from "~/settings/ai/shared/eligibility";
 import {
-  getProviderSelectionBlockers,
-  requiresEntitlement,
-} from "~/settings/ai/shared/eligibility";
-import { listAnthropicModels } from "~/settings/ai/shared/list-anthropic";
-import { listAzureAIModels } from "~/settings/ai/shared/list-azure-ai";
-import { listAzureOpenAIModels } from "~/settings/ai/shared/list-azure-openai";
-import { listCloudflareWorkersAIModels } from "~/settings/ai/shared/list-cloudflare-workers-ai";
-import {
-  type InputModality,
   type ListModelsResult,
   removeNonStreamingModels,
 } from "~/settings/ai/shared/list-common";
-import { listGoogleModels } from "~/settings/ai/shared/list-google";
-import { listLMStudioModels } from "~/settings/ai/shared/list-lmstudio";
-import { listMistralModels } from "~/settings/ai/shared/list-mistral";
-import { listOllamaModels } from "~/settings/ai/shared/list-ollama";
-import {
-  listGenericModels,
-  listOpenAIModels,
-} from "~/settings/ai/shared/list-openai";
-import { listOpenRouterModels } from "~/settings/ai/shared/list-openrouter";
-import { listUnslothModels } from "~/settings/ai/shared/list-unsloth";
-import { listVeniceModels } from "~/settings/ai/shared/list-venice";
+import { listGenericModels } from "~/settings/ai/shared/list-openai";
 import { ModelCombobox } from "~/settings/ai/shared/model-combobox";
 import { PersistAiSelection } from "~/settings/ai/shared/persist-selection";
 import {
@@ -86,7 +62,6 @@ export function SelectProviderAndModel() {
     "intelligence_disabled",
   ] as const).intelligence_disabled;
   const settingsReady = useSettingsReady() && !intelligenceDisabled;
-  const billing = useBillingAccess();
   const queryClient = useQueryClient();
   const { setAccordionValue } = useLlmSettings();
   const [pendingSelection, setPendingSelection] = useState<{
@@ -277,11 +252,6 @@ export function SelectProviderAndModel() {
       : undefined;
 
   const handleProviderChange = (provider: string) => {
-    if (provider === "anarlog" && !billing.isPaid) {
-      billing.upgradeToPro();
-      return;
-    }
-
     const requestId = ++selectionRequestRef.current;
 
     const status = configuredProviders[provider];
@@ -405,11 +375,6 @@ export function SelectProviderAndModel() {
                 </div>
               )}
               {providerOptions.map((provider) => {
-                const requiresPro = requiresEntitlement(
-                  provider.requirements,
-                  "pro",
-                );
-                const locked = requiresPro && !billing.isPaid;
                 const configured =
                   configuredProviders[provider.id]?.configured ?? false;
 
@@ -417,10 +382,10 @@ export function SelectProviderAndModel() {
                   <SelectItem
                     key={provider.id}
                     value={provider.id}
-                    disabled={locked || !configured}
+                    disabled={!configured}
                     className={cn([
                       "data-disabled:text-muted-foreground data-disabled:!opacity-100",
-                      !configured && !locked && "text-muted-foreground",
+                      !configured && "text-muted-foreground",
                     ])}
                   >
                     <div className="flex flex-col gap-0.5">
@@ -428,11 +393,6 @@ export function SelectProviderAndModel() {
                         <ProviderIconSlot>{provider.icon}</ProviderIconSlot>
                         <span>{provider.displayName}</span>
                       </div>
-                      {locked ? (
-                        <span className="text-muted-foreground text-[11px]">
-                          <Trans>Upgrade to Pro to use this provider.</Trans>
-                        </span>
-                      ) : null}
                     </div>
                   </SelectItem>
                 );
@@ -514,16 +474,6 @@ type ProviderConfig = {
   api_key?: unknown;
 };
 
-const GOOGLE_VERTEX_AI_MODELS = [
-  "google/gemini-3.8-flash",
-  "google/gemini-3.7-flash",
-  "google/gemini-3.6-flash",
-  "google/gemini-3.5-flash-lite",
-  "google/gemini-3.1-pro-preview",
-  "google/gemini-3.5-flash",
-  "google/gemini-3.1-flash-lite",
-] as const;
-
 export function getLlmProviderStatus({
   provider,
   config,
@@ -560,87 +510,8 @@ export function getLlmProviderStatus({
     }
   }
 
-  if (provider.id === "anarlog") {
-    const result: ListModelsResult = {
-      models: ANARLOG_PRO_LLM_MODELS.map(({ id }) => id),
-      ignored: [],
-      metadata: Object.fromEntries(
-        ANARLOG_PRO_LLM_MODELS.map(({ id, inputModalities }) => [
-          id,
-          { input_modalities: [...inputModalities] },
-        ]),
-      ),
-    };
-    return { configured: true, listModels: async () => result };
-  }
-
-  let listModelsFunc: () => Promise<ListModelsResult>;
-
-  switch (provider.id) {
-    case "openai":
-      listModelsFunc = () => listOpenAIModels(baseUrl, apiKey);
-      break;
-    case "cohere":
-      listModelsFunc = () =>
-        listGenericModels(baseUrl, apiKey, { filterDateSnapshots: false });
-      break;
-    case "cloudflare_workers_ai":
-      listModelsFunc = () => listCloudflareWorkersAIModels(baseUrl, apiKey);
-      break;
-    case "anthropic":
-      listModelsFunc = () => listAnthropicModels(baseUrl, apiKey);
-      break;
-    case "openrouter":
-      listModelsFunc = () => listOpenRouterModels(baseUrl, apiKey);
-      break;
-    case "google_generative_ai":
-      listModelsFunc = () => listGoogleModels(baseUrl, apiKey);
-      break;
-    case "google_vertex_ai":
-      listModelsFunc = async () => ({
-        models: [...GOOGLE_VERTEX_AI_MODELS],
-        ignored: [],
-        metadata: Object.fromEntries(
-          GOOGLE_VERTEX_AI_MODELS.map((model) => [
-            model,
-            { input_modalities: ["text", "image"] as InputModality[] },
-          ]),
-        ),
-      });
-      break;
-    case "mistral":
-      listModelsFunc = () => listMistralModels(baseUrl, apiKey);
-      break;
-    case "azure_openai":
-      listModelsFunc = () => listAzureOpenAIModels(baseUrl, apiKey);
-      break;
-    case "azure_ai":
-      listModelsFunc = () => listAzureAIModels(baseUrl, apiKey);
-      break;
-    case "ollama":
-      listModelsFunc = () => listOllamaModels(baseUrl, apiKey);
-      break;
-    case "lmstudio":
-      listModelsFunc = () => listLMStudioModels(baseUrl, apiKey);
-      break;
-    case "unsloth":
-      listModelsFunc = () => listUnslothModels(baseUrl, apiKey);
-      break;
-    case "venice":
-      listModelsFunc = () => listVeniceModels(baseUrl, apiKey);
-      break;
-    case "custom":
-      listModelsFunc = () => listGenericModels(baseUrl, apiKey);
-      break;
-    default:
-      if (isSubscriptionProviderId(provider.id)) {
-        const subscriptionId = provider.id;
-        listModelsFunc = () =>
-          listSubscriptionModels(subscriptionId, baseUrl, apiKey);
-      } else {
-        listModelsFunc = () => listGenericModels(baseUrl, apiKey);
-      }
-  }
+  const listModelsFunc = (): Promise<ListModelsResult> =>
+    listGenericModels(baseUrl, apiKey);
 
   return {
     configured: true,
@@ -652,7 +523,6 @@ function useConfiguredMapping(): {
   providers: Record<string, ProviderStatus>;
   isReady: boolean;
 } {
-  const billing = useBillingAccess();
   const availability = useProviderAvailability("llm", PROVIDERS);
   const { current_llm_provider } = useConfigValues([
     "current_llm_provider",
@@ -678,13 +548,13 @@ function useConfiguredMapping(): {
             provider,
             config,
             isAuthenticated: false,
-            isPaid: billing.isPaid,
+            isPaid: true,
             isAvailable,
           }),
         ];
       }),
     ) as Record<string, ProviderStatus>;
-  }, [configuredProviders, billing, availability, current_llm_provider]);
+  }, [configuredProviders, availability, current_llm_provider]);
 
   return {
     providers: mapping,

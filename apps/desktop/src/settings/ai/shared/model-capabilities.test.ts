@@ -3,18 +3,11 @@ import { describe, expect, it } from "vitest";
 import { modelSupportsImageInput } from "./model-capabilities";
 
 describe("modelSupportsImageInput", () => {
-  it("allows known multimodal hosted models", () => {
-    expect(modelSupportsImageInput("anarlog", "Auto")).toBe(true);
-    expect(modelSupportsImageInput("anarlog", "~openai/gpt-sol-latest")).toBe(
+  it("allows known multimodal served models", () => {
+    expect(modelSupportsImageInput("custom", "Qwen2.5-VL-7B-Instruct")).toBe(
       true,
     );
-    expect(modelSupportsImageInput("openai", "gpt-4o")).toBe(true);
-    expect(modelSupportsImageInput("anthropic", "claude-3-5-sonnet")).toBe(
-      true,
-    );
-    expect(
-      modelSupportsImageInput("google_generative_ai", "gemini-2.5-pro"),
-    ).toBe(true);
+    expect(modelSupportsImageInput("custom", "gemma-3-27b-it")).toBe(true);
   });
 
   it("blocks known text-only or non-chat models", () => {
@@ -35,20 +28,5 @@ describe("modelSupportsImageInput", () => {
   it("requires a vision-like model name for unknown local providers", () => {
     expect(modelSupportsImageInput("ollama", "llava:latest")).toBe(true);
     expect(modelSupportsImageInput("custom", "llama-3.1-8b")).toBe(false);
-  });
-
-  it("uses Workers AI model metadata for image input support", () => {
-    expect(
-      modelSupportsImageInput(
-        "cloudflare_workers_ai",
-        "@cf/moonshotai/kimi-k2.7-code",
-      ),
-    ).toBe(true);
-    expect(
-      modelSupportsImageInput(
-        "cloudflare_workers_ai",
-        "@cf/openai/gpt-oss-120b",
-      ),
-    ).toBe(false);
   });
 });

@@ -15,6 +15,7 @@ import {
   setSessionReplayAnalyticsEnabled,
 } from "~/error-reporting";
 import { normalizeAudioRetention } from "~/services/audio-retention-policy";
+import { normalizeStoredLlmSelection } from "~/settings/ai/llm/selection";
 import {
   LEGACY_MAIN_VALUES_ID,
   LEGACY_SETTINGS_ID,
@@ -107,6 +108,10 @@ export async function initializeApplicationSettings(): Promise<void> {
     stored.values.current_stt_provider,
     stored.values.current_stt_model,
   );
+  const normalizedLlmSelection = normalizeStoredLlmSelection(
+    stored.values.current_llm_provider,
+    stored.values.current_llm_model,
+  );
 
   if (
     !stored.hasValues.has("crash_reporting_consent") &&
@@ -120,6 +125,12 @@ export async function initializeApplicationSettings(): Promise<void> {
   }
   if (normalizedSttSelection.model !== stored.values.current_stt_model) {
     updates.current_stt_model = normalizedSttSelection.model;
+  }
+  if (normalizedLlmSelection.provider !== stored.values.current_llm_provider) {
+    updates.current_llm_provider = normalizedLlmSelection.provider;
+  }
+  if (normalizedLlmSelection.model !== stored.values.current_llm_model) {
+    updates.current_llm_model = normalizedLlmSelection.model;
   }
 
   if (languageResult?.status === "ok" && languageResult.data.length > 0) {

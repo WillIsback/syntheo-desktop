@@ -7,7 +7,6 @@ type RegistryParams = Parameters<typeof createToastRegistry>[0];
 const baseParams: RegistryParams = {
   hasLLMConfigured: true,
   hasSttConfigured: true,
-  hasProLlmConfigured: false,
   isAiTranscriptionTabActive: false,
   isAiIntelligenceTabActive: false,
   isLiveMeetingActive: false,
@@ -62,13 +61,6 @@ describe("sidebar toast registry", () => {
     expect(ids).not.toContain("sign-in-benefits");
     expect(ids).not.toContain("upgrade-to-pro");
   });
-
-  it.each([["LLM", "missing-llm", { hasProLlmConfigured: true }]] as const)(
-    "treats a leftover hosted %s selection as unconfigured",
-    (_, id, overrides) => {
-      expect(showToast(overrides)?.id).toBe(id);
-    },
-  );
 
   it("offers an available desktop update with a one-day snooze", () => {
     const downloadUpdate = vi.fn();

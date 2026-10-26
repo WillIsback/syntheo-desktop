@@ -75,3 +75,14 @@ export function shouldShowMissingModelWarning({
     !isConfigured
   );
 }
+
+// Une sélection enregistrée avec un provider LLM retiré est vidée : les
+// réglages redemandent un serveur OpenAI-compatible on-premise.
+export function normalizeStoredLlmSelection(
+  provider: string | undefined,
+  model: string | undefined,
+) {
+  // Chaîne vide et non undefined : value_json est TEXT NOT NULL en base.
+  if (provider && provider !== "custom") return { provider: "", model: "" };
+  return { provider, model };
+}

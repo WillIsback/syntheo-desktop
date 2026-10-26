@@ -413,6 +413,28 @@ describe("SQLite settings", () => {
     ]);
   });
 
+  it("clears a selected cloud language model provider that no longer exists", async () => {
+    mocks.execute.mockImplementation(async () => [
+      { id: "current_llm_provider", value_json: JSON.stringify("anarlog") },
+      { id: "current_llm_model", value_json: JSON.stringify("auto") },
+    ]);
+    mocks.executeTransaction.mockImplementation(async (statements) =>
+      statements.map(() => 1),
+    );
+
+    await initializeApplicationSettings();
+
+    const statements = mocks.executeTransaction.mock.calls[0][0];
+    expect(
+      statements
+        .map((statement) => statement.params.slice(0, 2))
+        .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    ).toEqual([
+      ["current_llm_model", JSON.stringify("")],
+      ["current_llm_provider", JSON.stringify("")],
+    ]);
+  });
+
   it("migrates legacy summary instructions into the editable Auto format", async () => {
     let rows = [
       {

@@ -88,12 +88,11 @@ const initialState: TasksState = {
 
 export const TASK_STREAM_IDLE_TIMEOUT_MS = 30_000;
 export const TASK_STREAM_START_TIMEOUT_MS = 60_000;
-// On-device models can spend minutes loading weights and prefilling a long
-// transcript before the first token; the remote-grade start timeout would
-// kill them mid-warmup.
+// Un serveur on-prem peut passer plusieurs minutes à charger les poids ou à
+// préremplir une longue transcription avant le premier token.
 export const TASK_STREAM_LOCAL_START_TIMEOUT_MS = 5 * 60_000;
 
-const LOCAL_MODEL_PROVIDERS = new Set(["lmstudio", "ollama", "unsloth"]);
+const LOCAL_MODEL_PROVIDERS = new Set(["custom"]);
 
 export function isLocalModelProviderId(providerId: string) {
   return LOCAL_MODEL_PROVIDERS.has(providerId);
