@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use serde_json::Value;
 use sqlx::SqlitePool;
@@ -10,7 +10,6 @@ use tauri_specta::Event;
 use crate::{BatchSessionRegistry, ListenerPluginExt};
 
 const SWEEP_INTERVAL: Duration = Duration::from_secs(60);
-const VOICEPRINT_CLEANUP_INTERVAL: Duration = Duration::from_secs(6 * 60 * 60);
 const DAY_MS: i64 = 24 * 60 * 60 * 1000;
 
 const AUDIO_RETENTION_SETTING_ID: &str = "audio_retention";
@@ -260,7 +259,6 @@ pub(crate) fn spawn<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
     tauri::async_runtime::spawn(async move {
         let mut interval = tokio::time::interval(SWEEP_INTERVAL);
         interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-        let mut last_voiceprint_cleanup: Option<Instant> = None;
         loop {
             interval.tick().await;
             let Some(pool) = db_pool(&app) else {
@@ -268,15 +266,6 @@ pub(crate) fn spawn<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
             };
             if let Err(error) = sweep(&app, &pool).await {
                 tracing::warn!(%error, "audio_retention_sweep_failed");
-            }
-            if last_voiceprint_cleanup.is_none_or(|at| at.elapsed() >= VOICEPRINT_CLEANUP_INTERVAL)
-            {
-                last_voiceprint_cleanup = Some(Instant::now());
-                if let Err(error) =
-                    crate::voiceprint::cleanup_expired_voiceprint_candidates(&app, &pool).await
-                {
-                    tracing::warn!(%error, "voiceprint_candidate_cleanup_failed");
-                }
             }
         }
     });

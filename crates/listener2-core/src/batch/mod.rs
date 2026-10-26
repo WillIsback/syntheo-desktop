@@ -1,10 +1,6 @@
 mod accumulator;
-mod consolidate;
-mod diarize;
 mod progressive;
 mod simple;
-#[cfg(test)]
-mod test_fixtures;
 mod upload;
 
 use std::sync::Arc;
@@ -13,38 +9,15 @@ use owhisper_client::{AdapterKind, OpenAIAdapter};
 
 use crate::{BatchEvent, BatchRuntime};
 
-use consolidate::consolidate_hosted_speakers;
-pub use diarize::KnownSpeaker;
-use diarize::apply_local_diarization;
 use progressive::run_progressive_batch_session;
-use simple::{run_apple_speech_batch, run_direct_batch_for_adapter_kind, run_soniqo_batch};
+use simple::run_direct_batch_for_adapter_kind;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, strum::Display, strum::EnumString)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum BatchProvider {
-    Argmax,
-    #[serde(rename = "whispercpp")]
-    #[strum(serialize = "whispercpp")]
-    WhisperLocal,
     OpenAI,
-    #[serde(alias = "hyprnote")]
-    Anarlog,
-    Am,
-    Soniqo,
-    AppleSpeech,
-}
-
-impl BatchProvider {
-    pub fn to_adapter_kind(&self) -> Option<AdapterKind> {
-        match self {
-            Self::Argmax => Some(AdapterKind::Argmax),
-            Self::OpenAI => Some(AdapterKind::OpenAI),
-            Self::Anarlog => Some(AdapterKind::Anarlog),
-            Self::Am | Self::WhisperLocal | Self::Soniqo | Self::AppleSpeech => None,
-        }
-    }
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -67,11 +40,6 @@ pub struct BatchParams {
     pub min_speakers: Option<u32>,
     #[serde(default)]
     pub max_speakers: Option<u32>,
-    /// Voiceprints of expected participants; consulted on device to label
-    /// local transcripts and to consolidate hosted ones, never sent to a
-    /// provider.
-    #[serde(default)]
-    pub known_speakers: Vec<KnownSpeaker>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -128,28 +96,11 @@ pub async fn run_batch(
     result
 }
 
-/// Whether this run transcribes on-device, in which case speaker labels come
-/// from the local diarizer.
-pub fn uses_local_diarization(params: &BatchParams) -> bool {
-    diarize::is_local_batch(params)
-}
-
 pub fn expects_progressive_batch(params: &BatchParams) -> bool {
     match params.provider {
-        BatchProvider::Am | BatchProvider::OpenAI => {
-            let listen_params = owhisper_interface::ListenParams {
-                model: params.model.clone(),
-                languages: params.languages.clone(),
-                ..Default::default()
-            };
-
-            supports_progressive_batch(
-                resolve_batch_adapter_kind(params, &listen_params),
-                listen_params.model.as_deref(),
-            )
+        BatchProvider::OpenAI => {
+            OpenAIAdapter::supports_progressive_batch_model(params.model.as_deref())
         }
-        BatchProvider::WhisperLocal => true,
-        _ => false,
     }
 }
 
@@ -183,56 +134,14 @@ async fn run_batch_inner(
 
     let listen_params = build_listen_params(&params, metadata.channels, metadata.sample_rate);
 
-    let post_process = (runtime.clone(), params.clone(), listen_params.clone());
-    let mut output = match params.provider {
-        BatchProvider::Am | BatchProvider::OpenAI => {
-            let adapter_kind = resolve_batch_adapter_kind(&params, &listen_params);
-            if supports_progressive_batch(adapter_kind, listen_params.model.as_deref()) {
+    match params.provider {
+        BatchProvider::OpenAI => {
+            if OpenAIAdapter::supports_progressive_batch_model(listen_params.model.as_deref()) {
                 run_progressive_batch_session(runtime, params, listen_params).await
             } else {
-                run_direct_batch_for_adapter_kind(adapter_kind, params, listen_params).await
+                run_direct_batch_for_adapter_kind(AdapterKind::OpenAI, params, listen_params).await
             }
         }
-        BatchProvider::WhisperLocal => {
-            run_progressive_batch_session(runtime, params, listen_params).await
-        }
-        BatchProvider::Soniqo => run_soniqo_batch(runtime, params, listen_params).await,
-        BatchProvider::AppleSpeech => run_apple_speech_batch(runtime, params, listen_params).await,
-        BatchProvider::Argmax => {
-            run_direct_batch_for_adapter_kind(AdapterKind::Argmax, params, listen_params).await
-        }
-        BatchProvider::Anarlog => {
-            run_direct_batch_for_adapter_kind(AdapterKind::Anarlog, params, listen_params).await
-        }
-    }?;
-
-    let (runtime, params, listen_params) = post_process;
-    apply_local_diarization(runtime.clone(), &params, &listen_params, &mut output).await;
-    consolidate_hosted_speakers(runtime, &params, &listen_params, &mut output).await;
-    Ok(output)
-}
-
-fn resolve_batch_adapter_kind(
-    params: &BatchParams,
-    listen_params: &owhisper_interface::ListenParams,
-) -> AdapterKind {
-    let resolved = AdapterKind::from_url_and_languages(
-        &params.base_url,
-        &listen_params.languages,
-        listen_params.model.as_deref(),
-    );
-    if matches!(params.provider, BatchProvider::OpenAI) {
-        AdapterKind::OpenAI
-    } else {
-        resolved
-    }
-}
-
-fn supports_progressive_batch(adapter_kind: AdapterKind, model: Option<&str>) -> bool {
-    match adapter_kind {
-        AdapterKind::Argmax => true,
-        AdapterKind::OpenAI => OpenAIAdapter::supports_progressive_batch_model(model),
-        _ => false,
     }
 }
 
@@ -324,14 +233,6 @@ pub(super) fn format_user_friendly_error(error: &str) -> String {
 mod tests {
     use super::*;
 
-    fn listen_params(model: Option<&str>) -> owhisper_interface::ListenParams {
-        owhisper_interface::ListenParams {
-            model: model.map(ToOwned::to_owned),
-            languages: vec![anlg_language::ISO639::En.into()],
-            ..Default::default()
-        }
-    }
-
     fn batch_params(provider: BatchProvider, base_url: &str) -> BatchParams {
         BatchParams {
             session_id: "session".to_string(),
@@ -345,7 +246,6 @@ mod tests {
             num_speakers: None,
             min_speakers: None,
             max_speakers: None,
-            known_speakers: vec![],
         }
     }
 
@@ -366,55 +266,16 @@ mod tests {
     }
 
     #[test]
-    fn am_routes_each_backend_to_its_batch_mode() {
-        let cases = [
-            (
-                "http://192.168.1.87:8000/v1",
-                Some("whisper-large-v3"),
-                AdapterKind::OpenAI,
-                false,
-            ),
-            ("http://localhost:50060/v1", None, AdapterKind::Argmax, true),
-            (
-                "https://api.openai.com/v1",
-                Some("gpt-4o-transcribe"),
-                AdapterKind::OpenAI,
-                true,
-            ),
-            (
-                "https://api.openai.com/v1",
-                Some("gpt-4o-transcribe-diarize"),
-                AdapterKind::OpenAI,
-                false,
-            ),
-        ];
-
-        for (base_url, model, expected_adapter_kind, expected_progressive) in cases {
-            let params = batch_params(BatchProvider::Am, base_url);
-            let adapter_kind = resolve_batch_adapter_kind(&params, &listen_params(model));
-
-            assert_eq!(adapter_kind, expected_adapter_kind);
-            assert_eq!(
-                supports_progressive_batch(adapter_kind, model),
-                expected_progressive
-            );
-        }
-    }
-
-    #[test]
-    fn only_local_batches_expect_progressive() {
-        let cases = [
-            (BatchProvider::Anarlog, "https://api.anarlog.so/stt", false),
-            (BatchProvider::Am, "https://api.anarlog.so/stt", false),
-            (BatchProvider::Am, "http://localhost:50060/v1", true),
-            (BatchProvider::OpenAI, "http://localhost:9000/v1", true),
-        ];
-
-        for (provider, base_url, expected) in cases {
-            assert_eq!(
-                expects_progressive_batch(&batch_params(provider, base_url)),
-                expected
-            );
+    fn only_gpt_transcription_models_run_progressively() {
+        for (model, expected) in [
+            (None, true),
+            (Some("gpt-4o-transcribe"), true),
+            (Some("gpt-4o-transcribe-diarize"), false),
+            (Some("whisper-large-v3"), false),
+        ] {
+            let mut params = batch_params(BatchProvider::OpenAI, "http://192.168.1.87:8000/v1");
+            params.model = model.map(ToOwned::to_owned);
+            assert_eq!(expects_progressive_batch(&params), expected, "{model:?}");
         }
     }
 

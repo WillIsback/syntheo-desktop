@@ -3,8 +3,7 @@ import { create } from "zustand";
 export type DevtoolsToastPreview =
   | "language-model"
   | "transcription-model"
-  | "transcription-error"
-  | "download";
+  | "transcription-error";
 
 type ActiveDevtoolsToastPreview = {
   type: DevtoolsToastPreview;

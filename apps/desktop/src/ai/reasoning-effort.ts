@@ -11,7 +11,7 @@ export const normalizeReasoningEffort = (value: unknown): ReasoningEffort =>
 // Anarlog Pro picks its own model settings, and Apple Foundation has no
 // reasoning knob to turn.
 export const supportsReasoningEffort = (providerId: string): boolean =>
-  providerId !== "anarlog" && providerId !== "apple_foundation";
+  providerId !== "anarlog";
 
 type ProviderOptions = NonNullable<
   Parameters<typeof defaultSettingsMiddleware>[0]["settings"]["providerOptions"]

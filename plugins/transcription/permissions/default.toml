@@ -40,8 +40,6 @@ permissions = [
     "allow-list-transcription-sessions",
     "allow-get-completed-transcription",
     "allow-acknowledge-completed-transcription",
-    "allow-extract-voiceprint-candidates",
-    "allow-promote-voiceprint-candidates",
     "allow-delete-processed-session-audio",
     "allow-parse-subtitle",
     "allow-export-to-vtt",
@@ -51,6 +49,4 @@ permissions = [
     "allow-refine-batch-transcript",
     "allow-save-batch-transcript",
     "allow-reconcile-refined-speaker-clusters",
-    "allow-extract-voiceprint-candidates",
-    "allow-promote-voiceprint-candidates",
 ]

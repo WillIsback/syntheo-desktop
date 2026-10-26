@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -18,7 +18,6 @@ const {
   config: {
     current_stt_provider: "anarlog",
     current_stt_model: "cloud",
-    local_stt_model_path: "",
   },
   getServerForModelMock: vi.fn(),
   isModelDownloadedMock: vi.fn(),
@@ -98,7 +97,6 @@ describe("useSTTConnection", () => {
   beforeEach(() => {
     config.current_stt_provider = "anarlog";
     config.current_stt_model = "cloud";
-    config.local_stt_model_path = "";
     billingState.isPaid = true;
     billingState.isReady = true;
     readiness.provider = true;
@@ -209,56 +207,5 @@ describe("useSTTConnection", () => {
     const settingsPending = renderHook(() => useSTTConnection(), { wrapper });
 
     expect(settingsPending.result.current.isReady).toBe(false);
-  });
-
-  it("waits for an on-device model server to become ready", async () => {
-    config.current_stt_provider = "soniqo";
-    config.current_stt_model = "soniqo-parakeet-streaming";
-    isModelDownloadedMock.mockResolvedValue({ status: "ok", data: true });
-    getServerForModelMock.mockResolvedValue({
-      status: "ok",
-      data: { status: "loading" },
-    });
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    });
-    const wrapper = ({ children }: { children: ReactNode }) =>
-      createElement(QueryClientProvider, { client: queryClient }, children);
-
-    const { result } = renderHook(() => useSTTConnection(), { wrapper });
-
-    await waitFor(() => expect(result.current.local.isPending).toBe(false));
-    expect(result.current.conn).toBeNull();
-    expect(result.current.local.data?.status).toBe("loading");
-    expect(result.current.isReady).toBe(false);
-  });
-
-  it("starts a selected local model file and exposes its local URL", async () => {
-    config.current_stt_provider = "local_file";
-    config.current_stt_model = "local-file";
-    config.local_stt_model_path = "/models/ggml-small.bin";
-    startServerForPathMock.mockResolvedValue({
-      status: "ok",
-      data: "http://127.0.0.1:4040/v1",
-    });
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    });
-    const wrapper = ({ children }: { children: ReactNode }) =>
-      createElement(QueryClientProvider, { client: queryClient }, children);
-
-    const { result } = renderHook(() => useSTTConnection(), { wrapper });
-
-    await waitFor(() =>
-      expect(result.current.conn).toEqual({
-        provider: "local_file",
-        model: "local-file",
-        baseUrl: "http://127.0.0.1:4040/v1",
-        apiKey: "",
-      }),
-    );
-    expect(startServerForPathMock).toHaveBeenCalledWith(
-      "/models/ggml-small.bin",
-    );
   });
 });

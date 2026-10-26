@@ -4,7 +4,7 @@ use anlg_ws_client::client::Message;
 use bytes::Bytes;
 
 use super::{ListenClientDualInput, TransformedInput, forward_dual_to_single, mic_stream_params};
-use crate::{AnarlogAdapter, ListenClient, OpenAIAdapter, RealtimeSttAdapter};
+use crate::{ListenClient, OpenAIAdapter, RealtimeSttAdapter};
 
 #[derive(Clone, Default)]
 struct TestAdapter;
@@ -88,10 +88,7 @@ async fn malformed_direct_endpoint_returns_provider_configuration_error() {
 
 #[tokio::test]
 async fn valid_proxy_and_direct_endpoints_still_build() {
-    for api_base in [
-        "http://192.168.1.87:8000/v1",
-        "http://localhost:3001/stt?provider=openai",
-    ] {
+    for api_base in ["http://192.168.1.87:8000/v1", "http://localhost:8000/v1"] {
         ListenClient::builder()
             .adapter::<OpenAIAdapter>()
             .api_base(api_base)
@@ -119,23 +116,6 @@ async fn split_dual_builds_a_dedicated_mic_request() {
         client.mic_request.is_some(),
         "split sessions should build a dedicated mic request"
     );
-}
-
-#[tokio::test]
-async fn native_multichannel_dual_does_not_build_mic_request() {
-    let client = ListenClient::builder()
-        .adapter::<AnarlogAdapter>()
-        .api_base("http://localhost:3001/stt")
-        .api_key("test-key")
-        .params(owhisper_interface::ListenParams {
-            mic_num_speakers: Some(1),
-            ..Default::default()
-        })
-        .build_dual()
-        .await
-        .unwrap();
-
-    assert!(client.mic_request.is_none());
 }
 
 #[tokio::test]
@@ -227,6 +207,10 @@ fn mic_stream_params_without_mic_count_keeps_shared_expectation() {
 }
 
 #[tokio::test]
+#[allow(
+    clippy::result_large_err,
+    reason = "Tungstenite requires an unboxed HTTP response in handshake callbacks"
+)]
 async fn nvidia_dual_capture_authenticates_each_stream_with_its_own_token() {
     use std::collections::BTreeSet;
     use std::sync::{

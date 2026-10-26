@@ -3,10 +3,6 @@ import { useCallback } from "react";
 
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
 import { commands as detectCommands } from "@anlg/plugin-detect";
-import {
-  commands as localSttCommands,
-  type LocalModel,
-} from "@anlg/plugin-local-stt";
 import { commands as templateCommands } from "@anlg/plugin-template";
 import { commands as trayCommands } from "@anlg/plugin-tray";
 import { commands as updaterCommands } from "@anlg/plugin-updater2";
@@ -31,8 +27,6 @@ import {
   type SettingValues,
 } from "~/settings/schema";
 import { isAppStoreBuild } from "~/shared/app-store";
-import { usePendingSttSelection } from "~/store/zustand/pending-stt-selection";
-import { isConfiguredSttModel, isOnDeviceSttModel } from "~/stt/capabilities";
 import {
   getDefaultSttModel,
   normalizeStoredSttSelection,
@@ -216,41 +210,15 @@ export function setSettingValue<K extends SettingKey>(
 }
 
 export function setSettingValues(values: SettingValues): Promise<void> {
-  cancelPendingSttSelection(values);
   return enqueueDatabaseWrite("app-settings", () =>
     persistSettingValues(values),
   );
-}
-
-export function setDownloadedSttSelection(selection: {
-  provider: string;
-  model: LocalModel;
-}): Promise<void> {
-  return enqueueDatabaseWrite("app-settings", async () => {
-    if (usePendingSttSelection.getState().selection !== selection) return;
-    await persistSettingValues({
-      current_stt_provider: selection.provider,
-      current_stt_model: selection.model,
-    });
-  });
-}
-
-function cancelPendingSttSelection(values: SettingValues): void {
-  if (
-    values.current_stt_provider !== undefined ||
-    values.current_stt_model !== undefined
-  ) {
-    usePendingSttSelection.setState({ selection: null });
-  }
 }
 
 export function updateSettingValue<K extends SettingKey>(
   key: K,
   update: (current: SettingValue<K> | undefined) => SettingValue<K>,
 ): Promise<SettingValue<K>> {
-  if (key === "current_stt_provider" || key === "current_stt_model") {
-    usePendingSttSelection.setState({ selection: null });
-  }
   return enqueueDatabaseWrite("app-settings", async () => {
     const stored = await getStoredSettingValues();
     const definition = SETTING_DEFINITIONS[key];
@@ -505,13 +473,6 @@ function applySettingSideEffects(values: SettingValues): void {
       .catch(console.error);
   }
   if (
-    values.current_stt_provider !== undefined ||
-    values.current_stt_model !== undefined ||
-    values.local_stt_model_path !== undefined
-  ) {
-    void syncLocalSttServer().catch(console.error);
-  }
-  if (
     values.spoken_languages !== undefined ||
     values.current_stt_provider !== undefined ||
     values.current_stt_model !== undefined ||
@@ -519,48 +480,6 @@ function applySettingSideEffects(values: SettingValues): void {
     values.current_llm_model !== undefined
   ) {
     void syncAnalyticsSettingProperties().catch(console.error);
-  }
-}
-
-async function syncLocalSttServer(): Promise<void> {
-  const { values } = await getStoredSettingValues();
-  const provider = values.current_stt_provider;
-  let model = values.current_stt_model;
-  const localModelPath = values.local_stt_model_path?.trim();
-
-  if (
-    ["anarlog", "soniqo", "apple_speech", "local_file"].includes(
-      provider ?? "",
-    ) &&
-    model &&
-    !isConfiguredSttModel(provider, model)
-  ) {
-    model = "";
-    await executeTransaction([
-      {
-        sql: `
-          INSERT INTO app_settings (id, value_json, updated_at)
-          VALUES ('current_stt_model', ?, ?)
-          ON CONFLICT(id) DO UPDATE SET
-            value_json = excluded.value_json,
-            updated_at = excluded.updated_at
-        `,
-        params: [JSON.stringify(model), new Date().toISOString()],
-      },
-    ]);
-  }
-
-  if (provider === "local_file") {
-    if (model !== "local-file" || !localModelPath) {
-      await localSttCommands.stopServer(null);
-    }
-    return;
-  }
-
-  if (isOnDeviceSttModel(provider, model)) {
-    await localSttCommands.startServer(model);
-  } else {
-    await localSttCommands.stopServer(null);
   }
 }
 

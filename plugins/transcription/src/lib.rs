@@ -13,12 +13,12 @@ mod batch_transcript;
 mod capture_gaps;
 mod capture_markers;
 mod error;
+mod legacy_voiceprints;
 mod listener;
 mod listener2;
 mod live_journal;
 mod session_transcript;
 mod stopped_captures;
-mod voiceprint;
 
 pub use anlg_transcription_core::listener::{
     DegradedError, ListenerRuntime, LiveTranscriptDelta, LiveTranscriptEngine,
@@ -79,8 +79,7 @@ pub struct SessionStateSnapshot {
 
 pub type SessionStateCache = Arc<StdMutex<HashMap<String, SessionStateSnapshot>>>;
 
-/// Final mic isolation per session, kept after the session snapshot is dropped on stop so
-/// voiceprint extraction, which runs after the recording ends, can still read it.
+/// Final mic isolation per session, kept after the session snapshot is dropped on stop.
 pub type MicIsolationCache = Arc<StdMutex<HashMap<String, bool>>>;
 
 #[derive(Clone, Default)]
@@ -114,7 +113,6 @@ pub struct CompletedBatchEntry {
 pub struct BatchSessionEntry {
     pub control: Arc<BatchSessionControl>,
     pub abort_handle: Option<AbortHandle>,
-    pub wait_for_native_completion: bool,
     pub file_path: String,
     pub provider: Option<crate::TranscriptionProvider>,
     pub model: Option<String>,
@@ -188,8 +186,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             listener2::commands::is_supported_languages_batch::<tauri::Wry>,
             listener2::commands::suggest_providers_for_languages_batch::<tauri::Wry>,
             listener2::commands::list_documented_language_codes_batch::<tauri::Wry>,
-            voiceprint::extract_voiceprint_candidates::<tauri::Wry>,
-            voiceprint::promote_voiceprint_candidates::<tauri::Wry>,
             audio_retention::delete_processed_session_audio::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![
@@ -258,6 +254,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 .map(|_| tracing::info!("root_actor_spawned"))
                 .map_err(|e| tracing::error!(?e, "failed_to_spawn_root_actor"))
             });
+            legacy_voiceprints::spawn(app_handle.clone());
             audio_retention::spawn(app_handle);
 
             Ok(())

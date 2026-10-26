@@ -1,7 +1,6 @@
 import {
   AlibabaCloud,
   Anthropic,
-  Apple,
   Bedrock,
   Azure,
   AzureAI,
@@ -38,7 +37,6 @@ import {
   ProviderLobeIcon,
 } from "~/settings/ai/shared";
 import { type ProviderRequirement } from "~/settings/ai/shared/eligibility";
-import { checkAppleFoundationModelAvailability } from "~/settings/ai/shared/list-apple-foundation";
 import {
   checkLMStudioAvailability,
   checkOllamaAvailability,
@@ -157,16 +155,6 @@ const _PROVIDERS = [
         url: "https://www.kimi.com/en/help/kimi-code/membership-guide",
       },
     },
-  },
-  {
-    id: "apple_foundation",
-    displayName: "Apple Intelligence",
-    badge: null,
-    icon: <ProviderLobeIcon icon={Apple} />,
-    baseUrl: undefined,
-    requirements: [],
-    checkAvailability: checkAppleFoundationModelAvailability,
-    hideAdvanced: true,
   },
   {
     id: "lmstudio",
@@ -714,7 +702,6 @@ const PROVIDER_ORDER = [
   "cerebras",
   "lmstudio",
   "unsloth",
-  "apple_foundation",
 ] as const;
 
 export const PROVIDERS: Provider[] = sortProviders(_PROVIDERS, PROVIDER_ORDER);

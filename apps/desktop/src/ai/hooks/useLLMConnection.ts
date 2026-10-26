@@ -14,7 +14,6 @@ import { useMemo } from "react";
 import type { CharTask } from "@anlg/api-client";
 import type { AIProviderStorage } from "@anlg/store";
 
-import { createAppleFoundationModel } from "../apple-foundation-model";
 import { providerFetch } from "../provider-fetch";
 import {
   normalizeReasoningEffort,
@@ -419,9 +418,6 @@ const createProviderModel = (
       });
       return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
     }
-
-    case "apple_foundation":
-      return createAppleFoundationModel(conn.modelId);
 
     default: {
       const config: Parameters<typeof createOpenAICompatible>[0] = {

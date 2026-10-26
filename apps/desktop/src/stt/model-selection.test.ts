@@ -18,9 +18,19 @@ describe("normalizeStoredSttSelection", () => {
       provider: "",
       model: "",
     });
-    expect(
-      normalizeStoredSttSelection("anarlog", "soniqo-parakeet-streaming"),
-    ).toEqual({ provider: "soniqo", model: "soniqo-parakeet-streaming" });
+  });
+
+  it.each([
+    ["soniqo", "soniqo-parakeet-streaming"],
+    ["apple_speech", "apple-speech"],
+    ["local_file", "local-file"],
+    ["anarlog", "soniqo-parakeet-batch"],
+    ["anarlog", "am-parakeet-v3"],
+  ])("clears_local_stt_selection %s/%s", (provider, model) => {
+    expect(normalizeStoredSttSelection(provider, model)).toEqual({
+      provider: "",
+      model: "",
+    });
   });
 
   it("keeps_on_prem_selection", () => {

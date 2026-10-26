@@ -78,60 +78,6 @@ pub async fn move_session_action_items(
     Ok(result.rows_affected())
 }
 
-pub async fn move_session_voiceprint_exemplars(
-    conn: &mut SqliteConnection,
-    move_request: &SessionAudioMove<'_>,
-) -> Result<u64, sqlx::Error> {
-    let result = sqlx::query(
-        "UPDATE voiceprint_exemplars
-        SET
-          source_session_id = ?,
-          source_attachment_id = CASE
-            WHEN ? = 1 AND source_attachment_id = ? THEN ?
-            ELSE source_attachment_id
-          END,
-          updated_at = ?
-        WHERE source_session_id = ? AND deleted_at IS NULL",
-    )
-    .bind(move_request.target_session_id)
-    .bind(i64::from(move_request.rewrite_audio_ids))
-    .bind(move_request.source_audio_id)
-    .bind(move_request.target_audio_id)
-    .bind(move_request.now)
-    .bind(move_request.source_session_id)
-    .execute(&mut *conn)
-    .await?;
-
-    Ok(result.rows_affected())
-}
-
-pub async fn move_session_voiceprint_candidates(
-    conn: &mut SqliteConnection,
-    move_request: &SessionAudioMove<'_>,
-) -> Result<u64, sqlx::Error> {
-    let result = sqlx::query(
-        "UPDATE voiceprint_candidates
-        SET
-          source_session_id = ?,
-          source_attachment_id = CASE
-            WHEN ? = 1 AND source_attachment_id = ? THEN ?
-            ELSE source_attachment_id
-          END,
-          updated_at = ?
-        WHERE source_session_id = ? AND deleted_at IS NULL",
-    )
-    .bind(move_request.target_session_id)
-    .bind(i64::from(move_request.rewrite_audio_ids))
-    .bind(move_request.source_audio_id)
-    .bind(move_request.target_audio_id)
-    .bind(move_request.now)
-    .bind(move_request.source_session_id)
-    .execute(&mut *conn)
-    .await?;
-
-    Ok(result.rows_affected())
-}
-
 pub async fn rewrite_session_note_body(
     conn: &mut SqliteConnection,
     document_id: &str,

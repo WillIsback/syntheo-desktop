@@ -47,10 +47,6 @@ pub async fn purge_local_session(
     // final transcript would leave the original words in this journal.
     sqlx::query("DELETE FROM transcript_live_state WHERE transcript_id IN (SELECT id FROM transcripts WHERE session_id=?)")
         .bind(id).execute(&mut **tx).await?;
-    sqlx::query("DELETE FROM voiceprint_exemplars WHERE source_session_id=?")
-        .bind(id)
-        .execute(&mut **tx)
-        .await?;
     // Only names enumerated by SQLite and quoted as identifiers are used.
     // This includes document history, proposals and local attachment jobs.
     let tables: Vec<String> = sqlx::query_scalar(

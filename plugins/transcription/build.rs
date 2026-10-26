@@ -38,8 +38,6 @@ const COMMANDS: &[&str] = &[
     "list_transcription_sessions",
     "get_completed_transcription",
     "acknowledge_completed_transcription",
-    "extract_voiceprint_candidates",
-    "promote_voiceprint_candidates",
     "delete_processed_session_audio",
     "parse_subtitle",
     "export_to_vtt",
@@ -49,8 +47,6 @@ const COMMANDS: &[&str] = &[
     "refine_batch_transcript",
     "save_batch_transcript",
     "reconcile_refined_speaker_clusters",
-    "extract_voiceprint_candidates",
-    "promote_voiceprint_candidates",
 ];
 
 fn main() {

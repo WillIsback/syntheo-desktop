@@ -14,16 +14,12 @@ import {
 import type { ToastType } from "./types";
 import { useDismissedToasts } from "./useDismissedToasts";
 
-import { useNotifications } from "~/contexts/notifications";
 import { useDesktopUpdateControl } from "~/main/update-banner";
 import { useConfigValues } from "~/shared/config";
 import { useLatestRef } from "~/shared/hooks/useLatestRef";
 import { useDevtoolsToastPreview } from "~/store/zustand/devtools-toast-preview";
 import { useTabs } from "~/store/zustand/tabs";
-import {
-  isConfiguredSttModel,
-  isAnarlogCloudSttModel,
-} from "~/stt/capabilities";
+import { isConfiguredSttModel } from "~/stt/capabilities";
 import { useListener } from "~/stt/contexts";
 
 export function ToastNotifications() {
@@ -32,13 +28,6 @@ export function ToastNotifications() {
     () => new Set<string>(),
   );
   const shouldShowToast = useShouldShowToast();
-  const {
-    hasActiveDownload,
-    downloadingModel,
-    activeDownloads,
-    localSttStatus,
-    isLocalSttModel,
-  } = useNotifications();
   const update = useDesktopUpdateControl();
   const [observedUpdateStatus, setObservedUpdateStatus] = useState(
     update.status,
@@ -50,23 +39,6 @@ export function ToastNotifications() {
         (current) =>
           new Set([...current].filter((id) => !id.endsWith(":failed"))),
       );
-    }
-  }
-
-  const [observedHasActiveDownload, setObservedHasActiveDownload] =
-    useState(hasActiveDownload);
-  if (observedHasActiveDownload !== hasActiveDownload) {
-    setObservedHasActiveDownload(hasActiveDownload);
-    if (!hasActiveDownload) {
-      setSessionDismissedToastIds((current) => {
-        if (!current.has("downloading-model")) {
-          return current;
-        }
-
-        const next = new Set(current);
-        next.delete("downloading-model");
-        return next;
-      });
     }
   }
 
@@ -86,10 +58,6 @@ export function ToastNotifications() {
     current_stt_provider,
     current_stt_model,
   );
-  const hasProSttConfigured = isAnarlogCloudSttModel(
-    current_stt_provider,
-    current_stt_model,
-  );
   const hasProLlmConfigured = current_llm_provider === "anarlog";
 
   const currentTab = useTabs((state) => state.currentTab);
@@ -102,16 +70,6 @@ export function ToastNotifications() {
     currentTab.state?.tab === "transcription";
   const isAiIntelligenceTabActive =
     currentTab?.type === "settings" && currentTab.state?.tab === "intelligence";
-  const activeTranscriptSessionId =
-    currentTab?.type === "sessions" &&
-    currentTab.state.view?.type === "transcript"
-      ? currentTab.id
-      : null;
-  const isBatchTranscribingInActiveTranscriptTab = useListener((state) =>
-    activeTranscriptSessionId
-      ? state.getSessionMode(activeTranscriptSessionId) === "running_batch"
-      : false,
-  );
   const activeLiveSessionId = useListener((state) =>
     state.live.status === "active" || state.live.status === "finalizing"
       ? state.live.sessionId
@@ -148,17 +106,10 @@ export function ToastNotifications() {
       createToastRegistry({
         hasLLMConfigured,
         hasSttConfigured,
-        hasProSttConfigured,
         hasProLlmConfigured,
         isAiTranscriptionTabActive,
         isAiIntelligenceTabActive,
-        isBatchTranscribingInActiveTranscriptTab,
         isLiveMeetingActive,
-        hasActiveDownload,
-        downloadingModel,
-        activeDownloads,
-        localSttStatus,
-        isLocalSttModel,
         update,
         onOpenLLMSettings: handleOpenLLMSettings,
         onOpenSTTSettings: handleOpenSTTSettings,
@@ -166,17 +117,10 @@ export function ToastNotifications() {
     [
       hasLLMConfigured,
       hasSttConfigured,
-      hasProSttConfigured,
       hasProLlmConfigured,
       isAiTranscriptionTabActive,
       isAiIntelligenceTabActive,
-      isBatchTranscribingInActiveTranscriptTab,
       isLiveMeetingActive,
-      hasActiveDownload,
-      downloadingModel,
-      activeDownloads,
-      localSttStatus,
-      isLocalSttModel,
       update,
       handleOpenLLMSettings,
       handleOpenSTTSettings,
@@ -220,9 +164,7 @@ export function ToastNotifications() {
     [devtoolsPreview, handleOpenLLMSettings, handleOpenSTTSettings],
   );
 
-  const registryPriorityToast =
-    currentToast?.id === "downloading-model" ? currentToast : null;
-  const displayToast = registryPriorityToast ?? devtoolsToast ?? currentToast;
+  const displayToast = devtoolsToast ?? currentToast;
 
   const handleDismiss = useCallback(() => {
     if (devtoolsToast) {

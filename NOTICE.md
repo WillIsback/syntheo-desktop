@@ -40,6 +40,10 @@ En résumé :
   AssemblyAI, Soniox, ElevenLabs, Gladia, Speechmatics, Azure, Google, AWS…),
   le crate `soniox` et le provider « custom » compatible Deepgram sont
   supprimés ; les providers LLM cloud suivent ;
+- **inférence embarquée retirée** : transcription locale (whisper.cpp,
+  Soniqo, Apple Speech, Argmax), LLM Apple Intelligence, diarisation pyannote
+  locale, empreintes vocales et téléchargement de modèles (plugins `local-stt`
+  et `local-llm`, et les crates qui ne servaient qu'à eux) ;
 - aucune conservation de l'audio d'une réunion : enregistreur de capture,
   réglage de rétention, lecteur audio, retranscription et empreintes vocales
   retirés ; une coupure de transcription laisse un trou daté ;

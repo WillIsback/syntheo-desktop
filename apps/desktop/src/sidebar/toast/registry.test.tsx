@@ -7,17 +7,10 @@ type RegistryParams = Parameters<typeof createToastRegistry>[0];
 const baseParams: RegistryParams = {
   hasLLMConfigured: true,
   hasSttConfigured: true,
-  hasProSttConfigured: false,
   hasProLlmConfigured: false,
   isAiTranscriptionTabActive: false,
   isAiIntelligenceTabActive: false,
-  isBatchTranscribingInActiveTranscriptTab: false,
   isLiveMeetingActive: false,
-  hasActiveDownload: false,
-  downloadingModel: null,
-  activeDownloads: [],
-  localSttStatus: null,
-  isLocalSttModel: false,
   update: {
     status: null,
     version: null,
@@ -70,27 +63,12 @@ describe("sidebar toast registry", () => {
     expect(ids).not.toContain("upgrade-to-pro");
   });
 
-  it.each([
-    ["STT", "missing-stt", { hasProSttConfigured: true }],
-    ["LLM", "missing-llm", { hasProLlmConfigured: true }],
-  ] as const)(
+  it.each([["LLM", "missing-llm", { hasProLlmConfigured: true }]] as const)(
     "treats a leftover hosted %s selection as unconfigured",
     (_, id, overrides) => {
       expect(showToast(overrides)?.id).toBe(id);
     },
   );
-
-  it("shows local STT loading unless the transcript tab shows batch progress", () => {
-    const loading = {
-      localSttStatus: "loading",
-      isLocalSttModel: true,
-    } as const;
-
-    expect(showToast(loading)?.id).toBe("local-stt-loading");
-    expect(
-      showToast({ ...loading, isBatchTranscribingInActiveTranscriptTab: true }),
-    ).toBeNull();
-  });
 
   it("offers an available desktop update with a one-day snooze", () => {
     const downloadUpdate = vi.fn();
@@ -114,22 +92,6 @@ describe("sidebar toast registry", () => {
         ...withUpdate({ status: "available" }),
       }),
     ).toBeNull();
-  });
-
-  it("lets users dismiss a model download toast for the current download", () => {
-    const toast = showToast({
-      hasActiveDownload: true,
-      downloadingModel: "apple-speech",
-      activeDownloads: [
-        { model: "apple-speech", displayName: "apple-speech", progress: 0 },
-      ],
-    });
-
-    expect(toast).toMatchObject({
-      id: "downloading-model",
-      lifecycle: { type: "persistent", dismissal: "session" },
-      loading: true,
-    });
   });
 
   it("keeps desktop update progress in the toast", () => {

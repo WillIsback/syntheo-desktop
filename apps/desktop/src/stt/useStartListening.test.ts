@@ -430,16 +430,6 @@ describe("getPostCaptureAction", () => {
       },
       expected: [],
     },
-    {
-      name: "reports settled diarization refinement for a multi-speaker cloud transcript",
-      input: {
-        audioPath: "/tmp/session.wav" as string | null,
-        liveTranscriptionActive: true,
-        needsBatchRepair: false,
-        refineSpeakerDiarization: true,
-      },
-      expected: ["settled_speaker_diarization"],
-    },
   ])("$name", ({ input, expected }) => {
     expect(getPostCaptureRepairReasons(input)).toEqual(expected);
   });
@@ -463,28 +453,6 @@ describe("getPostCaptureAction", () => {
         needsBatchRepair: false,
       },
       canBatch: true,
-      expected: "enhance_only",
-    },
-    {
-      name: "refines a complete live transcript when settled diarization is required",
-      input: {
-        audioPath: "/tmp/session.wav" as string | null,
-        liveTranscriptionActive: true,
-        needsBatchRepair: false,
-        refineSpeakerDiarization: true,
-      },
-      canBatch: true,
-      expected: "batch_then_enhance",
-    },
-    {
-      name: "keeps a complete live transcript when settled diarization cannot run",
-      input: {
-        audioPath: "/tmp/session.wav" as string | null,
-        liveTranscriptionActive: true,
-        needsBatchRepair: false,
-        refineSpeakerDiarization: true,
-      },
-      canBatch: false,
       expected: "enhance_only",
     },
     {
@@ -2436,9 +2404,9 @@ describe("useStartListening", () => {
   test("batch_only_model_cannot_start_capture", async () => {
     useSTTConnectionMock.mockReturnValue({
       conn: {
-        provider: "local_file",
-        model: "local-file",
-        baseUrl: "",
+        provider: "openai",
+        model: "whisper-1",
+        baseUrl: "http://192.168.1.87:8000/v1?provider=openai",
         apiKey: "",
       },
     });

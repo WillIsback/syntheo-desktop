@@ -41,6 +41,17 @@ Tout est stocké sur le poste, dans le dossier de données de l'application
 
 Aucune de ces données n'est envoyée à l'éditeur.
 
+**Aucune inférence sur le poste** : depuis le chantier 04b-2, l'application ne
+télécharge ni n'exécute aucun modèle (transcription, LLM, diarisation ou
+empreintes vocales). Une version antérieure a pu laisser des fichiers de
+modèles dans les dossiers `models/stt` et `models/llm` du dossier de données,
+ainsi que dans le cache de modèles Soniqo sous macOS : ils ne sont plus ni lus
+ni chargés, et peuvent être supprimés à la main. Les empreintes vocales
+qu'une version antérieure a pu enregistrer (vecteurs dans le trousseau du
+système, références dans les tables `voiceprint_exemplars` et
+`voiceprint_candidates`) sont effacées au démarrage ; si le trousseau refuse
+une suppression, l'effacement est retenté au lancement suivant.
+
 ## Flux réseau
 
 - **Endpoints d'inférence configurés par l'utilisateur**, et eux seuls : ASR
@@ -62,8 +73,6 @@ Aucune de ces données n'est envoyée à l'éditeur.
     la PR) ; le numéro et le dépôt du lien sont transmis à GitHub ;
   - icônes de certains écrans chargées depuis `api.iconify.design` (aucune
     donnée personnelle transmise, mais une requête réseau) ;
-  - téléchargement des modèles locaux (STT/LLM sur l'appareil) depuis
-    `models.anarlog.so`, uniquement quand l'utilisateur le déclenche.
 - **Pas de compte, pas de synchronisation, pas de rapport d'erreur, pas de
   mise à jour automatique** (les mises à jour passent par les GitHub Releases,
   téléchargées par l'utilisateur).

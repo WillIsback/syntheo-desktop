@@ -8,8 +8,7 @@ pub enum Error {
     IoError(#[from] std::io::Error),
     #[error(transparent)]
     AnlgAudioError(#[from] anlg_audio::Error),
-    #[error(transparent)]
-    LocalSttError(#[from] tauri_plugin_local_stt::Error),
+
     #[error("no session")]
     NoneSession,
     #[error("session already running")]

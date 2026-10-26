@@ -1,20 +1,18 @@
-use std::str::FromStr;
 use std::time::{Duration, UNIX_EPOCH};
 
 use bytes::Bytes;
 use ractor::{ActorProcessingErr, ActorRef};
 
 use owhisper_client::{
-    AdapterKind, AnarlogAdapter, ArgmaxAdapter, NvidiaAdapter, OpenAIAdapter, RealtimeSttAdapter,
-    anlg_ws_client,
+    AdapterKind, NvidiaAdapter, OpenAIAdapter, RealtimeSttAdapter, anlg_ws_client,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
 
 use super::stream::process_stream;
 use super::{
-    ChannelSender, DEVICE_FINGERPRINT_HEADER, ListenerArgs, ListenerMsg, actor_error,
-    actor_error_with_degraded, actor_error_with_degraded_retry,
+    ChannelSender, ListenerArgs, ListenerMsg, actor_error, actor_error_with_degraded,
+    actor_error_with_degraded_retry,
 };
 
 use crate::{DegradedError, SessionErrorEvent};
@@ -103,54 +101,11 @@ pub(super) async fn spawn_rx_task(
         ));
     }
 
-    if let Some(model) = soniqo_model_for_args(&args)? {
-        if !model.is_available_on_current_platform() {
-            return Err(actor_error(
-                "unsupported_platform: Soniqo realtime transcription requires macOS Apple Silicon",
-            ));
-        }
-
-        if !model.supports_live() {
-            return Err(actor_error(format!(
-                "provider_batch_only: {} only supports batch transcription",
-                model.as_str()
-            )));
-        }
-
-        if !model.supports_languages(&args.languages) {
-            return Err(actor_error(format!(
-                "unsupported_language: {} does not support all requested spoken languages ({})",
-                model.as_str(),
-                format_languages(&args.languages)
-            )));
-        }
-
-        let result = spawn_soniqo_rx_task(model, args, myself).await?;
-        return Ok((result.0, result.1, result.2, "soniqo".to_string()));
-    }
-
-    if let Some(model) = apple_speech_model_for_args(&args)? {
-        if !model.is_available_on_current_platform() {
-            return Err(actor_error(
-                "unsupported_platform: Apple Speech realtime transcription requires macOS 26",
-            ));
-        }
-
-        let result = spawn_apple_speech_rx_task(args, myself).await?;
-        return Ok((result.0, result.1, result.2, "apple-speech".to_string()));
-    }
-
     let adapter_kind =
         AdapterKind::from_url_and_languages(&args.base_url, &args.languages, Some(&args.model));
     let is_dual = matches!(args.mode, crate::actors::ChannelMode::MicAndSpeaker);
 
     let result = match (adapter_kind, is_dual) {
-        (AdapterKind::Argmax, false) => {
-            spawn_rx_task_single_with_adapter::<ArgmaxAdapter>(args, myself).await
-        }
-        (AdapterKind::Argmax, true) => {
-            spawn_rx_task_dual_with_adapter::<ArgmaxAdapter>(args, myself).await
-        }
         (AdapterKind::OpenAI, false) => {
             spawn_rx_task_single_with_adapter::<OpenAIAdapter>(args, myself).await
         }
@@ -163,267 +118,9 @@ pub(super) async fn spawn_rx_task(
         (AdapterKind::Nvidia, true) => {
             spawn_rx_task_dual_with_adapter::<NvidiaAdapter>(args, myself).await
         }
-        (AdapterKind::Anarlog, false) => {
-            spawn_rx_task_single_with_adapter::<AnarlogAdapter>(args, myself).await
-        }
-        (AdapterKind::Anarlog, true) => {
-            spawn_rx_task_dual_with_adapter::<AnarlogAdapter>(args, myself).await
-        }
     }?;
 
     Ok((result.0, result.1, result.2, adapter_kind.to_string()))
-}
-
-fn soniqo_model_for_args(
-    args: &ListenerArgs,
-) -> Result<Option<anlg_transcribe_soniqo::SoniqoModel>, ActorProcessingErr> {
-    if let Some(model) =
-        anlg_transcribe_soniqo::local_model_from_request(&args.base_url, &args.model)
-    {
-        return Ok(Some(model));
-    }
-
-    if anlg_transcribe_soniqo::is_local_base_url(&args.base_url) {
-        return anlg_transcribe_soniqo::SoniqoModel::from_str(&args.model)
-            .map(Some)
-            .map_err(|e| actor_error(format!("soniqo_model_invalid: {e}")));
-    }
-
-    Ok(None)
-}
-
-async fn spawn_soniqo_rx_task(
-    model: anlg_transcribe_soniqo::SoniqoModel,
-    args: ListenerArgs,
-    myself: ActorRef<ListenerMsg>,
-) -> Result<
-    (
-        ChannelSender,
-        tokio::task::JoinHandle<Vec<StreamResponse>>,
-        tokio::sync::oneshot::Sender<()>,
-    ),
-    ActorProcessingErr,
-> {
-    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
-    let (session_offset_secs, extra) = build_extra(&args);
-
-    if matches!(args.mode, crate::actors::ChannelMode::MicAndSpeaker) {
-        let (tx, rx) =
-            tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
-        let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-        let client = owhisper_client::LocalSoniqoLiveClient::new(model);
-        let (listen_stream, handle) = match client.from_realtime_audio_dual(outbound).await {
-            Ok(result) => result,
-            Err(error) => {
-                tracing::error!(
-                    anarlog.session.id = %args.session_id,
-                    anarlog.stt.provider.name = "soniqo",
-                    anarlog.stt.model = %model,
-                    error.message = %error,
-                    "soniqo_live_start_failed(dual)"
-                );
-                args.runtime.emit_error(SessionErrorEvent::ConnectionError {
-                    session_id: args.session_id.clone(),
-                    error: format!("soniqo_live_start_failed: {error}"),
-                });
-                return Err(actor_error(format!("soniqo_live_start_failed: {error}")));
-            }
-        };
-
-        let rx_task = tokio::spawn(async move {
-            futures_util::pin_mut!(listen_stream);
-            process_stream(
-                listen_stream,
-                handle,
-                myself,
-                shutdown_rx,
-                session_offset_secs,
-                extra,
-                None,
-            )
-            .await
-        });
-
-        Ok((ChannelSender::Dual(tx), rx_task, shutdown_tx))
-    } else {
-        let source = if matches!(args.mode, crate::actors::ChannelMode::SpeakerOnly) {
-            anlg_transcribe_soniqo::TranscriptSource::System
-        } else {
-            anlg_transcribe_soniqo::TranscriptSource::Microphone
-        };
-
-        let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
-        let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-        let client = owhisper_client::LocalSoniqoLiveClient::new(model);
-        let (listen_stream, handle) =
-            match client.from_realtime_audio_single(outbound, source).await {
-                Ok(result) => result,
-                Err(error) => {
-                    tracing::error!(
-                        anarlog.session.id = %args.session_id,
-                        anarlog.stt.provider.name = "soniqo",
-                        anarlog.stt.model = %model,
-                        error.message = %error,
-                        "soniqo_live_start_failed(single)"
-                    );
-                    args.runtime.emit_error(SessionErrorEvent::ConnectionError {
-                        session_id: args.session_id.clone(),
-                        error: format!("soniqo_live_start_failed: {error}"),
-                    });
-                    return Err(actor_error(format!("soniqo_live_start_failed: {error}")));
-                }
-            };
-
-        let rx_task = tokio::spawn(async move {
-            futures_util::pin_mut!(listen_stream);
-            process_stream(
-                listen_stream,
-                handle,
-                myself,
-                shutdown_rx,
-                session_offset_secs,
-                extra,
-                None,
-            )
-            .await
-        });
-
-        Ok((ChannelSender::Single(tx), rx_task, shutdown_tx))
-    }
-}
-
-fn apple_speech_model_for_args(
-    args: &ListenerArgs,
-) -> Result<Option<anlg_transcribe_speechanalyzer::AppleSpeechModel>, ActorProcessingErr> {
-    if let Some(model) =
-        anlg_transcribe_speechanalyzer::local_model_from_request(&args.base_url, &args.model)
-    {
-        return Ok(Some(model));
-    }
-
-    if anlg_transcribe_speechanalyzer::is_local_base_url(&args.base_url) {
-        return anlg_transcribe_speechanalyzer::AppleSpeechModel::from_str(&args.model)
-            .map(Some)
-            .map_err(|e| actor_error(format!("apple_speech_model_invalid: {e}")));
-    }
-
-    Ok(None)
-}
-
-async fn spawn_apple_speech_rx_task(
-    args: ListenerArgs,
-    myself: ActorRef<ListenerMsg>,
-) -> Result<
-    (
-        ChannelSender,
-        tokio::task::JoinHandle<Vec<StreamResponse>>,
-        tokio::sync::oneshot::Sender<()>,
-    ),
-    ActorProcessingErr,
-> {
-    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
-    let (session_offset_secs, extra) = build_extra(&args);
-    let Some(locale) = anlg_transcribe_speechanalyzer::resolve_session_locale(&args.languages)
-    else {
-        let message = format!(
-            "apple_speech_language_not_enabled: add {} in System Settings > General > Language & Region to transcribe it with Apple Speech",
-            format_languages(&args.languages)
-        );
-        tracing::error!(
-            anarlog.session.id = %args.session_id,
-            error.message = %message,
-            "apple_speech_live_start_failed"
-        );
-        args.runtime.emit_error(SessionErrorEvent::ConnectionError {
-            session_id: args.session_id.clone(),
-            error: message.clone(),
-        });
-        return Err(actor_error(message));
-    };
-
-    if matches!(args.mode, crate::actors::ChannelMode::MicAndSpeaker) {
-        let (tx, rx) =
-            tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
-        let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-        let client = owhisper_client::LocalAppleSpeechLiveClient::new(locale);
-        let (listen_stream, handle) = match client.from_realtime_audio_dual(outbound).await {
-            Ok(result) => result,
-            Err(error) => {
-                tracing::error!(
-                    anarlog.session.id = %args.session_id,
-                    error.message = ?error,
-                    "apple_speech_live_start_failed(dual)"
-                );
-                args.runtime.emit_error(SessionErrorEvent::ConnectionError {
-                    session_id: args.session_id.clone(),
-                    error: format!("apple_speech_live_start_failed: {error}"),
-                });
-                return Err(actor_error(format!(
-                    "apple_speech_live_start_failed: {error}"
-                )));
-            }
-        };
-
-        let rx_task = tokio::spawn(async move {
-            futures_util::pin_mut!(listen_stream);
-            process_stream(
-                listen_stream,
-                handle,
-                myself,
-                shutdown_rx,
-                session_offset_secs,
-                extra,
-                None,
-            )
-            .await
-        });
-
-        Ok((ChannelSender::Dual(tx), rx_task, shutdown_tx))
-    } else {
-        let source = if matches!(args.mode, crate::actors::ChannelMode::SpeakerOnly) {
-            anlg_transcribe_speechanalyzer::TranscriptSource::System
-        } else {
-            anlg_transcribe_speechanalyzer::TranscriptSource::Microphone
-        };
-
-        let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
-        let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-        let client = owhisper_client::LocalAppleSpeechLiveClient::new(locale);
-        let (listen_stream, handle) =
-            match client.from_realtime_audio_single(outbound, source).await {
-                Ok(result) => result,
-                Err(error) => {
-                    tracing::error!(
-                        anarlog.session.id = %args.session_id,
-                        error.message = ?error,
-                        "apple_speech_live_start_failed(single)"
-                    );
-                    args.runtime.emit_error(SessionErrorEvent::ConnectionError {
-                        session_id: args.session_id.clone(),
-                        error: format!("apple_speech_live_start_failed: {error}"),
-                    });
-                    return Err(actor_error(format!(
-                        "apple_speech_live_start_failed: {error}"
-                    )));
-                }
-            };
-
-        let rx_task = tokio::spawn(async move {
-            futures_util::pin_mut!(listen_stream);
-            process_stream(
-                listen_stream,
-                handle,
-                myself,
-                shutdown_rx,
-                session_offset_secs,
-                extra,
-                None,
-            )
-            .await
-        });
-
-        Ok((ChannelSender::Single(tx), rx_task, shutdown_tx))
-    }
 }
 
 fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams {
@@ -449,18 +146,6 @@ fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams 
 
 fn expected_speakers(args: &ListenerArgs) -> Option<u32> {
     crate::expected_speakers_per_channel(&args.participant_human_ids, args.self_human_id.as_deref())
-}
-
-fn format_languages(languages: &[anlg_language::Language]) -> String {
-    if languages.is_empty() {
-        return "none".to_string();
-    }
-
-    languages
-        .iter()
-        .map(anlg_language::Language::bcp47_code)
-        .collect::<Vec<_>>()
-        .join(", ")
 }
 
 fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
@@ -511,7 +196,6 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
         .connect_policy(desktop_connect_policy())
-        .extra_header(DEVICE_FINGERPRINT_HEADER, anlg_host::fingerprint())
         .build_single()
         .await
         .map_err(|error| client_build_error(&args, error))?;
@@ -562,7 +246,6 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
         .connect_policy(desktop_connect_policy())
-        .extra_header(DEVICE_FINGERPRINT_HEADER, anlg_host::fingerprint())
         .build_dual()
         .await
         .map_err(|error| client_build_error(&args, error))?;
@@ -801,17 +484,5 @@ mod tests {
             .expect("listener init error");
 
         assert_eq!(error.retry_after, Some(Duration::from_secs(7)));
-    }
-
-    #[test]
-    fn soniqo_model_for_args_matches_only_soniqo_models_on_loopback() {
-        let args = listener_args("http://localhost:50060/v1", "soniqo-parakeet-streaming");
-        assert_eq!(
-            soniqo_model_for_args(&args).unwrap(),
-            Some(anlg_transcribe_soniqo::SoniqoModel::ParakeetStreaming)
-        );
-
-        let args = listener_args("http://localhost:50060/v1", "whisper-small");
-        assert_eq!(soniqo_model_for_args(&args).unwrap(), None);
     }
 }

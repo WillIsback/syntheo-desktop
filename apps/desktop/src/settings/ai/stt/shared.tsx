@@ -1,16 +1,9 @@
-import { Apple, Nvidia, OpenAI } from "@lobehub/icons";
+import { Nvidia, OpenAI } from "@lobehub/icons";
 import type { ReactNode } from "react";
 
-import type { LocalModel } from "@anlg/plugin-local-stt";
-import { Cpu, Waveform } from "@anlg/ui/components/icons";
-
-import { env } from "~/env";
-import { AnarlogProviderIcon, ProviderLobeIcon } from "~/settings/ai/shared";
+import { ProviderLobeIcon } from "~/settings/ai/shared";
 import { type ProviderRequirement } from "~/settings/ai/shared/eligibility";
 import { sortProviders } from "~/settings/ai/shared/sort-providers";
-import { localSttQueries } from "~/stt/useLocalSttModel";
-
-export { localSttQueries as sttModelQueries };
 
 type Provider = {
   builtIn?: boolean;
@@ -20,7 +13,7 @@ type Provider = {
   description?: string;
   icon: ReactNode;
   baseUrl?: string;
-  models: LocalModel[] | string[];
+  models: string[];
   badge?: string | null;
   requirements: ProviderRequirement[];
   links?: {
@@ -29,93 +22,11 @@ type Provider = {
   };
 };
 
-const displayModelId = (model: string): string => {
-  if (model === "cloud") {
-    return "Pro (Cloud)";
-  }
-
-  if (model === "local-file") {
-    return "whisper.cpp .bin";
-  }
-
-  return model;
-};
-
 export function displayModelLabel(model: string, displayName?: string) {
-  return displayName ?? displayModelId(model);
-}
-
-export function formatDownloadProgress(progress?: number | null) {
-  if (progress == null || progress <= 0) {
-    return null;
-  }
-
-  return `${Math.round(progress)}%`;
-}
-
-export function formatModelSize(sizeBytes?: number | null) {
-  if (!sizeBytes) {
-    return null;
-  }
-
-  const unit = sizeBytes >= 1024 * 1024 * 1024 ? "GB" : "MB";
-  const value =
-    unit === "GB" ? sizeBytes / 1024 / 1024 / 1024 : sizeBytes / 1024 / 1024;
-
-  return `~${value.toLocaleString(undefined, {
-    maximumFractionDigits: value >= 10 ? 0 : 1,
-  })} ${unit}`;
+  return displayName ?? model;
 }
 
 const _PROVIDERS = [
-  {
-    // Transcription hébergée : exige un compte, retirée (suppression au 04b).
-    disabled: true,
-    id: "anarlog",
-    displayName: "Anarlog",
-    badge: "Recommended",
-    builtIn: true,
-    icon: <AnarlogProviderIcon />,
-    baseUrl: new URL(
-      "/stt",
-      env.VITE_AI_API_URL ?? env.VITE_API_URL,
-    ).toString(),
-    models: ["cloud"],
-    requirements: [],
-  },
-  {
-    disabled: false,
-    id: "soniqo",
-    displayName: "Soniqo",
-    badge: "On device",
-    baseUrl: "",
-    builtIn: true,
-    icon: <Waveform />,
-    models: [],
-    requirements: [],
-  },
-  {
-    disabled: false,
-    id: "apple_speech",
-    displayName: "Apple Speech",
-    badge: "On device",
-    baseUrl: "",
-    builtIn: true,
-    icon: <ProviderLobeIcon icon={Apple} />,
-    models: [],
-    requirements: [],
-  },
-  {
-    disabled: false,
-    id: "local_file",
-    displayName: "BYO-model",
-    badge: "On device",
-    baseUrl: "",
-    builtIn: true,
-    icon: <Cpu />,
-    models: ["local-file"],
-    requirements: [],
-  },
   {
     disabled: false,
     id: "openai",
@@ -156,13 +67,7 @@ const _PROVIDERS = [
   },
 ] as const satisfies readonly Provider[];
 
-const PROVIDER_ORDER = [
-  "soniqo",
-  "apple_speech",
-  "local_file",
-  "openai",
-  "nvidia",
-] as const;
+const PROVIDER_ORDER = ["openai", "nvidia"] as const;
 
 export const PROVIDERS = sortProviders(_PROVIDERS, PROVIDER_ORDER);
 export type ProviderId = (typeof _PROVIDERS)[number]["id"];

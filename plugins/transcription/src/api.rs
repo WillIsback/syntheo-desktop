@@ -441,7 +441,6 @@ impl From<TranscriptionParams> for listener2::BatchParams {
             num_speakers: value.num_speakers,
             min_speakers: value.min_speakers,
             max_speakers: value.max_speakers,
-            known_speakers: vec![],
         }
     }
 }
@@ -490,8 +489,40 @@ impl From<listener2::BatchEvent> for TranscriptionEvent {
 
 #[cfg(test)]
 mod tests {
-    use super::CaptureParams;
+    use super::{CaptureParams, TranscriptionParams};
     use anlg_transcription_core::listener::{TranscriptionMode, actors::SessionParams};
+
+    #[test]
+    fn transcription_request_for_a_local_engine_is_rejected() {
+        for provider in [
+            "soniqo",
+            "whispercpp",
+            "am",
+            "applespeech",
+            "argmax",
+            "anarlog",
+        ] {
+            let request = serde_json::json!({
+                "session_id": "session-1",
+                "provider": provider,
+                "file_path": "/tmp/audio.wav",
+                "base_url": "",
+                "api_key": "",
+            });
+            assert!(
+                serde_json::from_value::<TranscriptionParams>(request).is_err(),
+                "{provider} must not start a transcription"
+            );
+        }
+        let request = serde_json::json!({
+            "session_id": "session-1",
+            "provider": "openai",
+            "file_path": "/tmp/audio.wav",
+            "base_url": "http://192.168.1.87:8000/v1",
+            "api_key": "",
+        });
+        assert!(serde_json::from_value::<TranscriptionParams>(request).is_ok());
+    }
 
     // Règle audio de Syntheo : une capture ne conserve jamais l'audio.
     #[test]

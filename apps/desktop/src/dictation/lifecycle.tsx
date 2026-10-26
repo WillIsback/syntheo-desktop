@@ -87,7 +87,7 @@ function ActiveDictation({
   const livePreview = useConfigValue("dictation_live_preview");
   const dictionary = useConfigValue("personalization_dictionary_terms");
   const languages = useConfigValue("spoken_languages");
-  const { conn, isCloudModel } = useSTTConnection();
+  const { conn } = useSTTConnection();
   const current = useRef({
     runBatch,
     microphone,
@@ -95,7 +95,6 @@ function ActiveDictation({
     languages,
     dictionary,
     conn,
-    isCloudModel,
   });
   current.current = {
     runBatch,
@@ -104,7 +103,6 @@ function ActiveDictation({
     languages,
     dictionary,
     conn,
-    isCloudModel,
   };
 
   useMountEffect(() => {
@@ -128,14 +126,14 @@ function ActiveDictation({
         finalTranscript = null;
         const recordingAbort = abort;
         const owner = `${id}:${crypto.randomUUID()}`;
-        const {
-          microphone,
-          livePreview,
-          conn,
-          isCloudModel,
-          languages,
-          dictionary,
-        } = current.current;
+        const { microphone, livePreview, conn, languages, dictionary } =
+          current.current;
+        // Sans endpoint on-prem, rien ne pourrait transcrire l'enregistrement :
+        // on refuse avant d'ouvrir le micro.
+        if (!conn)
+          throw new Error(
+            "Configurez un endpoint de transcription on-prem dans Réglages > IA avant de dicter.",
+          );
         useDictationStatus.setState({
           owner,
           error: null,
@@ -144,7 +142,7 @@ function ActiveDictation({
           amplitude: 0,
           microphone: microphone || "Default microphone",
           previewEnabled: livePreview,
-          previewUnavailable: livePreview && !conn,
+          previewUnavailable: false,
           expanded: livePreview,
         });
         if (platform() === "macos") {
@@ -163,30 +161,24 @@ function ActiveDictation({
           );
         abort.signal.throwIfAborted();
         target = unwrap(await dictation.captureTarget());
-        // L'aperçu hébergé exigeait une session : seuls les endpoints
-        // configurés par l'utilisateur alimentent l'aperçu en direct.
-        const preview =
-          conn && !isCloudModel
-            ? {
-                provider: conn.provider,
-                baseUrl: conn.baseUrl,
-                apiKey: conn.apiKey ?? "",
-                params: {
-                  model: conn.model,
-                  channels: 1,
-                  sample_rate: 16000,
-                  languages: languages || [],
-                  keywords: dictionary || [],
-                  num_speakers: 1,
-                  min_speakers: null,
-                  max_speakers: null,
-                  custom_query: null,
-                },
-              }
-            : null;
-        useDictationStatus.setState({
-          previewUnavailable: livePreview && !preview,
-        });
+        // Seuls les endpoints configurés par l'utilisateur alimentent
+        // l'aperçu en direct.
+        const preview = {
+          provider: conn.provider,
+          baseUrl: conn.baseUrl,
+          apiKey: conn.apiKey ?? "",
+          params: {
+            model: conn.model,
+            channels: 1,
+            sample_rate: 16000,
+            languages: languages || [],
+            keywords: dictionary || [],
+            num_speakers: 1,
+            min_speakers: null,
+            max_speakers: null,
+            custom_query: null,
+          },
+        };
         abort.signal.throwIfAborted();
         await waitForDictationPanel(owner, abort.signal);
         abort.signal.throwIfAborted();
