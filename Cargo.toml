@@ -103,7 +103,7 @@ anlg-whisper = { path = "crates/whisper", package = "whisper" }
 anlg-ws-client = { path = "crates/ws-client", package = "ws-client" }
 anlg-zoom = { path = "crates/zoom", package = "zoom" }
 keyring = "4.1.4"
-posthog-rs = "0.5"
+posthog-rs = "0.27"
 progenitor-client = "0.13"
 
 openai-transcription = { path = "crates/openai-transcription", package = "openai-transcription" }
