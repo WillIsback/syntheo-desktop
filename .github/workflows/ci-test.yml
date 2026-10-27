@@ -50,7 +50,8 @@ jobs:
           retention-days: 7
 
   # Les tests Rust sont exécutés dans ci-code-quality (job Rust fusionné), qui
-  # compile le workspace une seule fois pour clippy et cargo test.
+  # compile le workspace une seule fois pour clippy et cargo test. Ce job ne
+  # tourne plus sur les PR (trop long) : push main + hebdo + manuel.
 
   yaml:
     name: ci-test (YAML)
