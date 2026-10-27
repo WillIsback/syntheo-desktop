@@ -343,6 +343,7 @@ git commit -m "chore(rebrand): renommage global des sources et des chemins [skip
 - Modify: `crates/http/Cargo.toml` (package `anlg-http-utils` → `syntheo-http-utils`), `plugins/tray/Cargo.toml` (`tauri-plugin-anlg-tray` → `tauri-plugin-syntheo-tray`), `apps/cli/Cargo.toml` (`anarlog`/`anarlog-cli` → `syntheo`/`syntheo-cli`), `apps/desktop/src-tauri/Cargo.toml` (`anarlog_desktop_lib` → `syntheo_desktop_lib`)
 - Modify: `apps/desktop/src-tauri/capabilities/default.json` (`anlg-tray:default` → `syntheo-tray:default`)
 - Modify (déjà fait par le codemod, à confirmer) : `plugins/tray/src/lib.rs` (`PLUGIN_NAME = "syntheo-tray"`), `plugins/tray/src/ext.rs` (`TRAY_ID`), `plugins/tray/src/macos_position.rs`
+- Modify/Regenerate (fichiers **générés** qui embarquent les identifiants de plugin) : `plugins/tray/js/bindings.gen.ts`, `apps/desktop/src-tauri/gen/schemas/{capabilities,acl-manifests,desktop-schema,linux-schema}.json`
 - Regenerate: `Cargo.lock`
 
 **Interfaces:**
@@ -372,10 +373,16 @@ cargo metadata --locked > /dev/null
 
 Expected: PASS ; metadata OK (lockfile à jour).
 
-- [ ] **Step 4: Contrôle capability/plugin (pas de build desktop possible en conteneur)**
+- [ ] **Step 4: Contrôle capability/plugin et fichiers générés (pas de build desktop possible en conteneur)**
 
-Run: `rg -n "syntheo-tray" apps/desktop/src-tauri/capabilities/default.json plugins/tray/src`
-Expected: `syntheo-tray:default` (capability) et `"syntheo-tray"` (constantes) cohérents.
+Run:
+
+```bash
+rg -n "syntheo-tray" apps/desktop/src-tauri/capabilities/default.json plugins/tray/src
+rg -n "anlg-tray" apps/desktop/src-tauri/gen plugins/tray/js
+```
+
+Expected: `syntheo-tray:default` (capability) et `"syntheo-tray"` (constantes) cohérents ; la seconde commande ne renvoie **rien**. Si les schémas générés sont commités, les régénérer via le `export_types`/build du plugin `tray` (hors conteneur, lib native requise) ou confirmer que le codemod les a mis à jour de façon cohérente.
 
 - [ ] **Step 5: Commit et PR**
 
