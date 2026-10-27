@@ -15,7 +15,6 @@ mod managed_settings;
 mod pilot_usage_ops;
 mod session_audio_ops;
 mod session_content_ops;
-mod session_deletion;
 mod session_hold;
 mod session_lifecycle_ops;
 mod session_move_ops;

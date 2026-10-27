@@ -306,10 +306,10 @@ pub fn main() {
                     tracing::warn!(%error, "failed to apply dock visibility during startup");
                 }
 
-                if appearance_settings.show_tray_icon {
-                    if let Err(error) = app_handle.tray().create_tray_menu() {
-                        tracing::warn!(%error, "failed to create tray menu during startup");
-                    }
+                if appearance_settings.show_tray_icon
+                    && let Err(error) = app_handle.tray().create_tray_menu()
+                {
+                    tracing::warn!(%error, "failed to create tray menu during startup");
                 }
             }
 
