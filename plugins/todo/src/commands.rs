@@ -1,9 +1,6 @@
 use syntheo_apple_todo::types::{
     CreateReminderInput, Reminder, ReminderFilter, ReminderIdentifierInput, ReminderList,
 };
-use syntheo_ticket_interface::{CollectionPage, TicketPage};
-
-use tauri::Manager;
 
 use crate::error::Error;
 use crate::read_path::{ReadPath, ReadPathResult};
@@ -71,10 +68,10 @@ pub fn fetch_todos(filter: ReminderFilter) -> Result<Vec<Reminder>, Error> {
 #[tauri::command]
 #[specta::specta]
 pub async fn read_path<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
+    _app: tauri::AppHandle<R>,
     path: String,
-    limit: Option<u32>,
-    cursor: Option<String>,
+    _limit: Option<u32>,
+    _cursor: Option<String>,
 ) -> Result<ReadPathResult, Error> {
     match ReadPath::parse(&path)? {
         ReadPath::Apple(path) => {
@@ -95,69 +92,6 @@ pub async fn read_path<R: tauri::Runtime>(
             {
                 Err(Error::UnsupportedPlatform)
             }
-        }
-        ReadPath::LinearTeams { connection_id } => {
-            let config = app.state::<crate::PluginConfig>();
-            let token = require_access_token(&app)?;
-            crate::fetch::linear_list_teams(
-                &config.api_base_url,
-                &token,
-                connection_id,
-                limit,
-                cursor,
-            )
-            .await
-            .map(ReadPathResult::Collections)
-        }
-        ReadPath::LinearTickets {
-            connection_id,
-            team_id,
-        } => {
-            let config = app.state::<crate::PluginConfig>();
-            let token = require_access_token(&app)?;
-            crate::fetch::linear_list_tickets(
-                &config.api_base_url,
-                &token,
-                connection_id,
-                team_id,
-                None,
-                limit,
-                cursor,
-            )
-            .await
-            .map(ReadPathResult::Tickets)
-        }
-        ReadPath::GithubRepos { connection_id } => {
-            let config = app.state::<crate::PluginConfig>();
-            let token = require_access_token(&app)?;
-            crate::fetch::github_list_repos(
-                &config.api_base_url,
-                &token,
-                connection_id,
-                limit,
-                cursor,
-            )
-            .await
-            .map(ReadPathResult::Collections)
-        }
-        ReadPath::GithubTickets {
-            connection_id,
-            owner,
-            repo,
-        } => {
-            let config = app.state::<crate::PluginConfig>();
-            let token = require_access_token(&app)?;
-            crate::fetch::github_list_tickets(
-                &config.api_base_url,
-                &token,
-                connection_id,
-                owner,
-                repo,
-                limit,
-                cursor,
-            )
-            .await
-            .map(ReadPathResult::Tickets)
         }
     }
 }
@@ -208,80 +142,4 @@ pub fn delete_todo(target: ReminderIdentifierInput) -> Result<(), Error> {
         let _ = target;
         Err(Error::UnsupportedPlatform)
     }
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn linear_list_teams<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    connection_id: String,
-    limit: Option<u32>,
-    cursor: Option<String>,
-) -> Result<CollectionPage, Error> {
-    let config = app.state::<crate::PluginConfig>();
-    let token = require_access_token(&app)?;
-    crate::fetch::linear_list_teams(&config.api_base_url, &token, &connection_id, limit, cursor)
-        .await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn linear_list_tickets<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    connection_id: String,
-    team_id: String,
-    query: Option<String>,
-    limit: Option<u32>,
-    cursor: Option<String>,
-) -> Result<TicketPage, Error> {
-    let config = app.state::<crate::PluginConfig>();
-    let token = require_access_token(&app)?;
-    crate::fetch::linear_list_tickets(
-        &config.api_base_url,
-        &token,
-        &connection_id,
-        &team_id,
-        query,
-        limit,
-        cursor,
-    )
-    .await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn github_issue_state(
-    owner: String,
-    repo: String,
-    number: u64,
-) -> Result<crate::github_state::GitHubIssueState, Error> {
-    crate::github_state::fetch_public(&owner, &repo, number).await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn github_issue_detail(
-    owner: String,
-    repo: String,
-    number: u64,
-) -> Result<syntheo_github_issues::Issue, Error> {
-    crate::github_state::fetch_issue_detail(&owner, &repo, number).await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn github_issue_comments(
-    owner: String,
-    repo: String,
-    number: u64,
-) -> Result<Vec<syntheo_github_issues::IssueComment>, Error> {
-    crate::github_state::fetch_issue_comments(&owner, &repo, number).await
-}
-
-// Syntheo n'a pas de compte : les intégrations hébergées (Linear, GitHub via le
-// service Syntheo) sont retirées, seuls les Rappels Apple (locaux) restent.
-fn require_access_token<R: tauri::Runtime>(_app: &tauri::AppHandle<R>) -> Result<String, Error> {
-    Err(Error::Auth(
-        "intégration cloud retirée de Syntheo".to_string(),
-    ))
 }
