@@ -23,6 +23,7 @@ import {
   useToggleTemplateFavorite,
 } from "./queries";
 import { SectionsList } from "./sections-editor";
+import { TemplateGeneratorBar } from "./template-generator-bar";
 import { TemplateIconPicker } from "./template-icon-picker";
 
 import { useSetSettingValue } from "~/settings/queries";
@@ -328,6 +329,15 @@ export function TemplateForm({
               )}
             </form.Field>
           </div>
+
+          <TemplateGeneratorBar
+            onGenerated={(generated) => {
+              form.setFieldValue("title", generated.title);
+              form.setFieldValue("description", generated.description);
+              form.setFieldValue("icon", generated.icon);
+              form.setFieldValue("sections", generated.sections);
+            }}
+          />
 
           <form.Field name="sections">
             {(field) => (
