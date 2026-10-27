@@ -1,7 +1,8 @@
 # Passation — Syntheo Desktop
 
-Dernière mise à jour : 2026-10-27 (nuit, suite) — E2E **résolu**, qualité **verte**, installateur
-**en une ligne** ajouté, CI **allégée** (Rust hors PR).
+Dernière mise à jour : 2026-10-27 (nuit) — **v0.1.2 publiée** (deb + AppImage + SBOM +
+SHA256SUMS), E2E **vérifié localement**, qualité **verte**, installateur **en une ligne** ajouté,
+CI **allégée** (Rust hors PR).
 Dépôt : `/home/will/work/syntheo-desktop` (GitHub `WillIsback/syntheo-desktop`, miroir
 Forgejo `wderue/syntheo-desktop`). Fork d'Anarlog (MIT), historique neuf, jamais fusionné
 vers l'amont.
@@ -20,7 +21,7 @@ vers l'amont.
 
 | Élément | État |
 |---|---|
-| `main` | **`69dcc65`** — arbre **propre** (aucun fichier modifié suivi, aucun untracked hors `target/`) |
+| `main` | **`dcdea5c`** — arbre **propre** (aucun fichier modifié suivi, aucun untracked hors `target/`) |
 | Lots 04 / 04b / 04c / 10 | terminés et fusionnés (sessions précédentes) |
 | Lots 06-09 | terminés et fusionnés (sessions précédentes) |
 | **Lot 04d — retrait cloud** | **TERMINÉ** (voir ci-dessous) |
@@ -47,6 +48,9 @@ Retrait complet de toutes les intégrations cloud non-inference. PR fusionnées 
 | #102 | clippy : code mort (`session_deletion.rs`) + lints `desktop` |
 | #104 | passation (docs) |
 | #106 | **fix démarrage** : runtime de live-queries construit dans le réacteur Tokio (voir ci-dessous) + E2E blackbox vert |
+| #130 | ci : le marqueur `[skip release]` ne bloque plus les releases **manuelles** |
+| #134 | sonar : exclut les migrations SQL (faux positifs PL/SQL) |
+| #135 | sonar : bugs/vulns de l'app (tri, a11y, promesses, CSS, `ws→wss`) |
 
 Points clés du retrait :
 
@@ -266,14 +270,12 @@ Secrets : `bws` (Bitwarden EU). Jetons Forgejo/GitHub via `bws secret list`.
 
 ## Ordre suggéré pour la prochaine session
 
-1. **Prochaine release = correctif (`v0.1.2`)**, **pas** `v0.2.0`. Attention : les commits `feat`
-   (#112, #120) feraient calculer un **minor** (`v0.2.0`) par la détection auto → **forcer le
-   patch** au déclenchement :
-   `gh workflow run release.yml -f bump=patch -f dry_run=false` (environnement `production`, à
-   approuver), puis vérifier l'asset, `SHA256SUMS` et l'attestation.
+1. ~~Prochaine release = correctif (`v0.1.2`)~~ **FAIT** : `v0.1.2` publiée le 2026-10-27
+   (déclenchement manuel `bump=patch`, run 40593468472). Assets : deb, AppImage, `SHA256SUMS`,
+   SBOM SPDX. Elle inclut le correctif de démarrage (#106) et #130/#134/#135.
    **Will indiquera le moment de passer à `v0.2.0`** (fonctionnalité majeure).
    ⚠️ Release **Linux-only** (deb + AppImage) tant que la signature macOS/Windows (section 4)
-   n'est pas implémentée. `v0.1.1` contient encore le panic de démarrage (#106).
+   n'est pas implémentée.
 2. **Implémenter la signature macOS/Windows** (section 4) une fois les secrets fournis —
    plan : `docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md`.
 3. Optionnel : reprendre/supprimer le PKGBUILD AUR cassé (`packaging/aur/syntheo-bin`) ; durcir
