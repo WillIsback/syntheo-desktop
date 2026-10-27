@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { ProviderLobeIcon } from "~/settings/ai/shared";
 import { type ProviderRequirement } from "~/settings/ai/shared/eligibility";
 import { sortProviders } from "~/settings/ai/shared/sort-providers";
+import { NVIDIA_NIM_ASR_MODELS } from "~/stt/model-selection";
 
 type Provider = {
   builtIn?: boolean;
@@ -57,7 +58,7 @@ const _PROVIDERS = [
     badge: "Self-hosted",
     icon: <ProviderLobeIcon icon={Nvidia} />,
     baseUrl: STT_NIM_PRESET_URL,
-    models: ["nemotron-asr-streaming"],
+    models: [...NVIDIA_NIM_ASR_MODELS],
     requirements: [{ kind: "requires_config", fields: ["base_url"] }],
     links: {
       models: {
