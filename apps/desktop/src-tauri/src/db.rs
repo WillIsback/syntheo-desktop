@@ -82,6 +82,8 @@ pub fn is_transient_lock_error(error: &impl std::fmt::Display) -> bool {
 
 // Matches MigrateError::SchemaFromNewerApp, which reaches startup as a string
 // after crossing the tauri plugin setup boundary.
+// Only consulted on macOS (native startup alert); allow dead code elsewhere.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 pub fn is_newer_schema_error(error: &impl std::fmt::Display) -> bool {
     error
         .to_string()
@@ -124,7 +126,6 @@ pub(crate) fn desktop_db_dir(identifier: &str) -> Option<std::path::PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
 
     #[test]
     fn a_reset_marker_moves_the_database_aside_once() {
@@ -200,5 +201,4 @@ mod tests {
         assert_eq!(shared_database_peer("com.syntheo.staging"), None);
         assert_eq!(shared_database_peer(syntheo_brand::DEV_BUNDLE_ID), None);
     }
-
 }
