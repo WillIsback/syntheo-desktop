@@ -268,7 +268,7 @@ macos-accessibility-client = "0.0.2"
 mp3lame-encoder = "0.2.2"
 realfft = "3.5.0"
 ringbuf = "0.4.8"
-rodio = { version = "0.22", features = ["tracing"] }
+rodio = { version = "0.23", features = ["tracing"] }
 
 deepgram = { version = "0.7", default-features = false }
 
