@@ -356,5 +356,3 @@ async function runWorkflowWithFileExports(
   record.detail = details.join(" · ");
   await persistWorkflowResult(workflow.id, { record });
 }
-
-

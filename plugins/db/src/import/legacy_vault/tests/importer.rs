@@ -152,7 +152,7 @@ async fn shadow_import_is_non_destructive_idempotent_and_audited() {
         ("app_settings", "SELECT COUNT(*) FROM app_settings", 2),
         ("calendars", "SELECT COUNT(*) FROM calendars", 1),
         ("events", "SELECT COUNT(*) FROM events", 1),
-        ("templates", "SELECT COUNT(*) FROM templates", 18),
+        ("templates", "SELECT COUNT(*) FROM templates", 22),
     ] {
         assert_eq!(row_count(&db, query).await, expected, "{table}");
     }

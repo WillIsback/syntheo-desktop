@@ -8,12 +8,6 @@ fn shared_session_cache_is_plain_and_excluded_from_cloudsync() {
         .unwrap();
 
     assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
-    assert!(
-        !cloudsync_table_registry()
-            .iter()
-            .any(|table| table.table_name == "shared_session_cache")
-    );
-    assert!(!cloudsync_alter_guard_required("shared_session_cache"));
 }
 
 #[tokio::test]
@@ -23,7 +17,6 @@ async fn share_activation_backfills_only_previously_shared_manager_notes() {
         &db,
         syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20261002090000_session_share_activation_sync"),
-            validate_cloudsync_table: cloudsync_alter_guard_required,
         },
     )
     .await
@@ -363,13 +356,6 @@ fn session_share_sync_state_is_plain_and_excluded_from_replication() {
         .unwrap();
 
     assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
-    assert!(
-        !cloudsync_table_registry()
-            .iter()
-            .any(|table| table.table_name == "session_share_sync_state")
-    );
-    assert!(!E2EE_DOMAIN_TABLES.contains(&"session_share_sync_state"));
-    assert!(!cloudsync_alter_guard_required("session_share_sync_state"));
 }
 
 #[tokio::test]

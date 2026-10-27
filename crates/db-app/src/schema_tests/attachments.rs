@@ -8,13 +8,6 @@ fn attachment_local_state_is_plain_and_excluded_from_cloudsync() {
         .unwrap();
 
     assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
-    assert!(
-        !cloudsync_table_registry()
-            .iter()
-            .any(|table| table.table_name == "attachment_local_state")
-    );
-    assert!(!E2EE_DOMAIN_TABLES.contains(&"attachment_local_state"));
-    assert!(!cloudsync_alter_guard_required("attachment_local_state"));
 }
 
 #[test]
@@ -25,13 +18,6 @@ fn attachment_transfer_jobs_are_plain_and_excluded_from_cloudsync() {
         .unwrap();
 
     assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
-    assert!(
-        !cloudsync_table_registry()
-            .iter()
-            .any(|table| table.table_name == "attachment_transfer_jobs")
-    );
-    assert!(!E2EE_DOMAIN_TABLES.contains(&"attachment_transfer_jobs"));
-    assert!(!cloudsync_alter_guard_required("attachment_transfer_jobs"));
 }
 
 #[test]
@@ -344,15 +330,6 @@ fn shared_attachment_cache_is_plain_and_excluded_from_cloudsync() {
         .unwrap();
 
     assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
-    assert!(
-        !cloudsync_table_registry()
-            .iter()
-            .any(|table| table.table_name == "shared_session_attachment_cache")
-    );
-    assert!(!E2EE_DOMAIN_TABLES.contains(&"shared_session_attachment_cache"));
-    assert!(!cloudsync_alter_guard_required(
-        "shared_session_attachment_cache"
-    ));
 }
 
 #[tokio::test]

@@ -12,7 +12,6 @@ Default permissions for the plugin
 - `allow-start-system-recording`
 - `allow-stop-recording`
 - `allow-cancel-recording`
-- `allow-discard-recording`
 - `allow-capture-target`
 - `allow-insert-text`
 

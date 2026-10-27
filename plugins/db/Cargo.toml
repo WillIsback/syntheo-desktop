@@ -21,8 +21,6 @@ syntheo-db-core = { workspace = true }
 syntheo-db-execute = { workspace = true }
 syntheo-db-migrate = { workspace = true }
 syntheo-db-reactive = { workspace = true, features = ["specta"] }
-syntheo-db-sync = { workspace = true }
-syntheo-e2ee = { workspace = true }
 syntheo-fs-sync-core = { workspace = true }
 syntheo-session-ingest = { workspace = true }
 syntheo-storage = { workspace = true }

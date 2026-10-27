@@ -14,5 +14,4 @@ pub struct MigrationStep {
 #[derive(Clone, Copy)]
 pub struct DbSchema {
     pub steps: &'static [MigrationStep],
-    pub validate_cloudsync_table: fn(&str) -> bool,
 }

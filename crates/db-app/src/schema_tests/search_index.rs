@@ -1,5 +1,4 @@
 use super::*;
-use sqlx::Row;
 
 #[test]
 fn search_index_trigger_migrations_are_cloudsync_guarded() {
@@ -278,54 +277,4 @@ async fn search_index_queue_tracks_entity_lifecycle_and_starts_unversioned() {
             ("session".to_string(), "session-1".to_string(), 2),
         ]
     );
-}
-
-#[tokio::test]
-async fn registered_tables_match_cloudsync_schema_requirements() {
-    let db = test_db().await;
-
-    for table in cloudsync_table_registry() {
-        let rows = sqlx::query(
-            "SELECT name, type, \"notnull\", dflt_value, pk
-                 FROM pragma_table_info(?)
-                 ORDER BY cid",
-        )
-        .bind(&table.table_name)
-        .fetch_all(db.pool())
-        .await
-        .unwrap();
-
-        let pk_columns: Vec<_> = rows
-            .iter()
-            .filter(|row| row.get::<i64, _>("pk") > 0)
-            .collect();
-        assert_eq!(
-            pk_columns.len(),
-            1,
-            "{} must have one primary key",
-            table.table_name
-        );
-
-        let pk = pk_columns[0];
-        assert_eq!(pk.get::<String, _>("name"), "id", "{}", table.table_name);
-        assert_eq!(
-            pk.get::<String, _>("type").to_uppercase(),
-            "TEXT",
-            "{}",
-            table.table_name
-        );
-        assert_eq!(pk.get::<i64, _>("notnull"), 1, "{}", table.table_name);
-
-        for row in rows
-            .iter()
-            .filter(|row| row.get::<i64, _>("pk") == 0 && row.get::<i64, _>("notnull") == 1)
-        {
-            assert!(
-                row.get::<Option<String>, _>("dflt_value").is_some(),
-                "{}.{} must define a DEFAULT value for SQLite Sync compatibility",
-                table.table_name,
-                row.get::<String, _>("name")
-            );
-        }
-    }
 }

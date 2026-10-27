@@ -81,7 +81,6 @@ syntheo-audio-actual = { workspace = true }
 syntheo-audio-mock = { workspace = true, optional = true }
 syntheo-db-app = { workspace = true }
 syntheo-db-core = { workspace = true }
-syntheo-db-sync = { workspace = true }
 syntheo-host = { workspace = true }
 syntheo-intercept = { workspace = true }
 syntheo-storage = { workspace = true }

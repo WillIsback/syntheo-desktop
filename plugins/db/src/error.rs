@@ -19,19 +19,7 @@ pub enum Error {
     #[error(transparent)]
     Reactive(#[from] syntheo_db_reactive::Error),
     #[error(transparent)]
-    Cloudsync(#[from] syntheo_db_core::CloudsyncRuntimeError),
-    #[error(transparent)]
-    CloudsyncWorkspace(#[from] syntheo_db_app::CloudsyncWorkspaceError),
-    #[error(transparent)]
     Json(#[from] serde_json::Error),
-    #[error("end-to-end encryption recovery key setup is required before CloudSync can start")]
-    E2eeIdentityRequired,
-    #[error("cloudsync_activity_deferred")]
-    CloudsyncActivityDeferred,
-    #[error("cloudsync_configuration_cancelled")]
-    CloudsyncConfigurationCancelled,
-    #[error("cloudsync_activity_drain_timeout")]
-    CloudsyncActivityDrainTimeout,
     #[error("transaction statement {statement_index} affected {actual} rows; expected {expected}")]
     UnexpectedRowsAffected {
         statement_index: usize,

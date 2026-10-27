@@ -8,7 +8,6 @@ license = "MIT"
 test-utils = []
 
 [dependencies]
-syntheo-cloudsync = { workspace = true }
 syntheo-db-change = { workspace = true }
 
 backon = { workspace = true }

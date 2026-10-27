@@ -1,6 +1,5 @@
 import { getIdentifier, getVersion } from "@tauri-apps/api/app";
 
-import { getCloudsyncStatus } from "@syntheo/plugin-db";
 import { commands as miscCommands } from "@syntheo/plugin-misc";
 
 import { getTopIpcCommands, useDevtoolsMetrics } from "./metrics";
@@ -39,8 +38,6 @@ async function buildDiagnostics() {
     const result = await miscCommands.getDeviceInfo(navigator.language);
     return result.status === "ok" ? result.data : null;
   });
-  const cloudsync = await attempt(() => getCloudsyncStatus());
-
   return {
     capturedAt: new Date().toISOString(),
     build: {
@@ -80,7 +77,6 @@ async function buildDiagnostics() {
     },
     topIpcCommands: getTopIpcCommands(),
     topRenderedComponents: getTopRenderedComponents(),
-    cloudsync,
   };
 }
 
