@@ -48,7 +48,9 @@ export function useAiProvidersState(type: AiProviderType): {
     mapRows: (rows) => rows,
   });
   const providers = useMemo(() => parseAiProviders(rows, type), [rows, type]);
-  const providerIds = Object.keys(providers).sort();
+  const providerIds = Object.keys(providers).sort((a, b) =>
+    a.localeCompare(b, "fr"),
+  );
   const secureApiKeysQuery = useQuery({
     queryKey: ["ai-provider-api-keys", type, providerIds],
     queryFn: () => loadSecureAiProviderApiKeys(providerIds, type),

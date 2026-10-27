@@ -168,7 +168,7 @@ export function CalendarView() {
     () =>
       enabledCalendars
         .map((calendar) => calendar.id)
-        .sort()
+        .sort((a, b) => a.localeCompare(b, "fr"))
         .join(","),
     [enabledCalendars],
   );

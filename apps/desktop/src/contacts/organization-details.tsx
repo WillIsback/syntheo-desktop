@@ -133,8 +133,16 @@ export function OrganizationDetailsColumn({
                       return (
                         <div
                           key={human.id}
+                          role="button"
+                          tabIndex={0}
                           className="border-border bg-card cursor-pointer rounded-lg border p-4 transition-all hover:shadow-xs"
                           onClick={() => onPersonClick?.(human.id)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              onPersonClick?.(human.id);
+                            }
+                          }}
                         >
                           <div className="flex flex-col items-center gap-3 text-center">
                             {human.avatarDataUrl ? (

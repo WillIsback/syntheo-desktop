@@ -164,7 +164,9 @@ export function useSessionSummaries(): SessionSummaryRecord[] {
 export function useSessionSummariesByIds(
   sessionIds: readonly string[],
 ): SessionSummaryRecord[] {
-  const uniqueIds = [...new Set(sessionIds.filter(Boolean))].sort();
+  const uniqueIds = [...new Set(sessionIds.filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "fr"),
+  );
   const placeholders = uniqueIds.map(() => "?").join(", ");
   const enabled = uniqueIds.length > 0;
   const { data } = useLiveQuery<SessionSummarySqlRow, SessionSummaryRecord[]>({

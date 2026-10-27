@@ -35,7 +35,15 @@ export const WordSpan = memo(function WordSpan(props: WordSpanProps) {
 
   return (
     <span
+      role={canSeek ? "button" : undefined}
+      tabIndex={canSeek ? 0 : undefined}
       onClick={() => canSeek && props.onClickWord(props.word)}
+      onKeyDown={(event) => {
+        if (canSeek && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          props.onClickWord(props.word);
+        }
+      }}
       className={className}
       data-transcript-word-id={props.word.id}
       data-transcript-word-start-ms={props.word.start_ms}

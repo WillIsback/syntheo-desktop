@@ -344,6 +344,7 @@ export function OpenNoteDialog({
           <div
             data-open-note-dialog-drag-region
             data-tauri-drag-region
+            role="presentation"
             className="absolute top-0 right-0 left-0 h-[15%]"
             onClick={(event) => event.stopPropagation()}
           />

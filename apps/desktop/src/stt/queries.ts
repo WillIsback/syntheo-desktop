@@ -380,7 +380,9 @@ export function useSessionParticipantHumanIds(sessionId: string): string[] {
 }
 
 function getTranscriptHumansQuery(humanIds: readonly string[]) {
-  const ids = [...new Set(humanIds.filter(Boolean))].sort();
+  const ids = [...new Set(humanIds.filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "fr"),
+  );
   const placeholders = ids.map(() => "?").join(", ");
   return {
     humanIds: ids,

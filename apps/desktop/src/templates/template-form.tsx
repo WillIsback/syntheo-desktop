@@ -62,6 +62,7 @@ function TemplateTargetsInput({
 
   return (
     <div
+      role="presentation"
       className="mt-2 flex min-h-6 w-full cursor-text flex-wrap items-center gap-1.5"
       onClick={() => {
         if (!isAddingTag) {

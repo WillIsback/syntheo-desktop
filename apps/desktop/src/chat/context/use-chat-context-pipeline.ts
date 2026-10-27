@@ -169,9 +169,11 @@ export function useChatContextPipeline({
     }
 
     return {
-      sessionIds: [...sessionIds].sort(),
-      humanIds: [...humanIds].sort(),
-      organizationIds: [...organizationIds].sort(),
+      sessionIds: [...sessionIds].sort((a, b) => a.localeCompare(b, "fr")),
+      humanIds: [...humanIds].sort((a, b) => a.localeCompare(b, "fr")),
+      organizationIds: [...organizationIds].sort((a, b) =>
+        a.localeCompare(b, "fr"),
+      ),
     };
   }, [committedRefs, pendingRefs]);
 
@@ -184,7 +186,7 @@ export function useChatContextPipeline({
         ids.add(human.organizationId);
       }
     }
-    return [...ids].sort();
+    return [...ids].sort((a, b) => a.localeCompare(b, "fr"));
   }, [humans, referencedIds.organizationIds]);
   const organizations = useOrganizationDisplayRecordsByIds(organizationIds);
 

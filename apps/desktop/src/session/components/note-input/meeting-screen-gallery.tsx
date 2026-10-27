@@ -45,6 +45,7 @@ export function MeetingScreenGallery({ sessionId }: { sessionId: string }) {
       data-meeting-screen-gallery
       className="border-border/70 bg-muted/30 mx-auto mt-4 mb-6 w-full max-w-3xl rounded-xl border px-3 py-2.5"
       onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
     >
       <h2 className="text-muted-foreground mb-2 text-xs font-medium">
         {t`Shared screens`}

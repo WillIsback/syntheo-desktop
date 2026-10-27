@@ -118,6 +118,7 @@ export function ParticipantInput({ sessionId }: { sessionId: string }) {
   return (
     <div className="relative" ref={setContainerRef}>
       <div
+        role="presentation"
         className="flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2"
         onClick={() => inputRef.current?.focus()}
       >

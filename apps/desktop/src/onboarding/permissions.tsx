@@ -154,7 +154,7 @@ function PermissionsSectionContent({
     // Assisted panes are granted by hand in System Settings; their request API
     // only prompts once, so every click after that would be a silent no-op.
     if (assisted || (opensSettingsWhenDenied && perm.status === "denied")) {
-      perm.open();
+      void perm.open();
     } else {
       perm.request();
     }

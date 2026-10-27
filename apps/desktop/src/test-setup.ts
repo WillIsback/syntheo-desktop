@@ -29,7 +29,9 @@ Object.defineProperty(globalThis.window, "__TAURI_INTERNALS__", {
       },
     },
     transformCallback: vi.fn((callback: unknown) => {
-      const callbackId = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER);
+      const callbackId = globalThis.crypto.getRandomValues(
+        new Uint32Array(1),
+      )[0];
       Object.assign(globalThis.window, {
         [`_${callbackId}`]: callback,
       });

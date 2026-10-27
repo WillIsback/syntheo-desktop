@@ -121,6 +121,7 @@ export const SessionNodeView = forwardRef<
     >
       <div
         data-session-row
+        role="presentation"
         onMouseDown={handleRowMouseDown}
         onClick={handleRowClick}
         className={cn([
