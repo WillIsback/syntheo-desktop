@@ -177,7 +177,6 @@ function HeaderMeetingAction({
   sessionId: string;
   event: {
     meeting_link?: string;
-    tracking_id?: string;
     started_at?: string;
   } | null;
   eventEnded: boolean;
