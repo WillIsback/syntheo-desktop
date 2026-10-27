@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { DesignColors } from "@anlg/design-system";
+
 const css = readFileSync(
   resolve(process.cwd(), "../../packages/design-system/src/tokens.css"),
   "utf8",
@@ -44,5 +46,16 @@ describe("palette Syntheo", () => {
     expect(dark["--background"]).toBe("220 6% 10%"); // #17181a
     expect(dark["--border"]).toBe("206 6% 25%"); // #3c4043
     expect(dark["--foreground"]).toBe("216 12% 92%"); // #e8eaed
+  });
+});
+
+describe("DesignColors Syntheo", () => {
+  it("aligne les tokens TS sur la palette CSS", () => {
+    expect(DesignColors.light.primary).toBe("#1A73E8");
+    expect(DesignColors.light.background).toBe("#F8F9FA");
+    expect(DesignColors.light.border).toBe("#E0E0E0");
+    expect(DesignColors.dark.primary).toBe("#8AB4F8");
+    expect(DesignColors.dark.background).toBe("#17181A");
+    expect(DesignColors.dark.border).toBe("#3C4043");
   });
 });

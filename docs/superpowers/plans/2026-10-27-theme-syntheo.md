@@ -386,7 +386,7 @@ export const DesignColors = {
     accent: "#2D3A4A",
     accentForeground: "#8AB4F8",
     destructive: "#8C2A26",
-    destructiveForeground: "#FAFAF9",
+    destructiveForeground: "#FAFAFA",
     alert: "#3A1C1A",
     alertForeground: "#F2B8B5",
     alertBorder: "#5C2B28",
