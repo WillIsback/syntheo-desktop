@@ -20,6 +20,12 @@ const appPath = process.env.APP_BINARY_PATH
   ? path.resolve(process.env.APP_BINARY_PATH)
   : defaultAppPath;
 
+// The virtual-audio suite needs PipeWire virtual sinks and NO_AEC=1, and each
+// spec file opens its own WebDriver session (and therefore its own
+// tauri-driver). Only collect it when explicitly enabled so the default run
+// stays a single session.
+const virtualAudioEnabled = process.env.E2E_VIRTUAL_AUDIO === "1";
+
 console.log("App binary path:", appPath);
 
 export const config = {
@@ -27,6 +33,7 @@ export const config = {
   runner: "local",
   port: 4444,
   specs: ["./tests/**/*.spec.ts"],
+  exclude: virtualAudioEnabled ? [] : ["./tests/linux-virtual-audio.spec.ts"],
   maxInstances: 1,
   capabilities: [
     {
@@ -41,7 +48,7 @@ export const config = {
   framework: "mocha",
   mochaOpts: {
     ui: "bdd",
-    timeout: process.env.E2E_VIRTUAL_AUDIO === "1" ? 180_000 : 60_000,
+    timeout: virtualAudioEnabled ? 180_000 : 60_000,
   },
   autoCompileOpts: {
     autoCompile: true,
