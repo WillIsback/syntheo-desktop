@@ -5,16 +5,11 @@ import { DEFAULT_MARKDOWN_EXPORT_OPTIONS } from "./markdown-export";
 const mocks = vi.hoisted(() => ({
   exportMeetingMarkdown: vi.fn(),
   prepareDriveMarkdown: vi.fn(),
-  googleDrivePrepareExport: vi.fn(),
-  googleDriveExportMarkdown: vi.fn(),
   getStoredSettingValues: vi.fn(),
   setSettingValue: vi.fn(),
   execute: vi.fn(),
   getSession: vi.fn(),
   sendSlackRecap: vi.fn(),
-  listConnections: vi.fn(),
-  linearCreateIssue: vi.fn(),
-  notionAppendUpdate: vi.fn(),
 }));
 
 vi.mock("@syntheo/plugin-local-api", () => ({
@@ -46,18 +41,6 @@ vi.mock("~/session-sharing/invitation-management", () => ({
   getSessionShareSenderName: () => "Test User",
 }));
 
-vi.mock("@syntheo/api-client", () => ({
-  googleDrivePrepareExport: mocks.googleDrivePrepareExport,
-  googleDriveExportMarkdown: mocks.googleDriveExportMarkdown,
-  listConnections: mocks.listConnections,
-  linearCreateIssue: mocks.linearCreateIssue,
-  notionAppendUpdate: mocks.notionAppendUpdate,
-}));
-
-vi.mock("@syntheo/api-client/client", () => ({
-  createClient: () => ({}),
-}));
-
 vi.mock("@syntheo/editor/markdown", () => ({
   json2md: (json: { text?: string }) => json.text ?? "",
 }));
@@ -87,15 +70,6 @@ function recordedRun(settingKey: string) {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.setSettingValue.mockResolvedValue(undefined);
-  mocks.listConnections.mockResolvedValue({
-    data: {
-      connections: [
-        { connection_id: "conn-linear", integration_id: "linear" },
-        { connection_id: "conn-notion", integration_id: "notion" },
-      ],
-    },
-    error: undefined,
-  });
 });
 
 describe("runMeetingCompletedAutomations (markdown export)", () => {
