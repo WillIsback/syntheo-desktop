@@ -2803,6 +2803,10 @@ msgstr "Réinstaller"
 msgid "Related Notes"
 msgstr "Notes associées"
 
+#: src/settings/general/meeting-settings.tsx
+msgid "Remind participants about recording"
+msgstr "Rappelez aux participants l'enregistrement"
+
 #: src/settings/todo/provider-content.tsx
 msgid "Reminders"
 msgstr "Rappels"
@@ -3208,6 +3212,10 @@ msgstr "Écrans partagés"
 #: src/session/components/note-input/header-shared-note.tsx
 msgid "Shared summary"
 msgstr "Résumé partagé"
+
+#: src/settings/general/meeting-settings.tsx
+msgid "Show a reminder when a recording starts."
+msgstr "Affichez un rappel lorsqu'un enregistrement commence."
 
 #: src/sidebar/timeline/item.tsx
 msgid "Show All Recurring Events"
