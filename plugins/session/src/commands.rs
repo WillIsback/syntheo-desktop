@@ -123,13 +123,6 @@ session_write_command!(
     ()
 );
 session_write_command!(
-    set_attachment_cloud_sync_enabled,
-    attachments,
-    set_attachment_cloud_sync_enabled,
-    attachments::SetAttachmentCloudSyncEnabledRequest,
-    ()
-);
-session_write_command!(
     tombstone_session_audio,
     attachments,
     tombstone_session_audio,

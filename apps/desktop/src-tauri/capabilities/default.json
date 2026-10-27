@@ -44,7 +44,7 @@
     "windows:allow-live-caption-current-state",
     "tracing:default",
     "syntheo-tray:default",
-    "attachment-sync:default",
+
     "agent:default",
     "deeplink2:default",
     "store:default",
