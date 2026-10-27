@@ -75,7 +75,6 @@
     "os:allow-hostname",
     "opener2:default",
     "mcp:default",
-    "messenger:default",
     "detect:default",
     "dock:default",
     "permissions:default",
