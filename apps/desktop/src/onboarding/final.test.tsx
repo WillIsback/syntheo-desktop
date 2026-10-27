@@ -17,10 +17,6 @@ const mocks = vi.hoisted(() => ({
   stopSfx: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-analytics", () => ({
-  commands: { event: mocks.analyticsEvent },
-}));
-
 vi.mock("@anlg/plugin-opener2", () => ({
   commands: { openUrl: vi.fn() },
 }));

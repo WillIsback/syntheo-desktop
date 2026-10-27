@@ -17,10 +17,6 @@ const mocks = vi.hoisted(() => ({
   listenerGetState: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-analytics", () => ({
-  commands: { event: mocks.analyticsEvent },
-}));
-
 vi.mock("~/session/content-queries", () => ({
   loadSessionContentSnapshot: mocks.loadSessionContentSnapshot,
 }));

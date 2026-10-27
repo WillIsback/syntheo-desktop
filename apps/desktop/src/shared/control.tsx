@@ -16,8 +16,6 @@ import {
 import { Button } from "@anlg/ui/components/ui/button";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
-import { captureOperationalError } from "~/error-reporting";
-
 const routeErrorKeys = new WeakMap<object, number>();
 let nextRouteErrorKey = 0;
 
@@ -37,20 +35,12 @@ function getRouteErrorKey(error: unknown) {
 }
 
 const ReportedErrorComponent = ({ error }: { error: Error }) => {
-  useMountEffect(() => {
-    captureOperationalError(error, {
-      operation: "route_render",
-    });
-  });
+  useMountEffect(() => {});
 
   const handleRestart = async () => {
     try {
       await relaunch();
-    } catch (err) {
-      captureOperationalError(err, {
-        operation: "app_restart",
-      });
-    }
+    } catch (err) {}
   };
 
   return (

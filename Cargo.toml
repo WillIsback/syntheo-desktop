@@ -21,7 +21,6 @@ members = [
 anlg-aec = { path = "crates/aec", package = "aec" }
 anlg-agent-access = { path = "crates/agent-access", package = "agent-access" }
 anlg-agent-core = { path = "crates/agent-core", package = "agent-core" }
-anlg-analytics = { path = "crates/analytics", package = "analytics" }
 anlg-api-client = { path = "crates/api-client", package = "api-client" }
 anlg-apple-calendar = { path = "crates/apple-calendar", package = "apple-calendar" }
 anlg-apple-todo = { path = "crates/apple-todo", package = "apple-todo" }
@@ -99,7 +98,6 @@ anlg-whisper = { path = "crates/whisper", package = "whisper" }
 anlg-ws-client = { path = "crates/ws-client", package = "ws-client" }
 anlg-zoom = { path = "crates/zoom", package = "zoom" }
 keyring = "4.1.4"
-posthog-rs = "0.27"
 progenitor-client = "0.13"
 
 openai-transcription = { path = "crates/openai-transcription", package = "openai-transcription" }
@@ -120,7 +118,6 @@ tauri-plugin-opener = "2.5"
 tauri-plugin-os = "2.3"
 tauri-plugin-prevent-default = "4"
 tauri-plugin-process = "2.3"
-tauri-plugin-sentry = "0.5"
 tauri-plugin-shell = "2.3"
 tauri-plugin-single-instance = "2.4"
 tauri-plugin-store = "2.4.3"
@@ -128,7 +125,6 @@ tauri-plugin-updater = "2.10"
 tauri-plugin-window-state = "2.4"
 
 tauri-plugin-agent = { path = "plugins/agent" }
-tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-attachment-sync = { path = "plugins/attachment-sync" }
 tauri-plugin-audio-priority = { path = "plugins/audio-priority" }
 tauri-plugin-calendar = { path = "plugins/calendar" }
@@ -240,7 +236,6 @@ chrono-tz = "0.10"
 
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 
-sentry = "=0.42.0"
 vergen-gix = "9"
 
 askama = "0.15"

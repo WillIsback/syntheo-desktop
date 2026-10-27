@@ -1,4 +1,3 @@
-use std::hash::{DefaultHasher, Hash, Hasher};
 use sysinfo::System;
 
 pub fn cpu_arch() -> String {
@@ -7,14 +6,6 @@ pub fn cpu_arch() -> String {
 
 pub fn long_os_version() -> String {
     System::long_os_version().unwrap_or("Unknown".to_string())
-}
-
-pub fn fingerprint() -> String {
-    let fingerprint = machine_uid::get().unwrap_or_default();
-
-    let mut hasher = DefaultHasher::new();
-    fingerprint.hash(&mut hasher);
-    format!("{:x}", hasher.finish())
 }
 
 pub enum ProcessMatcher {
@@ -46,17 +37,4 @@ pub fn kill_processes_by_matcher(matcher: ProcessMatcher) -> u16 {
     }
 
     killed_count
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn fingerprint_is_stable() {
-        let a = fingerprint();
-        let b = fingerprint();
-        assert_eq!(a, b);
-        assert!(!a.is_empty());
-    }
 }

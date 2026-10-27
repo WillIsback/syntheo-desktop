@@ -473,7 +473,7 @@ mod tests {
         .unwrap();
         assert!(initialize_managed(&args, true).await.is_err());
         assert!(!dir.path().join("app.db").exists());
-        std::fs::write(dir.path().join("managed_settings.json"),br#"{"schema_version":1,"settings":{"intelligence_disabled":true,"telemetry_consent":false,"crash_reporting_consent":false,"cloud_sync_enabled":false,"automatic_updates":false}}"#).unwrap();
+        std::fs::write(dir.path().join("managed_settings.json"),br#"{"schema_version":1,"settings":{"intelligence_disabled":true,"cloud_sync_enabled":false,"automatic_updates":false}}"#).unwrap();
         initialize_managed(&args, true).await.unwrap();
         let db = db::open(&args).await.unwrap();
         let values: Vec<(String, String)> =

@@ -83,9 +83,11 @@ une suppression, l'effacement est retenté au lancement suivant.
 
 - **Aucun compte ni authentification** : le code d'authentification hérité
   (Supabase, plugin `auth`) est supprimé.
-- **Aucune télémétrie émise** : analytics et Sentry sont neutralisés (client
-  d'analytics sans destination, Sentry jamais initialisé) ; leur code et leurs
-  dépendances sont encore présents et seront retirés.
+- **Aucune télémétrie, aucun rapport d'erreur** : le code d'analyse (PostHog)
+  et de rapport d'erreur (Sentry) est **retiré** (`crates/analytics`,
+  `plugins/analytics`, dépendances `posthog-rs`, `sentry`, `@sentry/react`),
+  ainsi que l'identifiant d'appareil qui n'existait que pour la télémétrie. Il
+  n'y a plus rien à désactiver.
 - **Clés dans le trousseau du système**, pas dans la base.
 - **Aucun audio sur disque, sur aucun chemin** : la session de capture ne
   démarre plus d'enregistreur, la rétention est figée à « aucune » et un test

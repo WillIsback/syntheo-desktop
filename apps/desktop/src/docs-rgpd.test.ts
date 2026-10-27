@@ -30,9 +30,9 @@ it("docs_rgpd_lists_every_known_flow_and_store", () => {
   for (const store of ["app.log", "tantivy", "export"]) {
     expect(rgpd).toContain(store);
   }
-  // Télémétrie : neutralisée, pas encore retirée du code.
-  expect(rgpd).toContain("neutralisé");
-  expect(rgpd).not.toContain("analytics et Sentry retirés");
+  // Télémétrie : retirée du code, plus seulement neutralisée.
+  expect(rgpd).toContain("Aucune télémétrie");
+  expect(rgpd).not.toContain("neutralisés");
   expect(rgpd).not.toContain("**Aucun autre flux**");
 });
 

@@ -37,36 +37,6 @@ pub struct Args {
 }
 
 impl Args {
-    pub fn analytics_command_name(&self) -> &'static str {
-        match &self.command {
-            Command::Doctor => "doctor",
-            Command::Meetings { command, .. } => match command {
-                MeetingCommand::Delete { .. } => "meetings_delete",
-                MeetingCommand::Capabilities => "meetings_capabilities",
-                MeetingCommand::InitializeManaged => "meetings_initialize_managed",
-                MeetingCommand::HoldList { .. } => "meetings_hold_list",
-                MeetingCommand::HoldExport { .. } => "meetings_hold_export",
-                MeetingCommand::PilotUsage { .. } => "meetings_pilot_usage",
-                MeetingCommand::Import { .. } => "meetings_import",
-                MeetingCommand::ImportStatus { .. } => "meetings_import_status",
-                MeetingCommand::List { .. } => "meetings_list",
-                MeetingCommand::Folders { .. } => "meetings_folders",
-                MeetingCommand::Get { .. } => "meetings_get",
-                MeetingCommand::Note { .. } => "meetings_note",
-                MeetingCommand::Transcript { .. } => "meetings_transcript",
-                MeetingCommand::History { .. } => "meetings_history",
-                MeetingCommand::Export { .. } => "meetings_export",
-            },
-            Command::Proposals { command } => match command {
-                ProposalCommand::Create { .. } => "proposals_create",
-                ProposalCommand::List { .. } => "proposals_list",
-                ProposalCommand::Show { .. } => "proposals_show",
-                ProposalCommand::Decline { .. } => "proposals_decline",
-            },
-            Command::Mcp => "mcp",
-        }
-    }
-
     pub fn needs_write(&self) -> bool {
         matches!(
             self.command,
