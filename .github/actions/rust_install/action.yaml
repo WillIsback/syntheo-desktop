@@ -15,9 +15,13 @@ runs:
         toolchain: ${{ steps.toolchain.outputs.channel }}
         components: ${{ steps.toolchain.outputs.components }}
 
+    # Les artefacts de compilation (target/) sont mis en cache par sccache
+    # dans le job Rust fusionné ; rust-cache ne conserve ici que le registre
+    # Cargo (~/.cargo/registry, ~/.cargo/git) pour éviter de cumuler deux
+    # backends sur le même target/.
     - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
       with:
-        cache-targets: "true"
+        cache-targets: "false"
         workspaces: |
           . -> target
           apps/desktop/src-tauri -> target
