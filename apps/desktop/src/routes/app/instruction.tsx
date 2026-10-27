@@ -7,9 +7,8 @@ import { dismissInstruction } from "@syntheo/plugin-windows";
 import { InstructionScreen } from "~/instruction";
 
 export const Route = createFileRoute("/app/instruction")({
-  validateSearch: (search): { url?: string; integrationId?: string } => ({
+  validateSearch: (search): { url?: string } => ({
     url: (search as { url?: string }).url,
-    integrationId: (search as { integrationId?: string }).integrationId,
   }),
   component: InstructionRoute,
 });
@@ -19,7 +18,7 @@ function useHandleBack() {
 }
 
 function InstructionRoute() {
-  const { url, integrationId } = Route.useSearch();
+  const { url } = Route.useSearch();
   const handleBack = useHandleBack();
   const onBack = useCallback(() => void handleBack(), [handleBack]);
   const onClose = useCallback(
@@ -27,12 +26,5 @@ function InstructionRoute() {
     [handleBack],
   );
 
-  return (
-    <InstructionScreen
-      url={url}
-      integrationId={integrationId}
-      onBack={onBack}
-      onClose={onClose}
-    />
-  );
+  return <InstructionScreen url={url} onBack={onBack} onClose={onClose} />;
 }
