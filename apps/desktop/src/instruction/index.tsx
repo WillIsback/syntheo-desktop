@@ -1,14 +1,8 @@
-import { Icon } from "@iconify-icon/react";
 import { Trans, useLingui } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 
 import { commands as openerCommands } from "@syntheo/plugin-opener2";
-import {
-  ArrowSquareOut,
-  CaretLeft,
-  GithubLogo,
-} from "@syntheo/ui/components/icons";
-import { OutlookIcon } from "@syntheo/ui/components/icons/outlook";
+import { ArrowSquareOut, CaretLeft } from "@syntheo/ui/components/icons";
 import { Button } from "@syntheo/ui/components/ui/button";
 import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 import { cn } from "@syntheo/utils";
@@ -150,71 +144,30 @@ function ExternalInstruction({
   );
 }
 
-// Seul l'écran générique « continuer dans le navigateur » reste : connexion et
-// facturation n'existent plus dans Syntheo.
+// Seul l'écran générique « continuer dans le navigateur » reste : connexion,
+// facturation et intégrations cloud n'existent plus dans Syntheo.
 export function InstructionScreen({
   onBack,
   onClose,
   url,
-  integrationId,
   onCleanup,
 }: {
   onBack: () => void;
   onClose: () => void;
   url?: string;
-  integrationId?: string;
   onCleanup?: () => void;
 }) {
   const { t } = useLingui();
   useInstructionCleanup(onCleanup);
 
-  const integration = getIntegrationInstruction(integrationId);
-
   return (
     <ExternalInstruction
-      title={
-        integration
-          ? t`Connect ${integration.displayName}`
-          : t`Connect your integration`
-      }
-      description={t`Authorize access in your browser, then return to Syntheo.`}
-      icon={integration?.icon}
+      title={t`Open in your browser`}
+      description={t`Continue in your browser, then return to Syntheo.`}
       actionLabel={t`Reopen in browser`}
       onBack={onBack}
       onClose={onClose}
       url={url}
     />
   );
-}
-
-function getIntegrationInstruction(integrationId?: string):
-  | {
-      displayName: string;
-      icon: ReactNode;
-    }
-  | undefined {
-  switch (integrationId) {
-    case "google-calendar":
-      return {
-        displayName: "Google Calendar",
-        icon: <Icon icon="logos:google-calendar" width={56} height={56} />,
-      };
-    case "outlook":
-      return {
-        displayName: "Outlook",
-        icon: <OutlookIcon size={56} />,
-      };
-    case "github":
-      return {
-        displayName: "GitHub",
-        icon: <GithubLogo className="text-foreground size-14" weight="light" />,
-      };
-    case "slack":
-      return {
-        displayName: "Slack",
-        icon: <Icon icon="logos:slack-icon" width={56} height={56} />,
-      };
-    default:
-      return undefined;
-  }
 }
