@@ -1,7 +1,7 @@
-import chroma from "chroma-js";
 import { type CSSProperties, useMemo } from "react";
 
 import type { SegmentKey, SegmentWord } from "~/stt/live-segment";
+import { speakerColor } from "~/stt/speaker-palette";
 
 export type HighlightSegment = { text: string; isMatch: boolean };
 
@@ -82,10 +82,7 @@ export function getActiveLineIndex(
   return null;
 }
 
-export function getSegmentColor(
-  key: SegmentKey,
-  mode: "light" | "dark" = "light",
-): string {
+export function getSegmentColor(key: SegmentKey): string {
   let speakerIndex = key.speaker_index ?? 0;
   if (key.speaker_human_id) {
     speakerIndex = 0;
@@ -95,21 +92,15 @@ export function getSegmentColor(
     }
   }
 
-  const channelOffset = key.speaker_human_id
-    ? 0
-    : key.channel === "RemoteParty"
-      ? 180
-      : 0;
-  // Golden-angle spacing keeps consecutive speakers visually distinct.
-  const hue = (10 + speakerIndex * 137.508 + channelOffset) % 360;
-
-  return chroma.oklch(mode === "dark" ? 0.72 : 0.55, 0.15, hue).hex();
+  // Palette Syntheo s1–s4 : couleur stable et cyclique par locuteur.
+  return speakerColor(speakerIndex);
 }
 
 export function getSegmentColorVars(key: SegmentKey): SegmentColorVars {
+  const color = getSegmentColor(key);
   return {
-    "--segment-color-light": getSegmentColor(key),
-    "--segment-color-dark": getSegmentColor(key, "dark"),
+    "--segment-color-light": color,
+    "--segment-color-dark": color,
   };
 }
 
