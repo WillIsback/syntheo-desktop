@@ -248,7 +248,7 @@ async fn migrations_seed_default_templates_without_overwriting_existing_rows() {
     upsert_template(
         db.pool(),
         UpsertTemplate {
-            id: "default-daily-standup",
+            id: "custom-standup",
             title: "Custom Standup",
             description: "Keep user edit",
             pinned: true,
@@ -264,10 +264,11 @@ async fn migrations_seed_default_templates_without_overwriting_existing_rows() {
     syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let rows = list_templates(db.pool()).await.unwrap();
-    assert_eq!(rows.len(), 17);
+    assert_eq!(rows.len(), 22);
     assert_eq!(
         rows.iter().map(|row| row.id.as_str()).collect::<Vec<_>>(),
         vec![
+            "custom-standup",
             "default-board-meeting",
             "default-brainstorming-session",
             "default-client-kickoff",
@@ -285,24 +286,29 @@ async fn migrations_seed_default_templates_without_overwriting_existing_rows() {
             "default-sprint-planning",
             "default-sprint-retrospective",
             "default-technical-design-review",
+            "syntheo-compliance",
+            "syntheo-general",
+            "syntheo-project",
+            "syntheo-standup",
         ]
     );
 
-    let custom_row = get_template(db.pool(), "default-daily-standup")
+    let custom_row = get_template(db.pool(), "custom-standup")
         .await
         .unwrap()
         .unwrap();
     assert_eq!(custom_row.title, "Custom Standup");
     assert_eq!(custom_row.description, "Keep user edit");
 
+    // Les 17 templates par défaut sont traduits sur place par la migration Syntheo.
     let seeded_row = get_template(db.pool(), "default-sales-discovery-call")
         .await
         .unwrap()
         .unwrap();
-    assert_eq!(seeded_row.title, "Sales Discovery Call");
+    assert_eq!(seeded_row.title, "Appel de découverte commerciale");
     assert_eq!(
         seeded_row.targets_json.as_deref(),
-        Some("[\"Account Executive\",\"Sales Rep\",\"BDR\"]")
+        Some("[\"Commercial grands comptes\",\"Commercial\",\"Business developer\"]")
     );
 }
 
