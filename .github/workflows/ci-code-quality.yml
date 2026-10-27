@@ -71,10 +71,16 @@ jobs:
           pnpm -F ui build
           pnpm -F desktop typecheck
 
+  # Job Rust unique : métadonnées, clippy et tests partagent le même target/
+  # compilé une seule fois (l'ancien découpage recompilait tout le workspace
+  # deux fois, clippy et test étant deux jobs distincts).
   rust:
     name: ci-code-quality (Rust)
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 60
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Checkout du code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -86,6 +92,11 @@ jobs:
 
       - name: Toolchain Rust
         uses: ./.github/actions/rust_install
+
+      # Cache du compilateur partagé entre jobs et entre runs (backend cache
+      # Actions). rust-cache ne conserve que le registre (voir rust_install).
+      - name: Cache du compilateur (sccache)
+        uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad # v0.0.9
 
       - name: Intégrité du lockfile Cargo
         run: |
@@ -104,6 +115,14 @@ jobs:
           cargo clippy --locked --no-deps \
             -p desktop -p owhisper-client -p template-app -p db-app -p listener-core \
             --all-targets -- -D warnings
+
+      # Crates portant les chantiers Syntheo : templates et prompts, schéma
+      # SQLite, adaptateurs STT, capture (règle « aucun audio sur disque »).
+      - name: Tests Rust
+        run: |
+          set -euo pipefail
+          cargo test --locked \
+            -p template-app -p db-app -p owhisper-client -p listener-core -p storage
 
   meta:
     name: ci-code-quality (PR et workflows)
