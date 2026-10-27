@@ -2,16 +2,16 @@ import { Icon } from "@iconify-icon/react";
 import { Trans, useLingui } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
 import {
   ArrowSquareOut,
   CaretLeft,
   GithubLogo,
-} from "@anlg/ui/components/icons";
-import { OutlookIcon } from "@anlg/ui/components/icons/outlook";
-import { Button } from "@anlg/ui/components/ui/button";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { OutlookIcon } from "@syntheo/ui/components/icons/outlook";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import { WindowsWindowControls } from "~/main/windows-window-controls";
 import { useLatestRef } from "~/shared/hooks/useLatestRef";
@@ -81,7 +81,7 @@ function InstructionShell({
         <div className="flex w-full max-w-sm flex-col items-center gap-6 px-10 pb-10 text-center">
           {icon ?? (
             <img
-              src="/assets/anarlog-icon.png"
+              src="/assets/syntheo-icon.png"
               alt=""
               className="h-14 w-14 object-contain object-center"
             />
@@ -177,7 +177,7 @@ export function InstructionScreen({
           ? t`Connect ${integration.displayName}`
           : t`Connect your integration`
       }
-      description={t`Authorize access in your browser, then return to Anarlog.`}
+      description={t`Authorize access in your browser, then return to Syntheo.`}
       icon={integration?.icon}
       actionLabel={t`Reopen in browser`}
       onBack={onBack}

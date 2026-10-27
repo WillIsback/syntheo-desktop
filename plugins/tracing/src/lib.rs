@@ -14,11 +14,11 @@ use tracing_subscriber::{
 };
 
 const PLUGIN_NAME: &str = "tracing";
-const WEBVIEW_CONSOLE_TARGET: &str = "anarlog.webview.console";
+const WEBVIEW_CONSOLE_TARGET: &str = "syntheo.webview.console";
 
 fn is_webview_console_target(target: &str) -> bool {
     target == WEBVIEW_CONSOLE_TARGET
-        || target == "hyprnote.webview.console"
+        || target == "syntheo.webview.console"
         || target.starts_with("tauri_plugin_tracing")
 }
 
@@ -134,7 +134,7 @@ mod test {
 
     fn create_mock_app() -> tauri::App<tauri::test::MockRuntime> {
         let mut ctx = tauri::test::mock_context(tauri::test::noop_assets());
-        ctx.config_mut().identifier = "com.hyprnote.dev".to_string();
+        ctx.config_mut().identifier = "com.syntheo.dev".to_string();
         ctx.config_mut().version = Some("0.0.1".to_string());
 
         tauri::test::mock_builder().build(ctx).unwrap()

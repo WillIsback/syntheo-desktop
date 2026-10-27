@@ -1,4 +1,4 @@
-import type { EventParticipant, SessionEvent } from "@anlg/store";
+import type { EventParticipant, SessionEvent } from "@syntheo/store";
 
 import {
   inferCompanyNameFromEmail,

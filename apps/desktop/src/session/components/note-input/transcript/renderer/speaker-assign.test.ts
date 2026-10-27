@@ -41,7 +41,7 @@ const {
   useSessionParticipantsMock: vi.fn(),
 }));
 
-vi.mock("@anlg/ui/components/ui/popover", async () => {
+vi.mock("@syntheo/ui/components/ui/popover", async () => {
   const React = await vi.importActual<typeof import("react")>("react");
   const PopoverContext = React.createContext<{
     open: boolean;
@@ -104,7 +104,7 @@ vi.mock("@anlg/ui/components/ui/popover", async () => {
   };
 });
 
-vi.mock("@anlg/ui/components/ui/checkbox", () => ({
+vi.mock("@syntheo/ui/components/ui/checkbox", () => ({
   Checkbox: ({
     checked,
     onCheckedChange,

@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   tabsGetState: vi.fn(),
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { warning: mocks.toastWarning },
 }));
 

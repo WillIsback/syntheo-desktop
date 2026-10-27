@@ -1,5 +1,5 @@
-import { Pencil } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { Pencil } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 
 import { defineTool } from "./define-tool";
 import {

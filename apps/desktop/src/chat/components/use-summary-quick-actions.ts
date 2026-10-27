@@ -2,7 +2,7 @@ import {
   computeCurrentNoteTab,
   hasSummaryContent,
   type SessionNoteView,
-} from "@anlg/utils/session";
+} from "@syntheo/utils/session";
 
 import { useIsSessionEnhancing } from "~/session/hooks/useEnhancedNotes";
 import { useEnhancedNoteRecords, useSession } from "~/session/queries";

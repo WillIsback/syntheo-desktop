@@ -5,10 +5,10 @@
   },
   "plugins": [
     {
-      "name": "anarlog",
+      "name": "syntheo",
       "source": {
         "source": "local",
-        "path": "./agent-plugins/anarlog"
+        "path": "./agent-plugins/syntheo"
       },
       "policy": {
         "installation": "AVAILABLE",

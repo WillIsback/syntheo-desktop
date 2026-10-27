@@ -8,14 +8,14 @@ import {
   MagnifyingGlass,
   Plus,
   X,
-} from "@anlg/ui/components/icons";
+} from "@syntheo/ui/components/icons";
 import {
   AppFloatingPanel,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anlg/ui/components/ui/popover";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { cn } from "@syntheo/utils";
 
 import { useWebResources } from "~/shared/ui/resource-list";
 import {

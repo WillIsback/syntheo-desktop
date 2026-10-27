@@ -2,7 +2,7 @@ import {
   getSummaryEligibility,
   type SummaryEligibility,
   type SummaryEligibilitySkipCode,
-} from "@anlg/utils/summary-eligibility";
+} from "@syntheo/utils/summary-eligibility";
 
 import { countTranscriptWordCharacters } from "./summary-length";
 

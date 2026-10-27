@@ -3,7 +3,7 @@ use objc2::{MainThreadOnly, define_class, msg_send};
 use objc2_app_kit::{NSControlStateValueOn, NSSwitch, NSView};
 use objc2_foundation::{MainThreadMarker, NSObjectProtocol, NSPoint};
 
-use anlg_overlay_kit::macos::support::rect;
+use syntheo_overlay_kit::macos::support::rect;
 
 #[derive(Debug, Default)]
 pub(crate) struct DecorativeSwitchIvars {}
@@ -11,7 +11,7 @@ pub(crate) struct DecorativeSwitchIvars {}
 define_class! {
     #[unsafe(super(NSSwitch))]
     #[thread_kind = MainThreadOnly]
-    #[name = "AnarlogPermissionAssistantDecorativeSwitch"]
+    #[name = "SyntheoPermissionAssistantDecorativeSwitch"]
     #[ivars = DecorativeSwitchIvars]
     pub(crate) struct DecorativeSwitch;
 

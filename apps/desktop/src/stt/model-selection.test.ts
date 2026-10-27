@@ -13,8 +13,8 @@ describe("normalizeStoredSttSelection", () => {
     },
   );
 
-  it("clears_the_hosted_anarlog_model", () => {
-    expect(normalizeStoredSttSelection("anarlog", "cloud")).toEqual({
+  it("clears_the_hosted_syntheo_model", () => {
+    expect(normalizeStoredSttSelection("syntheo", "cloud")).toEqual({
       provider: "",
       model: "",
     });
@@ -24,8 +24,8 @@ describe("normalizeStoredSttSelection", () => {
     ["soniqo", "soniqo-parakeet-streaming"],
     ["apple_speech", "apple-speech"],
     ["local_file", "local-file"],
-    ["anarlog", "soniqo-parakeet-batch"],
-    ["anarlog", "am-parakeet-v3"],
+    ["syntheo", "soniqo-parakeet-batch"],
+    ["syntheo", "am-parakeet-v3"],
   ])("clears_local_stt_selection %s/%s", (provider, model) => {
     expect(normalizeStoredSttSelection(provider, model)).toEqual({
       provider: "",

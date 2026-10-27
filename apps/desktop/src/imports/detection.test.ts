@@ -7,7 +7,7 @@ const { getInstalledApplicationIcons, listInstalledApplications } = vi.hoisted(
   }),
 );
 
-vi.mock("@anlg/plugin-detect", () => ({
+vi.mock("@syntheo/plugin-detect", () => ({
   commands: { getInstalledApplicationIcons, listInstalledApplications },
 }));
 

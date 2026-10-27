@@ -131,7 +131,7 @@ pub async fn clear_capture_audio_saved(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     async fn saved_at(pool: &SqlitePool) -> Option<String> {
         sqlx::query_scalar("SELECT updated_at FROM app_settings WHERE id = ?")

@@ -8,7 +8,7 @@ import test from "node:test";
 import { changelogBaseline } from "./changelog-baseline.mjs";
 
 test("release notes include post-beta fixes, honor explicit promotion sources and identify initial releases", (t) => {
-  const cwd = mkdtempSync(join(tmpdir(), "anarlog-changelog-baseline-"));
+  const cwd = mkdtempSync(join(tmpdir(), "syntheo-changelog-baseline-"));
   t.after(() => rmSync(cwd, { recursive: true, force: true }));
   const git = (...args) =>
     execFileSync("git", args, {

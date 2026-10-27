@@ -1,20 +1,20 @@
 ---
 name: update-prs
-description: Use only in the Anarlog repository when the active checkout branch is exactly gitbutler/workspace. Update titles and descriptions of all active PRs in the current GitButler workspace from each PR's complete published diff, including follow-up fixes, while preserving GitButler stack metadata and repository templates.
+description: Use only in the Syntheo repository when the active checkout branch is exactly gitbutler/workspace. Update titles and descriptions of all active PRs in the current GitButler workspace from each PR's complete published diff, including follow-up fixes, while preserving GitButler stack metadata and repository templates.
 ---
 
 # Update workspace PR titles and descriptions
 
 ## Applicability
 
-Use only in the Anarlog repository or its checkouts/worktrees when the active
+Use only in the Syntheo repository or its checkouts/worktrees when the active
 checkout branch is exactly `gitbutler/workspace`. Before running this workflow,
 check with `git symbolic-ref --quiet --short HEAD` (a read-only branch check).
 On any other branch or detached HEAD, skip this skill and use the normal Git
 workflow. Do not initialize GitButler or switch branches to activate the skill.
 Use this checkout's skills, not a global copy or another checkout's skills.
 
-Use this skill when asked to refresh active PR titles and descriptions in the Anarlog
+Use this skill when asked to refresh active PR titles and descriptions in the Syntheo
 GitButler workspace.
 
 Read the repository-local [but](../gitbutler/SKILL.md) skill and the active repository's AGENTS.md and workflow

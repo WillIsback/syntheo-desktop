@@ -1,6 +1,6 @@
 use crate::{Event, Participant, Transcript, common_derives};
 #[allow(unused_imports)]
-use anlg_askama_utils::filters;
+use syntheo_askama_utils::filters;
 
 common_derives! {
     pub struct SessionContext {
@@ -42,7 +42,7 @@ impl ContextBlock {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_askama_utils::tpl_snapshot_with_assert;
+    use syntheo_askama_utils::tpl_snapshot_with_assert;
 
     tpl_snapshot_with_assert!(
         test_context_block_wrapped,

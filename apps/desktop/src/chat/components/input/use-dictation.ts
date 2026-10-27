@@ -1,11 +1,11 @@
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useRef, useState } from "react";
 
-import type { ChatEditorHandle } from "@anlg/editor/chat";
-import { commands as dictationCommands } from "@anlg/plugin-dictation";
-import { commands as transcriptionCommands } from "@anlg/plugin-transcription";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import type { ChatEditorHandle } from "@syntheo/editor/chat";
+import { commands as dictationCommands } from "@syntheo/plugin-dictation";
+import { commands as transcriptionCommands } from "@syntheo/plugin-transcription";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { useConfigValue } from "~/shared/config";
 import { useTabs } from "~/store/zustand/tabs";
@@ -90,7 +90,7 @@ export function useDictation({
       }
       if (captureState.data !== "inactive") {
         toast.warning(
-          t`Voice input is unavailable while Anarlog is recording a meeting.`,
+          t`Voice input is unavailable while Syntheo is recording a meeting.`,
         );
         setPhase("idle");
         return;

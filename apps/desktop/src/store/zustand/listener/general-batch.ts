@@ -7,7 +7,7 @@ import {
   type TranscriptionSession,
   commands as transcriptionCommands,
   events as transcriptionEvents,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import {
   EMPTY_BATCH_TRANSCRIPT_ERROR,

@@ -79,8 +79,8 @@ import {
   VideoCamera,
   WarningCircle,
   Wrench,
-} from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 export type TemplateIcon =
   | { type: "icon"; value: string; color: string }

@@ -5,14 +5,14 @@ use std::io::Write;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use anlg_db_core::{
-    CloudsyncAuth, CloudsyncNetworkResult, CloudsyncRuntimeConfig, Db, DbOpenOptions, DbStorage,
-};
-use anlg_e2ee::{RecoveryKey, WorkspaceKeyring};
 use db_app::{
     apply_e2ee_replica_changes, claim_cloudsync_workspace, cloudsync_table_registry,
     encrypt_e2ee_replica_changes, prepare_schema,
 };
+use syntheo_db_core::{
+    CloudsyncAuth, CloudsyncNetworkResult, CloudsyncRuntimeConfig, Db, DbOpenOptions, DbStorage,
+};
+use syntheo_e2ee::{RecoveryKey, WorkspaceKeyring};
 
 const SYNC_TIMEOUT: Duration = Duration::from_secs(90);
 const SYNC_ATTEMPTS: usize = 3;
@@ -24,14 +24,14 @@ const REPLICA_VISIBILITY_POLL_INTERVAL: Duration = Duration::from_secs(2);
 // A fresh site's first download waits while the provider prepares a snapshot of the
 // whole tenant history, so it grows with every account's data (sqliteai/sqlite-sync#80,
 // #81). This deadline only catches a stuck bootstrap; the latency itself is reported
-// through ANARLOG_CLOUDSYNC_LATENCY_LOG and judged by the deployment verifier.
+// through SYNTHEO_CLOUDSYNC_LATENCY_LOG and judged by the deployment verifier.
 const FRESH_SITE_BOOTSTRAP_TIMEOUT: Duration = Duration::from_secs(180);
-const LATENCY_LOG_ENV: &str = "ANARLOG_CLOUDSYNC_LATENCY_LOG";
+const LATENCY_LOG_ENV: &str = "SYNTHEO_CLOUDSYNC_LATENCY_LOG";
 
 fn cloudsync_config(auth: CloudsyncAuth, wait_ms: i64, max_retries: i64) -> CloudsyncRuntimeConfig {
     CloudsyncRuntimeConfig {
-        connection_string: std::env::var("ANARLOG_CLOUDSYNC_E2EE_DATABASE_ID")
-            .expect("ANARLOG_CLOUDSYNC_E2EE_DATABASE_ID must be set"),
+        connection_string: std::env::var("SYNTHEO_CLOUDSYNC_E2EE_DATABASE_ID")
+            .expect("SYNTHEO_CLOUDSYNC_E2EE_DATABASE_ID must be set"),
         auth,
         tables: cloudsync_table_registry().to_vec(),
         sync_interval_ms: 86_400_000,
@@ -667,13 +667,13 @@ fn cloudsync_enables_only_the_encrypted_replica() {
 }
 
 #[tokio::test]
-#[ignore = "external E2EE verification only; requires ANARLOG_CLOUDSYNC_E2EE_DATABASE_ID, ANARLOG_CLOUDSYNC_WORKSPACE_A, ANARLOG_CLOUDSYNC_TOKEN_A, and ANARLOG_CLOUDSYNC_RECOVERY_KEY_A"]
+#[ignore = "external E2EE verification only; requires SYNTHEO_CLOUDSYNC_E2EE_DATABASE_ID, SYNTHEO_CLOUDSYNC_WORKSPACE_A, SYNTHEO_CLOUDSYNC_TOKEN_A, and SYNTHEO_CLOUDSYNC_RECOVERY_KEY_A"]
 async fn same_personal_workspace_syncs_and_decrypts_a_real_note() {
-    let workspace_id = std::env::var("ANARLOG_CLOUDSYNC_WORKSPACE_A")
-        .expect("ANARLOG_CLOUDSYNC_WORKSPACE_A must be set");
+    let workspace_id = std::env::var("SYNTHEO_CLOUDSYNC_WORKSPACE_A")
+        .expect("SYNTHEO_CLOUDSYNC_WORKSPACE_A must be set");
     let token =
-        std::env::var("ANARLOG_CLOUDSYNC_TOKEN_A").expect("ANARLOG_CLOUDSYNC_TOKEN_A must be set");
-    let keys = workspace_keys(&workspace_id, "ANARLOG_CLOUDSYNC_RECOVERY_KEY_A");
+        std::env::var("SYNTHEO_CLOUDSYNC_TOKEN_A").expect("SYNTHEO_CLOUDSYNC_TOKEN_A must be set");
+    let keys = workspace_keys(&workspace_id, "SYNTHEO_CLOUDSYNC_RECOVERY_KEY_A");
     let marker = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -747,18 +747,18 @@ async fn same_personal_workspace_syncs_and_decrypts_a_real_note() {
 }
 
 #[tokio::test]
-#[ignore = "external E2EE policy verification only; requires ANARLOG_CLOUDSYNC_E2EE_DATABASE_ID, ANARLOG_CLOUDSYNC_WORKSPACE_A/B, ANARLOG_CLOUDSYNC_TOKEN_A/B, and ANARLOG_CLOUDSYNC_RECOVERY_KEY_B"]
+#[ignore = "external E2EE policy verification only; requires SYNTHEO_CLOUDSYNC_E2EE_DATABASE_ID, SYNTHEO_CLOUDSYNC_WORKSPACE_A/B, SYNTHEO_CLOUDSYNC_TOKEN_A/B, and SYNTHEO_CLOUDSYNC_RECOVERY_KEY_B"]
 async fn personal_workspace_tokens_block_foreign_encrypted_writes() {
-    let workspace_a = std::env::var("ANARLOG_CLOUDSYNC_WORKSPACE_A")
-        .expect("ANARLOG_CLOUDSYNC_WORKSPACE_A must be set");
-    let workspace_b = std::env::var("ANARLOG_CLOUDSYNC_WORKSPACE_B")
-        .expect("ANARLOG_CLOUDSYNC_WORKSPACE_B must be set");
+    let workspace_a = std::env::var("SYNTHEO_CLOUDSYNC_WORKSPACE_A")
+        .expect("SYNTHEO_CLOUDSYNC_WORKSPACE_A must be set");
+    let workspace_b = std::env::var("SYNTHEO_CLOUDSYNC_WORKSPACE_B")
+        .expect("SYNTHEO_CLOUDSYNC_WORKSPACE_B must be set");
     assert_ne!(workspace_a, workspace_b);
     let token_a =
-        std::env::var("ANARLOG_CLOUDSYNC_TOKEN_A").expect("ANARLOG_CLOUDSYNC_TOKEN_A must be set");
+        std::env::var("SYNTHEO_CLOUDSYNC_TOKEN_A").expect("SYNTHEO_CLOUDSYNC_TOKEN_A must be set");
     let token_b =
-        std::env::var("ANARLOG_CLOUDSYNC_TOKEN_B").expect("ANARLOG_CLOUDSYNC_TOKEN_B must be set");
-    let keys_b = workspace_keys(&workspace_b, "ANARLOG_CLOUDSYNC_RECOVERY_KEY_B");
+        std::env::var("SYNTHEO_CLOUDSYNC_TOKEN_B").expect("SYNTHEO_CLOUDSYNC_TOKEN_B must be set");
+    let keys_b = workspace_keys(&workspace_b, "SYNTHEO_CLOUDSYNC_RECOVERY_KEY_B");
     let marker = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -1033,12 +1033,12 @@ async fn personal_workspace_tokens_block_foreign_encrypted_writes() {
 }
 
 #[tokio::test]
-#[ignore = "deployment cleanup only; requires ANARLOG_CLOUDSYNC_E2EE_DATABASE_ID, ANARLOG_CLOUDSYNC_WORKSPACE_A/B with deploy-e2ee-a-/deploy-e2ee-b- prefixes, and ANARLOG_CLOUDSYNC_TOKEN_A/B"]
+#[ignore = "deployment cleanup only; requires SYNTHEO_CLOUDSYNC_E2EE_DATABASE_ID, SYNTHEO_CLOUDSYNC_WORKSPACE_A/B with deploy-e2ee-a-/deploy-e2ee-b- prefixes, and SYNTHEO_CLOUDSYNC_TOKEN_A/B"]
 async fn cleanup_e2ee_verification_workspaces() {
-    let workspace_a = std::env::var("ANARLOG_CLOUDSYNC_WORKSPACE_A")
-        .expect("ANARLOG_CLOUDSYNC_WORKSPACE_A must be set");
-    let workspace_b = std::env::var("ANARLOG_CLOUDSYNC_WORKSPACE_B")
-        .expect("ANARLOG_CLOUDSYNC_WORKSPACE_B must be set");
+    let workspace_a = std::env::var("SYNTHEO_CLOUDSYNC_WORKSPACE_A")
+        .expect("SYNTHEO_CLOUDSYNC_WORKSPACE_A must be set");
+    let workspace_b = std::env::var("SYNTHEO_CLOUDSYNC_WORKSPACE_B")
+        .expect("SYNTHEO_CLOUDSYNC_WORKSPACE_B must be set");
     assert!(
         workspace_a.starts_with("deploy-e2ee-a-"),
         "cleanup is restricted to deploy-e2ee-a-* workspaces"
@@ -1048,9 +1048,9 @@ async fn cleanup_e2ee_verification_workspaces() {
         "cleanup is restricted to deploy-e2ee-b-* workspaces"
     );
     let token_a =
-        std::env::var("ANARLOG_CLOUDSYNC_TOKEN_A").expect("ANARLOG_CLOUDSYNC_TOKEN_A must be set");
+        std::env::var("SYNTHEO_CLOUDSYNC_TOKEN_A").expect("SYNTHEO_CLOUDSYNC_TOKEN_A must be set");
     let token_b =
-        std::env::var("ANARLOG_CLOUDSYNC_TOKEN_B").expect("ANARLOG_CLOUDSYNC_TOKEN_B must be set");
+        std::env::var("SYNTHEO_CLOUDSYNC_TOKEN_B").expect("SYNTHEO_CLOUDSYNC_TOKEN_B must be set");
 
     let cleanup_a = tokio::spawn(async move {
         cleanup_verification_workspace(&token_a, &workspace_a, "workspace A verification").await;
@@ -1080,7 +1080,7 @@ fn upload_step(
     last_failure: Option<serde_json::Value>,
 ) -> CloudsyncNetworkResult {
     CloudsyncNetworkResult {
-        send: Some(anlg_cloudsync::NetworkSendResult {
+        send: Some(syntheo_cloudsync::NetworkSendResult {
             status: status.to_string(),
             local_version: 2,
             server_version,
@@ -1088,7 +1088,7 @@ fn upload_step(
             bytes: 1024,
             last_failure,
         }),
-        receive: Some(anlg_cloudsync::NetworkReceiveResult {
+        receive: Some(syntheo_cloudsync::NetworkReceiveResult {
             rows: 0,
             tables: Vec::new(),
             chunks: 0,

@@ -1,4 +1,4 @@
-import type { SearchFilters as TantivySearchFilters } from "@anlg/plugin-tantivy";
+import type { SearchFilters as TantivySearchFilters } from "@syntheo/plugin-tantivy";
 
 import type { SearchFilters } from "./types";
 

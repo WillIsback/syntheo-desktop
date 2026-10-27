@@ -49,11 +49,11 @@ vi.mock("../shared", () => ({
     mocks.hasTranscriptBySession[sessionId] ?? false,
 }));
 
-vi.mock("@anlg/plugin-opener2", () => ({
+vi.mock("@syntheo/plugin-opener2", () => ({
   commands: { openUrl: mocks.openUrl },
 }));
 
-vi.mock("@anlg/plugin-deeplink2", () => ({
+vi.mock("@syntheo/plugin-deeplink2", () => ({
   commands: { startCallbackServer: mocks.startCallbackServer },
 }));
 
@@ -110,8 +110,9 @@ import { OuterHeader } from "./index";
 
 const MEET_LINK = "https://meet.google.com/abc-defg-hij";
 const DEMO_EVENT = {
-  tracking_id: "anarlog-onboarding-demo-v1",
-  meeting_link: "https://anarlog.so/onboarding-demo/",
+  tracking_id: "syntheo-onboarding-demo-v1",
+  meeting_link:
+    "https://github.com/WillIsback/syntheo-desktop/onboarding-demo/",
 };
 const scheduled = (meeting_link?: string) => ({
   title: "Design Review",
@@ -199,7 +200,7 @@ describe("OuterHeader", () => {
     mocks.startCallbackServer.mockReset();
     mocks.startCallbackServer.mockResolvedValue({ status: "ok", data: 43210 });
     mocks.getScheme.mockReset();
-    mocks.getScheme.mockResolvedValue("anarlog-dev");
+    mocks.getScheme.mockResolvedValue("syntheo-dev");
     mocks.startListening.mockClear();
     mocks.stopListening.mockClear();
     mocks.requestMainListenerControl.mockClear();
@@ -332,7 +333,7 @@ describe("OuterHeader", () => {
     expect(mocks.startListening).toHaveBeenCalledOnce();
     await vi.waitFor(() => {
       expect(mocks.startCallbackServer).toHaveBeenCalledWith(
-        "anarlog-dev",
+        "syntheo-dev",
         null,
       );
       expect(mocks.openUrl).toHaveBeenCalledOnce();
@@ -340,7 +341,7 @@ describe("OuterHeader", () => {
 
     const openedUrl = new URL(mocks.openUrl.mock.calls[0][0]);
     expect(openedUrl.origin + openedUrl.pathname).toBe(
-      "https://anarlog.so/onboarding-demo/",
+      "https://github.com/WillIsback/syntheo-desktop/onboarding-demo/",
     );
     expect(openedUrl.searchParams.get("autojoin")).toBe("1");
     expect(openedUrl.searchParams.get("completion_url")).toBe(

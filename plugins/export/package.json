@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-export",
+  "name": "@syntheo/plugin-export",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

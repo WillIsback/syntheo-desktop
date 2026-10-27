@@ -1,5 +1,5 @@
-use anlg_db_core::Db;
 use sqlx::{Row, SqlitePool};
+use syntheo_db_core::Db;
 
 use crate::attachments::{
     CatalogNoteAttachmentRequest, CatalogSessionAudioRequest, SessionAudioRequest,
@@ -23,7 +23,7 @@ const SHA_B: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 
 async fn test_db() -> Db {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     db
 }
 

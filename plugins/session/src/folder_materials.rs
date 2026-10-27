@@ -30,7 +30,7 @@ pub async fn catalog_folder_material(
         .await
         .map_err(|error| error.to_string())?;
 
-    let updated = anlg_db_app::update_folder_attachment(
+    let updated = syntheo_db_app::update_folder_attachment(
         &mut transaction,
         &request.filename,
         &request.content_type,
@@ -43,7 +43,7 @@ pub async fn catalog_folder_material(
     .await
     .map_err(|error| error.to_string())?;
 
-    let inserted = anlg_db_app::insert_folder_attachment(
+    let inserted = syntheo_db_app::insert_folder_attachment(
         &mut transaction,
         &metadata_id,
         &request.folder_path,
@@ -78,7 +78,7 @@ pub async fn tombstone_folder_material(
         .await
         .map_err(|error| error.to_string())?;
 
-    let updated = anlg_db_app::tombstone_folder_attachment(
+    let updated = syntheo_db_app::tombstone_folder_attachment(
         &mut transaction,
         &request.folder_path,
         &relative_path,

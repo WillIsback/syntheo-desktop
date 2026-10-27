@@ -1,4 +1,4 @@
-use anlg_db_core::{Db, cloudsync_receive_error};
+use syntheo_db_core::{Db, cloudsync_receive_error};
 
 use super::sync_result::{
     cloudsync_receive_delivered, cloudsync_receive_delivered_final, cloudsync_send_completed,
@@ -22,7 +22,7 @@ const E2EE_CLOUDSYNC_WITNESS_REPAIR_BYTE_LIMIT: usize = 16 * 1024 * 1024;
 
 pub(super) struct CloudsyncFullResyncTask {
     #[cfg(test)]
-    pub(super) config: anlg_db_core::CloudsyncRuntimeConfig,
+    pub(super) config: syntheo_db_core::CloudsyncRuntimeConfig,
     #[cfg(test)]
     pub(super) generation: String,
     pub(super) shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
@@ -137,7 +137,7 @@ impl PluginDbRuntime {
     pub(super) async fn schedule_cloudsync_full_resync(
         &self,
         generation: String,
-        config: anlg_db_core::CloudsyncRuntimeConfig,
+        config: syntheo_db_core::CloudsyncRuntimeConfig,
         auth_generation: u64,
     ) {
         let mut task_slot = self.cloudsync_full_resync_task.lock().await;
@@ -189,7 +189,7 @@ impl PluginDbRuntime {
 
                 let recovery_cancelled = std::sync::atomic::AtomicBool::new(false);
                 let current_phase =
-                    std::sync::Mutex::new(None::<anlg_db_app::CloudsyncRecoveryPhase>);
+                    std::sync::Mutex::new(None::<syntheo_db_app::CloudsyncRecoveryPhase>);
                 let witness_cancellation = crate::e2ee_witness::E2eeWitnessCancellation::default();
                 let mut recovery_step = Box::pin(async {
                     #[cfg(test)]
@@ -208,7 +208,7 @@ impl PluginDbRuntime {
                     {
                         return Ok(CloudsyncRecoveryStep::Deferred);
                     }
-                    let state = anlg_db_app::cloudsync_recovery_state(db.pool())
+                    let state = syntheo_db_app::cloudsync_recovery_state(db.pool())
                         .await?
                         .ok_or_else(|| {
                             std::io::Error::other(
@@ -227,7 +227,7 @@ impl PluginDbRuntime {
                     *current_phase.lock().unwrap() = Some(state.phase);
                     if !matches!(
                         state.phase,
-                        anlg_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair
+                        syntheo_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair
                     ) {
                         witness_repair_refresh_epoch = None;
                         witness_repair_batches = 0;
@@ -246,7 +246,7 @@ impl PluginDbRuntime {
                     }
 
                     match state.phase {
-                        anlg_db_app::CloudsyncRecoveryPhase::NeedFirstLogout => {
+                        syntheo_db_app::CloudsyncRecoveryPhase::NeedFirstLogout => {
                             discard_cloudsync_recovery_replica(
                                 db.as_ref(),
                                 &config,
@@ -259,27 +259,32 @@ impl PluginDbRuntime {
                             }
                             Ok(CloudsyncRecoveryStep::Progressed)
                         }
-                        anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert => {
-                            anlg_db_app::insert_cloudsync_recovery_barrier(db.pool(), &state, &key)
-                                .await?;
+                        syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert => {
+                            syntheo_db_app::insert_cloudsync_recovery_barrier(
+                                db.pool(),
+                                &state,
+                                &key,
+                            )
+                            .await?;
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
-                            if !anlg_db_app::advance_cloudsync_recovery_phase(
+                            if !syntheo_db_app::advance_cloudsync_recovery_phase(
                                 db.pool(),
                                 &generation,
-                                anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
-                                anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm,
+                                syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
+                                syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm,
                             )
                             .await?
                             {
                                 return Err(
-                                    anlg_db_app::CloudsyncWorkspaceError::RecoveryConflict.into()
+                                    syntheo_db_app::CloudsyncWorkspaceError::RecoveryConflict
+                                        .into(),
                                 );
                             }
                             Ok(CloudsyncRecoveryStep::Progressed)
                         }
-                        anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm => {
+                        syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm => {
                             match flush_manual_cloudsync_pending(db.as_ref(), &recovery_cancelled)
                                 .await?
                             {
@@ -294,7 +299,7 @@ impl PluginDbRuntime {
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
-                            if !anlg_db_app::cloudsync_recovery_barrier_is_exact(
+                            if !syntheo_db_app::cloudsync_recovery_barrier_is_exact(
                                 db.pool(),
                                 &state,
                                 &key,
@@ -309,22 +314,23 @@ impl PluginDbRuntime {
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
-                            if !anlg_db_app::advance_cloudsync_recovery_phase(
+                            if !syntheo_db_app::advance_cloudsync_recovery_phase(
                                 db.pool(),
                                 &generation,
-                                anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm,
-                                anlg_db_app::CloudsyncRecoveryPhase::NeedCleanReceive,
+                                syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm,
+                                syntheo_db_app::CloudsyncRecoveryPhase::NeedCleanReceive,
                             )
                             .await?
                             {
                                 return Err(
-                                    anlg_db_app::CloudsyncWorkspaceError::RecoveryConflict.into()
+                                    syntheo_db_app::CloudsyncWorkspaceError::RecoveryConflict
+                                        .into(),
                                 );
                             }
                             clean_receive_attempt_started = false;
                             Ok(CloudsyncRecoveryStep::Progressed)
                         }
-                        anlg_db_app::CloudsyncRecoveryPhase::NeedCleanReceive => {
+                        syntheo_db_app::CloudsyncRecoveryPhase::NeedCleanReceive => {
                             if !clean_receive_attempt_started {
                                 require_disposable_cloudsync_replica(
                                     db.as_ref(),
@@ -349,11 +355,11 @@ impl PluginDbRuntime {
                                 }
                                 db.cloudsync_network_reset_receive_version()
                                     .await
-                                    .map_err(anlg_db_core::CloudsyncRuntimeError::from)?;
+                                    .map_err(syntheo_db_core::CloudsyncRuntimeError::from)?;
                                 if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                     return Ok(CloudsyncRecoveryStep::Deferred);
                                 }
-                                if !anlg_db_app::cloudsync_encrypted_replica_is_empty(db.pool())
+                                if !syntheo_db_app::cloudsync_encrypted_replica_is_empty(db.pool())
                                     .await?
                                 {
                                     return Err(std::io::Error::other(
@@ -377,7 +383,7 @@ impl PluginDbRuntime {
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
-                            let apply = anlg_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
+                            let apply = syntheo_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
                                 db.pool(),
                                 &e2ee_sync_hook.snapshot(),
                                 false,
@@ -389,7 +395,7 @@ impl PluginDbRuntime {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
                             let barrier_is_exact =
-                                anlg_db_app::cloudsync_recovery_barrier_is_exact(
+                                syntheo_db_app::cloudsync_recovery_barrier_is_exact(
                                     db.pool(),
                                     &state,
                                     &key,
@@ -399,16 +405,16 @@ impl PluginDbRuntime {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
                             if cloudsync_recovery_snapshot_ready(barrier_is_exact, &result) {
-                                if !anlg_db_app::advance_cloudsync_recovery_phase(
+                                if !syntheo_db_app::advance_cloudsync_recovery_phase(
                                     db.pool(),
                                     &generation,
-                                    anlg_db_app::CloudsyncRecoveryPhase::NeedCleanReceive,
-                                    anlg_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair,
+                                    syntheo_db_app::CloudsyncRecoveryPhase::NeedCleanReceive,
+                                    syntheo_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair,
                                 )
                                 .await?
                                 {
                                     return Err(
-                                        anlg_db_app::CloudsyncWorkspaceError::RecoveryConflict
+                                        syntheo_db_app::CloudsyncWorkspaceError::RecoveryConflict
                                             .into(),
                                     );
                                 }
@@ -423,7 +429,7 @@ impl PluginDbRuntime {
                             }
                             Ok(CloudsyncRecoveryStep::Waiting)
                         }
-                        anlg_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair => {
+                        syntheo_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair => {
                             match flush_manual_cloudsync_pending(db.as_ref(), &recovery_cancelled)
                                 .await?
                             {
@@ -469,10 +475,10 @@ impl PluginDbRuntime {
                                 );
                             }
                             let keys = e2ee_sync_hook.snapshot();
-                            let apply = anlg_db_app::apply_received_e2ee_replica_changes_with_options_cancellable(
+                            let apply = syntheo_db_app::apply_received_e2ee_replica_changes_with_options_cancellable(
                                 db.pool(),
                                 &keys,
-                                anlg_db_app::E2eeReceivedApplyOptions {
+                                syntheo_db_app::E2eeReceivedApplyOptions {
                                     snapshot_complete: true,
                                     repair_witness: false,
                                 },
@@ -487,7 +493,7 @@ impl PluginDbRuntime {
                                 return Ok(CloudsyncRecoveryStep::Progressed);
                             }
                             let repair =
-                                anlg_db_app::repair_e2ee_replica_from_witness_bounded_cancellable(
+                                syntheo_db_app::repair_e2ee_replica_from_witness_bounded_cancellable(
                                     db.pool(),
                                     &keys,
                                     true,
@@ -533,7 +539,7 @@ impl PluginDbRuntime {
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
-                            if anlg_db_app::has_pending_e2ee_witness_repairs_cancellable(
+                            if syntheo_db_app::has_pending_e2ee_witness_repairs_cancellable(
                                 db.pool(),
                                 &keys,
                                 true,
@@ -548,7 +554,7 @@ impl PluginDbRuntime {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
 
-                            let local = anlg_db_app::encrypt_e2ee_replica_changes_bounded_deferring_active_captures_cancellable(
+                            let local = syntheo_db_app::encrypt_e2ee_replica_changes_bounded_deferring_active_captures_cancellable(
                                     db.pool(),
                                     &keys,
                                     E2EE_CLOUDSYNC_DIRTY_ROW_LIMIT,
@@ -576,7 +582,7 @@ impl PluginDbRuntime {
                             if apply.remaining_replica_changes {
                                 return Ok(CloudsyncRecoveryStep::Waiting);
                             }
-                            if anlg_db_app::has_pending_e2ee_dirty_rows_deferring_active_captures(
+                            if syntheo_db_app::has_pending_e2ee_dirty_rows_deferring_active_captures(
                                 db.pool(),
                                 &keys,
                             )
@@ -595,7 +601,7 @@ impl PluginDbRuntime {
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
-                            if anlg_db_app::has_pending_e2ee_witness_repairs_cancellable(
+                            if syntheo_db_app::has_pending_e2ee_witness_repairs_cancellable(
                                 db.pool(),
                                 &keys,
                                 true,
@@ -619,16 +625,17 @@ impl PluginDbRuntime {
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
-                            if !anlg_db_app::advance_cloudsync_recovery_phase(
+                            if !syntheo_db_app::advance_cloudsync_recovery_phase(
                                 db.pool(),
                                 &generation,
-                                anlg_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair,
-                                anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierCleanup,
+                                syntheo_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair,
+                                syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierCleanup,
                             )
                             .await?
                             {
                                 return Err(
-                                    anlg_db_app::CloudsyncWorkspaceError::RecoveryConflict.into()
+                                    syntheo_db_app::CloudsyncWorkspaceError::RecoveryConflict
+                                        .into(),
                                 );
                             }
                             tracing::info!(
@@ -640,7 +647,7 @@ impl PluginDbRuntime {
                             witness_repair_refresh_epoch = None;
                             Ok(CloudsyncRecoveryStep::Progressed)
                         }
-                        anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierCleanup => {
+                        syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierCleanup => {
                             match flush_manual_cloudsync_pending(db.as_ref(), &recovery_cancelled)
                                 .await?
                             {
@@ -655,7 +662,7 @@ impl PluginDbRuntime {
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
-                            if anlg_db_app::cloudsync_recovery_barrier_is_exact(
+                            if syntheo_db_app::cloudsync_recovery_barrier_is_exact(
                                 db.pool(),
                                 &state,
                                 &key,
@@ -665,7 +672,7 @@ impl PluginDbRuntime {
                                 if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                     return Ok(CloudsyncRecoveryStep::Deferred);
                                 }
-                                anlg_db_app::delete_cloudsync_recovery_barrier(
+                                syntheo_db_app::delete_cloudsync_recovery_barrier(
                                     db.pool(),
                                     &state,
                                     &key,
@@ -679,21 +686,22 @@ impl PluginDbRuntime {
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
-                            if !anlg_db_app::advance_cloudsync_recovery_phase(
+                            if !syntheo_db_app::advance_cloudsync_recovery_phase(
                                 db.pool(),
                                 &generation,
-                                anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierCleanup,
-                                anlg_db_app::CloudsyncRecoveryPhase::NeedTransportResume,
+                                syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierCleanup,
+                                syntheo_db_app::CloudsyncRecoveryPhase::NeedTransportResume,
                             )
                             .await?
                             {
                                 return Err(
-                                    anlg_db_app::CloudsyncWorkspaceError::RecoveryConflict.into()
+                                    syntheo_db_app::CloudsyncWorkspaceError::RecoveryConflict
+                                        .into(),
                                 );
                             }
                             Ok(CloudsyncRecoveryStep::Progressed)
                         }
-                        anlg_db_app::CloudsyncRecoveryPhase::NeedTransportResume => {
+                        syntheo_db_app::CloudsyncRecoveryPhase::NeedTransportResume => {
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
@@ -701,11 +709,12 @@ impl PluginDbRuntime {
                             if cloudsync_recovery_cancelled(&recovery_cancelled) {
                                 return Ok(CloudsyncRecoveryStep::Deferred);
                             }
-                            if !anlg_db_app::complete_cloudsync_recovery(db.pool(), &generation)
+                            if !syntheo_db_app::complete_cloudsync_recovery(db.pool(), &generation)
                                 .await?
                             {
                                 return Err(
-                                    anlg_db_app::CloudsyncWorkspaceError::RecoveryConflict.into()
+                                    syntheo_db_app::CloudsyncWorkspaceError::RecoveryConflict
+                                        .into(),
                                 );
                             }
                             Ok(CloudsyncRecoveryStep::Complete)
@@ -844,7 +853,7 @@ impl PluginDbRuntime {
     #[cfg(test)]
     pub(crate) async fn cloudsync_full_resync_task_snapshot(
         &self,
-    ) -> Option<(String, anlg_db_core::CloudsyncAuth)> {
+    ) -> Option<(String, syntheo_db_core::CloudsyncAuth)> {
         self.cloudsync_full_resync_task
             .lock()
             .await
@@ -920,14 +929,14 @@ pub(super) async fn require_disposable_cloudsync_replica(
 
 async fn prepare_manual_cloudsync_recovery_transport(
     db: &Db,
-    config: &anlg_db_core::CloudsyncRuntimeConfig,
+    config: &syntheo_db_core::CloudsyncRuntimeConfig,
     cancellation: CloudsyncOperationCancellation<'_>,
 ) -> Result<()> {
     cancellation.check()?;
     db.cloudsync_prepare_manual_transport(config.clone())
         .await?;
     cancellation.check()?;
-    if !anlg_db_app::cloudsync_encrypted_replica_is_empty(db.pool()).await? {
+    if !syntheo_db_app::cloudsync_encrypted_replica_is_empty(db.pool()).await? {
         return Err(std::io::Error::other(
             "CloudSync recovery refused to reinstall a filter on a populated replica",
         )
@@ -936,9 +945,9 @@ async fn prepare_manual_cloudsync_recovery_transport(
     cancellation.check()?;
     db.cloudsync_set_filter(CLOUDSYNC_REPLICA_TABLE, CLOUDSYNC_WRITE_FILTER)
         .await
-        .map_err(anlg_db_core::CloudsyncRuntimeError::from)?;
+        .map_err(syntheo_db_core::CloudsyncRuntimeError::from)?;
     cancellation.check()?;
-    anlg_db_app::mark_cloudsync_write_filter_installed(db.pool()).await?;
+    syntheo_db_app::mark_cloudsync_write_filter_installed(db.pool()).await?;
     cancellation.check()?;
     require_disposable_cloudsync_replica(db, cancellation).await
 }
@@ -947,17 +956,17 @@ pub(super) async fn prepare_cloudsync_poison_recovery(
     db: &Db,
     account_user_id: &str,
     workspace_id: &str,
-    key: &anlg_e2ee::WorkspaceKey,
+    key: &syntheo_e2ee::WorkspaceKey,
     cancellation: CloudsyncOperationCancellation<'_>,
 ) -> Result<String> {
     cancellation.check()?;
     require_disposable_cloudsync_replica(db, cancellation).await?;
     cancellation.check()?;
     let generation =
-        anlg_db_app::stage_cloudsync_poison_recovery(db.pool(), account_user_id, workspace_id)
+        syntheo_db_app::stage_cloudsync_poison_recovery(db.pool(), account_user_id, workspace_id)
             .await?;
     cancellation.check()?;
-    anlg_db_app::ensure_cloudsync_recovery_state(
+    syntheo_db_app::ensure_cloudsync_recovery_state(
         db.pool(),
         &generation,
         account_user_id,
@@ -971,7 +980,7 @@ pub(super) async fn prepare_cloudsync_poison_recovery(
 
 pub(super) async fn discard_cloudsync_recovery_replica(
     db: &Db,
-    config: &anlg_db_core::CloudsyncRuntimeConfig,
+    config: &syntheo_db_core::CloudsyncRuntimeConfig,
     generation: &str,
     cancellation: CloudsyncOperationCancellation<'_>,
 ) -> Result<()> {
@@ -982,22 +991,22 @@ pub(super) async fn discard_cloudsync_recovery_replica(
     cancellation.check()?;
     prepare_manual_cloudsync_recovery_transport(db, config, cancellation).await?;
     cancellation.check()?;
-    if !anlg_db_app::cloudsync_encrypted_replica_is_empty(db.pool()).await? {
+    if !syntheo_db_app::cloudsync_encrypted_replica_is_empty(db.pool()).await? {
         return Err(std::io::Error::other(
             "CloudSync replica was not empty after the first recovery logout",
         )
         .into());
     }
     cancellation.check()?;
-    if !anlg_db_app::advance_cloudsync_recovery_phase(
+    if !syntheo_db_app::advance_cloudsync_recovery_phase(
         db.pool(),
         generation,
-        anlg_db_app::CloudsyncRecoveryPhase::NeedFirstLogout,
-        anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
+        syntheo_db_app::CloudsyncRecoveryPhase::NeedFirstLogout,
+        syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
     )
     .await?
     {
-        return Err(anlg_db_app::CloudsyncWorkspaceError::RecoveryConflict.into());
+        return Err(syntheo_db_app::CloudsyncWorkspaceError::RecoveryConflict.into());
     }
     cancellation.check()?;
     Ok(())
@@ -1072,13 +1081,13 @@ async fn flush_manual_cloudsync_pending(
 
 pub(super) fn cloudsync_recovery_snapshot_ready(
     barrier_is_exact: bool,
-    result: &anlg_db_core::CloudsyncNetworkResult,
+    result: &syntheo_db_core::CloudsyncNetworkResult,
 ) -> bool {
     barrier_is_exact && cloudsync_receive_delivered_final(result)
 }
 
 pub(super) fn is_permanent_cloudsync_workspace_rejection(
-    error: &anlg_db_app::CloudsyncWorkspaceError,
+    error: &syntheo_db_app::CloudsyncWorkspaceError,
 ) -> bool {
-    anlg_db_sync::is_permanent_cloudsync_workspace_rejection(error)
+    syntheo_db_sync::is_permanent_cloudsync_workspace_rejection(error)
 }

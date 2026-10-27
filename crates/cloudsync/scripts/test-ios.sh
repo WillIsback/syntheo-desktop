@@ -8,15 +8,15 @@ repo_dir=$(cd "$crate_dir/../.." && pwd)
 framework="$crate_dir/vendor/cloudsync/apple/CloudSync.xcframework/ios-arm64_x86_64-simulator/CloudSync.framework/CloudSync"
 test -f "$framework"
 
-ANARLOG_CLOUDSYNC_TEST_SIMULATOR=$(xcrun simctl create "Anarlog CloudSync Tests" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro)
-export ANARLOG_CLOUDSYNC_TEST_SIMULATOR
+SYNTHEO_CLOUDSYNC_TEST_SIMULATOR=$(xcrun simctl create "Syntheo CloudSync Tests" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro)
+export SYNTHEO_CLOUDSYNC_TEST_SIMULATOR
 cleanup() {
-  xcrun simctl shutdown "$ANARLOG_CLOUDSYNC_TEST_SIMULATOR" >/dev/null 2>&1 || true
-  xcrun simctl delete "$ANARLOG_CLOUDSYNC_TEST_SIMULATOR" || true
+  xcrun simctl shutdown "$SYNTHEO_CLOUDSYNC_TEST_SIMULATOR" >/dev/null 2>&1 || true
+  xcrun simctl delete "$SYNTHEO_CLOUDSYNC_TEST_SIMULATOR" || true
 }
 trap cleanup EXIT
-xcrun simctl boot "$ANARLOG_CLOUDSYNC_TEST_SIMULATOR"
-xcrun simctl bootstatus "$ANARLOG_CLOUDSYNC_TEST_SIMULATOR" -b
+xcrun simctl boot "$SYNTHEO_CLOUDSYNC_TEST_SIMULATOR"
+xcrun simctl bootstatus "$SYNTHEO_CLOUDSYNC_TEST_SIMULATOR" -b
 
 export SIMCTL_CHILD_CLOUDSYNC_IOS_FRAMEWORK_PATH="$framework"
 export CARGO_TARGET_AARCH64_APPLE_IOS_SIM_RUNNER="$script_dir/ios-test-runner.sh"

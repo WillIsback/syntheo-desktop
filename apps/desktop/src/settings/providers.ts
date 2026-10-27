@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { commands as store2Commands } from "@anlg/plugin-store2";
+import { commands as store2Commands } from "@syntheo/plugin-store2";
 import {
   usesDeferredProviderAuthentication,
   validateProviderBaseUrl,
   verifyProviderCredentials,
-} from "@anlg/provider-validation";
+} from "@syntheo/provider-validation";
 
 import { providerFetch } from "~/ai/provider-fetch";
 import { executeTransaction, liveQueryClient, useLiveQuery } from "~/db";

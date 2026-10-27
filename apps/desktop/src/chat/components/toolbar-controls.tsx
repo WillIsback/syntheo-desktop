@@ -9,17 +9,17 @@ import {
   Plus,
   SidebarSimple,
   X,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { appFloatingItemClassName } from "@anlg/ui/components/ui/floating-content";
-import { cn, formatDistanceToNow } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { appFloatingItemClassName } from "@syntheo/ui/components/ui/floating-content";
+import { cn, formatDistanceToNow } from "@syntheo/utils";
 
 import {
   type ChatGroupRecord,

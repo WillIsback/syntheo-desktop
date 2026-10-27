@@ -279,7 +279,7 @@ async fn divergent_nonempty_summaries_recover_after_a_partial_import() {
     std::fs::write(session_dir.join("_summary.md"), canonical).unwrap();
 
     let failed_run_id = "failed-run";
-    anlg_db_app::begin_legacy_import_run(
+    syntheo_db_app::begin_legacy_import_run(
         db.pool(),
         failed_run_id,
         &dir.path().to_string_lossy(),
@@ -322,7 +322,7 @@ async fn divergent_nonempty_summaries_recover_after_a_partial_import() {
             .unwrap(),
         ),
     ] {
-        anlg_db_app::apply_legacy_import_item(
+        syntheo_db_app::apply_legacy_import_item(
             db.pool(),
             LegacyImportItem {
                 id: item_id,
@@ -338,7 +338,7 @@ async fn divergent_nonempty_summaries_recover_after_a_partial_import() {
         .unwrap();
     }
     assert_eq!(
-        anlg_db_app::finish_legacy_import_run(db.pool(), failed_run_id)
+        syntheo_db_app::finish_legacy_import_run(db.pool(), failed_run_id)
             .await
             .unwrap(),
         "completed_with_conflicts"

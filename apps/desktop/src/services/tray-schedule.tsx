@@ -3,10 +3,10 @@ import { useMemo } from "react";
 import {
   commands as trayCommands,
   type TrayScheduleEvent,
-} from "@anlg/plugin-tray";
-import { getCurrentWebviewWindowLabel } from "@anlg/plugin-windows";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { addDays, parseEventInstant, startOfDay, TZDate } from "@anlg/utils";
+} from "@syntheo/plugin-tray";
+import { getCurrentWebviewWindowLabel } from "@syntheo/plugin-windows";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { addDays, parseEventInstant, startOfDay, TZDate } from "@syntheo/utils";
 
 import { useIgnoredEvents } from "~/calendar/ignored-events";
 import { useTimelineEventsTable } from "~/calendar/queries";

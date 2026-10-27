@@ -1,9 +1,9 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
-import { Lock } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { cn } from "@anlg/utils";
+import { Lock } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { cn } from "@syntheo/utils";
 
 export function LockScreen({
   title,

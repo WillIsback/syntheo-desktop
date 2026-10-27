@@ -26,12 +26,12 @@ serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
 sys-locale = { workspace = true }
 
-anlg-language = { workspace = true }
+syntheo-language = { workspace = true }
 
 image = { workspace = true, features = ["jpeg"], optional = true }
 
 [target."cfg(target_os = \"macos\")".dependencies]
-anlg-bundle = { workspace = true }
+syntheo-bundle = { workspace = true }
 
 plist = "1.7"
 cidre = { workspace = true, features = ["ax"] }

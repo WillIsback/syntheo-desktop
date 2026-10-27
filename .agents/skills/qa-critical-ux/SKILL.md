@@ -1,6 +1,6 @@
 ---
 name: qa-critical-ux
-description: QA Anarlog's critical Pro user journey on a signed staging candidate — onboarding, responsive launch, microphone and system-audio capture, automated summaries, and cloud sync.
+description: QA Syntheo's critical Pro user journey on a signed staging candidate — onboarding, responsive launch, microphone and system-audio capture, automated summaries, and cloud sync.
 ---
 
 # QA: Critical User Experience
@@ -21,13 +21,13 @@ Everything else is outside this skill's scope.
 
 Record incidental failures against the existing Linear ticket without expanding this run:
 
-- AEC quality: `ANLG-98`
-- Automatic speaker identification: `ANLG-222`
-- Real-world capture across devices, rooms, and participants: `ANLG-284`
-- Auth callback and sign-out edge cases: `ANLG-285`
-- Calendar, events, and notifications: `ANLG-286`
-- CloudSync activity deferral and transcript integrity: `ANLG-287`
-- On-device STT/LLM provider matrix: `ANLG-288`
+- AEC quality: `SYNTHEO-98`
+- Automatic speaker identification: `SYNTHEO-222`
+- Real-world capture across devices, rooms, and participants: `SYNTHEO-284`
+- Auth callback and sign-out edge cases: `SYNTHEO-285`
+- Calendar, events, and notifications: `SYNTHEO-286`
+- CloudSync activity deferral and transcript integrity: `SYNTHEO-287`
+- On-device STT/LLM provider matrix: `SYNTHEO-288`
 
 ## Build the Staging Candidate
 
@@ -39,7 +39,7 @@ gh workflow run desktop_cd.yaml \
   -f channel=staging \
   -f candidate_sha=<40-character-candidate-sha>
 gh run view <run-id> --json headSha,url
-gh run download <run-id> --name hyprnote-staging-macos-silicon
+gh run download <run-id> --name syntheo-staging-macos-silicon
 ```
 
 Record the run URL and DMG SHA-256, install the artifact, and verify the app reports the expected version. The staging artifact must be signed output from that exact workflow run; do not substitute a local build.
@@ -48,7 +48,7 @@ Leave the MacBook open on its built-in speakers and microphone with no external 
 
 ## Start from Onboarding
 
-1. Fully quit Anarlog Staging.
+1. Fully quit Syntheo Staging.
 2. Reset staging permissions while the app is closed:
 
    ```bash
@@ -58,18 +58,18 @@ Leave the MacBook open on its built-in speakers and microphone with no external 
 3. Back up any needed staging data, then remove the staging application data:
 
    ```bash
-   rm -rf ~/Library/Application\ Support/com.hyprnote.staging
+   rm -rf ~/Library/Application\ Support/com.syntheo.staging
    ```
 
 4. Launch through LaunchServices without an onboarding override:
 
    ```bash
-   open -a "Anarlog Staging" --env ONBOARDING=
+   open -a "Syntheo Staging" --env ONBOARDING=
    ```
 
 Missing app data starts onboarding normally. Do not use `ONBOARDING=1`; resetting permissions asynchronously after initialization can suppress the microphone prompt. Do not edit permission databases.
 
-Complete onboarding for real: grant each permission, sign in with the Pro or trialing test account, select Anarlog cloud (`anarlog`) in Settings → AI, and turn on encrypted cloud sync in Settings → Sync. Use that account's existing recovery key when prompted. Creating a new key on an account that already has sync fails this item.
+Complete onboarding for real: grant each permission, sign in with the Pro or trialing test account, select Syntheo cloud (`syntheo`) in Settings → AI, and turn on encrypted cloud sync in Settings → Sync. Use that account's existing recovery key when prompted. Creating a new key on an account that already has sync fails this item.
 
 ## Checklist
 
@@ -108,15 +108,15 @@ Complete onboarding for real: grant each permission, sign in with the Pro or tri
 ### 5. Sync the note and restore it
 
 - After the summary exists, open Settings → Sync. Status must reach **Synced**, not stay on Connecting, Syncing, Saved locally, or Sync needs attention.
-- Record the note title shown in the app. Quit Anarlog Staging. Do not reset permissions again. Wipe staging data once more:
+- Record the note title shown in the app. Quit Syntheo Staging. Do not reset permissions again. Wipe staging data once more:
 
   ```bash
-  rm -rf ~/Library/Application\ Support/com.hyprnote.staging
+  rm -rf ~/Library/Application\ Support/com.syntheo.staging
   ```
 
 - Launch through LaunchServices, sign in with the same Pro or trialing account, and enter the same recovery key.
 - The same note, transcript, and summary reappear after restore. A missing note, empty transcript, or missing summary fails this item.
-- Mid-recording deferral, chat/enhance leases, and hash-stable transcript integrity stay informational under `ANLG-287`.
+- Mid-recording deferral, chat/enhance leases, and hash-stable transcript integrity stay informational under `SYNTHEO-287`.
 
 Verify results programmatically where possible through the app's supported interfaces and logs. Do not query the app database directly.
 

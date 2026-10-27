@@ -1,4 +1,4 @@
-use anlg_transcription_core::{listener, listener2};
+use syntheo_transcription_core::{listener, listener2};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -95,7 +95,7 @@ pub struct CaptureParams {
     pub live_transcript: Option<LiveTranscriptTarget>,
     #[serde(default)]
     pub retain_audio: Option<bool>,
-    pub languages: Vec<anlg_language::Language>,
+    pub languages: Vec<syntheo_language::Language>,
     pub onboarding: bool,
     pub model: String,
     pub base_url: String,
@@ -114,13 +114,13 @@ pub struct CaptureParams {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct CaptureConfigUpdate {
     pub session_id: String,
-    pub languages: Vec<anlg_language::Language>,
+    pub languages: Vec<syntheo_language::Language>,
     #[serde(default)]
     pub participant_human_ids: Vec<String>,
     #[serde(default)]
     pub self_human_id: Option<String>,
     #[serde(default)]
-    pub speaker_assignments: Vec<anlg_transcript::IdentityAssignment>,
+    pub speaker_assignments: Vec<syntheo_transcript::IdentityAssignment>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, specta::Type, tauri_specta::Event)]
@@ -226,7 +226,7 @@ pub struct TranscriptionParams {
     pub base_url: String,
     pub api_key: String,
     #[serde(default)]
-    pub languages: Vec<anlg_language::Language>,
+    pub languages: Vec<syntheo_language::Language>,
     #[serde(default)]
     pub keywords: Vec<String>,
     #[serde(default)]
@@ -497,7 +497,7 @@ impl From<listener2::BatchEvent> for TranscriptionEvent {
 #[cfg(test)]
 mod tests {
     use super::{CaptureParams, TranscriptionParams};
-    use anlg_transcription_core::listener::{TranscriptionMode, actors::SessionParams};
+    use syntheo_transcription_core::listener::{TranscriptionMode, actors::SessionParams};
 
     #[test]
     fn transcription_request_for_a_local_engine_is_rejected() {
@@ -507,7 +507,7 @@ mod tests {
             "am",
             "applespeech",
             "argmax",
-            "anarlog",
+            "syntheo",
         ] {
             let request = serde_json::json!({
                 "session_id": "session-1",

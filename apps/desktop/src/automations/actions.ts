@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 
-import { toast } from "@anlg/ui/components/ui/toast";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import { useAutomationSelection } from "./selection";
 import { STARTER_AUTOMATIONS, type StarterId } from "./starters";

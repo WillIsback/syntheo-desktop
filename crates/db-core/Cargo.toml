@@ -8,8 +8,8 @@ license = "MIT"
 test-utils = []
 
 [dependencies]
-anlg-cloudsync = { workspace = true }
-anlg-db-change = { workspace = true }
+syntheo-cloudsync = { workspace = true }
+syntheo-db-change = { workspace = true }
 
 backon = { workspace = true }
 libsqlite3-sys = "0.35"

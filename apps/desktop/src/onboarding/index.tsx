@@ -4,10 +4,10 @@ import { platform } from "@tauri-apps/plugin-os";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { commands as sfxCommands } from "@anlg/plugin-sfx";
-import { SpeakerHigh, SpeakerX } from "@anlg/ui/components/icons";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+import { commands as sfxCommands } from "@syntheo/plugin-sfx";
+import { SpeakerHigh, SpeakerX } from "@syntheo/ui/components/icons";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import { CalendarSection } from "./calendar";
 import {
@@ -188,7 +188,7 @@ function OnboardingScreenContent({
         ])}
       >
         <h1 className="font-hand text-foreground text-4xl leading-none font-semibold tracking-normal">
-          <Trans>Welcome to Anarlog</Trans>
+          <Trans>Welcome to Syntheo</Trans>
         </h1>
       </div>
 
@@ -200,13 +200,13 @@ function OnboardingScreenContent({
             description={
               currentPlatform === "macos" ? (
                 <Trans>
-                  Anarlog needs microphone and system audio to transcribe your
+                  Syntheo needs microphone and system audio to transcribe your
                   meetings, plus Accessibility to read meeting controls, visible
                   chat.
                 </Trans>
               ) : (
                 <Trans>
-                  Anarlog needs access to your microphone and system audio to
+                  Syntheo needs access to your microphone and system audio to
                   record and transcribe your meetings
                 </Trans>
               )

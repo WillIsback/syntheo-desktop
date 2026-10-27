@@ -6,13 +6,13 @@ license = "MIT"
 
 [features]
 default = ["onnx", "128"]
-onnx = ["dep:anlg-onnx"]
+onnx = ["dep:syntheo-onnx"]
 128 = []
 256 = []
 512 = []
 
 [dependencies]
-anlg-onnx = { workspace = true, optional = true }
+syntheo-onnx = { workspace = true, optional = true }
 
 realfft = { workspace = true }
 
@@ -20,15 +20,15 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-anlg-audacity = { workspace = true }
-anlg-audio-snapshot = { workspace = true }
-anlg-audio-utils = { workspace = true }
 approx = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 criterion = { workspace = true }
 dasp = { workspace = true }
 hound = { workspace = true }
 rodio = { workspace = true }
+syntheo-audacity = { workspace = true }
+syntheo-audio-snapshot = { workspace = true }
+syntheo-audio-utils = { workspace = true }
 
 [[bench]]
 name = "aec_bench"

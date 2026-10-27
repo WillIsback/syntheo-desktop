@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use anlg_audio_device::{AudioDevice, AudioDirection};
+use syntheo_audio_device::{AudioDevice, AudioDirection};
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct StoredDevice {

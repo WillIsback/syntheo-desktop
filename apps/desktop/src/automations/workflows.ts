@@ -1,4 +1,4 @@
-import type { MarkdownExportOptions } from "@anlg/plugin-local-api";
+import type { MarkdownExportOptions } from "@syntheo/plugin-local-api";
 
 import {
   DEFAULT_MARKDOWN_EXPORT_OPTIONS,

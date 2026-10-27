@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 
-import { md2json } from "@anlg/editor/markdown";
-import type { SessionEvent } from "@anlg/store";
+import { md2json } from "@syntheo/editor/markdown";
+import type { SessionEvent } from "@syntheo/store";
 
 import { extractBodyHeadingsKey } from "../title-content";
 import type {

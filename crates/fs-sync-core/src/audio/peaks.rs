@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::UNIX_EPOCH;
 
-use anlg_audio_utils::Source;
+use syntheo_audio_utils::Source;
 
 pub const PEAKS_PER_CHANNEL: usize = 8000;
 const MAX_CHANNELS: usize = 2;
@@ -67,7 +67,7 @@ fn cache_lock(cache_path: &Path) -> Arc<Mutex<()>> {
 }
 
 pub fn compute_peaks(audio_path: &Path, peaks_per_channel: usize) -> io::Result<AudioPeaks> {
-    let source = anlg_audio_utils::source_from_path(audio_path).map_err(io::Error::other)?;
+    let source = syntheo_audio_utils::source_from_path(audio_path).map_err(io::Error::other)?;
     source_peaks(source, peaks_per_channel)
 }
 
@@ -262,7 +262,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let audio_path = dir.path().join("audio.wav");
         let cache_path = dir.path().join("cache").join("peaks.json");
-        std::fs::copy(anlg_data::english_1::AUDIO_PATH, &audio_path).unwrap();
+        std::fs::copy(syntheo_data::english_1::AUDIO_PATH, &audio_path).unwrap();
 
         let first = cached_peaks(&audio_path, &cache_path).unwrap();
         assert!(cache_path.exists());
@@ -278,7 +278,7 @@ mod tests {
         std::fs::write(&cache_path, serde_json::to_vec(&stale).unwrap()).unwrap();
         assert_eq!(cached_peaks(&audio_path, &cache_path).unwrap(), stale.peaks);
 
-        std::fs::copy(anlg_data::english_1::AUDIO_MP3_PATH, &audio_path).unwrap();
+        std::fs::copy(syntheo_data::english_1::AUDIO_MP3_PATH, &audio_path).unwrap();
         let recomputed = cached_peaks(&audio_path, &cache_path).unwrap();
         assert_ne!(recomputed, stale.peaks);
     }

@@ -7,7 +7,7 @@ import { enhanceWorkflow } from "./enhance-workflow";
 import { formatSummaryDetailGuidance } from "~/services/enhancer/summary-length";
 
 const mocks = vi.hoisted(() => ({ render: vi.fn(), streamText: vi.fn() }));
-vi.mock("@anlg/plugin-template", () => ({
+vi.mock("@syntheo/plugin-template", () => ({
   commands: { render: mocks.render },
 }));
 vi.mock("ai", async (importOriginal) => ({

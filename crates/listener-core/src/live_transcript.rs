@@ -1,8 +1,8 @@
-use anlg_transcript::{
+use owhisper_interface::stream::StreamResponse;
+use syntheo_transcript::{
     FinalizedWord, IdentityAssignment, PartialWord, SegmentKey, SegmentWord, TranscriptDelta,
     TranscriptProcessor, segment_options_for_assignments,
 };
-use owhisper_interface::stream::StreamResponse;
 
 mod segments;
 

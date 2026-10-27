@@ -7,7 +7,7 @@ import {
   defaultSummaryDocumentId,
   resolveSummaryDocument,
   visibleSummaryDocuments,
-} from "@anlg/utils/session";
+} from "@syntheo/utils/session";
 
 const mocks = vi.hoisted(() => ({
   execute: vi.fn(),

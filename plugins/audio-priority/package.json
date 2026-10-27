@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-audio-priority",
+  "name": "@syntheo/plugin-audio-priority",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

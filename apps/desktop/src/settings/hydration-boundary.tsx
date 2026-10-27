@@ -1,7 +1,7 @@
 import { t } from "@lingui/core/macro";
 import type { ReactNode } from "react";
 
-import { CircleNotch } from "@anlg/ui/components/icons";
+import { CircleNotch } from "@syntheo/ui/components/icons";
 
 import { useStoredSettingValuesQuery } from "~/settings/queries";
 

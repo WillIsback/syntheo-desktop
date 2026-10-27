@@ -3,16 +3,16 @@ import { platform } from "@tauri-apps/plugin-os";
 import { format } from "date-fns";
 import { useCallback, useMemo } from "react";
 
-import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { Button } from "@anlg/ui/components/ui/button";
+import { commands as fsSyncCommands } from "@syntheo/plugin-fs-sync";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anlg/ui/components/ui/popover";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { cn } from "@syntheo/utils";
 
 import { toTz, useTimezone } from "~/calendar/hooks";
 import { useDeleteSession } from "~/session/hooks/useDeleteSession";

@@ -20,7 +20,7 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`anlg-tray:allow-set-tray-icon-visible`
+`syntheo-tray:allow-set-tray-icon-visible`
 
 </td>
 <td>
@@ -33,7 +33,7 @@ Enables the set_tray_icon_visible command without any pre-configured scope.
 <tr>
 <td>
 
-`anlg-tray:deny-set-tray-icon-visible`
+`syntheo-tray:deny-set-tray-icon-visible`
 
 </td>
 <td>
@@ -46,7 +46,7 @@ Denies the set_tray_icon_visible command without any pre-configured scope.
 <tr>
 <td>
 
-`anlg-tray:allow-set-tray-recording-title`
+`syntheo-tray:allow-set-tray-recording-title`
 
 </td>
 <td>
@@ -59,7 +59,7 @@ Enables the set_tray_recording_title command without any pre-configured scope.
 <tr>
 <td>
 
-`anlg-tray:deny-set-tray-recording-title`
+`syntheo-tray:deny-set-tray-recording-title`
 
 </td>
 <td>
@@ -72,7 +72,7 @@ Denies the set_tray_recording_title command without any pre-configured scope.
 <tr>
 <td>
 
-`anlg-tray:allow-set-tray-schedule`
+`syntheo-tray:allow-set-tray-schedule`
 
 </td>
 <td>
@@ -85,7 +85,7 @@ Enables the set_tray_schedule command without any pre-configured scope.
 <tr>
 <td>
 
-`anlg-tray:deny-set-tray-schedule`
+`syntheo-tray:deny-set-tray-schedule`
 
 </td>
 <td>

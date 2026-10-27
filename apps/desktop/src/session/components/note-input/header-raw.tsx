@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import { useMemo } from "react";
 
-import { TextAlignLeft } from "@anlg/ui/components/icons";
+import { TextAlignLeft } from "@syntheo/ui/components/icons";
 
 import {
   IconHeaderView,

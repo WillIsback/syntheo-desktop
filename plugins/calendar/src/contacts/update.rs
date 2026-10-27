@@ -39,7 +39,7 @@ pub async fn update_human(pool: &SqlitePool, request: UpdateHumanRequest) -> Res
     run_write(pool, |conn| {
         Box::pin(async move {
             if !assignments.is_empty() {
-                anlg_db_app::update_contact_fields(
+                syntheo_db_app::update_contact_fields(
                     conn,
                     "humans",
                     &assignments,
@@ -62,7 +62,7 @@ pub async fn update_human(pool: &SqlitePool, request: UpdateHumanRequest) -> Res
                         .map_err(|error| error.to_string())?
                         .unwrap_or_default(),
                     };
-                    Some(anlg_db_app::normalize_additional_emails(
+                    Some(syntheo_db_app::normalize_additional_emails(
                         &primary_email,
                         emails.iter().cloned(),
                     ))
@@ -76,10 +76,10 @@ pub async fn update_human(pool: &SqlitePool, request: UpdateHumanRequest) -> Res
                     .fetch_optional(&mut *conn)
                     .await
                     .map_err(|error| error.to_string())?;
-                    let stored = anlg_db_app::human_additional_emails_from_metadata(
+                    let stored = syntheo_db_app::human_additional_emails_from_metadata(
                         metadata_json.as_deref().unwrap_or("{}"),
                     );
-                    let normalized = anlg_db_app::normalize_additional_emails(
+                    let normalized = syntheo_db_app::normalize_additional_emails(
                         request.email.as_deref().unwrap_or_default(),
                         stored.iter().cloned(),
                     );
@@ -93,7 +93,7 @@ pub async fn update_human(pool: &SqlitePool, request: UpdateHumanRequest) -> Res
                 } else {
                     Some(serde_json::to_string(&normalized).map_err(|error| error.to_string())?)
                 };
-                anlg_db_app::update_human_additional_emails(
+                syntheo_db_app::update_human_additional_emails(
                     conn,
                     additional_emails_json.as_deref(),
                     &now,
@@ -131,7 +131,7 @@ pub async fn update_organization(
     let now = js_iso8601_timestamp();
     run_write(pool, |conn| {
         Box::pin(async move {
-            anlg_db_app::update_contact_fields(
+            syntheo_db_app::update_contact_fields(
                 conn,
                 "organizations",
                 &assignments,
@@ -159,9 +159,14 @@ pub async fn soft_delete_contact(
     let now = js_iso8601_timestamp();
     run_write(pool, |conn| {
         Box::pin(async move {
-            anlg_db_app::soft_delete_contact(conn, request.kind.table(), &request.contact_id, &now)
-                .await
-                .map_err(|error| error.to_string())?;
+            syntheo_db_app::soft_delete_contact(
+                conn,
+                request.kind.table(),
+                &request.contact_id,
+                &now,
+            )
+            .await
+            .map_err(|error| error.to_string())?;
             Ok(())
         })
     })
@@ -182,7 +187,7 @@ pub async fn update_contact_avatar(
     let now = js_iso8601_timestamp();
     run_write(pool, |conn| {
         Box::pin(async move {
-            anlg_db_app::update_contact_avatar(
+            syntheo_db_app::update_contact_avatar(
                 conn,
                 request.kind.table(),
                 request.avatar_data_url.as_deref(),
@@ -210,7 +215,7 @@ pub async fn update_human_contact_summary(
     let now = js_iso8601_timestamp();
     run_write(pool, |conn| {
         Box::pin(async move {
-            anlg_db_app::update_human_contact_summary(
+            syntheo_db_app::update_human_contact_summary(
                 conn,
                 &request.summary_json,
                 &now,
@@ -227,11 +232,11 @@ pub async fn update_human_contact_summary(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 

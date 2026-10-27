@@ -379,14 +379,14 @@ async fn late_related_tombstones_follow_the_restored_note() {
 
 #[tokio::test]
 async fn upgrade_preserves_existing_content_and_legacy_deletions() {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
     let index = crate::APP_MIGRATION_STEPS
         .iter()
         .position(|step| step.id == "20260907120000_session_documents_content_version")
         .unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: &crate::APP_MIGRATION_STEPS[..index],
             validate_cloudsync_table: crate::cloudsync_alter_guard_required,
         },

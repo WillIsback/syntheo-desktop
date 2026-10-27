@@ -23,10 +23,10 @@ fn paragraphs(body: &str) -> Vec<String> {
 }
 
 async fn seed_note(
-    workspace_keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+    workspace_keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
     body_format: &str,
     body: &str,
-) -> (anlg_db_core::Db, anlg_db_core::Db) {
+) -> (syntheo_db_core::Db, syntheo_db_core::Db) {
     let a = test_db().await;
     let b = test_db().await;
     sqlx::query(
@@ -56,7 +56,7 @@ async fn seed_note(
     (a, b)
 }
 
-async fn edit_body(db: &anlg_db_core::Db, body: &str, edited_at_ms: i64) {
+async fn edit_body(db: &syntheo_db_core::Db, body: &str, edited_at_ms: i64) {
     sqlx::query("UPDATE session_documents SET body = ? WHERE id = 'session-1'")
         .bind(body)
         .execute(db.pool())
@@ -72,7 +72,7 @@ async fn edit_body(db: &anlg_db_core::Db, body: &str, edited_at_ms: i64) {
     .unwrap();
 }
 
-async fn read_body(db: &anlg_db_core::Db) -> String {
+async fn read_body(db: &syntheo_db_core::Db) -> String {
     sqlx::query_scalar("SELECT body FROM session_documents WHERE id = 'session-1'")
         .fetch_one(db.pool())
         .await

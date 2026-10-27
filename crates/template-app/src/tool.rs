@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use anlg_askama_utils::filters;
+use syntheo_askama_utils::filters;
 
 use crate::{SessionContext, common_derives};
 

@@ -1,7 +1,7 @@
-CREDENTIALS_FILE="$HOME/hyprnote-r2.toml"
+CREDENTIALS_FILE="$HOME/syntheo-r2.toml"
 ENDPOINT_URL="https://45207bf426d0acf3baf9f70fd2c610c8.r2.cloudflarestorage.com"
-BUCKET_FROM="hyprnote-cache"
-BUCKET_TO="anarlog-models"
+BUCKET_FROM="syntheo-cache"
+BUCKET_TO="syntheo-models"
 
 AWS_REGION=auto s5cmd \
     --log trace \

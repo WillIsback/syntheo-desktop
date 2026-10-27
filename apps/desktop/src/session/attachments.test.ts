@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   tombstoneSessionAudio: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-session", () => ({
+vi.mock("@syntheo/plugin-session", () => ({
   commands: {
     catalogNoteAttachment: mocks.catalogNoteAttachment,
     catalogSessionAudio: mocks.catalogSessionAudio,
@@ -24,7 +24,7 @@ vi.mock("@anlg/plugin-session", () => ({
   },
 }));
 
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     audioDelete: mocks.audioDelete,
     audioMetadata: mocks.audioMetadata,

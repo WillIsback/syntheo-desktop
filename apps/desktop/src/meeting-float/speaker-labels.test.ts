@@ -4,11 +4,11 @@ import type {
   LiveTranscriptSegment,
   RenderTranscriptRequest,
   RenderedTranscriptSegment,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 const mocks = vi.hoisted(() => ({ renderTranscriptSegments: vi.fn() }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: { renderTranscriptSegments: mocks.renderTranscriptSegments },
 }));
 

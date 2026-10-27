@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 
-import { MagnifyingGlass, X } from "@anlg/ui/components/icons";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
+import { MagnifyingGlass, X } from "@syntheo/ui/components/icons";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
 
 export function filterProviders<
   T extends { id: string; displayName: string; description?: string },

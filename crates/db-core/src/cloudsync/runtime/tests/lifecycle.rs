@@ -91,13 +91,13 @@ async fn authentication_failure_cleans_up_initialized_network() {
 
     let error = authenticate_cloudsync_network(
         || async {
-            Err::<(), _>(anlg_cloudsync::Error::from(std::io::Error::other(
+            Err::<(), _>(syntheo_cloudsync::Error::from(std::io::Error::other(
                 "authentication rejected",
             )))
         },
         || async {
             cleanup_called.store(true, Ordering::SeqCst);
-            Ok::<(), anlg_cloudsync::Error>(())
+            Ok::<(), syntheo_cloudsync::Error>(())
         },
     )
     .await
@@ -175,7 +175,7 @@ async fn prepared_transport_resumes_without_reinitializing_the_connection() {
     {
         let mut runtime = db.cloudsync_runtime.lock().unwrap();
         runtime.last_error = Some("stale recovery error".to_string());
-        runtime.last_error_kind = Some(anlg_cloudsync::ErrorKind::Transient);
+        runtime.last_error_kind = Some(syntheo_cloudsync::ErrorKind::Transient);
         runtime.consecutive_failures = 3;
         runtime.outbound_work_state = Some(true);
     }

@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-messenger",
+  "name": "@syntheo/plugin-messenger",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

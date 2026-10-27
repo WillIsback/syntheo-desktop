@@ -5,14 +5,14 @@ mod binding;
 mod projection;
 mod recovery;
 
-async fn test_db() -> anlg_db_core::Db {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+async fn test_db() -> syntheo_db_core::Db {
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
     crate::prepare_schema(&db).await.unwrap();
     db
 }
 
-fn recovery_key(workspace_id: &str) -> anlg_e2ee::WorkspaceKey {
-    anlg_e2ee::RecoveryKey::parse("anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc")
+fn recovery_key(workspace_id: &str) -> syntheo_e2ee::WorkspaceKey {
+    syntheo_e2ee::RecoveryKey::parse("anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc")
         .unwrap()
         .workspace_key(workspace_id)
         .unwrap()

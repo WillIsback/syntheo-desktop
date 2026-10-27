@@ -1,5 +1,5 @@
-use anlg_http::HttpClient;
 use chrono::NaiveDate;
+use syntheo_http::HttpClient;
 
 use crate::error::Error;
 use crate::types::{ListRecordingsResponse, MeetingSummary};

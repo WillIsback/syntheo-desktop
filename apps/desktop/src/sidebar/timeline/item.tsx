@@ -11,18 +11,18 @@ import {
   useState,
 } from "react";
 
-import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
-import { commands as openerCommands } from "@anlg/plugin-opener2";
+import { commands as fsSyncCommands } from "@syntheo/plugin-fs-sync";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
 import {
   FolderSimple,
   Lock,
   LockOpen,
   Square,
   Users,
-} from "@anlg/ui/components/icons";
-import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
-import { Spinner } from "@anlg/ui/components/ui/spinner";
-import { cn, format, getYear, safeParseDate, TZDate } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { DancingSticks } from "@syntheo/ui/components/ui/dancing-sticks";
+import { Spinner } from "@syntheo/ui/components/ui/spinner";
+import { cn, format, getYear, safeParseDate, TZDate } from "@syntheo/utils";
 
 import {
   type EventTimelineItem,

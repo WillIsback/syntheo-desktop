@@ -1,6 +1,6 @@
-use anlg_e2ee::WorkspaceKeyring;
-use anlg_tiptap::merge::{MergeSide, merge_documents};
 use serde_json::Value;
+use syntheo_e2ee::WorkspaceKeyring;
+use syntheo_tiptap::merge::{MergeSide, merge_documents};
 
 use super::LocalState;
 

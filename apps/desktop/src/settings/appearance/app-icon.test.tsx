@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   applyAppIconPreference: vi.fn(),
   appIcon: "default",
   theme: "system",
-  appIdentifier: "com.hyprnote.stable" as string | undefined,
+  appIdentifier: "com.syntheo.stable" as string | undefined,
   billing: {
     isPro: true,
     isUpgradingToPro: false,
@@ -36,7 +36,7 @@ vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => mocks.billing,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { warning: mocks.toastWarning },
 }));
 
@@ -58,7 +58,7 @@ describe("AppIconSelector", () => {
     mocks.platform.mockReturnValue("macos");
     mocks.appIcon = "default";
     mocks.theme = "system";
-    mocks.appIdentifier = "com.hyprnote.stable";
+    mocks.appIdentifier = "com.syntheo.stable";
     mocks.billing.isPro = true;
     mocks.billing.isUpgradingToPro = false;
     mocks.toastWarning.mockClear();
@@ -96,7 +96,7 @@ describe("AppIconSelector", () => {
     fireEvent.click(blueprintOption);
 
     expect(mocks.toastWarning).toHaveBeenCalledWith(
-      "This requires Anarlog Pro",
+      "This requires Syntheo Pro",
       {
         action: {
           label: "Upgrade",

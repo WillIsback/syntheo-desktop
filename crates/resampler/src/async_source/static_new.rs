@@ -3,7 +3,7 @@ use pin_project::pin_project;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use anlg_audio_interface::AsyncSource;
+use syntheo_audio_interface::AsyncSource;
 
 use crate::{Async, FixedAsync, PolynomialDegree, RubatoChunkResampler};
 

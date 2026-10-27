@@ -10,10 +10,10 @@ specta = ["dep:specta"]
 tauri-event = ["specta", "dep:tauri-specta"]
 
 [dependencies]
-anlg-audio-utils = { workspace = true }
-anlg-language = { workspace = true }
-anlg-mp3 = { workspace = true }
-anlg-user-error = { workspace = true }
+syntheo-audio-utils = { workspace = true }
+syntheo-language = { workspace = true }
+syntheo-mp3 = { workspace = true }
+syntheo-user-error = { workspace = true }
 
 base64 = { workspace = true }
 hound = { workspace = true }

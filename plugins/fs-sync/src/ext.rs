@@ -6,7 +6,7 @@ pub struct FsSync<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
-    fn core(&self) -> Result<anlg_fs_sync_core::FsSyncCore, crate::Error> {
+    fn core(&self) -> Result<syntheo_fs_sync_core::FsSyncCore, crate::Error> {
         let base_dir = self
             .manager
             .app_handle()
@@ -15,7 +15,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> FsSync<'a, R, M> {
             .map(|p| p.into_std_path_buf())
             .map_err(|e| crate::Error::Path(e.to_string()))?;
 
-        Ok(anlg_fs_sync_core::FsSyncCore::new(base_dir))
+        Ok(syntheo_fs_sync_core::FsSyncCore::new(base_dir))
     }
 
     pub async fn lock_session_audio(&self, session_id: &str) -> tokio::sync::OwnedMutexGuard<()> {

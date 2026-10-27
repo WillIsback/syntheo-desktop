@@ -1,13 +1,13 @@
 use ractor::{ActorRef, call_t, registry};
 
 use crate::{CaptureConfigUpdate, CaptureParams, CaptureSnapshot, CaptureState, SessionStateCache};
-use anlg_transcription_core::listener::{
+use syntheo_transcription_core::listener::{
     StartSessionError,
     actors::{RootActor, RootMsg, SessionParams, SourceActor, SourceMsg},
 };
 
 fn capture_snapshot_from_result<E: std::fmt::Debug>(
-    result: Result<anlg_transcription_core::listener::Snapshot, E>,
+    result: Result<syntheo_transcription_core::listener::Snapshot, E>,
 ) -> crate::Result<CaptureSnapshot> {
     result.map(CaptureSnapshot::from).map_err(|error| {
         tracing::warn!(?error, "capture_snapshot_unavailable");
@@ -25,9 +25,9 @@ async fn active_source() -> Option<ActorRef<SourceMsg>> {
 struct CachedSessionState {
     requested_live_transcription: bool,
     live_transcription_active: bool,
-    live_segments: Vec<anlg_transcription_core::listener::LiveTranscriptSegment>,
+    live_segments: Vec<syntheo_transcription_core::listener::LiveTranscriptSegment>,
     started_at_ms: Option<i64>,
-    degraded: Option<anlg_transcription_core::listener::DegradedError>,
+    degraded: Option<syntheo_transcription_core::listener::DegradedError>,
 }
 
 fn hydrate_session_state(
@@ -58,7 +58,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener<'a, R, M> {
     pub async fn list_microphone_devices(&self) -> Result<Vec<String>, crate::Error> {
         let audio = self
             .manager
-            .state::<std::sync::Arc<dyn anlg_audio::AudioProvider>>();
+            .state::<std::sync::Arc<dyn syntheo_audio::AudioProvider>>();
         Ok(audio.list_mic_devices())
     }
 
@@ -255,11 +255,11 @@ mod tests {
         ) -> Result<(), ractor::ActorProcessingErr> {
             match message {
                 RootMsg::GetSnapshot(reply) => {
-                    let _ = reply.send(anlg_transcription_core::listener::Snapshot {
+                    let _ = reply.send(syntheo_transcription_core::listener::Snapshot {
                         state: if state.is_some() {
-                            anlg_transcription_core::listener::State::Active
+                            syntheo_transcription_core::listener::State::Active
                         } else {
-                            anlg_transcription_core::listener::State::Finalizing
+                            syntheo_transcription_core::listener::State::Finalizing
                         },
                         active_session_id: state.clone(),
                         finalizing_session_ids: vec!["previous".to_string()],

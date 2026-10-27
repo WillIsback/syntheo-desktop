@@ -4,7 +4,7 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 crate_dir=$(cd "$script_dir/.." && pwd)
-source_dir=$(mktemp -d "${TMPDIR:-/tmp}/anarlog-sqlite-sync.XXXXXX")
+source_dir=$(mktemp -d "${TMPDIR:-/tmp}/syntheo-sqlite-sync.XXXXXX")
 trap 'rm -rf "$source_dir"' EXIT
 
 if [[ "$(uname -m)" != "x86_64" ]]; then

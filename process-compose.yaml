@@ -18,14 +18,14 @@ log_configuration:
 processes:
   ui-build:
     description: Build shared UI styles before starting the apps
-    command: pnpm exec turbo run build --filter=@anlg/ui
+    command: pnpm exec turbo run build --filter=@syntheo/ui
     log_location: ${PC_LOG_DIR:-.process-compose/logs}/ui-build.log
     availability:
       restart: exit_on_failure
 
   desktop:
     description: Run the Tauri desktop app and its Vite dev server
-    command: pnpm -F @anlg/desktop tauri:dev
+    command: pnpm -F @syntheo/desktop tauri:dev
     log_location: ${PC_LOG_DIR:-.process-compose/logs}/desktop.log
     depends_on:
       ui-build:

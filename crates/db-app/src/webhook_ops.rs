@@ -100,8 +100,8 @@ pub async fn record_webhook_delivery(
 mod tests {
     use super::*;
 
-    async fn test_db() -> anlg_db_core::Db {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+    async fn test_db() -> syntheo_db_core::Db {
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
         crate::prepare_schema(&db).await.unwrap();
         db
     }

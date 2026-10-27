@@ -2,13 +2,13 @@ import type {
   DrizzleProxyClient,
   LiveQueryClient,
   TransactionClient,
-} from "@anlg/db-runtime";
+} from "@syntheo/db-runtime";
 import {
   execute,
   executeProxy,
   executeTransaction,
   subscribe,
-} from "@anlg/plugin-db";
+} from "@syntheo/plugin-db";
 
 export const tauriLiveQueryClient: LiveQueryClient & DrizzleProxyClient = {
   execute,

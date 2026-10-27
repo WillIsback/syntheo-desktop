@@ -199,7 +199,7 @@ pub async fn acknowledge_e2ee_cloud_batch(
 pub async fn preserve_e2ee_cloud_conflicts(
     pool: &SqlitePool,
     workspace_id: &str,
-    keyring: &anlg_e2ee::WorkspaceKeyring,
+    keyring: &syntheo_e2ee::WorkspaceKeyring,
     batch: &E2eeCloudBatch,
 ) -> E2eeReplicaResult<()> {
     use super::chunks::{chunk_field, join_chunks, parse_chunk_field};
@@ -299,13 +299,13 @@ pub async fn preserve_e2ee_cloud_conflicts(
 pub async fn rebase_e2ee_cloud_documents(
     pool: &SqlitePool,
     workspace_id: &str,
-    keyring: &anlg_e2ee::WorkspaceKeyring,
+    keyring: &syntheo_e2ee::WorkspaceKeyring,
 ) -> E2eeReplicaResult<()> {
     use super::replica_storage::{
         insert_apply_guard, read_field, remove_apply_guard, restore_local_payload, update_field,
         upsert_local_state,
     };
-    use anlg_tiptap::merge::{MergeSide, merge_documents};
+    use syntheo_tiptap::merge::{MergeSide, merge_documents};
     let mut tx = pool.begin_with("BEGIN IMMEDIATE").await?;
     let in_flight: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM e2ee_cloud_batches WHERE workspace_id = ?)",
@@ -414,7 +414,7 @@ pub async fn rebase_e2ee_cloud_documents(
                 local.deleted,
                 &value,
             ),
-            payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+            payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
             payload: sealed.payload,
             edited_at_ms: local.edited_at_ms.and_then(|v| i64::try_from(v).ok()),
             republish: false,

@@ -3,7 +3,7 @@ use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use anlg_audio_utils::Source;
+use syntheo_audio_utils::Source;
 
 use crate::encoder::f32_to_i16;
 use crate::{Error, MonoStreamEncoder};
@@ -18,7 +18,7 @@ pub fn encode_mono_segments(
     output_dir: &Path,
     segment_duration: Duration,
 ) -> Result<Vec<PathBuf>, Error> {
-    let source = anlg_audio_utils::source_from_path(source_path)?;
+    let source = syntheo_audio_utils::source_from_path(source_path)?;
     let mut paths: Vec<PathBuf> = Vec::new();
 
     let writers = drive(source, segment_duration, |index| {
@@ -59,7 +59,7 @@ where
     let mut outputs: Vec<W> = Vec::new();
     let mut current: Option<SegmentEncoder<W>> = None;
 
-    for sample in anlg_audio_utils::mono_frames(source, channels) {
+    for sample in syntheo_audio_utils::mono_frames(source, channels) {
         if current
             .as_ref()
             .is_some_and(|segment| segment.frames >= frames_per_segment)
@@ -182,7 +182,7 @@ mod tests {
     #[test]
     fn in_memory_segments_are_encoded_without_a_file() {
         let wav: std::sync::Arc<[u8]> = sine_wav(3, 16_000).into();
-        let source = anlg_audio_utils::source_from_bytes(wav).unwrap();
+        let source = syntheo_audio_utils::source_from_bytes(wav).unwrap();
 
         let segments = encode_mono_segments_in_memory(source, Duration::from_secs(1)).unwrap();
 

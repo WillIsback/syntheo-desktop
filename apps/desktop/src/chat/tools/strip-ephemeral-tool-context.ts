@@ -1,14 +1,14 @@
 import { CONTEXT_TEXT_FIELD } from "./context-text";
 
-import type { AnlgUIMessage } from "~/chat/types";
+import type { SyntheoUIMessage } from "~/chat/types";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
 export function stripEphemeralToolContext(
-  parts: AnlgUIMessage["parts"],
-): AnlgUIMessage["parts"] {
+  parts: SyntheoUIMessage["parts"],
+): SyntheoUIMessage["parts"] {
   let changed = false;
   const sanitized = parts.map((part) => {
     const record = isRecord(part) ? (part as Record<string, unknown>) : null;
@@ -33,5 +33,5 @@ export function stripEphemeralToolContext(
     };
   });
 
-  return changed ? (sanitized as AnlgUIMessage["parts"]) : parts;
+  return changed ? (sanitized as SyntheoUIMessage["parts"]) : parts;
 }

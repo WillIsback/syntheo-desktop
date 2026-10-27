@@ -1,7 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { computeCurrentNoteTab } from "@anlg/utils/session";
+import { computeCurrentNoteTab } from "@syntheo/utils/session";
 
 import {
   hasStoredNoteContent,

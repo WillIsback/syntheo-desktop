@@ -4,8 +4,8 @@ import { useCallback, useMemo, useState } from "react";
 import {
   commands as windowsCommands,
   getCurrentWebviewWindowLabel,
-} from "@anlg/plugin-windows";
-import { CaretRight, Check, Folder, Plus } from "@anlg/ui/components/icons";
+} from "@syntheo/plugin-windows";
+import { CaretRight, Check, Folder, Plus } from "@syntheo/ui/components/icons";
 import {
   Command,
   CommandEmpty,
@@ -13,16 +13,16 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@anlg/ui/components/ui/command";
+} from "@syntheo/ui/components/ui/command";
 import {
   AppFloatingPanel,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anlg/ui/components/ui/popover";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { squircleFocusVisibleClassName } from "@anlg/ui/lib/squircle";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { squircleFocusVisibleClassName } from "@syntheo/ui/lib/squircle";
+import { cn } from "@syntheo/utils";
 
 import { useFolderSelection } from "~/folders/selection";
 import { createNamedFolder } from "~/session/folder-catalog";

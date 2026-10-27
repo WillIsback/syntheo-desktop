@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@anlg/plugin-calendar", () => ({
+vi.mock("@syntheo/plugin-calendar", () => ({
   commands: { setCalendarEnabled: mocks.setCalendarEnabled },
 }));
 

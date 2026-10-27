@@ -3,12 +3,12 @@ use super::super::{
     load_or_create_writer_id, persist_prepared_dirty_row_cancellable, prepare_dirty_row,
 };
 use super::*;
-use anlg_e2ee::RecoveryKey;
 use serde_json::json;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use syntheo_e2ee::RecoveryKey;
 
-async fn test_db() -> anlg_db_core::Db {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+async fn test_db() -> syntheo_db_core::Db {
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
     crate::prepare_schema(&db).await.unwrap();
     db
 }
@@ -40,7 +40,7 @@ fn witness_events(key: &WorkspaceKey, count: usize) -> Vec<E2eeWitnessEvent> {
                 sequence: u64::try_from(index + 1).unwrap(),
                 record_id: sealed.record_id,
                 workspace_id: "workspace-a".to_string(),
-                payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+                payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
                 payload: sealed.payload,
             }
         })

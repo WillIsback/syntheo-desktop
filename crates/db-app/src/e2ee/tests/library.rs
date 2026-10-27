@@ -1,6 +1,6 @@
 use super::*;
 
-async fn personal_library() -> anlg_db_core::Db {
+async fn personal_library() -> syntheo_db_core::Db {
     let db = test_db().await;
     crate::claim_cloudsync_workspace(db.pool(), "account-a")
         .await
@@ -372,30 +372,30 @@ async fn incoming_deletions_are_retained_when_switching_back() {
 async fn migration_stays_compatible_until_another_account_is_explicitly_connected() {
     let db = personal_library().await;
     let before: i64 =
-        sqlx::query_scalar("SELECT min_supported_version FROM _anlg_schema_compat WHERE id = 0")
+        sqlx::query_scalar("SELECT min_supported_version FROM _syntheo_schema_compat WHERE id = 0")
             .fetch_one(db.pool())
             .await
             .unwrap();
     assert!(before < 20260916043000);
     let steps = crate::APP_MIGRATION_STEPS;
-    let old_schema = anlg_db_migrate::DbSchema {
+    let old_schema = syntheo_db_migrate::DbSchema {
         steps: &steps[..steps
             .iter()
             .position(|step| step.id == "20260916043000_local_library_connections")
             .unwrap()],
         validate_cloudsync_table: crate::cloudsync_alter_guard_required,
     };
-    anlg_db_migrate::migrate(&db, old_schema).await.unwrap();
+    syntheo_db_migrate::migrate(&db, old_schema).await.unwrap();
     crate::connect_local_library(db.pool(), "account-b", "account-a")
         .await
         .unwrap();
     let after: i64 =
-        sqlx::query_scalar("SELECT min_supported_version FROM _anlg_schema_compat WHERE id = 0")
+        sqlx::query_scalar("SELECT min_supported_version FROM _syntheo_schema_compat WHERE id = 0")
             .fetch_one(db.pool())
             .await
             .unwrap();
     assert_eq!(after, 20260916043000);
-    let old_schema = anlg_db_migrate::DbSchema {
+    let old_schema = syntheo_db_migrate::DbSchema {
         steps: &steps[..steps
             .iter()
             .position(|step| step.id == "20260916043000_local_library_connections")
@@ -403,8 +403,8 @@ async fn migration_stays_compatible_until_another_account_is_explicitly_connecte
         validate_cloudsync_table: crate::cloudsync_alter_guard_required,
     };
     assert!(matches!(
-        anlg_db_migrate::migrate(&db, old_schema).await,
-        Err(anlg_db_migrate::MigrateError::SchemaFromNewerApp { .. })
+        syntheo_db_migrate::migrate(&db, old_schema).await,
+        Err(syntheo_db_migrate::MigrateError::SchemaFromNewerApp { .. })
     ));
 }
 

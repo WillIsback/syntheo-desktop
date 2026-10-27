@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "syntheo": {
+      "type": "http",
+      "url": "https://api.example.com/mcp"
+    }
+  }
+}

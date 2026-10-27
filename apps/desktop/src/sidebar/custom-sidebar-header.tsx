@@ -2,9 +2,9 @@ import { useLingui } from "@lingui/react/macro";
 import { type ReactNode, useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { ArrowLeft } from "@anlg/ui/components/icons";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+import { ArrowLeft } from "@syntheo/ui/components/icons";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import { useShell } from "~/contexts/shell";
 import {

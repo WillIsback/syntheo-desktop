@@ -2,7 +2,7 @@ import {
   commands as calendarCommands,
   type CalendarListItem,
   type CalendarProviderType,
-} from "@anlg/plugin-calendar";
+} from "@syntheo/plugin-calendar";
 
 import type { Ctx } from "./ctx";
 import type { IncomingEvent, IncomingParticipants } from "./fetch/types";

@@ -2,9 +2,9 @@ use std::io::Write;
 use std::path::Path;
 use std::time::Duration;
 
-use anlg_e2ee::{AttachmentBlobContext, AttachmentBlobMetadata, WorkspaceKey};
 use futures_util::StreamExt;
 use sha2::{Digest, Sha256};
+use syntheo_e2ee::{AttachmentBlobContext, AttachmentBlobMetadata, WorkspaceKey};
 use tokio::io::AsyncWriteExt;
 use uuid::Uuid;
 

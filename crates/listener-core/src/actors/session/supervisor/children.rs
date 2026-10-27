@@ -1,6 +1,6 @@
-use anlg_supervisor::{RestartBudget, RetryStrategy, spawn_with_retry};
 use ractor::concurrency::Duration;
 use ractor::{Actor, ActorCell, ActorRef};
+use syntheo_supervisor::{RestartBudget, RetryStrategy, spawn_with_retry};
 
 use crate::actors::session::types::SessionContext;
 use crate::actors::{ChannelMode, ListenerActor, ListenerArgs, SourceActor, SourceArgs, SourceMsg};

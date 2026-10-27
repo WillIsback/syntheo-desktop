@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use anlg_db_core::Db;
+use syntheo_db_core::Db;
 #[cfg(test)]
-use anlg_db_core::{DbOpenError, DbOpenOptions, DbStorage};
-use anlg_db_execute::{DbExecutor, ProxyQueryMethod, ProxyQueryResult};
-use anlg_db_reactive::{LiveQueryRuntime, QueryEventSink, SubscriptionRegistration};
+use syntheo_db_core::{DbOpenError, DbOpenOptions, DbStorage};
+use syntheo_db_execute::{DbExecutor, ProxyQueryMethod, ProxyQueryResult};
+use syntheo_db_reactive::{LiveQueryRuntime, QueryEventSink, SubscriptionRegistration};
 use tauri::ipc::Channel;
 
 use crate::{QueryEvent, Result, TransactionStatement};
@@ -204,14 +204,14 @@ fn ensure_db_sync_runtime() {
         let _ = tx.send(tokio::runtime::Handle::current());
     });
     if let Ok(handle) = rx.recv_timeout(std::time::Duration::from_secs(2)) {
-        anlg_db_sync::set_runtime_handle(handle);
+        syntheo_db_sync::set_runtime_handle(handle);
     }
 }
 
 impl PluginDbRuntime {
     pub fn new(db: std::sync::Arc<Db>) -> Self {
         ensure_db_sync_runtime();
-        let handle = anlg_db_sync::runtime_handle();
+        let handle = syntheo_db_sync::runtime_handle();
         let _enter = handle.as_ref().map(|h| h.enter());
         let e2ee_sync_hook = std::sync::Arc::new(E2eeSyncHook::default());
         db.set_cloudsync_sync_hook(e2ee_sync_hook.clone());
@@ -256,7 +256,7 @@ impl PluginDbRuntime {
     pub fn set_e2ee_recovery_key(
         &self,
         workspace_id: &str,
-        recovery_key: &anlg_e2ee::RecoveryKey,
+        recovery_key: &syntheo_e2ee::RecoveryKey,
     ) -> Result<()> {
         self.e2ee_sync_hook
             .set_personal_workspace(workspace_id, recovery_key)
@@ -312,7 +312,7 @@ impl PluginDbRuntime {
         self.transaction_started.notified().await;
     }
 
-    pub fn workspace_key(&self, workspace_id: &str) -> Option<anlg_e2ee::WorkspaceKey> {
+    pub fn workspace_key(&self, workspace_id: &str) -> Option<syntheo_e2ee::WorkspaceKey> {
         self.e2ee_sync_hook.workspace_key(workspace_id)
     }
 
@@ -471,7 +471,7 @@ impl PluginDbRuntime {
     pub(crate) async fn ensure_app_schema(&self) -> Result<()> {
         self.schema_ready
             .get_or_try_init(|| async {
-                anlg_db_app::prepare_schema_with_progress(self.db.as_ref(), |progress| {
+                syntheo_db_app::prepare_schema_with_progress(self.db.as_ref(), |progress| {
                     if progress.completed < progress.total {
                         self.set_startup_status_if_running(crate::StartupStatus {
                             phase: crate::StartupPhase::MigratingDatabase,
@@ -658,7 +658,7 @@ impl PluginDbRuntime {
         Ok(registration)
     }
 
-    pub async fn unsubscribe(&self, subscription_id: &str) -> anlg_db_reactive::Result<()> {
+    pub async fn unsubscribe(&self, subscription_id: &str) -> syntheo_db_reactive::Result<()> {
         let result = self.live_query_runtime.unsubscribe(subscription_id).await;
         self.renderer_subscriptions.remove(subscription_id);
         result
@@ -692,7 +692,7 @@ impl PluginDbRuntime {
         account_user_id: String,
         e2ee_witness: crate::CloudsyncE2eeWitness,
         workspace_keys: E2eeWorkspaceKeyConfiguration,
-        workspace_projection: Option<anlg_db_app::CloudsyncWorkspaceProjection>,
+        workspace_projection: Option<syntheo_db_app::CloudsyncWorkspaceProjection>,
         auth_generation: u64,
     ) -> Result<crate::CloudsyncTokenConfigurationResult> {
         let _control_operation = self.cloudsync_control_guard().await?;
@@ -705,10 +705,10 @@ impl PluginDbRuntime {
                 || projection.personal_workspace_id != account_user_id
             {
                 return Err(
-                    anlg_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection.into(),
+                    syntheo_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection.into(),
                 );
             }
-            anlg_db_app::validate_cloudsync_workspace_projection(projection)?;
+            syntheo_db_app::validate_cloudsync_workspace_projection(projection)?;
         }
         let cancellation = crate::e2ee_witness::E2eeWitnessCancellation::default();
         let operation = async {
@@ -820,7 +820,7 @@ impl PluginDbRuntime {
         database_id: String,
         token: String,
         account_user_id: String,
-        workspace_projection: Option<anlg_db_app::CloudsyncWorkspaceProjection>,
+        workspace_projection: Option<syntheo_db_app::CloudsyncWorkspaceProjection>,
         e2ee_witness: crate::CloudsyncE2eeWitness,
     ) -> Result<crate::CloudsyncTokenConfigurationResult> {
         let auth_generation = self.begin_cloudsync_auth_configuration();
@@ -962,17 +962,17 @@ impl PluginDbRuntime {
         } = configuration;
         cancellation.check()?;
         if !self.db.cloudsync_enabled() {
-            return Err(anlg_db_core::CloudsyncRuntimeError::Unavailable.into());
+            return Err(syntheo_db_core::CloudsyncRuntimeError::Unavailable.into());
         }
 
         if workspace_projection
             .as_ref()
             .is_some_and(|projection| projection.account_user_id != account_user_id)
         {
-            return Err(anlg_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection.into());
+            return Err(syntheo_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection.into());
         }
         if let Some(projection) = workspace_projection.as_ref() {
-            anlg_db_app::validate_cloudsync_workspace_projection(projection)?;
+            syntheo_db_app::validate_cloudsync_workspace_projection(projection)?;
         }
 
         self.ensure_legacy_migration_ready().await?;
@@ -1022,17 +1022,17 @@ impl PluginDbRuntime {
             .await?;
         self.ensure_cloudsync_configuration_active(auth_generation, cancellation)?;
         self.e2ee_sync_hook.set_witnesses(witnesses);
-        let config = anlg_db_core::CloudsyncRuntimeConfig {
+        let config = syntheo_db_core::CloudsyncRuntimeConfig {
             connection_string: database_id,
-            auth: anlg_db_core::CloudsyncAuth::Token { token },
-            tables: anlg_db_app::cloudsync_table_registry().to_vec(),
+            auth: syntheo_db_core::CloudsyncAuth::Token { token },
+            tables: syntheo_db_app::cloudsync_table_registry().to_vec(),
             sync_interval_ms: DEFAULT_CLOUDSYNC_INTERVAL_MS,
             wait_ms: Some(5_000),
             max_retries: Some(3),
         };
         let write_filter_installed = match workspace_projection.as_ref() {
             Some(projection) => {
-                let installed = anlg_db_app::cloudsync_write_filter_installed(
+                let installed = syntheo_db_app::cloudsync_write_filter_installed(
                     self.db.pool(),
                     &projection.personal_workspace_id,
                 )
@@ -1056,7 +1056,7 @@ impl PluginDbRuntime {
                 let _write_guard = self.synced_write_barrier.write().await;
                 self.ensure_cloudsync_configuration_active(auth_generation, cancellation)?;
                 let reconciliation =
-                    match anlg_db_app::stage_cloudsync_workspace_reconciliation_cancellable(
+                    match syntheo_db_app::stage_cloudsync_workspace_reconciliation_cancellable(
                         self.db.pool(),
                         projection,
                         || cancellation.is_cancelled(),
@@ -1064,7 +1064,7 @@ impl PluginDbRuntime {
                     .await
                     {
                         Ok(reconciliation) => reconciliation,
-                        Err(anlg_db_app::CloudsyncWorkspaceError::ProjectionCancelled) => {
+                        Err(syntheo_db_app::CloudsyncWorkspaceError::ProjectionCancelled) => {
                             return Err(crate::Error::CloudsyncConfigurationCancelled);
                         }
                         Err(error) => return Err(error.into()),
@@ -1076,7 +1076,7 @@ impl PluginDbRuntime {
         };
         if let Some(projection) = workspace_projection.as_ref() {
             self.ensure_cloudsync_configuration_active(auth_generation, cancellation)?;
-            anlg_db_app::set_cloudsync_personal_write_scope(
+            syntheo_db_app::set_cloudsync_personal_write_scope(
                 self.db.pool(),
                 &projection.personal_workspace_id,
             )
@@ -1088,7 +1088,7 @@ impl PluginDbRuntime {
                 .as_ref()
                 .is_some_and(|plan| plan.requires_full_resync())
                 || !write_filter_installed;
-            match anlg_db_app::commit_cloudsync_workspace_projection_cancellable(
+            match syntheo_db_app::commit_cloudsync_workspace_projection_cancellable(
                 self.db.pool(),
                 projection,
                 requires_full_resync,
@@ -1097,7 +1097,7 @@ impl PluginDbRuntime {
             .await
             {
                 Ok(_) => {}
-                Err(anlg_db_app::CloudsyncWorkspaceError::ProjectionCancelled) => {
+                Err(syntheo_db_app::CloudsyncWorkspaceError::ProjectionCancelled) => {
                     return Err(crate::Error::CloudsyncConfigurationCancelled);
                 }
                 Err(error) => return Err(error.into()),
@@ -1107,10 +1107,10 @@ impl PluginDbRuntime {
         self.ensure_cloudsync_configuration_active(auth_generation, cancellation)?;
 
         if let Some(generation) =
-            anlg_db_app::cloudsync_full_resync_generation(self.db.pool()).await?
+            syntheo_db_app::cloudsync_full_resync_generation(self.db.pool()).await?
         {
             self.ensure_cloudsync_configuration_active(auth_generation, cancellation)?;
-            anlg_db_app::ensure_cloudsync_recovery_state(
+            syntheo_db_app::ensure_cloudsync_recovery_state(
                 self.db.pool(),
                 &generation,
                 &account_user_id,
@@ -1125,11 +1125,11 @@ impl PluginDbRuntime {
                 .cloudsync_prepare_manual_transport(config.clone())
                 .await?;
             self.ensure_cloudsync_configuration_active(auth_generation, cancellation)?;
-            if anlg_db_app::cloudsync_recovery_state(self.db.pool())
+            if syntheo_db_app::cloudsync_recovery_state(self.db.pool())
                 .await?
                 .is_some_and(|state| {
                     state.generation == generation
-                        && state.phase == anlg_db_app::CloudsyncRecoveryPhase::NeedFirstLogout
+                        && state.phase == syntheo_db_app::CloudsyncRecoveryPhase::NeedFirstLogout
                 })
             {
                 self.ensure_cloudsync_configuration_active(auth_generation, cancellation)?;
@@ -1212,9 +1212,9 @@ impl PluginDbRuntime {
             )
         })?;
         self.ensure_app_schema().await?;
-        match anlg_db_app::bind_cloudsync_account(self.db.pool(), &account_user_id).await {
+        match syntheo_db_app::bind_cloudsync_account(self.db.pool(), &account_user_id).await {
             Ok(()) => Ok(true),
-            Err(anlg_db_app::CloudsyncWorkspaceError::AccountMismatch) => {
+            Err(syntheo_db_app::CloudsyncWorkspaceError::AccountMismatch) => {
                 self.db.cloudsync_suspend().await?;
                 Ok(false)
             }
@@ -1234,7 +1234,7 @@ impl PluginDbRuntime {
         let _control_operation = self.cloudsync_control_guard().await?;
         let _write_guard = self.synced_write_barrier.write().await;
         self.ensure_app_schema().await?;
-        anlg_db_app::connect_local_library(
+        syntheo_db_app::connect_local_library(
             self.db.pool(),
             &account_user_id,
             &expected_library_workspace_id,
@@ -1252,7 +1252,8 @@ impl PluginDbRuntime {
         self.ensure_app_schema().await?;
         cancellation.check()?;
         let claimed =
-            anlg_db_app::cloudsync_workspace_is_claimed_by(self.db.pool(), &account_user_id).await;
+            syntheo_db_app::cloudsync_workspace_is_claimed_by(self.db.pool(), &account_user_id)
+                .await;
         cancellation.check()?;
         match claimed {
             Ok(true) => return Ok(true),
@@ -1268,7 +1269,7 @@ impl PluginDbRuntime {
 
         self.db.cloudsync_suspend().await?;
         cancellation.check()?;
-        match anlg_db_app::claim_cloudsync_workspace_cancellable(
+        match syntheo_db_app::claim_cloudsync_workspace_cancellable(
             self.db.pool(),
             &account_user_id,
             || cancellation.is_cancelled(),
@@ -1276,7 +1277,7 @@ impl PluginDbRuntime {
         .await
         {
             Ok(()) => Ok(true),
-            Err(anlg_db_app::CloudsyncWorkspaceError::ClaimCancelled) => {
+            Err(syntheo_db_app::CloudsyncWorkspaceError::ClaimCancelled) => {
                 Err(crate::Error::CloudsyncConfigurationCancelled)
             }
             Err(error) if is_permanent_cloudsync_workspace_rejection(&error) => Ok(false),
@@ -1292,7 +1293,8 @@ impl PluginDbRuntime {
         cancellation.check()?;
         self.ensure_app_schema().await?;
         cancellation.check()?;
-        match anlg_db_app::cloudsync_workspace_is_claimed_by(self.db.pool(), account_user_id).await
+        match syntheo_db_app::cloudsync_workspace_is_claimed_by(self.db.pool(), account_user_id)
+            .await
         {
             Ok(true) => return Ok(true),
             Ok(false) => {}
@@ -1300,7 +1302,7 @@ impl PluginDbRuntime {
             Err(error) => return Err(error.into()),
         }
 
-        match anlg_db_app::claim_cloudsync_workspace_cancellable(
+        match syntheo_db_app::claim_cloudsync_workspace_cancellable(
             self.db.pool(),
             account_user_id,
             || cancellation.is_cancelled(),
@@ -1308,7 +1310,7 @@ impl PluginDbRuntime {
         .await
         {
             Ok(()) => Ok(true),
-            Err(anlg_db_app::CloudsyncWorkspaceError::ClaimCancelled) => {
+            Err(syntheo_db_app::CloudsyncWorkspaceError::ClaimCancelled) => {
                 Err(crate::Error::CloudsyncConfigurationCancelled)
             }
             Err(error) if is_permanent_cloudsync_workspace_rejection(&error) => Ok(false),
@@ -1322,13 +1324,13 @@ impl PluginDbRuntime {
     // sessions stay on disk until a later local cleanup removes them.
     async fn apply_replica_workspace_projection(
         &self,
-        projection: &anlg_db_app::CloudsyncWorkspaceProjection,
+        projection: &syntheo_db_app::CloudsyncWorkspaceProjection,
         cancellation: &crate::e2ee_witness::E2eeWitnessCancellation,
     ) -> Result<()> {
         cancellation.check()?;
         let _write_guard = self.synced_write_barrier.write().await;
         cancellation.check()?;
-        let staged = anlg_db_app::stage_cloudsync_workspace_reconciliation_cancellable(
+        let staged = syntheo_db_app::stage_cloudsync_workspace_reconciliation_cancellable(
             self.db.pool(),
             projection,
             || cancellation.is_cancelled(),
@@ -1336,13 +1338,13 @@ impl PluginDbRuntime {
         .await;
         match staged {
             Ok(_) => {}
-            Err(anlg_db_app::CloudsyncWorkspaceError::ProjectionCancelled) => {
+            Err(syntheo_db_app::CloudsyncWorkspaceError::ProjectionCancelled) => {
                 return Err(crate::Error::CloudsyncConfigurationCancelled);
             }
             Err(error) => return Err(error.into()),
         }
         cancellation.check()?;
-        match anlg_db_app::commit_cloudsync_workspace_projection_cancellable(
+        match syntheo_db_app::commit_cloudsync_workspace_projection_cancellable(
             self.db.pool(),
             projection,
             false,
@@ -1351,7 +1353,7 @@ impl PluginDbRuntime {
         .await
         {
             Ok(_) => Ok(()),
-            Err(anlg_db_app::CloudsyncWorkspaceError::ProjectionCancelled) => {
+            Err(syntheo_db_app::CloudsyncWorkspaceError::ProjectionCancelled) => {
                 Err(crate::Error::CloudsyncConfigurationCancelled)
             }
             Err(error) => Err(error.into()),
@@ -1360,7 +1362,7 @@ impl PluginDbRuntime {
 
     async fn prepare_cloudsync_config_fail_closed(
         &self,
-        config: anlg_db_core::CloudsyncRuntimeConfig,
+        config: syntheo_db_core::CloudsyncRuntimeConfig,
         cancellation: &crate::e2ee_witness::E2eeWitnessCancellation,
     ) -> Result<(bool, u32, u64, u64)> {
         let result: Result<(bool, u32, u64, u64)> = async {
@@ -1403,16 +1405,16 @@ impl PluginDbRuntime {
 
         let _write_guard = self.synced_write_barrier.write().await;
         cancellation.check()?;
-        for table_name in anlg_db_app::E2EE_DOMAIN_TABLES {
-            let enabled = anlg_db_core::cloudsync_is_enabled_on(self.db.pool(), table_name)
+        for table_name in syntheo_db_app::E2EE_DOMAIN_TABLES {
+            let enabled = syntheo_db_core::cloudsync_is_enabled_on(self.db.pool(), table_name)
                 .await
-                .map_err(anlg_db_core::CloudsyncRuntimeError::from)?;
+                .map_err(syntheo_db_core::CloudsyncRuntimeError::from)?;
             cancellation.check()?;
             if enabled {
                 self.db
                     .cloudsync_cleanup(table_name)
                     .await
-                    .map_err(anlg_db_core::CloudsyncRuntimeError::from)?;
+                    .map_err(syntheo_db_core::CloudsyncRuntimeError::from)?;
                 cancellation.check()?;
             }
         }
@@ -1422,7 +1424,7 @@ impl PluginDbRuntime {
     async fn prepare_e2ee_cutover_and_initialize_witnesses(
         &self,
         witnesses: &HashMap<String, crate::e2ee_witness::E2eeWitnessClient>,
-        keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+        keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
         cancellation: &crate::e2ee_witness::E2eeWitnessCancellation,
     ) -> Result<()> {
         if keys.is_empty()
@@ -1457,7 +1459,7 @@ impl PluginDbRuntime {
 
     async fn materialize_authenticated_e2ee_changes(
         &self,
-        keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+        keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
         cancellation: &crate::e2ee_witness::E2eeWitnessCancellation,
     ) -> std::io::Result<()> {
         let started = std::time::Instant::now();
@@ -1469,16 +1471,17 @@ impl PluginDbRuntime {
         loop {
             cancellation.check()?;
             let batch_started = std::time::Instant::now();
-            let stats = anlg_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
-                self.db.pool(),
-                keys,
-                true,
-                || cancellation.is_cancelled(),
-            )
-            .await
-            .map_err(|error| {
-                std::io::Error::other(format!("E2EE witness hydration failed: {error}"))
-            })?;
+            let stats =
+                syntheo_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
+                    self.db.pool(),
+                    keys,
+                    true,
+                    || cancellation.is_cancelled(),
+                )
+                .await
+                .map_err(|error| {
+                    std::io::Error::other(format!("E2EE witness hydration failed: {error}"))
+                })?;
             cancellation.check()?;
             batches += 1;
             total_applied_fields = total_applied_fields.saturating_add(stats.applied_fields);
@@ -1525,10 +1528,10 @@ impl PluginDbRuntime {
     }
 
     async fn legacy_e2ee_cutover_required(&self) -> Result<bool> {
-        for table_name in anlg_db_app::E2EE_DOMAIN_TABLES {
-            if anlg_db_core::cloudsync_is_enabled_on(self.db.pool(), table_name)
+        for table_name in syntheo_db_app::E2EE_DOMAIN_TABLES {
+            if syntheo_db_core::cloudsync_is_enabled_on(self.db.pool(), table_name)
                 .await
-                .map_err(anlg_db_core::CloudsyncRuntimeError::from)?
+                .map_err(syntheo_db_core::CloudsyncRuntimeError::from)?
             {
                 return Ok(true);
             }
@@ -1549,7 +1552,7 @@ impl PluginDbRuntime {
             return Ok(false);
         }
 
-        for table in anlg_db_app::cloudsync_table_registry()
+        for table in syntheo_db_app::cloudsync_table_registry()
             .iter()
             .filter(|table| table.enabled)
         {
@@ -1615,7 +1618,9 @@ impl PluginDbRuntime {
     pub async fn suspend_cloudsync_for_sign_out(&self) -> Result<()> {
         match self.suspend_cloudsync().await {
             Ok(()) => Ok(()),
-            Err(crate::Error::Cloudsync(anlg_db_core::CloudsyncRuntimeError::LocalStatusBusy)) => {
+            Err(crate::Error::Cloudsync(
+                syntheo_db_core::CloudsyncRuntimeError::LocalStatusBusy,
+            )) => {
                 tracing::warn!(
                     "CloudSync pool teardown remains pending after account sign-out suspension"
                 );
@@ -1722,7 +1727,7 @@ impl PluginDbRuntime {
                             "failed to inspect pending E2EE replica changes: {error}"
                         ))
                     })?;
-            let recovery = anlg_db_app::cloudsync_recovery_state(&mut *connection).await?;
+            let recovery = syntheo_db_app::cloudsync_recovery_state(&mut *connection).await?;
             Ok::<_, crate::Error>((local_e2ee_work_pending, recovery))
         }
         .await;
@@ -1801,7 +1806,7 @@ impl PluginDbRuntime {
     async fn replica_transport_status(&self) -> Result<serde_json::Value> {
         let keys = self.e2ee_sync_hook.snapshot();
         let local_work_pending =
-            anlg_db_app::has_pending_e2ee_dirty_rows_deferring_active_captures(
+            syntheo_db_app::has_pending_e2ee_dirty_rows_deferring_active_captures(
                 self.db.pool(),
                 &keys,
             )
@@ -1838,7 +1843,7 @@ impl PluginDbRuntime {
 
 async fn has_pending_e2ee_dirty_rows_for_status(
     connection: &mut sqlx::SqliteConnection,
-    keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+    keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
 ) -> std::result::Result<bool, sqlx::Error> {
     if keys.is_empty() {
         return Ok(false);
@@ -1859,7 +1864,7 @@ async fn has_pending_e2ee_dirty_rows_for_status(
     }
     separated.push_unseparated(")");
     query.push(" AND ");
-    query.push(anlg_db_app::E2EE_DIRTY_ROW_WRITE_COMPATIBILITY_PREDICATE);
+    query.push(syntheo_db_app::E2EE_DIRTY_ROW_WRITE_COMPATIBILITY_PREDICATE);
     query.push(
         " AND NOT (
              dirty.table_name = 'transcripts'

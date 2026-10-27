@@ -258,7 +258,7 @@ where
     loop {
         tokio::select! {
             _ = &mut finalize_timeout => {
-                tracing::warn!(anarlog.timeout.reached = true, "break_timeout");
+                tracing::warn!(syntheo.timeout.reached = true, "break_timeout");
                 break;
             }
             result = listen_stream.next() => {
@@ -289,7 +289,7 @@ where
                         break;
                     }
                     None => {
-                        tracing::info!(anarlog.stream.ended = true, "break_from_finalize");
+                        tracing::info!(syntheo.stream.ended = true, "break_from_finalize");
                         break;
                     }
                 }
@@ -497,17 +497,17 @@ mod tests {
             partials: vec![],
         };
         if is_final {
-            delta.new_words.push(anlg_transcript::FinalizedWord {
+            delta.new_words.push(syntheo_transcript::FinalizedWord {
                 id: second.to_string(),
                 text: "hello".to_string(),
                 start_ms: second * 1000,
                 end_ms: second * 1000 + 500,
                 channel: 0,
                 speaker_index: None,
-                state: anlg_transcript::WordState::Final,
+                state: syntheo_transcript::WordState::Final,
             });
         } else {
-            delta.partials.push(anlg_transcript::PartialWord {
+            delta.partials.push(syntheo_transcript::PartialWord {
                 text: "hello".to_string(),
                 start_ms: second * 1000,
                 end_ms: second * 1000 + 500,
@@ -641,7 +641,7 @@ mod tests {
     fn repeated_final_responses_do_not_hide_stalled_transcripts() {
         let now = Instant::now();
         let mut progress = StreamProgress::new(now);
-        let mut engine = crate::LiveTranscriptEngine::new("anarlog", &[], None);
+        let mut engine = crate::LiveTranscriptEngine::new("syntheo", &[], None);
         let response = transcript_response(true);
         let initial = engine
             .process(&response)
@@ -664,7 +664,7 @@ mod tests {
     fn advancing_single_word_finals_keep_an_active_stream_healthy() {
         let now = Instant::now();
         let mut progress = StreamProgress::new(now);
-        let mut engine = crate::LiveTranscriptEngine::new("anarlog", &[], None);
+        let mut engine = crate::LiveTranscriptEngine::new("syntheo", &[], None);
         let mut response = transcript_response(true);
         if let StreamResponse::TranscriptResponse { channel, .. } = &mut response {
             channel.alternatives[0].words.truncate(1);

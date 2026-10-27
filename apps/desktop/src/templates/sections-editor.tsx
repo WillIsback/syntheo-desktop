@@ -2,9 +2,9 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { Reorder, useDragControls } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { TemplateSection } from "@anlg/store";
-import { DotsSixVertical, DotsThree, Plus } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import type { TemplateSection } from "@syntheo/store";
+import { DotsSixVertical, DotsThree, Plus } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -12,9 +12,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { Input } from "@anlg/ui/components/ui/input";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { Input } from "@syntheo/ui/components/ui/input";
+import { cn } from "@syntheo/utils";
 
 type SectionDraft = TemplateSection & { key: string };
 

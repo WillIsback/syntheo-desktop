@@ -34,8 +34,8 @@ fn resolve_store_dir<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
 ) -> Result<PathBuf, crate::Error> {
     let bundle_id: &str = app.config().identifier.as_ref();
-    let global_base = anlg_storage::global::compute_default_base(bundle_id)
-        .ok_or(anlg_storage::Error::DataDirUnavailable)?;
+    let global_base = syntheo_storage::global::compute_default_base(bundle_id)
+        .ok_or(syntheo_storage::Error::DataDirUnavailable)?;
     std::fs::create_dir_all(&global_base)?;
 
     Ok(global_base)
@@ -62,7 +62,7 @@ fn save_store_locked<R: tauri::Runtime>(
         .into_iter()
         .collect::<std::collections::HashMap<_, _>>();
     let content = serde_json::to_string_pretty(&entries)?;
-    anlg_storage::fs::atomic_write(path, &content)?;
+    syntheo_storage::fs::atomic_write(path, &content)?;
     Ok(())
 }
 

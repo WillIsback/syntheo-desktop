@@ -3,17 +3,17 @@
   "extends": ["//"],
   "tasks": {
     "dev": {
-      "dependsOn": ["@anlg/ui#build"]
+      "dependsOn": ["@syntheo/ui#build"]
     },
     "build": {
-      "dependsOn": ["@anlg/ui#build"],
+      "dependsOn": ["@syntheo/ui#build"],
       "outputs": ["dist/**"]
     },
     "tauri:dev": {
-      "dependsOn": ["@anlg/ui#build"]
+      "dependsOn": ["@syntheo/ui#build"]
     },
     "tauri:build": {
-      "dependsOn": ["@anlg/ui#build"]
+      "dependsOn": ["@syntheo/ui#build"]
     }
   }
 }

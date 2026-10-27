@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use anlg_db_core::Db;
+use syntheo_db_core::Db;
 
 const DB_FILENAME: &str = "app.db";
 const DB_RESET_MARKER: &str = "app.db.reset-requested";
-pub(crate) const STABLE_BUNDLE_ID: &str = anlg_brand::STABLE_BUNDLE_ID;
-pub(crate) const NIGHTLY_BUNDLE_ID: &str = "com.hyprnote.nightly";
+pub(crate) const STABLE_BUNDLE_ID: &str = syntheo_brand::STABLE_BUNDLE_ID;
+pub(crate) const NIGHTLY_BUNDLE_ID: &str = "com.syntheo.nightly";
 const DEFAULT_CLOUDSYNC_INTERVAL_MS: u64 = 30_000;
 const DB_OPEN_LOCK_RETRIES: u32 = 12;
 const DB_OPEN_LOCK_RETRY_DELAY: std::time::Duration = std::time::Duration::from_secs(5);
@@ -86,17 +86,17 @@ pub fn is_transient_lock_error(error: &impl std::fmt::Display) -> bool {
 pub fn is_newer_schema_error(error: &impl std::fmt::Display) -> bool {
     error
         .to_string()
-        .contains("created by a newer version of Anarlog")
+        .contains("created by a newer version of Syntheo")
 }
 pub fn cloudsync_runtime_config_from_env()
--> Result<Option<anlg_db_core::CloudsyncRuntimeConfig>, String> {
+-> Result<Option<syntheo_db_core::CloudsyncRuntimeConfig>, String> {
     cloudsync_runtime_config(|key| std::env::var(key).ok())
 }
 
 fn cloudsync_runtime_config(
     get: impl Fn(&str) -> Option<String>,
-) -> Result<Option<anlg_db_core::CloudsyncRuntimeConfig>, String> {
-    let allow_static_auth = get("ANARLOG_CLOUDSYNC_ALLOW_STATIC_AUTH")
+) -> Result<Option<syntheo_db_core::CloudsyncRuntimeConfig>, String> {
+    let allow_static_auth = get("SYNTHEO_CLOUDSYNC_ALLOW_STATIC_AUTH")
         .and_then(nonempty)
         .map(parse_env_flag)
         .transpose()?
@@ -105,34 +105,34 @@ fn cloudsync_runtime_config(
         return Ok(None);
     }
 
-    let database_id = get("ANARLOG_CLOUDSYNC_E2EE_DATABASE_ID").and_then(nonempty);
-    let api_key = get("ANARLOG_CLOUDSYNC_API_KEY").and_then(nonempty);
-    let token = get("ANARLOG_CLOUDSYNC_TOKEN").and_then(nonempty);
+    let database_id = get("SYNTHEO_CLOUDSYNC_E2EE_DATABASE_ID").and_then(nonempty);
+    let api_key = get("SYNTHEO_CLOUDSYNC_API_KEY").and_then(nonempty);
+    let token = get("SYNTHEO_CLOUDSYNC_TOKEN").and_then(nonempty);
 
     if database_id.is_none() && api_key.is_none() && token.is_none() {
         return Ok(None);
     }
 
     let database_id = database_id.ok_or_else(|| {
-        "ANARLOG_CLOUDSYNC_E2EE_DATABASE_ID is required when CloudSync auth is configured"
+        "SYNTHEO_CLOUDSYNC_E2EE_DATABASE_ID is required when CloudSync auth is configured"
             .to_string()
     })?;
     let auth = match (api_key, token) {
-        (Some(api_key), None) => anlg_db_core::CloudsyncAuth::ApiKey { api_key },
-        (None, Some(token)) => anlg_db_core::CloudsyncAuth::Token { token },
+        (Some(api_key), None) => syntheo_db_core::CloudsyncAuth::ApiKey { api_key },
+        (None, Some(token)) => syntheo_db_core::CloudsyncAuth::Token { token },
         (None, None) => {
             return Err(
-                "ANARLOG_CLOUDSYNC_API_KEY or ANARLOG_CLOUDSYNC_TOKEN is required".to_string(),
+                "SYNTHEO_CLOUDSYNC_API_KEY or SYNTHEO_CLOUDSYNC_TOKEN is required".to_string(),
             );
         }
         (Some(_), Some(_)) => {
             return Err(
-                "configure only one of ANARLOG_CLOUDSYNC_API_KEY or ANARLOG_CLOUDSYNC_TOKEN"
+                "configure only one of SYNTHEO_CLOUDSYNC_API_KEY or SYNTHEO_CLOUDSYNC_TOKEN"
                     .to_string(),
             );
         }
     };
-    let sync_interval_ms = get("ANARLOG_CLOUDSYNC_INTERVAL_MS")
+    let sync_interval_ms = get("SYNTHEO_CLOUDSYNC_INTERVAL_MS")
         .and_then(nonempty)
         .map(|value| {
             value
@@ -140,16 +140,16 @@ fn cloudsync_runtime_config(
                 .ok()
                 .filter(|value| *value > 0)
                 .ok_or_else(|| {
-                    "ANARLOG_CLOUDSYNC_INTERVAL_MS must be a positive integer".to_string()
+                    "SYNTHEO_CLOUDSYNC_INTERVAL_MS must be a positive integer".to_string()
                 })
         })
         .transpose()?
         .unwrap_or(DEFAULT_CLOUDSYNC_INTERVAL_MS);
 
-    Ok(Some(anlg_db_core::CloudsyncRuntimeConfig {
+    Ok(Some(syntheo_db_core::CloudsyncRuntimeConfig {
         connection_string: database_id,
         auth,
-        tables: anlg_db_app::cloudsync_table_registry().to_vec(),
+        tables: syntheo_db_app::cloudsync_table_registry().to_vec(),
         sync_interval_ms,
         wait_ms: Some(5_000),
         max_retries: Some(3),
@@ -165,7 +165,7 @@ fn parse_env_flag(value: String) -> Result<bool, String> {
     match value.to_ascii_lowercase().as_str() {
         "1" | "true" => Ok(true),
         "0" | "false" => Ok(false),
-        _ => Err("ANARLOG_CLOUDSYNC_ALLOW_STATIC_AUTH must be true, false, 1, or 0".to_string()),
+        _ => Err("SYNTHEO_CLOUDSYNC_ALLOW_STATIC_AUTH must be true, false, 1, or 0".to_string()),
     }
 }
 
@@ -193,7 +193,7 @@ fn database_identifier(identifier: &str) -> &str {
 pub(crate) fn desktop_db_dir(identifier: &str) -> Option<std::path::PathBuf> {
     let identifier = database_identifier(identifier);
     let data_dir = dirs::data_dir()?;
-    let default_dir = anlg_storage::global::compute_default_base(identifier)?;
+    let default_dir = syntheo_storage::global::compute_default_base(identifier)?;
     let identifier_dir = data_dir.join(identifier);
 
     if identifier_dir.join(DB_FILENAME).is_file() && !default_dir.join(DB_FILENAME).is_file() {
@@ -248,7 +248,7 @@ mod tests {
         // Rendered form of MigrateError::SchemaFromNewerApp after crossing the
         // plugin setup boundary as a string.
         assert!(is_newer_schema_error(
-            &"plugin db failed: the database was created by a newer version of Anarlog: it requires migration 20260901000000, but this build only includes migrations up to 20260816100100"
+            &"plugin db failed: the database was created by a newer version of Syntheo: it requires migration 20260901000000, but this build only includes migrations up to 20260816100100"
         ));
         assert!(!is_newer_schema_error(
             &"unable to open database file: /tmp/app.db"
@@ -257,9 +257,9 @@ mod tests {
 
     #[test]
     fn only_nightly_and_stable_share_a_database_directory() {
-        let db_dir = desktop_db_dir(anlg_brand::DEV_BUNDLE_ID).unwrap();
+        let db_dir = desktop_db_dir(syntheo_brand::DEV_BUNDLE_ID).unwrap();
 
-        assert!(db_dir.ends_with(anlg_brand::DEV_BUNDLE_ID));
+        assert!(db_dir.ends_with(syntheo_brand::DEV_BUNDLE_ID));
 
         assert_eq!(
             desktop_db_dir(NIGHTLY_BUNDLE_ID),
@@ -279,20 +279,20 @@ mod tests {
             shared_database_peer(STABLE_BUNDLE_ID),
             Some(NIGHTLY_BUNDLE_ID)
         );
-        assert_eq!(shared_database_peer("com.hyprnote.staging"), None);
-        assert_eq!(shared_database_peer(anlg_brand::DEV_BUNDLE_ID), None);
+        assert_eq!(shared_database_peer("com.syntheo.staging"), None);
+        assert_eq!(shared_database_peer(syntheo_brand::DEV_BUNDLE_ID), None);
     }
 
     #[test]
     fn cloudsync_environment_config_enables_only_core_tables() {
         let values = HashMap::from([
-            ("ANARLOG_CLOUDSYNC_ALLOW_STATIC_AUTH", "true".to_string()),
+            ("SYNTHEO_CLOUDSYNC_ALLOW_STATIC_AUTH", "true".to_string()),
             (
-                "ANARLOG_CLOUDSYNC_E2EE_DATABASE_ID",
+                "SYNTHEO_CLOUDSYNC_E2EE_DATABASE_ID",
                 "managed-database-id".to_string(),
             ),
-            ("ANARLOG_CLOUDSYNC_TOKEN", "token".to_string()),
-            ("ANARLOG_CLOUDSYNC_INTERVAL_MS", "15000".to_string()),
+            ("SYNTHEO_CLOUDSYNC_TOKEN", "token".to_string()),
+            ("SYNTHEO_CLOUDSYNC_INTERVAL_MS", "15000".to_string()),
         ]);
 
         let config = cloudsync_runtime_config(|key| values.get(key).cloned())
@@ -309,7 +309,7 @@ mod tests {
         assert_eq!(config.sync_interval_ms, 15_000);
         assert!(matches!(
             config.auth,
-            anlg_db_core::CloudsyncAuth::Token { .. }
+            syntheo_db_core::CloudsyncAuth::Token { .. }
         ));
         assert_eq!(enabled, vec!["e2ee_records"]);
         assert!(!enabled.contains(&"sessions"));
@@ -319,13 +319,13 @@ mod tests {
     #[test]
     fn cloudsync_environment_rejects_multiple_credentials() {
         let values = HashMap::from([
-            ("ANARLOG_CLOUDSYNC_ALLOW_STATIC_AUTH", "true".to_string()),
+            ("SYNTHEO_CLOUDSYNC_ALLOW_STATIC_AUTH", "true".to_string()),
             (
-                "ANARLOG_CLOUDSYNC_E2EE_DATABASE_ID",
+                "SYNTHEO_CLOUDSYNC_E2EE_DATABASE_ID",
                 "managed-database-id".to_string(),
             ),
-            ("ANARLOG_CLOUDSYNC_API_KEY", "api-key".to_string()),
-            ("ANARLOG_CLOUDSYNC_TOKEN", "token".to_string()),
+            ("SYNTHEO_CLOUDSYNC_API_KEY", "api-key".to_string()),
+            ("SYNTHEO_CLOUDSYNC_TOKEN", "token".to_string()),
         ]);
 
         let error = cloudsync_runtime_config(|key| values.get(key).cloned()).unwrap_err();
@@ -339,10 +339,10 @@ mod tests {
 
         let values = HashMap::from([
             (
-                "ANARLOG_CLOUDSYNC_E2EE_DATABASE_ID",
+                "SYNTHEO_CLOUDSYNC_E2EE_DATABASE_ID",
                 "managed-database-id".to_string(),
             ),
-            ("ANARLOG_CLOUDSYNC_API_KEY", "api-key".to_string()),
+            ("SYNTHEO_CLOUDSYNC_API_KEY", "api-key".to_string()),
         ]);
 
         let config = cloudsync_runtime_config(|key| values.get(key).cloned()).unwrap();

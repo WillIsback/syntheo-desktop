@@ -2,7 +2,7 @@ use gdk_pixbuf::{InterpType, Pixbuf};
 use gtk::IconTheme;
 use gtk::prelude::IconThemeExt;
 
-use anlg_notification_interface::{NotificationIcon, NotificationIconAsset};
+use syntheo_notification_interface::{NotificationIcon, NotificationIconAsset};
 
 const ICON_SIZE: i32 = 28;
 
@@ -56,8 +56,8 @@ fn expand_home(path: &str) -> String {
 }
 
 fn default_app_icon() -> Option<Pixbuf> {
-    icon_theme_pixbuf(anlg_brand::DEV_BUNDLE_ID)
-        .or_else(|| icon_theme_pixbuf(anlg_brand::CLI_COMMAND))
+    icon_theme_pixbuf(syntheo_brand::DEV_BUNDLE_ID)
+        .or_else(|| icon_theme_pixbuf(syntheo_brand::CLI_COMMAND))
         .or_else(|| icon_theme_pixbuf("application-x-executable"))
 }
 
@@ -119,11 +119,11 @@ mod tests {
     fn expands_home_prefixed_icon_paths() {
         let previous = std::env::var("HOME").ok();
         unsafe {
-            std::env::set_var("HOME", "/home/anarlog");
+            std::env::set_var("HOME", "/home/syntheo");
         }
         assert_eq!(
             expand_home("~/icons/zoom.svg"),
-            "/home/anarlog/icons/zoom.svg"
+            "/home/syntheo/icons/zoom.svg"
         );
         assert_eq!(expand_home("/usr/share/zoom.png"), "/usr/share/zoom.png");
         match previous {

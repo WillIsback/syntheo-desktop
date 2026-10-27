@@ -6,7 +6,7 @@ import {
 } from "ai";
 import { useMemo } from "react";
 
-import type { AIProviderStorage } from "@anlg/store";
+import type { AIProviderStorage } from "@syntheo/store";
 
 import { providerFetch } from "../provider-fetch";
 import {

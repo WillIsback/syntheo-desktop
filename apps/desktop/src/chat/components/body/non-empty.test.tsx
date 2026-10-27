@@ -7,7 +7,7 @@ vi.mock("~/chat/components/message/normal", () => ({
 
 import { ChatBodyNonEmpty } from "./non-empty";
 
-import type { AnlgUIMessage } from "~/chat/types";
+import type { SyntheoUIMessage } from "~/chat/types";
 
 afterEach(cleanup);
 
@@ -27,7 +27,7 @@ describe("ChatBodyNonEmpty", () => {
             output: { results: [] },
           },
         ],
-      } as AnlgUIMessage,
+      } as SyntheoUIMessage,
       true,
     ],
     [
@@ -39,7 +39,7 @@ describe("ChatBodyNonEmpty", () => {
           { type: "text", text: "Earlier response", state: "done" },
           { type: "step-start" },
         ],
-      } as AnlgUIMessage,
+      } as SyntheoUIMessage,
       true,
     ],
     [
@@ -54,7 +54,7 @@ describe("ChatBodyNonEmpty", () => {
             state: "streaming",
           },
         ],
-      } as AnlgUIMessage,
+      } as SyntheoUIMessage,
       false,
     ],
   ])("handles thinking for %s", (_name, message, expectThinking) => {

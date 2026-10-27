@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 import { setSessionFabSelectionHost } from "./selection-slot";
 

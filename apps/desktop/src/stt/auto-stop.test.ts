@@ -17,7 +17,7 @@ const { getNotificationIconForAppMock, showNotificationMock } = vi.hoisted(
   }),
 );
 
-vi.mock("@anlg/plugin-notification", () => ({
+vi.mock("@syntheo/plugin-notification", () => ({
   commands: {
     showNotification: showNotificationMock,
   },

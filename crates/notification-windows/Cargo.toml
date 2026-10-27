@@ -5,7 +5,7 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-anlg-notification-interface = { workspace = true }
+syntheo-notification-interface = { workspace = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 indexmap = "2.6"

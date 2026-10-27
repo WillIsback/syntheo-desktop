@@ -60,8 +60,8 @@ mod test {
     }
 
     async fn seeded_pool() -> sqlx::SqlitePool {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO sessions (id, title, started_at, series_id) \
              VALUES ('meeting-1', 'Planning', '2026-07-13', 'series-1')",
@@ -89,7 +89,7 @@ mod test {
     #[tokio::test]
     async fn drive_export_requires_summary_and_preserves_transcript_and_metadata() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         assert!(commands::drive_markdown(export.clone()).is_err());
@@ -122,7 +122,7 @@ mod test {
     #[tokio::test]
     async fn markdown_export_writes_stable_file_into_directory() {
         let pool = seeded_pool().await;
-        let export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
 
@@ -131,7 +131,7 @@ mod test {
             "2026-07-13 Planning [meeting-].md"
         );
 
-        let untitled = anlg_agent_access::Meeting {
+        let untitled = syntheo_agent_access::Meeting {
             title: "  ".to_string(),
             started_at: String::new(),
             created_at: "bad".to_string(),
@@ -142,7 +142,7 @@ mod test {
             "Untitled meeting [meeting-].md"
         );
 
-        let hostile = anlg_agent_access::Meeting {
+        let hostile = syntheo_agent_access::Meeting {
             title: "a/b:c*d?".to_string(),
             ..export.meeting.clone()
         };
@@ -152,7 +152,7 @@ mod test {
         );
 
         let directory =
-            std::env::temp_dir().join(format!("anlg-md-export-{}", uuid::Uuid::new_v4()));
+            std::env::temp_dir().join(format!("syntheo-md-export-{}", uuid::Uuid::new_v4()));
         let path = commands::write_markdown_export(&directory, &export).unwrap();
         assert_eq!(
             path.file_name().unwrap().to_string_lossy(),
@@ -164,7 +164,7 @@ mod test {
 
         let other_meeting_file = directory.join("2026-07-13 Other [meeting2].md");
         std::fs::write(&other_meeting_file, "other").unwrap();
-        let mut retitled = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut retitled = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         retitled.meeting.title = "Planning follow-up".to_string();
@@ -181,7 +181,8 @@ mod test {
     #[tokio::test]
     async fn note_enhanced_reexports_markdown_and_records_the_run() {
         let pool = seeded_pool().await;
-        let directory = std::env::temp_dir().join(format!("anlg-md-auto-{}", uuid::Uuid::new_v4()));
+        let directory =
+            std::env::temp_dir().join(format!("syntheo-md-auto-{}", uuid::Uuid::new_v4()));
         for (id, value) in [
             (
                 "automation_markdown_export_enabled",
@@ -224,7 +225,7 @@ mod test {
     #[tokio::test]
     async fn configured_markdown_export_filters_every_content_combination() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let mut summary = export.meeting.note.clone().unwrap();
@@ -234,7 +235,7 @@ mod test {
         export
             .meeting
             .action_items
-            .push(anlg_agent_access::ActionItem {
+            .push(syntheo_agent_access::ActionItem {
                 id: "action-1".to_string(),
                 assignee_human_id: String::new(),
                 status: "open".to_string(),
@@ -243,7 +244,7 @@ mod test {
                 completed_at: None,
             });
         let directory =
-            std::env::temp_dir().join(format!("anlg-md-options-{}", uuid::Uuid::new_v4()));
+            std::env::temp_dir().join(format!("syntheo-md-options-{}", uuid::Uuid::new_v4()));
         for bits in 0..16 {
             let options = MarkdownExportOptions {
                 include_memo: bits & 1 != 0,
@@ -281,7 +282,7 @@ mod test {
     #[tokio::test]
     async fn configured_markdown_filenames_are_safe_and_support_patterns() {
         let pool = seeded_pool().await;
-        let export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         for (name, expected) in [
@@ -322,7 +323,7 @@ mod test {
         let defaults: MarkdownExportOptions = serde_json::from_str("{}").unwrap();
         assert_eq!(defaults, MarkdownExportOptions::default());
 
-        let literal_title = anlg_agent_access::Meeting {
+        let literal_title = syntheo_agent_access::Meeting {
             title: "Planning {date} and {title}".to_string(),
             ..export.meeting.clone()
         };
@@ -340,11 +341,11 @@ mod test {
     #[tokio::test]
     async fn configured_actions_keep_separate_exports_for_the_same_meeting() {
         let pool = seeded_pool().await;
-        let export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let directory =
-            std::env::temp_dir().join(format!("anlg-md-actions-{}", uuid::Uuid::new_v4()));
+            std::env::temp_dir().join(format!("syntheo-md-actions-{}", uuid::Uuid::new_v4()));
         let memo_options = MarkdownExportOptions {
             filename: "Memo".to_string(),
             include_transcript: false,
@@ -384,7 +385,7 @@ mod test {
         use std::io::Write;
 
         let pool = seeded_pool().await;
-        let export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let options = MarkdownExportOptions {
@@ -423,7 +424,7 @@ mod test {
     #[tokio::test]
     async fn renamed_configured_export_replaces_only_its_unedited_previous_file() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let options = MarkdownExportOptions {
@@ -463,7 +464,7 @@ mod test {
     #[tokio::test]
     async fn changed_filename_pattern_replaces_identical_previous_export() {
         let pool = seeded_pool().await;
-        let export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let directory = tempfile::tempdir().unwrap();
@@ -494,7 +495,7 @@ mod test {
     #[tokio::test]
     async fn simultaneous_markdown_exports_complete_without_false_collisions() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         export.meeting.note.as_mut().unwrap().markdown = "Memo content. ".repeat(20_000);
@@ -530,7 +531,7 @@ mod test {
             .join(commands::markdown_export_filename(&export.meeting));
         let written = std::fs::read_to_string(path).unwrap();
         let content = written
-            .strip_prefix("<!-- anarlog:legacy-markdown-export \"meeting-1\" -->\n\n")
+            .strip_prefix("<!-- syntheo:legacy-markdown-export \"meeting-1\" -->\n\n")
             .unwrap_or(&written);
         assert_eq!(content, format!("{}\n", export.to_markdown()));
         assert_eq!(std::fs::read_dir(directory.path()).unwrap().count(), 1);
@@ -542,7 +543,7 @@ mod test {
         use std::os::unix::fs::PermissionsExt;
 
         let pool = seeded_pool().await;
-        let export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let directory = tempfile::tempdir().unwrap();
@@ -560,7 +561,7 @@ mod test {
     #[tokio::test]
     async fn legacy_cleanup_keeps_configured_and_unmarked_exports() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let directory = tempfile::tempdir().unwrap();
@@ -590,7 +591,7 @@ mod test {
     #[tokio::test]
     async fn configured_export_takes_ownership_of_a_shared_legacy_filename() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let directory = tempfile::tempdir().unwrap();
@@ -604,7 +605,7 @@ mod test {
         assert!(
             !std::fs::read_to_string(&path)
                 .unwrap()
-                .starts_with("<!-- anarlog:legacy-markdown-export")
+                .starts_with("<!-- syntheo:legacy-markdown-export")
         );
         export.meeting.title = "Planning updated".to_string();
         commands::write_markdown_export(directory.path(), &export).unwrap();
@@ -614,11 +615,11 @@ mod test {
     #[tokio::test]
     async fn configured_markdown_export_updates_its_own_file_but_rejects_collisions() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let directory =
-            std::env::temp_dir().join(format!("anlg-md-collision-{}", uuid::Uuid::new_v4()));
+            std::env::temp_dir().join(format!("syntheo-md-collision-{}", uuid::Uuid::new_v4()));
         let options = MarkdownExportOptions {
             filename: "Recap".to_string(),
             include_id_suffix: false,
@@ -656,7 +657,7 @@ mod test {
     #[tokio::test]
     async fn markdown_reexports_multiline_titles_and_windows_line_endings() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         export.meeting.title = "Planning\n\nfollow-up".to_string();
@@ -684,7 +685,7 @@ mod test {
     #[tokio::test]
     async fn markdown_collision_checks_the_owner_before_ids_in_the_body() {
         let pool = seeded_pool().await;
-        let export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let directory = tempfile::tempdir().unwrap();
@@ -704,7 +705,7 @@ mod test {
     #[tokio::test]
     async fn legacy_cleanup_matches_sanitized_id_suffixes() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         export.meeting.id = "meeting/1".to_string();
@@ -735,7 +736,7 @@ mod test {
     #[tokio::test]
     async fn oversized_cloud_snapshot_keeps_text_and_drops_word_payloads() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         export.transcripts[0].words =
@@ -757,7 +758,7 @@ mod test {
     #[tokio::test]
     async fn cloud_snapshot_accounts_for_jsonb_spacing_at_the_size_limit() {
         let pool = seeded_pool().await;
-        let mut export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let mut export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         export.transcripts[0].words = vec![serde_json::json!({ "text": "word" }); 110_000];
@@ -805,7 +806,7 @@ mod test {
     #[tokio::test]
     async fn cloud_snapshot_within_the_jsonb_limit_preserves_word_metadata() {
         let pool = seeded_pool().await;
-        let export = anlg_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
+        let export = syntheo_agent_access::get_meeting_export(&pool, "meeting-1".to_string())
             .await
             .unwrap();
         let expected = serde_json::to_value(&export).unwrap();

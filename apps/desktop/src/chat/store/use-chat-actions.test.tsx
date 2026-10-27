@@ -26,7 +26,7 @@ vi.mock("~/chat/store/queries", () => ({
   upsertChatMessage: mocks.upsertChatMessage,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { error: mocks.toastError },
 }));
 
@@ -44,7 +44,7 @@ import {
 } from "./pending-persists";
 import { useChatActions } from "./use-chat-actions";
 
-import type { AnlgUIMessage, ChatSendOptions } from "~/chat/types";
+import type { SyntheoUIMessage, ChatSendOptions } from "~/chat/types";
 
 describe("useChatActions", () => {
   beforeEach(() => {
@@ -287,7 +287,7 @@ describe("useChatActions", () => {
       );
     });
 
-    const message = sendMessage.mock.calls[0]?.[0] as AnlgUIMessage;
+    const message = sendMessage.mock.calls[0]?.[0] as SyntheoUIMessage;
     expect(message.metadata?.chatScope).toBe("automations");
 
     const options = sendMessage.mock.calls[0]?.[1] as ChatSendOptions;

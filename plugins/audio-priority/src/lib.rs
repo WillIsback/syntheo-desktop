@@ -12,7 +12,7 @@ pub use ext::*;
 pub use priority::*;
 pub use state::*;
 
-pub use anlg_audio_device::{
+pub use syntheo_audio_device::{
     AudioDevice, AudioDeviceBackend, AudioDirection, DeviceId, TransportType, backend,
 };
 

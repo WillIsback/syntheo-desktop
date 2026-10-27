@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   snapshot: null as unknown,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { error: mocks.toastError, warning: mocks.toastWarning },
 }));
 

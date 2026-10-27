@@ -1,6 +1,6 @@
-import { commands as detectCommands } from "@anlg/plugin-detect";
-import type { MeetingCapturedChatMessage } from "@anlg/plugin-detect";
-import { toast } from "@anlg/ui/components/ui/toast";
+import { commands as detectCommands } from "@syntheo/plugin-detect";
+import type { MeetingCapturedChatMessage } from "@syntheo/plugin-detect";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import { getStoredSettingValues } from "~/settings/queries";
 import { resolveConfigValue } from "~/shared/config";

@@ -17,7 +17,7 @@ fn failure(error: impl std::fmt::Display) -> Error {
 
 /// The recorder can retain files after every corresponding SQLite row is gone.
 /// Read only its sessions tree; never follow links or silently truncate inventory.
-fn recording_locations(db: &anlg_db_core::Db) -> Result<BTreeMap<String, Vec<String>>> {
+fn recording_locations(db: &syntheo_db_core::Db) -> Result<BTreeMap<String, Vec<String>>> {
     let options = db.pool().connect_options();
     let base = options
         .get_filename()
@@ -127,7 +127,7 @@ fn recording_locations(db: &anlg_db_core::Db) -> Result<BTreeMap<String, Vec<Str
 }
 
 pub async fn list(
-    db: &anlg_db_core::Db,
+    db: &syntheo_db_core::Db,
     after: &str,
     limit: u32,
     database_only: bool,
@@ -138,7 +138,7 @@ pub async fn list(
         recording_locations(db)?
     };
     let mut tx = db.pool().begin().await.map_err(failure)?;
-    let database_ids = anlg_db_app::list_local_hold_sessions(&mut tx, after, limit)
+    let database_ids = syntheo_db_app::list_local_hold_sessions(&mut tx, after, limit)
         .await
         .map_err(failure)?;
     tx.rollback().await.map_err(failure)?;
@@ -159,19 +159,19 @@ pub async fn list(
 
 /// NDJSON preserves raw SQLite cells in bounded chunks in one read transaction.
 /// Opaque JSON/text is never normalized; even a single large note stays bounded.
-pub async fn export(db: &anlg_db_core::Db, id: &str, database_only: bool) -> Result<()> {
+pub async fn export(db: &syntheo_db_core::Db, id: &str, database_only: bool) -> Result<()> {
     let locations = if database_only {
         Vec::new()
     } else {
         recording_locations(db)?.remove(id).unwrap_or_default()
     };
     let mut tx = db.pool().begin().await.map_err(failure)?;
-    let tables = anlg_db_app::local_hold_tables(&mut tx)
+    let tables = syntheo_db_app::local_hold_tables(&mut tx)
         .await
         .map_err(failure)?;
     let mut exists = false;
     for table in &tables {
-        let name = anlg_db_app::quote_hold_identifier(&table.name);
+        let name = syntheo_db_app::quote_hold_identifier(&table.name);
         if sqlx::query_scalar::<_, bool>(sqlx::AssertSqlSafe(format!(
             "SELECT EXISTS(SELECT 1 FROM {name} WHERE ({}))",
             table.predicate
@@ -195,7 +195,7 @@ pub async fn export(db: &anlg_db_core::Db, id: &str, database_only: bool) -> Res
     };
     stream.frame(json!({"type":"header","schema_version":"1","command":"meetings.hold-export","meeting_id":id,"recording_locations":locations,"recording_files_separate":database_only}))?;
     for table in tables {
-        let quoted = anlg_db_app::quote_hold_identifier(&table.name);
+        let quoted = syntheo_db_app::quote_hold_identifier(&table.name);
         let key = &table.key;
         let mut after: Option<String> = None;
         loop {
@@ -204,7 +204,7 @@ pub async fn export(db: &anlg_db_core::Db, id: &str, database_only: bool) -> Res
             ))).bind(id).bind(after).fetch_optional(&mut *tx).await.map_err(failure)?;
             let Some(rowid) = rowid else { break };
             for column in &table.columns {
-                let name = anlg_db_app::quote_hold_identifier(column);
+                let name = syntheo_db_app::quote_hold_identifier(column);
                 // SQLite's extended formatter round-trips REAL values; ordinary
                 // CAST can lose precision. Other storage classes remain exact.
                 let bytes = format!(
@@ -273,8 +273,8 @@ impl<W: Write> Stream<W> {
 mod tests {
     #[tokio::test]
     async fn orphaned_capture_markers_stay_discoverable_and_exportable() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         for id in [
             "capture_stop:stopped-meeting:transcript",
             "capture_incomplete:incomplete-meeting:audio-recovery",
@@ -286,11 +286,11 @@ mod tests {
                 .unwrap();
         }
         let mut tx = db.pool().begin().await.unwrap();
-        let ids = anlg_db_app::list_local_hold_sessions(&mut tx, "", 200)
+        let ids = syntheo_db_app::list_local_hold_sessions(&mut tx, "", 200)
             .await
             .unwrap();
         assert_eq!(ids, ["incomplete-meeting", "stopped-meeting"]);
-        let tables = anlg_db_app::local_hold_tables(&mut tx).await.unwrap();
+        let tables = syntheo_db_app::local_hold_tables(&mut tx).await.unwrap();
         let settings = tables
             .iter()
             .find(|table| table.name == "app_settings")

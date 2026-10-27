@@ -4,7 +4,7 @@ use crate::AgentPluginExt;
 #[specta::specta]
 pub fn health_check<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<anlg_agent_core::HealthCheckResponse, String> {
+) -> Result<syntheo_agent_core::HealthCheckResponse, String> {
     Ok(app.agent().health_check())
 }
 
@@ -12,8 +12,8 @@ pub fn health_check<R: tauri::Runtime>(
 #[specta::specta]
 pub fn install_cli<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    payload: anlg_agent_core::InstallCliRequest,
-) -> Result<anlg_agent_core::InstallCliResponse, String> {
+    payload: syntheo_agent_core::InstallCliRequest,
+) -> Result<syntheo_agent_core::InstallCliResponse, String> {
     app.agent().install_cli(payload)
 }
 
@@ -21,7 +21,7 @@ pub fn install_cli<R: tauri::Runtime>(
 #[specta::specta]
 pub fn uninstall_cli<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    payload: anlg_agent_core::UninstallCliRequest,
-) -> Result<anlg_agent_core::UninstallCliResponse, String> {
+    payload: syntheo_agent_core::UninstallCliRequest,
+) -> Result<syntheo_agent_core::UninstallCliResponse, String> {
     app.agent().uninstall_cli(payload)
 }

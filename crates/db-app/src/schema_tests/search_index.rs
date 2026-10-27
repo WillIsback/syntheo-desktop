@@ -7,14 +7,14 @@ fn search_index_trigger_migrations_are_cloudsync_guarded() {
         .iter()
         .find(|step| step.id == "20260714120000_search_index_queue")
         .unwrap();
-    assert_eq!(queue_step.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(queue_step.scope, syntheo_db_migrate::MigrationScope::Plain);
     let acknowledgement_step = APP_MIGRATION_STEPS
         .iter()
         .find(|step| step.id == "20260815100200_search_index_acknowledgements")
         .unwrap();
     assert_eq!(
         acknowledgement_step.scope,
-        anlg_db_migrate::MigrationScope::Plain
+        syntheo_db_migrate::MigrationScope::Plain
     );
 
     for (id, table_name) in [
@@ -39,7 +39,7 @@ fn search_index_trigger_migrations_are_cloudsync_guarded() {
             .unwrap();
         assert_eq!(
             step.scope,
-            anlg_db_migrate::MigrationScope::CloudsyncAlter { table_name }
+            syntheo_db_migrate::MigrationScope::CloudsyncAlter { table_name }
         );
     }
 }

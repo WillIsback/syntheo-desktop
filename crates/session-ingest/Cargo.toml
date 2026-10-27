@@ -16,7 +16,7 @@ default = ["apply"]
 apply = ["dep:sha2", "dep:sqlx", "dep:thiserror"]
 
 [dev-dependencies]
-anlg-agent-access = { workspace = true }
-anlg-db-app = { workspace = true }
-anlg-db-core = { workspace = true }
+syntheo-agent-access = { workspace = true }
+syntheo-db-app = { workspace = true }
+syntheo-db-core = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt"] }

@@ -12,9 +12,9 @@ import ReactDOM from "react-dom/client";
 import {
   getCurrentWebviewWindowLabel,
   init as initWindowsPlugin,
-} from "@anlg/plugin-windows";
-import { Toaster } from "@anlg/ui/components/ui/toast";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+} from "@syntheo/plugin-windows";
+import { Toaster } from "@syntheo/ui/components/ui/toast";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { AITaskWindowSyncBridge } from "./ai/task-window-sync";
 import { createToolRegistry } from "./contexts/tool-registry/core";
@@ -133,7 +133,7 @@ const isMainWindow = getCurrentWebviewWindowLabel() === "main";
 
 if (isMainWindow) {
   try {
-    const firstOpenKey = "anarlog:analytics:first-opened";
+    const firstOpenKey = "syntheo:analytics:first-opened";
     if (localStorage.getItem(firstOpenKey) === null) {
       localStorage.setItem(firstOpenKey, "1");
     }

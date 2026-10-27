@@ -9,13 +9,13 @@ const mocks = vi.hoisted(() => ({
   eventJson: "{}",
 }));
 
-vi.mock("@anlg/plugin-detect", () => ({
+vi.mock("@syntheo/plugin-detect", () => ({
   commands: {
     inspectMeetingAccessibility: mocks.inspect,
     listMicUsingApplications: mocks.mic,
   },
 }));
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: { getCurrentMicrophoneDevice: mocks.currentDevice },
 }));
 vi.mock("~/stt/queries", () => ({

@@ -1,8 +1,8 @@
 import { Outlet, useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
-import { events as windowsEvents } from "@anlg/plugin-windows";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { events as windowsEvents } from "@syntheo/plugin-windows";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import {
   openNewNoteAndListen,
@@ -73,7 +73,7 @@ const useNavigationEvents = () => {
         }
       }
     };
-    (window as any).__ANARLOG_NAVIGATE__ = navigateFromNative;
+    (window as any).__SYNTHEO_NAVIGATE__ = navigateFromNative;
 
     let unlistenNavigate: (() => void) | undefined;
     let unlistenOpenTab: (() => void) | undefined;
@@ -156,8 +156,8 @@ const useNavigationEvents = () => {
 
     return () => {
       cancelled = true;
-      if ((window as any).__ANARLOG_NAVIGATE__ === navigateFromNative) {
-        delete (window as any).__ANARLOG_NAVIGATE__;
+      if ((window as any).__SYNTHEO_NAVIGATE__ === navigateFromNative) {
+        delete (window as any).__SYNTHEO_NAVIGATE__;
       }
       unlistenNavigate?.();
       unlistenOpenTab?.();

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { parseEventInstant, safeParseDate } from "@anlg/utils";
+import { parseEventInstant, safeParseDate } from "@syntheo/utils";
 
 describe("safeParseDate", () => {
   test("keeps datetime-local wall-clock values in local time", () => {

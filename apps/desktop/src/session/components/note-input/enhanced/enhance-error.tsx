@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 
-import { ArrowsClockwise, WarningCircle } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { ArrowsClockwise, WarningCircle } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 
 import { useAITask } from "~/ai/contexts";
 import { useLanguageModel } from "~/ai/hooks";
@@ -91,8 +91,8 @@ function ErrorSourceNote({ error }: { error: Error | undefined }) {
     case "upstream":
       label = t`Source: OpenRouter or the AI model provider`;
       break;
-    case "anarlog":
-      label = t`Source: Anarlog`;
+    case "syntheo":
+      label = t`Source: Syntheo`;
       break;
   }
 

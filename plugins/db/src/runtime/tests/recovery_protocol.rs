@@ -3,8 +3,8 @@ use super::*;
 #[tokio::test]
 async fn poisoned_replica_recovery_requires_the_disposable_e2ee_table_only() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
-    anlg_db_app::claim_cloudsync_workspace(db.pool(), "workspace-1")
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::claim_cloudsync_workspace(db.pool(), "workspace-1")
         .await
         .unwrap();
     sqlx::query(
@@ -49,7 +49,7 @@ async fn poisoned_replica_recovery_requires_the_disposable_e2ee_table_only() {
         .to_string()
         .contains("sessions")
     );
-    let key = anlg_e2ee::RecoveryKey::parse(
+    let key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap()
@@ -69,13 +69,13 @@ async fn poisoned_replica_recovery_requires_the_disposable_e2ee_table_only() {
         .contains("sessions")
     );
     assert_eq!(
-        anlg_db_app::cloudsync_full_resync_generation(runtime.db.pool())
+        syntheo_db_app::cloudsync_full_resync_generation(runtime.db.pool())
             .await
             .unwrap(),
         None
     );
     assert!(
-        anlg_db_app::cloudsync_recovery_state(runtime.db.pool())
+        syntheo_db_app::cloudsync_recovery_state(runtime.db.pool())
             .await
             .unwrap()
             .is_none()
@@ -85,8 +85,8 @@ async fn poisoned_replica_recovery_requires_the_disposable_e2ee_table_only() {
 #[tokio::test]
 async fn native_replica_logout_preserves_domain_rows_and_reinstalls_an_empty_filter() {
     let db = Db::connect_memory().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
-    anlg_db_app::set_cloudsync_personal_write_scope(db.pool(), "workspace-1")
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::set_cloudsync_personal_write_scope(db.pool(), "workspace-1")
         .await
         .unwrap();
     db.cloudsync_init(CLOUDSYNC_REPLICA_TABLE, None, None)
@@ -209,7 +209,7 @@ async fn native_replica_logout_preserves_domain_rows_and_reinstalls_an_empty_fil
 #[tokio::test]
 async fn legacy_cutover_snapshots_local_state_before_initializing_the_witness() {
     let db = std::sync::Arc::new(Db::connect_memory().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     db.cloudsync_init("sessions", None, None).await.unwrap();
     sqlx::query(
         "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
@@ -227,7 +227,7 @@ async fn legacy_cutover_snapshots_local_state_before_initializing_the_witness() 
     );
 
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -256,7 +256,7 @@ async fn legacy_cutover_snapshots_local_state_before_initializing_the_witness() 
             &HashMap::from([("workspace-1".to_string(), witness)]),
             &HashMap::from([(
                 "workspace-1".to_string(),
-                anlg_e2ee::WorkspaceKeyring::new(workspace_key),
+                syntheo_e2ee::WorkspaceKeyring::new(workspace_key),
             )]),
             &cancellation,
         )
@@ -265,12 +265,12 @@ async fn legacy_cutover_snapshots_local_state_before_initializing_the_witness() 
 
     assert!(witness_state.initialized.load(Ordering::SeqCst));
     assert!(
-        anlg_db_app::has_e2ee_local_state(db.pool(), "workspace-1")
+        syntheo_db_app::has_e2ee_local_state(db.pool(), "workspace-1")
             .await
             .unwrap()
     );
     assert!(
-        !anlg_db_core::cloudsync_is_enabled_on(db.pool(), "sessions")
+        !syntheo_db_core::cloudsync_is_enabled_on(db.pool(), "sessions")
             .await
             .unwrap()
     );
@@ -288,9 +288,9 @@ async fn witness_hydration_drains_applicable_rows_around_incomplete_transcripts(
 
 async fn check_witness_hydration_drains(incomplete_transcript: bool) {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
-    let workspace_key = anlg_e2ee::RecoveryKey::parse(
+    let workspace_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap()
@@ -315,11 +315,11 @@ async fn check_witness_hydration_drains(incomplete_transcript: bool) {
                     serde_json::json!(true),
                 )
                 .unwrap();
-            anlg_db_app::E2eeWitnessEvent {
+            syntheo_db_app::E2eeWitnessEvent {
                 sequence: u64::try_from(index + 1).unwrap(),
                 record_id: sealed.record_id,
                 workspace_id: "workspace-1".to_string(),
-                payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+                payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
                 payload: sealed.payload,
             }
         })
@@ -337,20 +337,20 @@ async fn check_witness_hydration_drains(incomplete_transcript: bool) {
                 serde_json::json!(1),
             )
             .unwrap();
-        events.push(anlg_db_app::E2eeWitnessEvent {
+        events.push(syntheo_db_app::E2eeWitnessEvent {
             sequence: 21,
             record_id: sealed.record_id,
             workspace_id: "workspace-1".to_string(),
-            payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+            payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
             payload: sealed.payload,
         });
     }
-    anlg_db_app::merge_e2ee_witness_events(db.pool(), &workspace_key, "workspace-1", &events)
+    syntheo_db_app::merge_e2ee_witness_events(db.pool(), &workspace_key, "workspace-1", &events)
         .await
         .unwrap();
     let keys = HashMap::from([(
         "workspace-1".to_string(),
-        anlg_e2ee::WorkspaceKeyring::new(workspace_key),
+        syntheo_e2ee::WorkspaceKeyring::new(workspace_key),
     )]);
 
     runtime
@@ -384,9 +384,9 @@ async fn check_witness_hydration_drains(incomplete_transcript: bool) {
 #[tokio::test]
 async fn witness_hydration_leaves_incomplete_transcripts_for_the_next_page() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
-    let key = anlg_e2ee::RecoveryKey::parse(
+    let key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap()
@@ -413,11 +413,11 @@ async fn witness_hydration_leaves_incomplete_transcripts_for_the_next_page() {
                 value,
             )
             .unwrap();
-        anlg_db_app::E2eeWitnessEvent {
+        syntheo_db_app::E2eeWitnessEvent {
             sequence: index as u64 + 1,
             record_id: sealed.record_id,
             workspace_id: "workspace-1".to_string(),
-            payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+            payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
             payload: sealed.payload,
         }
     })
@@ -426,7 +426,7 @@ async fn witness_hydration_leaves_incomplete_transcripts_for_the_next_page() {
     let cancellation = crate::e2ee_witness::E2eeWitnessCancellation::default();
 
     for page in [&events[..2], &events[2..]] {
-        anlg_db_app::merge_e2ee_witness_events(db.pool(), &key, "workspace-1", page)
+        syntheo_db_app::merge_e2ee_witness_events(db.pool(), &key, "workspace-1", page)
             .await
             .unwrap();
         tokio::time::timeout(
@@ -463,7 +463,7 @@ async fn witness_hydration_leaves_incomplete_transcripts_for_the_next_page() {
 #[tokio::test]
 async fn witness_hydration_yields_on_a_row_id_collision_and_resumes_after_resolution() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     sqlx::query(
         "INSERT INTO sessions (id, workspace_id, title)
          VALUES ('session-1', 'workspace-local', 'Keep local')",
@@ -472,7 +472,7 @@ async fn witness_hydration_yields_on_a_row_id_collision_and_resumes_after_resolu
     .await
     .unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
-    let key = anlg_e2ee::RecoveryKey::parse(
+    let key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap()
@@ -494,16 +494,16 @@ async fn witness_hydration_yields_on_a_row_id_collision_and_resumes_after_resolu
                     serde_json::json!(true),
                 )
                 .unwrap();
-            anlg_db_app::E2eeWitnessEvent {
+            syntheo_db_app::E2eeWitnessEvent {
                 sequence: index as u64 + 1,
                 record_id: sealed.record_id,
                 workspace_id: "workspace-1".to_string(),
-                payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+                payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
                 payload: sealed.payload,
             }
         })
         .collect::<Vec<_>>();
-    anlg_db_app::merge_e2ee_witness_events(db.pool(), &key, "workspace-1", &events)
+    syntheo_db_app::merge_e2ee_witness_events(db.pool(), &key, "workspace-1", &events)
         .await
         .unwrap();
     let keys = HashMap::from([("workspace-1".to_string(), key.into())]);

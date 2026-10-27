@@ -14,11 +14,11 @@ use objc2_foundation::{
 };
 use objc2_quartz_core::CALayer;
 
-use anlg_overlay_kit::layout::{Alignment, Anchor, Dimension, Insets, LayoutNode, OverlayChild};
-use anlg_overlay_kit::macos::layout::{LayoutHostView, LayoutSubview};
-use anlg_overlay_kit::macos::path::{HatchStyle, stroke_hatch};
-use anlg_overlay_kit::macos::support::{apply_continuous_corner, is_dark_appearance, rect};
-use anlg_overlay_kit::macos::tracking::visible_hover_tracking_area;
+use syntheo_overlay_kit::layout::{Alignment, Anchor, Dimension, Insets, LayoutNode, OverlayChild};
+use syntheo_overlay_kit::macos::layout::{LayoutHostView, LayoutSubview};
+use syntheo_overlay_kit::macos::path::{HatchStyle, stroke_hatch};
+use syntheo_overlay_kit::macos::support::{apply_continuous_corner, is_dark_appearance, rect};
+use syntheo_overlay_kit::macos::tracking::visible_hover_tracking_area;
 
 use super::super::animation::{self, HOVER_DURATION};
 use super::decorative_switch::DecorativeSwitch;
@@ -32,7 +32,7 @@ pub(crate) struct DragPlaceholderIvars {}
 define_class! {
     #[unsafe(super(NSView))]
     #[thread_kind = MainThreadOnly]
-    #[name = "AnarlogPermissionAssistantDragPlaceholderView"]
+    #[name = "SyntheoPermissionAssistantDragPlaceholderView"]
     #[ivars = DragPlaceholderIvars]
     pub(crate) struct DragPlaceholderView;
 
@@ -100,7 +100,7 @@ pub(crate) struct DragSourceIvars {
 define_class! {
     #[unsafe(super(NSView))]
     #[thread_kind = MainThreadOnly]
-    #[name = "AnarlogPermissionAssistantDragSourceView"]
+    #[name = "SyntheoPermissionAssistantDragSourceView"]
     #[ivars = DragSourceIvars]
     pub(crate) struct DragSourceView;
 

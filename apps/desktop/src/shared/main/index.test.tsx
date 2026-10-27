@@ -6,7 +6,7 @@ vi.mock("@tauri-apps/plugin-os", () => ({
   platform: () => "macos",
 }));
 
-vi.mock("@anlg/ui/components/ui/resizable", () => {
+vi.mock("@syntheo/ui/components/ui/resizable", () => {
   return {
     ResizablePanelGroup: ({ children }: { children: ReactNode }) => (
       <div>{children}</div>

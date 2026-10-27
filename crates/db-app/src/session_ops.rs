@@ -371,7 +371,7 @@ pub async fn update_session_proposal_status(
 
 #[cfg(test)]
 mod tests {
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     use super::*;
 

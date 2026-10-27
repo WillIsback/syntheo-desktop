@@ -1,6 +1,6 @@
 use std::{collections::HashMap, str::FromStr};
 
-use anlg_frontmatter::{Document, Error as FrontmatterError};
+use syntheo_frontmatter::{Document, Error as FrontmatterError};
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct ParsedDocument {

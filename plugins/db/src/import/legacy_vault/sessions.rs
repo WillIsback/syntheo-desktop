@@ -2,12 +2,12 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::str::FromStr;
 
-use anlg_db_app::{
+use serde_json::Value;
+use syntheo_db_app::{
     LegacyAttachment, LegacyDocument, LegacyImportBatch, LegacyImportRow, LegacyParticipant,
     LegacySession, LegacySessionTag, LegacyTag, LegacyTranscript,
 };
-use anlg_fs_sync_core::frontmatter::ParsedDocument;
-use serde_json::Value;
+use syntheo_fs_sync_core::frontmatter::ParsedDocument;
 
 use super::discovery::SourceFile;
 use super::source_format::{

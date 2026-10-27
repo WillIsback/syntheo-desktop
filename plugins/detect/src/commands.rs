@@ -60,7 +60,7 @@ fn load_installed_application_icons(app_ids: Vec<String>) -> Vec<InstalledApplic
 
 fn intersect_mic_active_bundle_ids(
     requested_bundle_ids: &[String],
-    current_mic_apps: &[anlg_detect::InstalledApp],
+    current_mic_apps: &[syntheo_detect::InstalledApp],
 ) -> Vec<String> {
     let requested = requested_bundle_ids
         .iter()
@@ -83,7 +83,7 @@ fn intersect_mic_active_bundle_ids(
 #[specta::specta]
 pub(crate) async fn list_installed_applications<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<Vec<anlg_detect::InstalledApp>, String> {
+) -> Result<Vec<syntheo_detect::InstalledApp>, String> {
     Ok(app.detect().list_installed_applications())
 }
 
@@ -115,7 +115,7 @@ pub(crate) async fn get_installed_application_icons<R: tauri::Runtime>(
 #[specta::specta]
 pub(crate) async fn list_mic_using_applications<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<Vec<anlg_detect::InstalledApp>, crate::Error> {
+) -> Result<Vec<syntheo_detect::InstalledApp>, crate::Error> {
     app.detect().list_mic_using_applications()
 }
 
@@ -131,7 +131,7 @@ pub(crate) async fn list_default_ignored_bundle_ids<R: tauri::Runtime>(
 #[specta::specta]
 pub(crate) async fn inspect_meeting_accessibility<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<Vec<anlg_detect::MeetingAccessibilityInspection>, String> {
+) -> Result<Vec<syntheo_detect::MeetingAccessibilityInspection>, String> {
     app.state::<AxWorker>().inspect().await
 }
 
@@ -141,7 +141,7 @@ pub(crate) async fn send_meeting_chat_message<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     message: String,
     mic_active_bundle_ids: Vec<String>,
-) -> Result<anlg_detect::MeetingChatSendResult, String> {
+) -> Result<syntheo_detect::MeetingChatSendResult, String> {
     let current_mic_apps = app
         .detect()
         .list_mic_using_applications()
@@ -150,7 +150,7 @@ pub(crate) async fn send_meeting_chat_message<R: tauri::Runtime>(
         intersect_mic_active_bundle_ids(&mic_active_bundle_ids, &current_mic_apps);
 
     app.state::<AxWorker>()
-        .run(move || anlg_detect::send_meeting_chat_message(message, verified_bundle_ids))
+        .run(move || syntheo_detect::send_meeting_chat_message(message, verified_bundle_ids))
         .await
 }
 
@@ -158,7 +158,7 @@ pub(crate) async fn send_meeting_chat_message<R: tauri::Runtime>(
 #[specta::specta]
 pub(crate) async fn capture_meeting_chat_messages<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<anlg_detect::MeetingChatCaptureResult, String> {
+) -> Result<syntheo_detect::MeetingChatCaptureResult, String> {
     let current_mic_apps = app
         .detect()
         .list_mic_using_applications()
@@ -169,7 +169,7 @@ pub(crate) async fn capture_meeting_chat_messages<R: tauri::Runtime>(
         .collect::<Vec<_>>();
 
     app.state::<AxWorker>()
-        .run(move || anlg_detect::capture_meeting_chat_messages(verified_bundle_ids))
+        .run(move || syntheo_detect::capture_meeting_chat_messages(verified_bundle_ids))
         .await
 }
 
@@ -177,8 +177,8 @@ pub(crate) async fn capture_meeting_chat_messages<R: tauri::Runtime>(
 #[serde(rename_all = "camelCase")]
 pub(crate) struct MeetingScreenShareCapture {
     sharing: bool,
-    app: Option<anlg_detect::MeetingApp>,
-    platform: Option<anlg_detect::MeetingPlatform>,
+    app: Option<syntheo_detect::MeetingApp>,
+    platform: Option<syntheo_detect::MeetingPlatform>,
     jpeg: Option<Vec<u8>>,
     width: u32,
     height: u32,
@@ -197,10 +197,10 @@ pub(crate) async fn capture_meeting_screen_share<R: tauri::Runtime>(
         .run(move || {
             let mut sampler = sampler.lock().map_err(|error| error.to_string())?;
             if reset {
-                *sampler = anlg_detect::ScreenShareSampler::default();
+                *sampler = syntheo_detect::ScreenShareSampler::default();
             }
 
-            let Some(inspection) = sampler.follow(&anlg_detect::inspect_meeting_accessibility())
+            let Some(inspection) = sampler.follow(&syntheo_detect::inspect_meeting_accessibility())
             else {
                 sampler.pause();
                 return Ok(MeetingScreenShareCapture {
@@ -213,7 +213,7 @@ pub(crate) async fn capture_meeting_screen_share<R: tauri::Runtime>(
                 });
             };
 
-            let image = anlg_detect::capture_meeting_window(
+            let image = syntheo_detect::capture_meeting_window(
                 inspection.pid,
                 inspection.window_title.as_deref(),
             )
@@ -221,9 +221,9 @@ pub(crate) async fn capture_meeting_screen_share<R: tauri::Runtime>(
                 sampler.unfollow();
                 sampler.pause();
             })?;
-            let keep = sampler.observe(anlg_detect::FrameSignature::of(&image));
+            let keep = sampler.observe(syntheo_detect::FrameSignature::of(&image));
             let (jpeg, width, height) = if keep {
-                let (jpeg, width, height) = anlg_detect::encode_capture_jpeg(&image)?;
+                let (jpeg, width, height) = syntheo_detect::encode_capture_jpeg(&image)?;
                 (Some(jpeg), width, height)
             } else {
                 (None, 0, 0)
@@ -286,7 +286,7 @@ pub(crate) async fn set_mic_active_threshold<R: tauri::Runtime>(
 pub(crate) async fn get_preferred_languages<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
 ) -> Result<Vec<String>, String> {
-    Ok(anlg_detect::get_preferred_languages()
+    Ok(syntheo_detect::get_preferred_languages()
         .into_iter()
         .map(|l| l.bcp47_code())
         .collect())
@@ -297,15 +297,15 @@ pub(crate) async fn get_preferred_languages<R: tauri::Runtime>(
 pub(crate) async fn get_current_locale_identifier<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
 ) -> Result<String, String> {
-    Ok(anlg_detect::get_current_locale_identifier())
+    Ok(syntheo_detect::get_current_locale_identifier())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn app(id: &str) -> anlg_detect::InstalledApp {
-        anlg_detect::InstalledApp {
+    fn app(id: &str) -> syntheo_detect::InstalledApp {
+        syntheo_detect::InstalledApp {
             id: id.to_string(),
             name: id.to_string(),
         }

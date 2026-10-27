@@ -5,11 +5,11 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-anlg-claude = { workspace = true }
-anlg-codex = { workspace = true }
-anlg-opencode = { workspace = true }
 serde = { workspace = true }
 specta = { workspace = true, optional = true }
+syntheo-claude = { workspace = true }
+syntheo-codex = { workspace = true }
+syntheo-opencode = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }

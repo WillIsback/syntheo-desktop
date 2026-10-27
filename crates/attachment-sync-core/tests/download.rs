@@ -1,9 +1,9 @@
-use anlg_e2ee::{AttachmentBlobContext, AttachmentBlobPlaintextMetadata};
 use attachment_sync_core::{
     DownloadObject, hex_digest, persist_staged_attachment, require_configured_supabase_url,
     seal_attachment_to_cache, stage_attachment_restore, validate_signed_download_url,
 };
 use sha2::{Digest, Sha256};
+use syntheo_e2ee::{AttachmentBlobContext, AttachmentBlobPlaintextMetadata};
 use uuid::Uuid;
 
 #[test]
@@ -99,7 +99,7 @@ async fn seals_and_restores_encrypted_attachment_atomically() {
     std::fs::write(&source_path, plaintext).unwrap();
     std::fs::write(&destination_path, b"old bytes").unwrap();
 
-    let key = anlg_e2ee::RecoveryKey::generate()
+    let key = syntheo_e2ee::RecoveryKey::generate()
         .unwrap()
         .workspace_key("workspace-a")
         .unwrap();

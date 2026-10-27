@@ -2,9 +2,9 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 
-import { Button } from "@anlg/ui/components/ui/button";
-import { Input } from "@anlg/ui/components/ui/input";
-import { Textarea } from "@anlg/ui/components/ui/textarea";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { Input } from "@syntheo/ui/components/ui/input";
+import { Textarea } from "@syntheo/ui/components/ui/textarea";
 
 import { formatProfilePhone } from "./phone";
 

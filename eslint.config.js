@@ -27,7 +27,7 @@ export default defineConfig(
               name: "sonner",
               importNames: ["Toaster"],
               message:
-                "Use Toaster from @anlg/ui/components/ui/toast for Hugeicons.",
+                "Use Toaster from @syntheo/ui/components/ui/toast for Hugeicons.",
             },
           ],
           patterns: [
@@ -45,7 +45,7 @@ export default defineConfig(
                 "@hugeicons/*",
               ],
               message:
-                "Use @anlg/ui/components/icons so interface icons come from the shared Hugeicons set.",
+                "Use @syntheo/ui/components/icons so interface icons come from the shared Hugeicons set.",
             },
           ],
         },
@@ -56,7 +56,7 @@ export default defineConfig(
           selector:
             "JSXOpeningElement[name.name='Streamdown']:not(:has(JSXAttribute[name.name='icons']))",
           message:
-            "Pass streamdownIcons from @anlg/ui/components/streamdown-icons so markdown controls use Hugeicons.",
+            "Pass streamdownIcons from @syntheo/ui/components/streamdown-icons so markdown controls use Hugeicons.",
         },
       ],
     },

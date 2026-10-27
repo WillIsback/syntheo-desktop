@@ -4,14 +4,14 @@ use crate::witness::{E2eeWitnessCancellation, E2eeWitnessClient};
 
 const E2EE_CLOUDSYNC_DIRTY_ROW_LIMIT: i64 = 64;
 
-fn cloudsync_receive_completed(result: &anlg_db_core::CloudsyncNetworkResult) -> bool {
+fn cloudsync_receive_completed(result: &syntheo_db_core::CloudsyncNetworkResult) -> bool {
     result.receive.as_ref().is_some_and(|receive| {
         receive.complete && receive.error.is_none() && receive.last_failure.is_none()
     })
 }
 
 fn cloudsync_receive_requires_reconciliation(
-    result: &anlg_db_core::CloudsyncNetworkResult,
+    result: &syntheo_db_core::CloudsyncNetworkResult,
 ) -> bool {
     result.receive.as_ref().is_some_and(|receive| {
         receive.chunks > 0
@@ -50,7 +50,7 @@ pub enum ReplicaSyncOutcome {
     Paused,
 }
 
-fn warn_parked_records(stats: &anlg_db_app::E2eeReplicaStats) {
+fn warn_parked_records(stats: &syntheo_db_app::E2eeReplicaStats) {
     if stats.parked_records > 0 {
         tracing::warn!(
             parked_records = stats.parked_records,
@@ -60,7 +60,7 @@ fn warn_parked_records(stats: &anlg_db_app::E2eeReplicaStats) {
 }
 
 fn ordered_witness_workspace_ids(
-    keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+    keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
     witnesses: &HashMap<String, E2eeWitnessClient>,
 ) -> std::io::Result<Vec<String>> {
     if keys.is_empty()
@@ -82,7 +82,7 @@ fn ordered_witness_workspace_ids(
 // sync operation can never observe a mixed-generation configuration.
 #[derive(Clone, Default)]
 struct E2eeRuntimeConfig {
-    keys: HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+    keys: HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
     witnesses: HashMap<String, E2eeWitnessClient>,
     transport: E2eeTransport,
 }
@@ -126,12 +126,12 @@ impl E2eeSyncHook {
     pub fn set_personal_workspace(
         &self,
         workspace_id: &str,
-        recovery_key: &anlg_e2ee::RecoveryKey,
-    ) -> std::result::Result<(), anlg_e2ee::Error> {
+        recovery_key: &syntheo_e2ee::RecoveryKey,
+    ) -> std::result::Result<(), syntheo_e2ee::Error> {
         let key = recovery_key.workspace_key(workspace_id)?;
         self.config.write().unwrap().keys = HashMap::from([(
             workspace_id.to_string(),
-            anlg_e2ee::WorkspaceKeyring::new(key),
+            syntheo_e2ee::WorkspaceKeyring::new(key),
         )]);
         self.request_reconciliation();
         Ok(())
@@ -140,12 +140,12 @@ impl E2eeSyncHook {
     pub fn set_workspaces(
         &self,
         personal_workspace_id: &str,
-        recovery_key: &anlg_e2ee::RecoveryKey,
-        mut shared_keyrings: HashMap<String, anlg_e2ee::WorkspaceKeyring>,
-    ) -> std::result::Result<(), anlg_e2ee::Error> {
+        recovery_key: &syntheo_e2ee::RecoveryKey,
+        mut shared_keyrings: HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
+    ) -> std::result::Result<(), syntheo_e2ee::Error> {
         shared_keyrings.insert(
             personal_workspace_id.to_string(),
-            anlg_e2ee::WorkspaceKeyring::new(recovery_key.workspace_key(personal_workspace_id)?),
+            syntheo_e2ee::WorkspaceKeyring::new(recovery_key.workspace_key(personal_workspace_id)?),
         );
         self.config.write().unwrap().keys = shared_keyrings;
         self.request_reconciliation();
@@ -156,7 +156,7 @@ impl E2eeSyncHook {
         self.config.read().unwrap().keys.contains_key(workspace_id)
     }
 
-    pub fn workspace_key(&self, workspace_id: &str) -> Option<anlg_e2ee::WorkspaceKey> {
+    pub fn workspace_key(&self, workspace_id: &str) -> Option<syntheo_e2ee::WorkspaceKey> {
         self.config
             .read()
             .unwrap()
@@ -185,7 +185,7 @@ impl E2eeSyncHook {
         self.activity_changed.notify_waiters();
     }
 
-    pub fn snapshot(&self) -> HashMap<String, anlg_e2ee::WorkspaceKeyring> {
+    pub fn snapshot(&self) -> HashMap<String, syntheo_e2ee::WorkspaceKeyring> {
         self.config.read().unwrap().keys.clone()
     }
 
@@ -441,8 +441,8 @@ impl E2eeSyncHook {
         &self,
         pool: &sqlx::SqlitePool,
         cancellation: &E2eeWitnessCancellation,
-    ) -> std::result::Result<(), anlg_db_app::E2eeReplicaError> {
-        anlg_db_app::encrypt_e2ee_replica_changes_deferring_active_captures_cancellable(
+    ) -> std::result::Result<(), syntheo_db_app::E2eeReplicaError> {
+        syntheo_db_app::encrypt_e2ee_replica_changes_deferring_active_captures_cancellable(
             pool,
             &self.snapshot(),
             || cancellation.is_cancelled(),
@@ -493,7 +493,7 @@ impl E2eeSyncHook {
             if hydrated.incomplete_chunk_columns > 0 {
                 return Ok(ReplicaSyncOutcome::WaitingForRemote);
             }
-            anlg_db_app::encrypt_e2ee_replica_changes_bounded_deferring_active_captures_cancellable(
+            syntheo_db_app::encrypt_e2ee_replica_changes_bounded_deferring_active_captures_cancellable(
                 pool,
                 &keys,
                 E2EE_CLOUDSYNC_DIRTY_ROW_LIMIT,
@@ -518,16 +518,17 @@ impl E2eeSyncHook {
                 cancellation.check()?;
             }
             let reconciliation_epoch = self.request_reconciliation();
-            let stats = anlg_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
-                pool,
-                &keys,
-                true,
-                || self.received_apply_cancelled(&cancellation),
-            )
-            .await
-            .map_err(|error| {
-                std::io::Error::other(format!("E2EE replica application failed: {error}"))
-            })?;
+            let stats =
+                syntheo_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
+                    pool,
+                    &keys,
+                    true,
+                    || self.received_apply_cancelled(&cancellation),
+                )
+                .await
+                .map_err(|error| {
+                    std::io::Error::other(format!("E2EE replica application failed: {error}"))
+                })?;
             cancellation.check()?;
             warn_parked_records(&stats);
             if stats.remaining_replica_changes {
@@ -536,13 +537,15 @@ impl E2eeSyncHook {
             self.complete_reconciliation(reconciliation_epoch);
             let local_work_remaining = stats.remaining_replica_changes
                 || self.reconciliation_requested()
-                || anlg_db_app::has_pending_e2ee_dirty_rows_deferring_active_captures(pool, &keys)
-                    .await
-                    .map_err(|error| {
-                        std::io::Error::other(format!(
-                            "failed to inspect pending E2EE replica changes: {error}"
-                        ))
-                    })?;
+                || syntheo_db_app::has_pending_e2ee_dirty_rows_deferring_active_captures(
+                    pool, &keys,
+                )
+                .await
+                .map_err(|error| {
+                    std::io::Error::other(format!(
+                        "failed to inspect pending E2EE replica changes: {error}"
+                    ))
+                })?;
             cancellation.check()?;
             Ok(if stats.incomplete_chunk_columns > 0 {
                 ReplicaSyncOutcome::WaitingForRemote
@@ -567,21 +570,22 @@ impl E2eeSyncHook {
     async fn hydrate_replica_changes(
         &self,
         pool: &sqlx::SqlitePool,
-        keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+        keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
         cancellation: &E2eeWitnessCancellation,
-    ) -> std::io::Result<anlg_db_app::E2eeReplicaStats> {
+    ) -> std::io::Result<syntheo_db_app::E2eeReplicaStats> {
         loop {
             cancellation.check()?;
-            let stats = anlg_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
-                pool,
-                keys,
-                true,
-                || self.received_apply_cancelled(cancellation),
-            )
-            .await
-            .map_err(|error| {
-                std::io::Error::other(format!("E2EE witness hydration failed: {error}"))
-            })?;
+            let stats =
+                syntheo_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
+                    pool,
+                    keys,
+                    true,
+                    || self.received_apply_cancelled(cancellation),
+                )
+                .await
+                .map_err(|error| {
+                    std::io::Error::other(format!("E2EE witness hydration failed: {error}"))
+                })?;
             cancellation.check()?;
             warn_parked_records(&stats);
             // Drain ready records before yielding stalled records to later pages or local encryption.
@@ -594,7 +598,7 @@ impl E2eeSyncHook {
     }
 }
 
-impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
+impl syntheo_db_core::CloudsyncSyncHook for E2eeSyncHook {
     fn activity_paused(&self) -> bool {
         self.transport_configured() && self.activity_paused()
     }
@@ -602,10 +606,10 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
     fn before_sync<'a>(
         &'a self,
         pool: &'a sqlx::SqlitePool,
-    ) -> anlg_db_core::CloudsyncBeforeHookFuture<'a> {
+    ) -> syntheo_db_core::CloudsyncBeforeHookFuture<'a> {
         let config = self.config_snapshot();
         if config.transport == E2eeTransport::None {
-            return Box::pin(async { Ok(anlg_db_core::CloudsyncSyncDirective::default()) });
+            return Box::pin(async { Ok(syntheo_db_core::CloudsyncSyncDirective::default()) });
         }
         let keys = config.keys;
         let witnesses = config.witnesses;
@@ -615,7 +619,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
             let operation = async {
                 cancellation.check()?;
                 let workspace_ids = ordered_witness_workspace_ids(&keys, &witnesses)?;
-                let full_resync_pending = anlg_db_app::cloudsync_full_resync_generation(pool)
+                let full_resync_pending = syntheo_db_app::cloudsync_full_resync_generation(pool)
                     .await
                     .map_err(|error| {
                         std::io::Error::other(format!(
@@ -628,7 +632,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                     tracing::debug!(
                         "skipping outbound E2EE publication while CloudSync hydrates a clean snapshot"
                     );
-                    return Ok(anlg_db_core::CloudsyncSyncDirective::ReceiveOnly);
+                    return Ok(syntheo_db_core::CloudsyncSyncDirective::ReceiveOnly);
                 }
                 for workspace_id in &workspace_ids {
                     witnesses[workspace_id]
@@ -644,7 +648,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                     cancellation.check()?;
                 }
                 let stats =
-                    anlg_db_app::encrypt_e2ee_replica_changes_bounded_deferring_active_captures_cancellable(
+                    syntheo_db_app::encrypt_e2ee_replica_changes_bounded_deferring_active_captures_cancellable(
                         pool,
                         &keys,
                         E2EE_CLOUDSYNC_DIRTY_ROW_LIMIT,
@@ -672,7 +676,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                         .await?;
                     cancellation.check()?;
                 }
-                Ok(anlg_db_core::CloudsyncSyncDirective::SendAndReceive)
+                Ok(syntheo_db_core::CloudsyncSyncDirective::SendAndReceive)
             };
             tokio::pin!(operation);
             tokio::select! {
@@ -680,7 +684,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                 _ = self.wait_until_activity_paused() => {
                     cancellation.cancel();
                     let _ = operation.await;
-                    Ok(anlg_db_core::CloudsyncSyncDirective::Deferred)
+                    Ok(syntheo_db_core::CloudsyncSyncDirective::Deferred)
                 }
                 result = &mut operation => result,
             }
@@ -690,11 +694,11 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
     fn after_sync<'a>(
         &'a self,
         pool: &'a sqlx::SqlitePool,
-        result: &'a anlg_db_core::CloudsyncNetworkResult,
-    ) -> anlg_db_core::CloudsyncHookFuture<'a> {
+        result: &'a syntheo_db_core::CloudsyncNetworkResult,
+    ) -> syntheo_db_core::CloudsyncHookFuture<'a> {
         let config = self.config_snapshot();
         if config.transport == E2eeTransport::None {
-            return Box::pin(async { Ok(anlg_db_core::CloudsyncHookOutcome::default()) });
+            return Box::pin(async { Ok(syntheo_db_core::CloudsyncHookOutcome::default()) });
         }
         if cloudsync_receive_requires_reconciliation(result) {
             self.request_reconciliation();
@@ -720,7 +724,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                         .await?;
                     cancellation.check()?;
                 }
-                let recovery_pending = anlg_db_app::cloudsync_full_resync_generation(pool)
+                let recovery_pending = syntheo_db_app::cloudsync_full_resync_generation(pool)
                     .await
                     .map_err(|error| {
                         std::io::Error::other(format!(
@@ -733,7 +737,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                 let reconciliation_epoch = self.reconciliation_request_epoch();
                 let stats = if let Some(reconciliation_epoch) = reconciliation_epoch {
                     let stats =
-                        anlg_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
+                        syntheo_db_app::apply_received_e2ee_replica_changes_with_witness_cancellable(
                             pool,
                             &keys,
                             snapshot_complete,
@@ -752,7 +756,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                     self.complete_reconciliation(reconciliation_epoch);
                     stats
                 } else {
-                    anlg_db_app::E2eeReplicaStats::default()
+                    syntheo_db_app::E2eeReplicaStats::default()
                 };
                 warn_parked_records(&stats);
                 tracing::debug!(
@@ -768,7 +772,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                 );
                 let local_work_remaining = stats.remaining_replica_changes
                     || self.reconciliation_requested()
-                    || anlg_db_app::has_pending_e2ee_dirty_rows_deferring_active_captures(
+                    || syntheo_db_app::has_pending_e2ee_dirty_rows_deferring_active_captures(
                         pool, &keys,
                     )
                     .await
@@ -778,7 +782,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                         ))
                     })?;
                 cancellation.check()?;
-                Ok(anlg_db_core::CloudsyncHookOutcome {
+                Ok(syntheo_db_core::CloudsyncHookOutcome {
                     local_work_remaining,
                     deferred: false,
                 })
@@ -789,7 +793,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
                 _ = self.wait_until_activity_paused() => {
                     cancellation.cancel();
                     let _ = operation.await;
-                    Ok(anlg_db_core::CloudsyncHookOutcome {
+                    Ok(syntheo_db_core::CloudsyncHookOutcome {
                         local_work_remaining: true,
                         deferred: true,
                     })
@@ -808,7 +812,7 @@ impl anlg_db_core::CloudsyncSyncHook for E2eeSyncHook {
 mod tests {
     use std::collections::HashMap;
 
-    use anlg_db_core::CloudsyncSyncHook;
+    use syntheo_db_core::CloudsyncSyncHook;
 
     use super::{E2eeSyncHook, E2eeTransport};
     use crate::witness::{E2eeWitnessClient, E2eeWitnessConfig};
@@ -852,7 +856,7 @@ mod tests {
     #[test]
     fn clear_resets_the_whole_configuration() {
         let hook = E2eeSyncHook::default();
-        let recovery_key = anlg_e2ee::RecoveryKey::parse(TEST_RECOVERY_KEY).unwrap();
+        let recovery_key = syntheo_e2ee::RecoveryKey::parse(TEST_RECOVERY_KEY).unwrap();
         hook.set_personal_workspace("workspace-1", &recovery_key)
             .unwrap();
         hook.set_witness(test_witness("workspace-1"));
@@ -912,13 +916,13 @@ mod tests {
     async fn mismatched_keys_and_witnesses_fail_before_sync() {
         let pool = sqlx::SqlitePool::connect("sqlite::memory:").await.unwrap();
         let hook = E2eeSyncHook::default();
-        let recovery_key = anlg_e2ee::RecoveryKey::parse(TEST_RECOVERY_KEY).unwrap();
+        let recovery_key = syntheo_e2ee::RecoveryKey::parse(TEST_RECOVERY_KEY).unwrap();
         hook.set_workspaces(
             "workspace-1",
             &recovery_key,
             HashMap::from([(
                 "workspace-2".to_string(),
-                anlg_e2ee::WorkspaceKeyring::new(
+                syntheo_e2ee::WorkspaceKeyring::new(
                     recovery_key.workspace_key("workspace-2").unwrap(),
                 ),
             )]),
@@ -943,13 +947,13 @@ mod tests {
         assert!(!CloudsyncSyncHook::activity_paused(&hook));
         assert_eq!(
             hook.before_sync(&pool).await.unwrap(),
-            anlg_db_core::CloudsyncSyncDirective::default()
+            syntheo_db_core::CloudsyncSyncDirective::default()
         );
         assert_eq!(
-            hook.after_sync(&pool, &anlg_db_core::CloudsyncNetworkResult::default())
+            hook.after_sync(&pool, &syntheo_db_core::CloudsyncNetworkResult::default())
                 .await
                 .unwrap(),
-            anlg_db_core::CloudsyncHookOutcome::default()
+            syntheo_db_core::CloudsyncHookOutcome::default()
         );
         assert!(!hook.reconciliation_requested());
     }

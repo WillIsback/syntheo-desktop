@@ -1,8 +1,8 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useCallback, useRef, useState } from "react";
 
-import { DotsThree, File, Plus, X } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { DotsThree, File, Plus, X } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -10,9 +10,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { Input } from "@anlg/ui/components/ui/input";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { Input } from "@syntheo/ui/components/ui/input";
+import { cn } from "@syntheo/utils";
 
 import { useFolderSelection } from "./selection";
 

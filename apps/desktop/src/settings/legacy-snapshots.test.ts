@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   ),
 }));
 
-vi.mock("@anlg/plugin-settings", () => ({
+vi.mock("@syntheo/plugin-settings", () => ({
   commands: { load: mocks.load },
 }));
 

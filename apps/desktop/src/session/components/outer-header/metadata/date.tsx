@@ -2,11 +2,11 @@ import { useLingui } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 
-import { Check, Pencil, X } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { Input } from "@anlg/ui/components/ui/input";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { format, safeFormat, safeParseDate } from "@anlg/utils";
+import { Check, Pencil, X } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { Input } from "@syntheo/ui/components/ui/input";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { format, safeFormat, safeParseDate } from "@syntheo/utils";
 
 import { useSession, useUpdateSession } from "~/session/queries";
 import { useTimeFormat } from "~/shared/hooks/useTimeFormat";

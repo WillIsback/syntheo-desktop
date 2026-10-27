@@ -1,5 +1,5 @@
-import { commands as calendarCommands } from "@anlg/plugin-calendar";
-import type { CalendarEvent } from "@anlg/plugin-calendar";
+import { commands as calendarCommands } from "@syntheo/plugin-calendar";
+import type { CalendarEvent } from "@syntheo/plugin-calendar";
 
 import {
   createAttendanceSnapshot,

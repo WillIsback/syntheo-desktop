@@ -6,14 +6,14 @@ license = "MIT"
 
 [features]
 default = ["whisper"]
-whisper = ["dep:anlg-whisper"]
+whisper = ["dep:syntheo-whisper"]
 detect = ["dep:whichlang"]
 dominant = ["dep:whatlang"]
 
 [dependencies]
 codes-iso-639 = { workspace = true }
 
-anlg-whisper = { workspace = true, optional = true }
+syntheo-whisper = { workspace = true, optional = true }
 whatlang = { workspace = true, optional = true }
 whichlang = { workspace = true, optional = true }
 

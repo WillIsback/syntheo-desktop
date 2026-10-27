@@ -2,12 +2,12 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::task::Poll;
 
-use anlg_audio_interface::AsyncSource;
-use anlg_audio_utils::{pcm_f64_to_f32, pcm_i16_to_f32, pcm_i32_to_f32};
 use anyhow::{Context, Result};
 use futures_util::Stream;
 use futures_util::task::AtomicWaker;
 use pin_project::pin_project;
+use syntheo_audio_interface::AsyncSource;
+use syntheo_audio_utils::{pcm_f64_to_f32, pcm_i16_to_f32, pcm_i32_to_f32};
 
 use crate::async_ring::RingbufAsyncReader;
 use ringbuf::{HeapCons, HeapProd, HeapRb, traits::Split};

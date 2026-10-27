@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use anlg_ws_client::client::Message;
 use bytes::Bytes;
+use syntheo_ws_client::client::Message;
 
 use super::{ListenClientDualInput, TransformedInput, forward_dual_to_single, mic_stream_params};
 use crate::{ListenClient, OpenAIAdapter, RealtimeSttAdapter};
@@ -16,7 +16,7 @@ impl RealtimeSttAdapter for TestAdapter {
 
     fn is_supported_languages(
         &self,
-        _languages: &[anlg_language::Language],
+        _languages: &[syntheo_language::Language],
         _model: Option<&str>,
     ) -> bool {
         true

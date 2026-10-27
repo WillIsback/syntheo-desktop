@@ -1,5 +1,5 @@
-import type { SessionContext, Transcript } from "@anlg/plugin-template";
-import { commands as transcriptionCommands } from "@anlg/plugin-transcription";
+import type { SessionContext, Transcript } from "@syntheo/plugin-template";
+import { commands as transcriptionCommands } from "@syntheo/plugin-transcription";
 
 import { loadSessionContentSnapshot } from "~/session/content-queries";
 import { listenerStore } from "~/store/zustand/listener/instance";

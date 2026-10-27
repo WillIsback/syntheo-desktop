@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 
-import type { JSONContent } from "@anlg/editor/note";
-import type { TaskStorage } from "@anlg/editor/task-storage";
+import type { JSONContent } from "@syntheo/editor/note";
+import type { TaskStorage } from "@syntheo/editor/task-storage";
 import {
   createTaskSourceKey,
   isSameTask,
   type TaskRecord,
   type TaskSource,
-} from "@anlg/editor/tasks";
+} from "@syntheo/editor/tasks";
 
 import { executeTransaction, liveQueryClient } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";

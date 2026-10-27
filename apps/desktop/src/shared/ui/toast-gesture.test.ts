@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { appToastSwipeDismissDirection } from "@anlg/ui/lib/toast-gesture";
+import { appToastSwipeDismissDirection } from "@syntheo/ui/lib/toast-gesture";
 
 describe("appToastSwipeDismissDirection", () => {
   it("dismisses through the side of a deliberate swipe", () => {

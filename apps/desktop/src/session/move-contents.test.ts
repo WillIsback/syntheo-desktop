@@ -26,7 +26,7 @@ vi.mock("./attachments", () => ({
   deleteSessionAudio: mocks.deleteSessionAudio,
 }));
 
-vi.mock("@anlg/plugin-session", () => ({
+vi.mock("@syntheo/plugin-session", () => ({
   commands: { moveSessionContents: mocks.moveSessionContents },
 }));
 
@@ -36,7 +36,7 @@ vi.mock("~/db", () => ({
   },
 }));
 
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     audioExist: mocks.audioExist,
     audioCopy: mocks.audioCopy,

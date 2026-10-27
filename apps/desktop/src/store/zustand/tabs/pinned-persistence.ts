@@ -1,6 +1,6 @@
 import type { StateCreator, StoreMutatorIdentifier } from "zustand";
 
-import { getCurrentWebviewWindowLabel } from "@anlg/plugin-windows";
+import { getCurrentWebviewWindowLabel } from "@syntheo/plugin-windows";
 
 import {
   getDefaultState,

@@ -20,7 +20,7 @@ pub async fn move_session_contents(
     let now = js_iso8601_timestamp();
     let source_audio_id = format!("session-audio:{}", request.source_session_id);
     let target_audio_id = format!("session-audio:{}", request.target_session_id);
-    let move_request = anlg_db_app::SessionAudioMove {
+    let move_request = syntheo_db_app::SessionAudioMove {
         source_session_id: &request.source_session_id,
         target_session_id: &request.target_session_id,
         rewrite_audio_ids: request.rewrite_audio_ids,
@@ -33,10 +33,10 @@ pub async fn move_session_contents(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::move_session_transcripts(&mut transaction, &move_request)
+    syntheo_db_app::move_session_transcripts(&mut transaction, &move_request)
         .await
         .map_err(|error| error.to_string())?;
-    anlg_db_app::move_session_summary_documents(
+    syntheo_db_app::move_session_summary_documents(
         &mut transaction,
         &request.source_session_id,
         &request.target_session_id,
@@ -44,7 +44,7 @@ pub async fn move_session_contents(
     )
     .await
     .map_err(|error| error.to_string())?;
-    anlg_db_app::move_session_action_items(
+    syntheo_db_app::move_session_action_items(
         &mut transaction,
         &request.source_session_id,
         &request.target_session_id,
@@ -54,7 +54,7 @@ pub async fn move_session_contents(
     .map_err(|error| error.to_string())?;
 
     if let Some(next_target_note) = &request.next_target_note {
-        let updated = anlg_db_app::rewrite_session_note_body(
+        let updated = syntheo_db_app::rewrite_session_note_body(
             &mut transaction,
             &request.target_session_id,
             &request.target_session_id,
@@ -66,7 +66,7 @@ pub async fn move_session_contents(
         if updated != 1 {
             return Err(rollback_row_count_mismatch(transaction, 5, updated, 1).await);
         }
-        let updated = anlg_db_app::rewrite_session_note_body(
+        let updated = syntheo_db_app::rewrite_session_note_body(
             &mut transaction,
             &request.source_session_id,
             &request.source_session_id,

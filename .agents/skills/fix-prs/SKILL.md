@@ -1,13 +1,13 @@
 ---
 name: fix-prs
-description: Use only in the Anarlog repository when the active checkout branch is exactly gitbutler/workspace. Resolve conflicts in the current GitButler workspace and fix actionable code review findings and CI failures on its active PRs, including drafts. Validate and publish repairs on their owning branches, resolve addressed review threads, and leave PRs open.
+description: Use only in the Syntheo repository when the active checkout branch is exactly gitbutler/workspace. Resolve conflicts in the current GitButler workspace and fix actionable code review findings and CI failures on its active PRs, including drafts. Validate and publish repairs on their owning branches, resolve addressed review threads, and leave PRs open.
 ---
 
 # Fix workspace conflicts, PR reviews and CI
 
 ## Applicability
 
-Use only in the Anarlog repository or its checkouts/worktrees when the active
+Use only in the Syntheo repository or its checkouts/worktrees when the active
 checkout branch is exactly `gitbutler/workspace`. Before running this workflow,
 check with `git symbolic-ref --quiet --short HEAD` (a read-only branch check).
 On any other branch or detached HEAD, skip this skill and use the normal Git
@@ -15,7 +15,7 @@ workflow. Do not initialize GitButler or switch branches to activate the skill.
 Use this checkout's skills, not a global copy or another checkout's skills.
 
 Use this skill when asked to repair workspace conflicts, PR review findings,
-or CI failures in the Anarlog GitButler repository.
+or CI failures in the Syntheo GitButler repository.
 
 Read the repository-local [but](../gitbutler/SKILL.md) skill and the active repository's AGENTS.md, workflow,
 and testing skills when present. Use `but` for version control and the

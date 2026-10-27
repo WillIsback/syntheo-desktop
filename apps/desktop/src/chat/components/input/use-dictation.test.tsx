@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   useRunBatch: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-dictation", () => ({
+vi.mock("@syntheo/plugin-dictation", () => ({
   commands: {
     cancelRecording: mocks.cancelRecording,
     startRecording: mocks.startRecording,
@@ -21,13 +21,13 @@ vi.mock("@anlg/plugin-dictation", () => ({
   },
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     getCaptureState: mocks.getCaptureState,
   },
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: {
     error: mocks.toastError,
     warning: mocks.toastWarning,
@@ -45,7 +45,7 @@ vi.mock("~/stt/useRunBatch", () => ({
   },
 }));
 
-import type { ChatEditorHandle } from "@anlg/editor/chat";
+import type { ChatEditorHandle } from "@syntheo/editor/chat";
 
 import { useDictation } from "./use-dictation";
 
@@ -139,7 +139,7 @@ describe("useDictation", () => {
 
     expect(mocks.startRecording).not.toHaveBeenCalled();
     expect(mocks.toastWarning).toHaveBeenCalledWith(
-      "Voice input is unavailable while Anarlog is recording a meeting.",
+      "Voice input is unavailable while Syntheo is recording a meeting.",
     );
   });
 

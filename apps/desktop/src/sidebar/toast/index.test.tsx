@@ -54,9 +54,9 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", async (importOriginal) => {
+vi.mock("@syntheo/ui/components/ui/toast", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("@anlg/ui/components/ui/toast")>();
+    await importOriginal<typeof import("@syntheo/ui/components/ui/toast")>();
   return {
     ...actual,
     toast: {
@@ -109,7 +109,7 @@ vi.mock("~/store/zustand/tabs", () => ({
 
 vi.mock("~/stt/capabilities", () => ({
   isConfiguredSttModel: () => true,
-  isAnarlogCloudSttModel: () => false,
+  isSyntheoCloudSttModel: () => false,
 }));
 
 vi.mock("~/stt/contexts", () => ({
@@ -128,7 +128,7 @@ vi.mock("./useDismissedToasts", () => ({
   }),
 }));
 
-import { TOAST_DURATIONS } from "@anlg/ui/components/ui/toast";
+import { TOAST_DURATIONS } from "@syntheo/ui/components/ui/toast";
 
 import { ToastNotifications } from "./index";
 
@@ -199,7 +199,7 @@ describe("ToastNotifications", () => {
     view.rerender(<ToastNotifications />);
 
     expect(mocks.message).toHaveBeenCalledWith(
-      "Anarlog 1.0.34 is ready to install",
+      "Syntheo 1.0.34 is ready to install",
       expect.objectContaining({
         id: "desktop-update:1.0.34:ready",
         action: expect.objectContaining({ label: "Restart" }),
@@ -221,7 +221,7 @@ describe("ToastNotifications", () => {
     act(() => vi.advanceTimersByTime(500));
 
     expect(mocks.loading).toHaveBeenCalledWith(
-      "Downloading Anarlog 1.0.34 (10%)",
+      "Downloading Syntheo 1.0.34 (10%)",
       expect.objectContaining({
         id: "desktop-update:1.0.34:downloading",
         duration: Infinity,
@@ -235,7 +235,7 @@ describe("ToastNotifications", () => {
 
     expect(mocks.dismiss).not.toHaveBeenCalled();
     expect(mocks.loading).toHaveBeenCalledWith(
-      "Downloading Anarlog 1.0.34 (58%)",
+      "Downloading Syntheo 1.0.34 (58%)",
       expect.objectContaining({
         id: "desktop-update:1.0.34:downloading",
       }),
@@ -311,7 +311,7 @@ describe("ToastNotifications", () => {
     act(() => vi.advanceTimersByTime(500));
 
     expect(mocks.message).toHaveBeenCalledWith(
-      "Anarlog 1.0.34 is ready to install",
+      "Syntheo 1.0.34 is ready to install",
       expect.objectContaining({ id: "desktop-update:1.0.34:ready" }),
     );
   });
@@ -347,7 +347,7 @@ describe("ToastNotifications", () => {
     act(() => vi.advanceTimersByTime(500));
 
     expect(mocks.message).toHaveBeenCalledWith(
-      "Anarlog 1.0.34 is available",
+      "Syntheo 1.0.34 is available",
       expect.objectContaining({ id: "desktop-update:1.0.34:available" }),
     );
 
@@ -362,7 +362,7 @@ describe("ToastNotifications", () => {
     view.rerender(<ToastNotifications />);
 
     expect(mocks.message).toHaveBeenCalledWith(
-      "Anarlog 1.0.34 is available",
+      "Syntheo 1.0.34 is available",
       expect.objectContaining({ id: "desktop-update:1.0.34:available" }),
     );
   });
@@ -381,7 +381,7 @@ describe("ToastNotifications", () => {
     mocks.live = { status: "active", sessionId: "meeting-1" };
     view.rerender(<ToastNotifications />);
     expect(mocks.message).not.toHaveBeenCalledWith(
-      "Anarlog 1.0.34 is available",
+      "Syntheo 1.0.34 is available",
       expect.anything(),
     );
 
@@ -389,7 +389,7 @@ describe("ToastNotifications", () => {
     view.rerender(<ToastNotifications />);
 
     expect(mocks.message).not.toHaveBeenCalledWith(
-      "Anarlog 1.0.34 is available",
+      "Syntheo 1.0.34 is available",
       expect.anything(),
     );
   });

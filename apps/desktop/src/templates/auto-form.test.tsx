@@ -48,7 +48,7 @@ vi.mock("@lingui/react/macro", () => ({
   }),
 }));
 
-vi.mock("@anlg/editor/prompt", async () => {
+vi.mock("@syntheo/editor/prompt", async () => {
   const React = await import("react");
 
   return {
@@ -95,14 +95,14 @@ vi.mock("@anlg/editor/prompt", async () => {
   };
 });
 
-vi.mock("@anlg/plugin-template", () => ({
+vi.mock("@syntheo/plugin-template", () => ({
   commands: {
     getTemplateSource: mocks.getTemplateSource,
     render: mocks.renderTemplate,
   },
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { error: mocks.toastError, warning: mocks.toastWarning },
 }));
 
@@ -192,7 +192,7 @@ describe("Auto format editor", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     expect(mocks.toastWarning).toHaveBeenCalledWith(
-      "This requires Anarlog Pro",
+      "This requires Syntheo Pro",
       {
         action: {
           label: "Upgrade",

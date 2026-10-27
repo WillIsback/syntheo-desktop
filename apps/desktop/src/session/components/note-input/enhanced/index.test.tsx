@@ -52,7 +52,7 @@ vi.mock("~/ai/task-window-sync", () => ({
   requestMainEnhance: vi.fn(),
 }));
 
-vi.mock("@anlg/ui/components/ui/spinner", () => ({
+vi.mock("@syntheo/ui/components/ui/spinner", () => ({
   Spinner: () => <span data-testid="spinner" />,
 }));
 
@@ -188,7 +188,7 @@ describe("Enhanced", () => {
     expect(screen.getByRole("status")).not.toBeNull();
     expect(screen.getByText("Analyzing structure...")).not.toBeNull();
     expect(
-      screen.getByText("Tip: The Anarlog team loves our users!"),
+      screen.getByText("Tip: The Syntheo team loves our users!"),
     ).not.toBeNull();
   });
 

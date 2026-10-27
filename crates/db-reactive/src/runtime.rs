@@ -4,15 +4,15 @@ use std::sync::Arc;
 use tokio::sync::broadcast::error::{RecvError, TryRecvError};
 use tokio::sync::watch as tokio_watch;
 
-use anlg_db_core::Db;
-use anlg_db_execute::DbExecutor;
+use syntheo_db_core::Db;
+use syntheo_db_execute::DbExecutor;
 
 use crate::error::{Error, Result};
 use crate::schema::CatalogStore;
 use crate::subscriptions::{QueryEventPayload, RefreshJob, Registry};
 use crate::types::{DependencyAnalysis, QueryEventSink, SubscriptionRegistration};
 use crate::watch::WatchId;
-use anlg_db_change::{ChangeNotifier, TableChange};
+use syntheo_db_change::{ChangeNotifier, TableChange};
 
 pub struct LiveQueryRuntime<S> {
     db: Arc<Db>,
@@ -440,9 +440,9 @@ mod tests {
     use std::sync::{Arc, Mutex};
     use std::time::Duration;
 
-    use anlg_db_change::TableChangeKind;
-    use anlg_db_core::{DbOpenOptions, DbStorage};
     use serde_json::json;
+    use syntheo_db_change::TableChangeKind;
+    use syntheo_db_core::{DbOpenOptions, DbStorage};
 
     use super::*;
     use crate::types::QueryEventSink;
@@ -516,15 +516,15 @@ mod tests {
         }
     }
 
-    const LIVE_QUERY_TEST_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] =
-        &[anlg_db_migrate::MigrationStep {
+    const LIVE_QUERY_TEST_MIGRATION_STEPS: &[syntheo_db_migrate::MigrationStep] =
+        &[syntheo_db_migrate::MigrationStep {
             id: "20260415000000_live_query_test_schema",
-            scope: anlg_db_migrate::MigrationScope::Plain,
+            scope: syntheo_db_migrate::MigrationScope::Plain,
             sql: include_str!("../tests/common/live_query_test_schema.sql"),
         }];
 
-    fn live_query_test_schema() -> anlg_db_migrate::DbSchema {
-        anlg_db_migrate::DbSchema {
+    fn live_query_test_schema() -> syntheo_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: LIVE_QUERY_TEST_MIGRATION_STEPS,
             validate_cloudsync_table: |_| false,
         }
@@ -537,7 +537,7 @@ mod tests {
     ) {
         let dir = tempfile::tempdir().unwrap();
         let db_path = dir.path().join("app.db");
-        let db = anlg_db_core::Db::open(DbOpenOptions {
+        let db = syntheo_db_core::Db::open(DbOpenOptions {
             storage: DbStorage::Local(&db_path),
             cloudsync_enabled: false,
             journal_mode_wal: true,
@@ -546,7 +546,7 @@ mod tests {
         })
         .await
         .unwrap();
-        anlg_db_migrate::migrate(&db, live_query_test_schema())
+        syntheo_db_migrate::migrate(&db, live_query_test_schema())
             .await
             .unwrap();
 

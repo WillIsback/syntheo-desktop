@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-permissions",
+  "name": "@syntheo/plugin-permissions",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

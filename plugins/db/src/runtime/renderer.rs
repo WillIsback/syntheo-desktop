@@ -91,7 +91,7 @@ impl RendererSession {
 mod tests {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
-    use anlg_db_reactive::QueryEventSink;
+    use syntheo_db_reactive::QueryEventSink;
 
     use super::*;
     use crate::runtime::PluginDbRuntime;
@@ -130,7 +130,7 @@ mod tests {
     }
 
     async fn runtime() -> PluginDbRuntime {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
         PluginDbRuntime::new(Arc::new(db))
     }
 

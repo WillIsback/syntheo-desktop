@@ -1,12 +1,12 @@
-import { commands as listenerCommands } from "@anlg/plugin-transcription";
-import type { CaptureLifecycleMarker } from "@anlg/plugin-transcription";
+import { commands as listenerCommands } from "@syntheo/plugin-transcription";
+import type { CaptureLifecycleMarker } from "@syntheo/plugin-transcription";
 
 import { enqueueDatabaseWrite } from "~/db/write-queue";
 
 export type {
   CaptureLifecycleMarker,
   InheritedCapture,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 export const CAPTURE_LIFECYCLE_SETTING_PREFIX = "capture_lifecycle_pending:";
 export const CAPTURE_AUDIO_SAVED_SETTING_PREFIX = "capture_audio_saved:";

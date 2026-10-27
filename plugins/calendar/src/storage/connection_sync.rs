@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
-use anlg_calendar_interface::CalendarProviderType;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use sqlx::SqlitePool;
+use syntheo_calendar_interface::CalendarProviderType;
 
 use indexmap::IndexMap;
 
@@ -127,7 +127,7 @@ async fn run(
         }
     }
 
-    let existing = anlg_db_app::list_events_for_sync(
+    let existing = syntheo_db_app::list_events_for_sync(
         transaction,
         &ctx.calendar_ids,
         &request.to,
@@ -152,7 +152,7 @@ async fn run(
         &request.to,
     );
 
-    let sessions = anlg_db_app::list_sessions_for_tracking_ids(transaction, &tracking_ids)
+    let sessions = syntheo_db_app::list_sessions_for_tracking_ids(transaction, &tracking_ids)
         .await
         .map_err(|error| error.to_string())?;
 
@@ -161,7 +161,7 @@ async fn run(
         .iter()
         .map(|update| (update.session_id.clone(), update.tracking_id.clone()))
         .collect();
-    let snapshot_sessions: Vec<anlg_db_app::SessionSyncRow> = sessions
+    let snapshot_sessions: Vec<syntheo_db_app::SessionSyncRow> = sessions
         .into_iter()
         .filter(|session| session_tracking_ids.contains_key(&session.id))
         .map(|mut session| {
@@ -191,10 +191,10 @@ async fn run(
         }
     }
 
-    let humans = anlg_db_app::list_humans_by_emails(transaction, &emails)
+    let humans = syntheo_db_app::list_humans_by_emails(transaction, &emails)
         .await
         .map_err(|error| error.to_string())?;
-    let mappings = anlg_db_app::list_session_participant_mappings(transaction, &session_ids)
+    let mappings = syntheo_db_app::list_session_participant_mappings(transaction, &session_ids)
         .await
         .map_err(|error| error.to_string())?;
 
@@ -227,7 +227,7 @@ async fn run(
                 })),
         )
     {
-        anlg_db_app::migrate_ignored_event_ids(
+        syntheo_db_app::migrate_ignored_event_ids(
             transaction,
             LEGACY_MAIN_VALUES_ID,
             LEGACY_SETTINGS_ID,
@@ -239,7 +239,7 @@ async fn run(
     }
 
     for event_id in &events.to_delete {
-        anlg_db_app::soft_delete_event(transaction, now, event_id)
+        syntheo_db_app::soft_delete_event(transaction, now, event_id)
             .await
             .map_err(|error| error.to_string())?;
     }
@@ -250,7 +250,7 @@ async fn run(
             storage_event_key(&event.calendar_id, &event.tracking_id_event),
             event.id.clone(),
         );
-        anlg_db_app::update_synced_event(
+        syntheo_db_app::update_synced_event(
             transaction,
             &event.id,
             &event.tracking_id_event,
@@ -282,7 +282,7 @@ async fn run(
             storage_event_key(calendar_id, &event.tracking_id_event),
             event_id.clone(),
         );
-        anlg_db_app::insert_synced_event(
+        syntheo_db_app::insert_synced_event(
             transaction,
             &event_id,
             &event.tracking_id_event,
@@ -310,7 +310,7 @@ async fn run(
             .get(&storage_event_key(&update.calendar_id, &update.tracking_id))
             .cloned()
             .unwrap_or_default();
-        anlg_db_app::update_session_for_synced_event(
+        syntheo_db_app::update_session_for_synced_event(
             transaction,
             &update.session_id,
             &event_id,
@@ -382,7 +382,7 @@ async fn apply_participant_writes(
         }
     }
     for (_, company) in company_names.iter() {
-        anlg_db_app::insert_organization_if_still_needed(
+        syntheo_db_app::insert_organization_if_still_needed(
             transaction,
             &uuid::Uuid::new_v4().to_string(),
             &company.owner_user_id,
@@ -396,7 +396,7 @@ async fn apply_participant_writes(
     }
 
     for human in &participants.humans_to_create {
-        anlg_db_app::insert_human_if_missing(
+        syntheo_db_app::insert_human_if_missing(
             transaction,
             &human.id,
             &human.owner_user_id,
@@ -410,7 +410,7 @@ async fn apply_participant_writes(
     }
 
     for human in &participants.humans_to_enrich {
-        anlg_db_app::update_human_enrichment(
+        syntheo_db_app::update_human_enrichment(
             transaction,
             &human.id,
             human.name.as_deref(),
@@ -422,13 +422,13 @@ async fn apply_participant_writes(
     }
 
     for mapping_id in &participants.to_delete {
-        anlg_db_app::soft_delete_auto_participant_mapping(transaction, now, mapping_id)
+        syntheo_db_app::soft_delete_auto_participant_mapping(transaction, now, mapping_id)
             .await
             .map_err(|error| error.to_string())?;
     }
 
     for mapping in &participants.to_add {
-        anlg_db_app::insert_session_participant_mapping(
+        syntheo_db_app::insert_session_participant_mapping(
             transaction,
             &uuid::Uuid::new_v4().to_string(),
             now,
@@ -568,7 +568,7 @@ struct EventsSync {
 fn sync_events(
     ctx: &SyncCtx,
     incoming: &[IncomingCalendarEvent],
-    existing: &[anlg_db_app::EventSyncRow],
+    existing: &[syntheo_db_app::EventSyncRow],
     incoming_participants: &IndexMap<String, Vec<IncomingEventParticipant>>,
     from: &str,
     to: &str,
@@ -715,7 +715,7 @@ struct SessionEventJson {
 fn sync_session_embedded_events(
     ctx: &SyncCtx,
     incoming: &[IncomingCalendarEvent],
-    sessions: &[anlg_db_app::SessionSyncRow],
+    sessions: &[syntheo_db_app::SessionSyncRow],
 ) -> Vec<SessionEventUpdate> {
     let index = index_incoming_events(ctx, incoming);
     let mut updates = Vec::new();
@@ -790,8 +790,8 @@ fn encode_participants(participants: &[IncomingEventParticipant]) -> Option<Stri
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
     use serde_json::json;
+    use syntheo_db_core::Db;
 
     fn ctx() -> SyncCtx {
         let mut tracking_to_id = IndexMap::new();
@@ -824,9 +824,9 @@ mod tests {
     }
 
     fn existing_event(
-        overrides: impl Fn(&mut anlg_db_app::EventSyncRow),
-    ) -> anlg_db_app::EventSyncRow {
-        let mut event = anlg_db_app::EventSyncRow {
+        overrides: impl Fn(&mut syntheo_db_app::EventSyncRow),
+    ) -> syntheo_db_app::EventSyncRow {
+        let mut event = syntheo_db_app::EventSyncRow {
             id: "event-1".to_string(),
             tracking_id_event: "existing-1".to_string(),
             calendar_id: "cal-1".to_string(),
@@ -891,10 +891,10 @@ mod tests {
         assert_eq!(first.to_update[0].tracking_id_event, "apple:occurrence-1");
         assert_eq!(first.to_update[0].title.as_deref(), Some("Changed title"));
 
-        let updated_rows: Vec<anlg_db_app::EventSyncRow> = first
+        let updated_rows: Vec<syntheo_db_app::EventSyncRow> = first
             .to_update
             .iter()
-            .map(|update| anlg_db_app::EventSyncRow {
+            .map(|update| syntheo_db_app::EventSyncRow {
                 id: update.id.clone(),
                 tracking_id_event: update.tracking_id_event.clone(),
                 calendar_id: update.calendar_id.clone(),
@@ -1172,8 +1172,12 @@ mod tests {
 
     // syncSessionEmbeddedEvents ports
 
-    fn session_row(id: &str, tracking_id: &str, calendar_id: &str) -> anlg_db_app::SessionSyncRow {
-        anlg_db_app::SessionSyncRow {
+    fn session_row(
+        id: &str,
+        tracking_id: &str,
+        calendar_id: &str,
+    ) -> syntheo_db_app::SessionSyncRow {
+        syntheo_db_app::SessionSyncRow {
             id: id.to_string(),
             owner_user_id: "user-1".to_string(),
             event_json: "{}".to_string(),
@@ -1283,7 +1287,7 @@ mod tests {
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 

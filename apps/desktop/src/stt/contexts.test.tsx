@@ -41,7 +41,7 @@ const {
   loadSessionEventMock: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-detect", () => ({
+vi.mock("@syntheo/plugin-detect", () => ({
   commands: {
     inspectMeetingAccessibility: inspectMeetingAccessibilityMock,
     listMicUsingApplications: listMicUsingApplicationsMock,
@@ -53,7 +53,7 @@ vi.mock("@anlg/plugin-detect", () => ({
   },
 }));
 
-vi.mock("@anlg/plugin-notification", () => ({
+vi.mock("@syntheo/plugin-notification", () => ({
   commands: {
     clearNotifications: clearNotificationsMock,
     showNotification: showNotificationMock,

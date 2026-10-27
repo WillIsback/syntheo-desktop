@@ -14,11 +14,11 @@ const {
   platformMock: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-detect", () => ({
+vi.mock("@syntheo/plugin-detect", () => ({
   commands: { captureMeetingScreenShare: captureMeetingScreenShareMock },
 }));
 
-vi.mock("@anlg/plugin-permissions", () => ({
+vi.mock("@syntheo/plugin-permissions", () => ({
   commands: { checkPermission: checkPermissionMock },
 }));
 
@@ -28,7 +28,7 @@ vi.mock("~/stt/meeting-screen-records", () => ({
   persistMeetingScreenCapture: persistMeetingScreenCaptureMock,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { warning: vi.fn() },
 }));
 

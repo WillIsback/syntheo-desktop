@@ -21,13 +21,13 @@ Run EAS commands from `apps/mobile` with `APP_VARIANT=stable`. Use the repositor
 version used for the release. Verify the signed-in account and project before
 building or submitting. Current repository identities are:
 
-- Project: `@john_fastrepl/anarlog-mobile`, ID `fcaa4e46-0da5-4dfc-a9e2-6447de0030d2`
-- iOS bundle ID and Android package: `so.anarlog.mobile`
+- Project: `@john_WillIsback/syntheo-desktop-mobile`, ID `fcaa4e46-0da5-4dfc-a9e2-6447de0030d2`
+- iOS bundle ID and Android package: `so.syntheo.mobile`
 - App Store Connect app ID: `6807350358`
 - EAS build environment: `production`; app variant: `stable`
 
 Re-read these values rather than treating this list as authority if configuration
-changes. Verify the selected Anarlog project and store destination before writes;
+changes. Verify the selected Syntheo project and store destination before writes;
 resource names alone do not establish authorization.
 
 The mobile marketing version comes from `apps/mobile/release-version.json`

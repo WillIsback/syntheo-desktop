@@ -1,11 +1,11 @@
 [package]
-name = "tauri-plugin-anlg-tray"
+name = "tauri-plugin-syntheo-tray"
 version = "0.1.0"
 authors = ["You"]
 edition = "2024"
 exclude = ["/js", "/node_modules"]
 license = "MIT"
-links = "tauri-plugin-anlg-tray"
+links = "tauri-plugin-syntheo-tray"
 description = ""
 
 [lib]
@@ -18,8 +18,8 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-anlg-brand = { workspace = true }
-anlg-intercept = { workspace = true }
+syntheo-brand = { workspace = true }
+syntheo-intercept = { workspace = true }
 
 tauri = { workspace = true, features = ["tray-icon", "image-png"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }

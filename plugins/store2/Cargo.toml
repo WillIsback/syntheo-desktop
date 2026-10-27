@@ -12,8 +12,8 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
-anlg-brand = { workspace = true }
 specta-typescript = { workspace = true }
+syntheo-brand = { workspace = true }
 
 anyhow = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
@@ -29,9 +29,9 @@ tauri-plugin-settings = { workspace = true }
 tauri-plugin-store = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
-anlg-storage = { workspace = true }
 keyring = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
+syntheo-storage = { workspace = true }
 thiserror = { workspace = true }

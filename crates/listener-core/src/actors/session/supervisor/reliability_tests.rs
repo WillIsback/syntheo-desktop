@@ -20,11 +20,11 @@ struct TranscriptRuntime {
     events: mpsc::UnboundedSender<SessionDataEvent>,
 }
 
-impl anlg_storage::StorageRuntime for TranscriptRuntime {
-    fn global_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+impl syntheo_storage::StorageRuntime for TranscriptRuntime {
+    fn global_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
         Ok(std::env::temp_dir())
     }
-    fn vault_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+    fn vault_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
         Ok(std::env::temp_dir())
     }
 }

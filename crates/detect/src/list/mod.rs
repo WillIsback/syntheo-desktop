@@ -21,44 +21,11 @@ pub fn list_installed_apps() -> Vec<InstalledApp> {
     Vec::new()
 }
 
-const SELF_BUNDLE_IDS: &[&str] = &[
-    "fr.willisback.syntheo",
-    "fr.willisback.syntheo.dev",
-    "com.anarlog.dev",
-    "com.anarlog.stable",
-    "com.anarlog.staging",
-    "com.anarlog.nightly",
-    "com.hyprnote.dev",
-    "com.hyprnote.stable",
-    "com.hyprnote.staging",
-    "com.hyprnote.nightly",
-];
+const SELF_BUNDLE_IDS: &[&str] = &["fr.willisback.syntheo", "fr.willisback.syntheo.dev"];
 
-const SELF_APP_NAMES: &[&str] = &[
-    "syntheo",
-    "syntheo dev",
-    "anarlog",
-    "anarlog staging",
-    "anarlog nightly",
-    "hyprnote",
-    "hyprnote staging",
-    "hyprnote nightly",
-    "char",
-    "char staging",
-    "char nightly",
-];
+const SELF_APP_NAMES: &[&str] = &["syntheo", "syntheo dev"];
 
-const SELF_APP_PATH_SEGMENTS: &[&str] = &[
-    "/anarlog.app/",
-    "/anarlog staging.app/",
-    "/anarlog nightly.app/",
-    "/hyprnote.app/",
-    "/hyprnote staging.app/",
-    "/hyprnote nightly.app/",
-    "/char.app/",
-    "/char staging.app/",
-    "/char nightly.app/",
-];
+const SELF_APP_PATH_SEGMENTS: &[&str] = &["/syntheo.app/", "/syntheo dev.app/"];
 
 fn is_self_app(app: &InstalledApp) -> bool {
     let id = app.id.to_lowercase();
@@ -124,24 +91,23 @@ mod tests {
     }
 
     #[test]
-    fn is_self_app_matches_only_anarlog_identities() {
+    fn is_self_app_matches_only_syntheo_identities() {
         for (id, name, expected) in [
-            ("com.anarlog.stable", "Anarlog", true),
-            ("com.hyprnote.stable", "Anarlog", true),
-            ("com.hyprnote.Hyprnote", "Hyprnote", true),
-            ("pid:42", "Anarlog", true),
-            ("pid:43", "Char Nightly", true),
-            ("pid:44", "Hyprnote Staging", true),
+            ("fr.willisback.syntheo", "Syntheo", true),
+            ("fr.willisback.syntheo.dev", "Syntheo Dev", true),
+            ("pid:42", "Syntheo", true),
+            ("pid:44", "Syntheo Dev", true),
             (
-                "/Applications/Anarlog.app/Contents/MacOS/anarlog",
+                "/Applications/Syntheo.app/Contents/MacOS/syntheo",
                 "Unknown",
                 true,
             ),
             (
-                "/Applications/Hyprnote Nightly.app/Contents/MacOS/Hyprnote Nightly",
+                "/Applications/Syntheo Dev.app/Contents/MacOS/Syntheo Dev",
                 "Unknown",
                 true,
             ),
+            ("pid:43", "Char Nightly", false),
             ("com.adobe.character-animator", "Character Animator", false),
             (
                 "/Applications/Chart.app/Contents/MacOS/Chart",

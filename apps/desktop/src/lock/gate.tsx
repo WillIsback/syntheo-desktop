@@ -5,7 +5,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import {
   events as windowsEvents,
   getCurrentWebviewWindowLabel,
-} from "@anlg/plugin-windows";
+} from "@syntheo/plugin-windows";
 
 import { DEVICE_AUTH_REASON } from "./auth";
 import { LockScreen, useDeviceAuthHint } from "./screen";
@@ -131,9 +131,9 @@ export function AppLockGate({ children }: { children: ReactNode }) {
       {locked ? (
         <div className="absolute inset-0">
           <LockScreen
-            title={t`Anarlog is Locked`}
+            title={t`Syntheo is Locked`}
             description={hint}
-            action={t`View Anarlog`}
+            action={t`View Syntheo`}
             authenticating={authenticating}
             onUnlock={() => {
               promptedRef.current = true;

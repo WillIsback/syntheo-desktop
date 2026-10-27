@@ -11,11 +11,11 @@ pub use speaker::*;
 
 pub use cpal;
 
-pub use anlg_audio::{AudioProvider, CaptureConfig, CaptureFrame, CaptureStream, Error};
-pub use anlg_audio_interface::AsyncSource;
 use futures_util::Stream;
+pub use syntheo_audio::{AudioProvider, CaptureConfig, CaptureFrame, CaptureStream, Error};
+pub use syntheo_audio_interface::AsyncSource;
 
-pub const TAP_DEVICE_NAME: &str = "anarlog-audio-tap";
+pub const TAP_DEVICE_NAME: &str = "syntheo-audio-tap";
 
 pub struct AudioOutput {}
 
@@ -25,7 +25,7 @@ impl AudioOutput {
         let (tx, rx) = std::sync::mpsc::channel();
 
         std::thread::spawn(move || {
-            if let Ok(stream) = anlg_audio_utils::open_default_playback_sink() {
+            if let Ok(stream) = syntheo_audio_utils::open_default_playback_sink() {
                 let file = std::io::Cursor::new(bytes);
                 if let Ok(source) = Decoder::try_from(file) {
                     let player = Player::connect_new(stream.mixer());
@@ -49,7 +49,7 @@ impl AudioOutput {
         let (tx, rx) = std::sync::mpsc::channel();
 
         std::thread::spawn(move || {
-            if let Ok(stream) = anlg_audio_utils::open_default_playback_sink() {
+            if let Ok(stream) = syntheo_audio_utils::open_default_playback_sink() {
                 let silence = Zero::new(nz!(2u16), nz!(48_000u32))
                     .take_duration(std::time::Duration::from_secs(1))
                     .repeat_infinite();
@@ -292,7 +292,7 @@ pub(crate) fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
     };
 
     spawn(move || {
-        let stream = anlg_audio_utils::open_default_playback_sink().unwrap();
+        let stream = syntheo_audio_utils::open_default_playback_sink().unwrap();
         let source = SignalGenerator::new(nz!(44100u32), 440.0, Sine);
 
         let source = source

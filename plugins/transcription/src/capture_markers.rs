@@ -223,7 +223,7 @@ pub(crate) async fn save_marker<R: tauri::Runtime>(
 ) -> Result<bool, String> {
     let runtime = database_runtime(app)?;
     let _guard = runtime.synced_write_guard().await;
-    anlg_db_app::upsert_capture_lifecycle_marker(
+    syntheo_db_app::upsert_capture_lifecycle_marker(
         runtime.pool(),
         session_id,
         value_json,
@@ -240,7 +240,7 @@ pub(crate) async fn clear_marker(
 ) -> Result<bool, String> {
     let runtime = database_runtime(app)?;
     let _guard = runtime.synced_write_guard().await;
-    anlg_db_app::delete_capture_lifecycle_marker(runtime.pool(), session_id, transcript_id)
+    syntheo_db_app::delete_capture_lifecycle_marker(runtime.pool(), session_id, transcript_id)
         .await
         .map_err(|error| error.to_string())
 }
@@ -250,7 +250,7 @@ pub(crate) async fn get_marker(
     session_id: &str,
 ) -> Result<Option<CaptureLifecycleMarker>, String> {
     let runtime = database_runtime(app)?;
-    let value = anlg_db_app::get_capture_lifecycle_marker_json(runtime.pool(), session_id)
+    let value = syntheo_db_app::get_capture_lifecycle_marker_json(runtime.pool(), session_id)
         .await
         .map_err(|error| error.to_string())?;
     Ok(value.and_then(|value_json| parse_marker(&value_json, session_id)))
@@ -260,7 +260,7 @@ pub(crate) async fn list_markers(
     app: &AppHandle<impl tauri::Runtime>,
 ) -> Result<Vec<CaptureLifecycleMarker>, String> {
     let runtime = database_runtime(app)?;
-    let rows = anlg_db_app::list_capture_lifecycle_marker_jsons(runtime.pool())
+    let rows = syntheo_db_app::list_capture_lifecycle_marker_jsons(runtime.pool())
         .await
         .map_err(|error| error.to_string())?;
     Ok(rows
@@ -275,7 +275,7 @@ pub(crate) async fn mark_audio_saved(
 ) -> Result<(), String> {
     let runtime = database_runtime(app)?;
     let _guard = runtime.synced_write_guard().await;
-    anlg_db_app::mark_capture_audio_saved(runtime.pool(), session_id)
+    syntheo_db_app::mark_capture_audio_saved(runtime.pool(), session_id)
         .await
         .map_err(|error| error.to_string())
 }
@@ -286,7 +286,7 @@ pub(crate) async fn clear_audio_saved(
 ) -> Result<(), String> {
     let runtime = database_runtime(app)?;
     let _guard = runtime.synced_write_guard().await;
-    anlg_db_app::clear_capture_audio_saved(runtime.pool(), session_id)
+    syntheo_db_app::clear_capture_audio_saved(runtime.pool(), session_id)
         .await
         .map_err(|error| error.to_string())
 }

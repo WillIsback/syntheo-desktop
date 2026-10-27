@@ -47,7 +47,7 @@ vi.mock("@tauri-apps/api/window", () => ({
   }),
 }));
 
-vi.mock("@anlg/editor/markdown", () => ({
+vi.mock("@syntheo/editor/markdown", () => ({
   parseJsonContent: (value: string) => JSON.parse(value),
 }));
 
@@ -57,7 +57,7 @@ vi.mock("@lingui/react/macro", () => ({
   }),
 }));
 
-vi.mock("@anlg/editor/note", async () => {
+vi.mock("@syntheo/editor/note", async () => {
   const React = await vi.importActual<typeof import("react")>("react");
 
   return {
@@ -90,7 +90,7 @@ vi.mock("@anlg/editor/note", async () => {
   };
 });
 
-vi.mock("@anlg/plugin-opener2", () => ({
+vi.mock("@syntheo/plugin-opener2", () => ({
   commands: { openUrl: vi.fn() },
 }));
 

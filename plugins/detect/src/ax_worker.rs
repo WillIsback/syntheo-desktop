@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex, mpsc};
 use tokio::sync::oneshot;
 
 type Job = Box<dyn FnOnce() + Send>;
-type Inspections = Vec<anlg_detect::MeetingAccessibilityInspection>;
+type Inspections = Vec<syntheo_detect::MeetingAccessibilityInspection>;
 type InspectFn = dyn Fn() -> Inspections + Send + Sync;
 
 // Accessibility IPC is synchronous and can stall for minutes on large browser trees.
@@ -21,7 +21,7 @@ pub(crate) struct AxWorker {
 
 impl Default for AxWorker {
     fn default() -> Self {
-        Self::new(Arc::new(anlg_detect::inspect_meeting_accessibility))
+        Self::new(Arc::new(syntheo_detect::inspect_meeting_accessibility))
     }
 }
 

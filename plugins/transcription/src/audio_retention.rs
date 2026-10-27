@@ -17,7 +17,7 @@ const SAVE_RECORDINGS_SETTING_ID: &str = "save_recordings";
 const LEGACY_SETTINGS_ID: &str = "legacy_settings_document";
 const LEGACY_MAIN_VALUES_ID: &str = "legacy_main_values_document";
 
-// Réglage hérité d'Anarlog, ignoré par Syntheo (rétention toujours « aucune ») ;
+// Réglage hérité d'Syntheo, ignoré par Syntheo (rétention toujours « aucune ») ;
 // supprimé avec le reste du balayage au ménage 04c-B.
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,7 +30,7 @@ enum AudioRetentionPolicy {
     Forever,
 }
 
-// Réglage hérité d'Anarlog, ignoré par Syntheo (rétention toujours « aucune ») ;
+// Réglage hérité d'Syntheo, ignoré par Syntheo (rétention toujours « aucune ») ;
 // supprimé avec le reste du balayage au ménage 04c-B.
 #[allow(dead_code)]
 impl AudioRetentionPolicy {
@@ -63,7 +63,7 @@ impl AudioRetentionPolicy {
     }
 }
 
-// Réglage hérité d'Anarlog, ignoré par Syntheo (rétention toujours « aucune ») ;
+// Réglage hérité d'Syntheo, ignoré par Syntheo (rétention toujours « aucune ») ;
 // supprimé avec le reste du balayage au ménage 04c-B.
 #[allow(dead_code)]
 #[derive(Debug, Default)]
@@ -82,7 +82,7 @@ fn resolve_policy(_stored: &StoredRetentionSettings) -> AudioRetentionPolicy {
 }
 
 async fn load_policy(pool: &SqlitePool) -> Result<AudioRetentionPolicy, sqlx::Error> {
-    let get = |id| anlg_db_app::get_app_setting_json(pool, id);
+    let get = |id| syntheo_db_app::get_app_setting_json(pool, id);
     Ok(resolve_policy(&StoredRetentionSettings {
         audio_retention: get(AUDIO_RETENTION_SETTING_ID).await?,
         save_recordings: get(SAVE_RECORDINGS_SETTING_ID).await?,
@@ -100,7 +100,7 @@ fn is_expired(created_at_ms: Option<i64>, policy: AudioRetentionPolicy, now_ms: 
 }
 
 fn retention_expired(
-    candidate: &anlg_db_app::SessionAudioRetentionCandidate,
+    candidate: &syntheo_db_app::SessionAudioRetentionCandidate,
     policy: AudioRetentionPolicy,
     now_ms: i64,
 ) -> bool {
@@ -112,7 +112,7 @@ fn retention_expired(
 
 async fn session_audio_is_expired(pool: &SqlitePool, session_id: &str) -> Result<bool, String> {
     let policy = load_policy(pool).await.map_err(|e| e.to_string())?;
-    let candidate = anlg_db_app::get_session_audio_retention_candidate(pool, session_id)
+    let candidate = syntheo_db_app::get_session_audio_retention_candidate(pool, session_id)
         .await
         .map_err(|e| e.to_string())?;
     Ok(candidate.is_some_and(|candidate| {
@@ -188,11 +188,11 @@ async fn delete_local_audio<R: tauri::Runtime>(
     }
     let eligible = match eligibility {
         Eligibility::Expired => session_audio_is_expired(pool, session_id).await?,
-        Eligibility::Processed => anlg_db_app::session_audio_is_processed(pool, session_id)
+        Eligibility::Processed => syntheo_db_app::session_audio_is_processed(pool, session_id)
             .await
             .map_err(|e| e.to_string())?,
         Eligibility::LogicallyDeleted => {
-            anlg_db_app::session_audio_is_logically_deleted(pool, session_id)
+            syntheo_db_app::session_audio_is_logically_deleted(pool, session_id)
                 .await
                 .map_err(|e| e.to_string())?
         }
@@ -210,7 +210,7 @@ async fn delete_local_audio<R: tauri::Runtime>(
     };
     emit(SessionAudioRetentionPhase::Deleting);
     let deleted = app.fs_sync().delete_session_audio_locked(session_id)?;
-    anlg_db_app::mark_session_audio_absent(pool, session_id)
+    syntheo_db_app::mark_session_audio_absent(pool, session_id)
         .await
         .map_err(|e| e.to_string())?;
     if deleted {
@@ -223,7 +223,7 @@ async fn sweep<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     pool: &SqlitePool,
 ) -> Result<(), String> {
-    let logically_deleted = anlg_db_app::list_logically_deleted_session_audio(pool)
+    let logically_deleted = syntheo_db_app::list_logically_deleted_session_audio(pool)
         .await
         .map_err(|e| e.to_string())?;
     for session_id in logically_deleted {
@@ -240,7 +240,7 @@ async fn sweep<R: tauri::Runtime>(
     }
 
     let now_ms = chrono::Utc::now().timestamp_millis();
-    let candidates = anlg_db_app::list_session_audio_retention_candidates(pool)
+    let candidates = syntheo_db_app::list_session_audio_retention_candidates(pool)
         .await
         .map_err(|e| e.to_string())?;
     for candidate in candidates {
@@ -322,7 +322,7 @@ mod tests {
     #[test]
     fn legacy_session_audio_is_swept_under_forced_none() {
         let policy = resolve_policy(&stored(Some(r#""forever""#), None, None, None));
-        let candidate = anlg_db_app::SessionAudioRetentionCandidate {
+        let candidate = syntheo_db_app::SessionAudioRetentionCandidate {
             session_id: "legacy".to_string(),
             created_at_ms: Some(1_000),
             has_words: true,

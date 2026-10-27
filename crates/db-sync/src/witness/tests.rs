@@ -188,7 +188,7 @@ fn derives_a_sibling_witness_endpoint_for_a_shared_workspace() {
 #[test]
 fn cancelled_replica_work_is_reported_as_an_interrupted_witness_operation() {
     assert_eq!(
-        replica_error(anlg_db_app::E2eeReplicaError::Cancelled).kind(),
+        replica_error(syntheo_db_app::E2eeReplicaError::Cancelled).kind(),
         io::ErrorKind::Interrupted
     );
 }
@@ -321,9 +321,9 @@ async fn cancellation_stops_a_stalled_witness_request_promptly() {
 
 #[tokio::test]
 async fn cancelled_witness_merge_does_not_advance_the_authenticated_cursor() {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -343,7 +343,7 @@ async fn cancelled_witness_merge_does_not_advance_the_authenticated_cursor() {
     let event = json!({
         "sequence": 1,
         "recordId": sealed.record_id,
-        "payloadHash": anlg_e2ee::payload_hash(&sealed.payload),
+        "payloadHash": syntheo_e2ee::payload_hash(&sealed.payload),
         "payload": sealed.payload,
     });
     let server = MockServer::start().await;
@@ -375,7 +375,7 @@ async fn cancelled_witness_merge_does_not_advance_the_authenticated_cursor() {
 
     assert_eq!(error.kind(), io::ErrorKind::Interrupted);
     assert_eq!(
-        anlg_db_app::e2ee_witness_cursor(db.pool(), "user-a")
+        syntheo_db_app::e2ee_witness_cursor(db.pool(), "user-a")
             .await
             .unwrap(),
         0
@@ -440,9 +440,9 @@ async fn cancellation_stops_a_rate_limit_retry_sleep() {
 
 #[tokio::test]
 async fn empty_refresh_does_not_write_an_unchanged_cursor() {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -474,9 +474,9 @@ async fn empty_refresh_does_not_write_an_unchanged_cursor() {
 
 #[tokio::test]
 async fn merged_witness_pages_can_materialize_rows_before_refresh_completes() {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -513,7 +513,7 @@ async fn merged_witness_pages_can_materialize_rows_before_refresh_completes() {
             json!({
                 "sequence": index + 1,
                 "recordId": sealed.record_id,
-                "payloadHash": anlg_e2ee::payload_hash(&sealed.payload),
+                "payloadHash": syntheo_e2ee::payload_hash(&sealed.payload),
                 "payload": sealed.payload,
             })
         })
@@ -549,7 +549,7 @@ async fn merged_witness_pages_can_materialize_rows_before_refresh_completes() {
                 let pool = db.pool().clone();
                 let keys = keys.clone();
                 async move {
-                    anlg_db_app::apply_received_e2ee_replica_changes_with_witness(
+                    syntheo_db_app::apply_received_e2ee_replica_changes_with_witness(
                         &pool, &keys, true,
                     )
                     .await
@@ -583,10 +583,10 @@ async fn replica_transport_drains_ready_rows_and_preserves_incomplete_transcript
 }
 
 async fn check_replica_transport_hydrates_transcripts(many_rows: bool) {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     let db = Arc::new(db);
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -616,7 +616,7 @@ async fn check_replica_transport_hydrates_transcripts(many_rows: bool) {
         json!({
             "sequence": index + 1,
             "recordId": sealed.record_id,
-            "payloadHash": anlg_e2ee::payload_hash(&sealed.payload),
+            "payloadHash": syntheo_e2ee::payload_hash(&sealed.payload),
             "payload": sealed.payload,
         })
     })
@@ -638,7 +638,7 @@ async fn check_replica_transport_hydrates_transcripts(many_rows: bool) {
             events.push(json!({
                 "sequence": events.len() + 1,
                 "recordId": sealed.record_id,
-                "payloadHash": anlg_e2ee::payload_hash(&sealed.payload),
+                "payloadHash": syntheo_e2ee::payload_hash(&sealed.payload),
                 "payload": sealed.payload,
             }));
         }
@@ -682,7 +682,7 @@ async fn check_replica_transport_hydrates_transcripts(many_rows: bool) {
     .expect("replica sync blocked the next witness page on an incomplete transcript")
     .unwrap();
     assert_eq!(
-        anlg_db_app::e2ee_witness_cursor(db.pool(), "user-a")
+        syntheo_db_app::e2ee_witness_cursor(db.pool(), "user-a")
             .await
             .unwrap(),
         head_sequence
@@ -723,7 +723,7 @@ async fn check_replica_transport_hydrates_transcripts(many_rows: bool) {
             events.push(json!({
                 "sequence": events.len() + 1,
                 "recordId": deleted.record_id,
-                "payloadHash": anlg_e2ee::payload_hash(&deleted.payload),
+                "payloadHash": syntheo_e2ee::payload_hash(&deleted.payload),
                 "payload": deleted.payload,
             }));
         }
@@ -800,7 +800,7 @@ async fn check_replica_transport_hydrates_transcripts(many_rows: bool) {
         events.push(json!({
             "sequence": head_sequence + 1,
             "recordId": chunk.record_id,
-            "payloadHash": anlg_e2ee::payload_hash(&chunk.payload),
+            "payloadHash": syntheo_e2ee::payload_hash(&chunk.payload),
             "payload": chunk.payload,
         }));
         server.reset().await;
@@ -856,8 +856,8 @@ async fn check_replica_transport_hydrates_transcripts(many_rows: bool) {
 #[tokio::test]
 async fn initialization_publishes_local_edits_before_hydrating_conflicting_history() {
     for publish_status in [200, 500] {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
          VALUES ('session-1', 'user-a', 'user-a', 'Local edit')",
@@ -865,7 +865,7 @@ async fn initialization_publishes_local_edits_before_hydrating_conflicting_histo
         .execute(db.pool())
         .await
         .unwrap();
-        let recovery_key = anlg_e2ee::RecoveryKey::parse(
+        let recovery_key = syntheo_e2ee::RecoveryKey::parse(
             "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
         )
         .unwrap();
@@ -876,7 +876,7 @@ async fn initialization_publishes_local_edits_before_hydrating_conflicting_histo
         hook.prepare_local_snapshot(db.pool(), &E2eeWitnessCancellation::default())
             .await
             .unwrap();
-        let uploads = anlg_db_app::pending_e2ee_witness_uploads(
+        let uploads = syntheo_db_app::pending_e2ee_witness_uploads(
             db.pool(),
             "user-a",
             &key,
@@ -905,7 +905,7 @@ async fn initialization_publishes_local_edits_before_hydrating_conflicting_histo
         let events = vec![json!({
             "sequence": 1,
             "recordId": remote_title.record_id,
-            "payloadHash": anlg_e2ee::payload_hash(&remote_title.payload),
+            "payloadHash": syntheo_e2ee::payload_hash(&remote_title.payload),
             "payload": remote_title.payload,
         })];
         let server = MockServer::start().await;
@@ -940,7 +940,7 @@ async fn initialization_publishes_local_edits_before_hydrating_conflicting_histo
                 db.pool(),
                 &keyring,
                 || async {
-                    anlg_db_app::apply_received_e2ee_replica_changes_with_witness(
+                    syntheo_db_app::apply_received_e2ee_replica_changes_with_witness(
                         db.pool(),
                         &keys,
                         true,
@@ -962,7 +962,7 @@ async fn initialization_publishes_local_edits_before_hydrating_conflicting_histo
                     .await
                     .unwrap();
             assert_eq!(title, "Local edit");
-            let pending = anlg_db_app::pending_e2ee_witness_uploads(
+            let pending = syntheo_db_app::pending_e2ee_witness_uploads(
                 db.pool(),
                 "user-a",
                 &key,
@@ -997,8 +997,8 @@ async fn initialization_publishes_local_edits_before_hydrating_conflicting_histo
 
 #[tokio::test]
 async fn initialized_witness_checks_status_then_publishes_before_refreshing() {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     sqlx::query(
         "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
          VALUES ('session', 'user-a', 'user-a', 'Session')",
@@ -1006,12 +1006,12 @@ async fn initialized_witness_checks_status_then_publishes_before_refreshing() {
     .execute(db.pool())
     .await
     .unwrap();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
     let key = recovery_key.workspace_key("user-a").unwrap();
-    anlg_db_app::encrypt_e2ee_replica_changes(
+    syntheo_db_app::encrypt_e2ee_replica_changes(
         db.pool(),
         &HashMap::from([("user-a".to_string(), key.clone().into())]),
     )
@@ -1047,9 +1047,9 @@ async fn initialized_witness_checks_status_then_publishes_before_refreshing() {
 
 #[tokio::test]
 async fn replica_startup_materializes_notes_when_a_later_history_page_fails() {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -1073,7 +1073,7 @@ async fn replica_startup_materializes_notes_when_a_later_history_page_fails() {
             json!({
                 "sequence": index + 1,
                 "recordId": sealed.record_id,
-                "payloadHash": anlg_e2ee::payload_hash(&sealed.payload),
+                "payloadHash": syntheo_e2ee::payload_hash(&sealed.payload),
                 "payload": sealed.payload,
             })
         })
@@ -1114,7 +1114,7 @@ async fn replica_startup_materializes_notes_when_a_later_history_page_fails() {
         "Remote"
     );
     assert_eq!(
-        anlg_db_app::e2ee_witness_cursor(db.pool(), "user-a")
+        syntheo_db_app::e2ee_witness_cursor(db.pool(), "user-a")
             .await
             .unwrap(),
         2
@@ -1123,8 +1123,8 @@ async fn replica_startup_materializes_notes_when_a_later_history_page_fails() {
 
 #[tokio::test]
 async fn pending_local_state_is_retryable_after_a_failed_publish() {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     sqlx::query(
         "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
          VALUES ('session', 'user-a', 'user-a', 'Before')",
@@ -1132,17 +1132,17 @@ async fn pending_local_state_is_retryable_after_a_failed_publish() {
     .execute(db.pool())
     .await
     .unwrap();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
     let key = recovery_key.workspace_key("user-a").unwrap();
     let keys = HashMap::from([("user-a".to_string(), key.clone().into())]);
-    anlg_db_app::encrypt_e2ee_replica_changes(db.pool(), &keys)
+    syntheo_db_app::encrypt_e2ee_replica_changes(db.pool(), &keys)
         .await
         .unwrap();
     loop {
-        let uploads = anlg_db_app::pending_e2ee_witness_uploads(
+        let uploads = syntheo_db_app::pending_e2ee_witness_uploads(
             db.pool(),
             "user-a",
             &key,
@@ -1154,7 +1154,7 @@ async fn pending_local_state_is_retryable_after_a_failed_publish() {
         if uploads.is_empty() {
             break;
         }
-        anlg_db_app::acknowledge_e2ee_witness_uploads(db.pool(), &key, &uploads)
+        syntheo_db_app::acknowledge_e2ee_witness_uploads(db.pool(), &key, &uploads)
             .await
             .unwrap();
     }
@@ -1163,7 +1163,7 @@ async fn pending_local_state_is_retryable_after_a_failed_publish() {
         .execute(db.pool())
         .await
         .unwrap();
-    anlg_db_app::encrypt_e2ee_replica_changes(db.pool(), &keys)
+    syntheo_db_app::encrypt_e2ee_replica_changes(db.pool(), &keys)
         .await
         .unwrap();
 
@@ -1189,7 +1189,7 @@ async fn pending_local_state_is_retryable_after_a_failed_publish() {
         .unwrap();
     assert!(queued_after_failure > 0);
     assert!(
-        !anlg_db_app::pending_e2ee_witness_uploads(
+        !syntheo_db_app::pending_e2ee_witness_uploads(
             db.pool(),
             "user-a",
             &key,
@@ -1210,7 +1210,7 @@ async fn pending_local_state_is_retryable_after_a_failed_publish() {
         .unwrap();
     assert_eq!(queued_after_retry, 0);
     assert!(
-        anlg_db_app::pending_e2ee_witness_uploads(
+        syntheo_db_app::pending_e2ee_witness_uploads(
             db.pool(),
             "user-a",
             &key,
@@ -1253,8 +1253,8 @@ async fn stops_retrying_a_persistently_rate_limited_read() {
 #[tokio::test]
 async fn resumes_refresh_from_the_last_authenticated_page() {
     let dir = tempfile::tempdir().unwrap();
-    let db = anlg_db_core::Db::open(anlg_db_core::DbOpenOptions {
-        storage: anlg_db_core::DbStorage::Local(&dir.path().join("app.db")),
+    let db = syntheo_db_core::Db::open(syntheo_db_core::DbOpenOptions {
+        storage: syntheo_db_core::DbStorage::Local(&dir.path().join("app.db")),
         cloudsync_enabled: false,
         journal_mode_wal: true,
         foreign_keys: true,
@@ -1262,7 +1262,7 @@ async fn resumes_refresh_from_the_last_authenticated_page() {
     })
     .await
     .unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     sqlx::query(
         "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
          VALUES ('session', 'user-a', 'user-a', 'Session')",
@@ -1270,18 +1270,18 @@ async fn resumes_refresh_from_the_last_authenticated_page() {
     .execute(db.pool())
     .await
     .unwrap();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
     let key = recovery_key.workspace_key("user-a").unwrap();
-    anlg_db_app::encrypt_e2ee_replica_changes(
+    syntheo_db_app::encrypt_e2ee_replica_changes(
         db.pool(),
         &HashMap::from([("user-a".to_string(), key.clone().into())]),
     )
     .await
     .unwrap();
-    let uploads = anlg_db_app::pending_e2ee_witness_uploads(
+    let uploads = syntheo_db_app::pending_e2ee_witness_uploads(
         db.pool(),
         "user-a",
         &key,
@@ -1339,7 +1339,7 @@ async fn resumes_refresh_from_the_last_authenticated_page() {
     );
     assert!(reconciliation_requested.load(Ordering::SeqCst));
     assert_eq!(
-        anlg_db_app::e2ee_witness_cursor(db.pool(), "user-a")
+        syntheo_db_app::e2ee_witness_cursor(db.pool(), "user-a")
             .await
             .unwrap(),
         3
@@ -1348,7 +1348,7 @@ async fn resumes_refresh_from_the_last_authenticated_page() {
     assert_eq!(client.refresh(db.pool(), &key).await.unwrap(), 1);
 
     assert_eq!(
-        anlg_db_app::e2ee_witness_cursor(db.pool(), "user-a")
+        syntheo_db_app::e2ee_witness_cursor(db.pool(), "user-a")
             .await
             .unwrap(),
         4
@@ -1360,8 +1360,8 @@ async fn resumes_refresh_from_the_last_authenticated_page() {
 async fn accepted_refresh_resumes_after_restart_without_exposing_partial_rows() {
     for legacy_first in [false, true] {
         let dir = tempfile::tempdir().unwrap();
-        let db = anlg_db_core::Db::open(anlg_db_core::DbOpenOptions {
-            storage: anlg_db_core::DbStorage::Local(&dir.path().join("app.db")),
+        let db = syntheo_db_core::Db::open(syntheo_db_core::DbOpenOptions {
+            storage: syntheo_db_core::DbStorage::Local(&dir.path().join("app.db")),
             cloudsync_enabled: false,
             journal_mode_wal: true,
             foreign_keys: true,
@@ -1369,7 +1369,7 @@ async fn accepted_refresh_resumes_after_restart_without_exposing_partial_rows() 
         })
         .await
         .unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
          VALUES ('session', 'user-a', 'user-a', 'Session')",
@@ -1377,18 +1377,18 @@ async fn accepted_refresh_resumes_after_restart_without_exposing_partial_rows() 
         .execute(db.pool())
         .await
         .unwrap();
-        let recovery_key = anlg_e2ee::RecoveryKey::parse(
+        let recovery_key = syntheo_e2ee::RecoveryKey::parse(
             "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
         )
         .unwrap();
         let key = recovery_key.workspace_key("user-a").unwrap();
-        anlg_db_app::encrypt_e2ee_replica_changes(
+        syntheo_db_app::encrypt_e2ee_replica_changes(
             db.pool(),
             &HashMap::from([("user-a".to_string(), key.clone().into())]),
         )
         .await
         .unwrap();
-        let mut uploads = anlg_db_app::pending_e2ee_witness_uploads(
+        let mut uploads = syntheo_db_app::pending_e2ee_witness_uploads(
             db.pool(),
             "user-a",
             &key,
@@ -1449,8 +1449,8 @@ async fn accepted_refresh_resumes_after_restart_without_exposing_partial_rows() 
 
         let receiver_path = dir.path().join("receiver.db");
         let open_receiver = || {
-            anlg_db_core::Db::open(anlg_db_core::DbOpenOptions {
-                storage: anlg_db_core::DbStorage::Local(&receiver_path),
+            syntheo_db_core::Db::open(syntheo_db_core::DbOpenOptions {
+                storage: syntheo_db_core::DbStorage::Local(&receiver_path),
                 cloudsync_enabled: false,
                 journal_mode_wal: true,
                 foreign_keys: true,
@@ -1458,11 +1458,11 @@ async fn accepted_refresh_resumes_after_restart_without_exposing_partial_rows() 
             })
         };
         let db = open_receiver().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         assert!(client.refresh(db.pool(), &key).await.is_err());
         let cursor = if legacy_first { 6 } else { 3 };
         assert_eq!(
-            anlg_db_app::e2ee_witness_cursor(db.pool(), "user-a")
+            syntheo_db_app::e2ee_witness_cursor(db.pool(), "user-a")
                 .await
                 .unwrap(),
             cursor
@@ -1471,7 +1471,7 @@ async fn accepted_refresh_resumes_after_restart_without_exposing_partial_rows() 
         db.pool().close().await;
         let db = open_receiver().await.unwrap();
         let keys = HashMap::from([("user-a".to_string(), key.clone().into())]);
-        anlg_db_app::apply_received_e2ee_replica_changes_with_witness(db.pool(), &keys, true)
+        syntheo_db_app::apply_received_e2ee_replica_changes_with_witness(db.pool(), &keys, true)
             .await
             .unwrap();
         assert_eq!(
@@ -1493,7 +1493,7 @@ async fn accepted_refresh_resumes_after_restart_without_exposing_partial_rows() 
             restarted.refresh(db.pool(), &key).await.unwrap(),
             (head - cursor) as usize
         );
-        anlg_db_app::apply_received_e2ee_replica_changes_with_witness(db.pool(), &keys, true)
+        syntheo_db_app::apply_received_e2ee_replica_changes_with_witness(db.pool(), &keys, true)
             .await
             .unwrap();
         assert_eq!(
@@ -1505,7 +1505,7 @@ async fn accepted_refresh_resumes_after_restart_without_exposing_partial_rows() 
         );
 
         assert_eq!(
-            anlg_db_app::e2ee_witness_cursor(db.pool(), "user-a")
+            syntheo_db_app::e2ee_witness_cursor(db.pool(), "user-a")
                 .await
                 .unwrap(),
             head
@@ -1685,21 +1685,21 @@ async fn accepted_sync_recovers_a_lost_receipt_without_losing_a_newer_offline_ed
         )
         .unwrap()
     };
-    let key = anlg_e2ee::RecoveryKey::parse(
+    let key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap()
     .workspace_key("user-a")
     .unwrap();
     let keys = HashMap::from([("user-a".to_string(), key.clone().into())]);
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     sqlx::query("INSERT INTO sessions(id, workspace_id, owner_user_id, title) VALUES('s','user-a','user-a','First')").execute(db.pool()).await.unwrap();
-    anlg_db_app::encrypt_e2ee_replica_changes(db.pool(), &keys)
+    syntheo_db_app::encrypt_e2ee_replica_changes(db.pool(), &keys)
         .await
         .unwrap();
     assert!(make_client().initialize(db.pool(), &key).await.is_err());
-    let frozen = anlg_db_app::pending_e2ee_cloud_batch(db.pool(), "user-a", false)
+    let frozen = syntheo_db_app::pending_e2ee_cloud_batch(db.pool(), "user-a", false)
         .await
         .unwrap()
         .unwrap();
@@ -1707,11 +1707,11 @@ async fn accepted_sync_recovers_a_lost_receipt_without_losing_a_newer_offline_ed
         .execute(db.pool())
         .await
         .unwrap();
-    anlg_db_app::encrypt_e2ee_replica_changes(db.pool(), &keys)
+    syntheo_db_app::encrypt_e2ee_replica_changes(db.pool(), &keys)
         .await
         .unwrap();
     assert_eq!(
-        anlg_db_app::pending_e2ee_cloud_batch(db.pool(), "user-a", false)
+        syntheo_db_app::pending_e2ee_cloud_batch(db.pool(), "user-a", false)
             .await
             .unwrap()
             .unwrap()
@@ -1721,15 +1721,15 @@ async fn accepted_sync_recovers_a_lost_receipt_without_losing_a_newer_offline_ed
     // A newly constructed client must recover solely from durable SQLite state.
     make_client().initialize(db.pool(), &key).await.unwrap();
     assert!(
-        anlg_db_app::pending_e2ee_cloud_batch(db.pool(), "user-a", false)
+        syntheo_db_app::pending_e2ee_cloud_batch(db.pool(), "user-a", false)
             .await
             .unwrap()
             .is_none()
     );
-    let fresh = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&fresh).await.unwrap();
+    let fresh = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+    syntheo_db_app::prepare_schema(&fresh).await.unwrap();
     make_client().initialize(fresh.pool(), &key).await.unwrap();
-    anlg_db_app::apply_received_e2ee_replica_changes_with_witness(fresh.pool(), &keys, true)
+    syntheo_db_app::apply_received_e2ee_replica_changes_with_witness(fresh.pool(), &keys, true)
         .await
         .unwrap();
     assert_eq!(
@@ -1765,20 +1765,20 @@ async fn running_legacy_clients_reprobe_after_cloud_cutover() {
             "user-a",
         )
         .unwrap();
-        let key = anlg_e2ee::RecoveryKey::parse(
+        let key = syntheo_e2ee::RecoveryKey::parse(
             "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
         )
         .unwrap()
         .workspace_key("user-a")
         .unwrap();
         let keys = HashMap::from([("user-a".to_string(), key.clone().into())]);
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         client.initialize(db.pool(), &key).await.unwrap();
         if pending_edit {
             sqlx::query("INSERT INTO sessions(id,workspace_id,owner_user_id,title) VALUES('s','user-a','user-a','Offline')")
                 .execute(db.pool()).await.unwrap();
-            anlg_db_app::encrypt_e2ee_replica_changes(db.pool(), &keys)
+            syntheo_db_app::encrypt_e2ee_replica_changes(db.pool(), &keys)
                 .await
                 .unwrap();
         }
@@ -1798,21 +1798,21 @@ async fn running_legacy_clients_reprobe_after_cloud_cutover() {
             .await;
         client.publish_and_refresh(db.pool(), &key).await.unwrap();
         assert!(
-            anlg_db_app::e2ee_cloud_authority_enabled(db.pool(), "user-a")
+            syntheo_db_app::e2ee_cloud_authority_enabled(db.pool(), "user-a")
                 .await
                 .unwrap()
         );
         assert!(
-            anlg_db_app::pending_e2ee_cloud_batch(db.pool(), "user-a", false)
+            syntheo_db_app::pending_e2ee_cloud_batch(db.pool(), "user-a", false)
                 .await
                 .unwrap()
                 .is_none()
         );
         if pending_edit {
-            let fresh = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-            anlg_db_app::prepare_schema(&fresh).await.unwrap();
+            let fresh = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+            syntheo_db_app::prepare_schema(&fresh).await.unwrap();
             client.initialize(fresh.pool(), &key).await.unwrap();
-            anlg_db_app::apply_received_e2ee_replica_changes_with_witness(
+            syntheo_db_app::apply_received_e2ee_replica_changes_with_witness(
                 fresh.pool(),
                 &keys,
                 true,

@@ -4,7 +4,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { motion } from "motion/react";
 import * as React from "react";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 const TooltipProvider = TooltipPrimitive.Provider;
 

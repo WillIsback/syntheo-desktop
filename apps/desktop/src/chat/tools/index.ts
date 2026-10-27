@@ -8,7 +8,7 @@ import type {
   Meeting,
   MeetingPage,
   TranscriptPage,
-} from "@anlg/plugin-db";
+} from "@syntheo/plugin-db";
 
 import { buildEditMemoTool } from "./edit-memo";
 import { buildEditSummaryTool } from "./edit-summary";

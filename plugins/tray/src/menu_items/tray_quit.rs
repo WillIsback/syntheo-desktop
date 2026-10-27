@@ -9,7 +9,7 @@ use super::MenuItemHandler;
 pub struct TrayQuit;
 
 impl MenuItemHandler for TrayQuit {
-    const ID: &'static str = "anlg_tray_quit";
+    const ID: &'static str = "syntheo_tray_quit";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
         let item = MenuItem::with_id(app, Self::ID, "Quit", true, Some("cmd+q"))?;

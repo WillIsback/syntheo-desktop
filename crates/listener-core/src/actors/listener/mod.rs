@@ -9,9 +9,9 @@ use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort, Super
 use tokio::time::error::Elapsed;
 use tracing::Instrument;
 
-use anlg_transcript::IdentityAssignment;
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
+use syntheo_transcript::IdentityAssignment;
 
 use super::session::{SharedLiveTranscript, session_span};
 use crate::{
@@ -45,7 +45,7 @@ pub enum ListenerAudioResult {
 
 #[derive(Clone)]
 pub struct ListenerConfigUpdate {
-    pub languages: Vec<anlg_language::Language>,
+    pub languages: Vec<syntheo_language::Language>,
     pub participant_human_ids: Vec<String>,
     pub self_human_id: Option<String>,
     pub speaker_assignments: Vec<IdentityAssignment>,
@@ -54,7 +54,7 @@ pub struct ListenerConfigUpdate {
 #[derive(Clone)]
 pub struct ListenerArgs {
     pub runtime: Arc<dyn ListenerRuntime>,
-    pub languages: Vec<anlg_language::Language>,
+    pub languages: Vec<syntheo_language::Language>,
     pub onboarding: bool,
     pub model: String,
     pub base_url: String,
@@ -412,7 +412,7 @@ fn discard_final_stream_errors(responses: Vec<StreamResponse>) -> Vec<StreamResp
                     error_code.map_or_else(|| "unknown".to_string(), |code| code.to_string());
                 tracing::warn!(
                     error.code = %error_code,
-                    anarlog.stt.provider.name = %provider,
+                    syntheo.stt.provider.name = %provider,
                     "stream_provider_error_during_shutdown"
                 );
                 None
@@ -498,7 +498,7 @@ fn process_stream_response(
         tracing::error!(
             error.code = %error_code_tag,
             error.message = %error_message,
-            anarlog.stt.provider.name = %provider,
+            syntheo.stt.provider.name = %provider,
             "stream_provider_error"
         );
         state

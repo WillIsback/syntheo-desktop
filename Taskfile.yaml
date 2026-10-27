@@ -6,7 +6,7 @@ tasks:
 
   bacon: bacon {{.CLI_ARGS}}
 
-  stat: btop -f anarlog -u 500 --preset 1
+  stat: btop -f syntheo -u 500 --preset 1
 
   clean-plugins:
     cmds:
@@ -47,7 +47,7 @@ tasks:
 
   db:
     env:
-      DB: /Users/yujonglee/Library/Application Support/hyprnote/db.sqlite
+      DB: /Users/yujonglee/Library/Application Support/syntheo/db.sqlite
     cmds:
       - |
           sqlite3 -json "$DB" 'SELECT store FROM main LIMIT 1;' |

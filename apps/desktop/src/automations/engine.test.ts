@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   notionAppendUpdate: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-local-api", () => ({
+vi.mock("@syntheo/plugin-local-api", () => ({
   commands: {
     exportMeetingMarkdown: mocks.exportMeetingMarkdown,
     prepareDriveMarkdown: mocks.prepareDriveMarkdown,
@@ -46,7 +46,7 @@ vi.mock("~/session-sharing/invitation-management", () => ({
   getSessionShareSenderName: () => "Test User",
 }));
 
-vi.mock("@anlg/api-client", () => ({
+vi.mock("@syntheo/api-client", () => ({
   googleDrivePrepareExport: mocks.googleDrivePrepareExport,
   googleDriveExportMarkdown: mocks.googleDriveExportMarkdown,
   listConnections: mocks.listConnections,
@@ -54,11 +54,11 @@ vi.mock("@anlg/api-client", () => ({
   notionAppendUpdate: mocks.notionAppendUpdate,
 }));
 
-vi.mock("@anlg/api-client/client", () => ({
+vi.mock("@syntheo/api-client/client", () => ({
   createClient: () => ({}),
 }));
 
-vi.mock("@anlg/editor/markdown", () => ({
+vi.mock("@syntheo/editor/markdown", () => ({
   json2md: (json: { text?: string }) => json.text ?? "",
 }));
 

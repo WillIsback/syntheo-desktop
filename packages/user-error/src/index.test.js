@@ -67,7 +67,7 @@ test("matches explicit tags and operation context", () => {
   assert.equal(
     isUserErrorEvent({
       contexts: {
-        "anarlog.operation": { providerError: "invalid api key" },
+        "syntheo.operation": { providerError: "invalid api key" },
       },
     }),
     true,

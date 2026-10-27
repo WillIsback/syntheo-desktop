@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { toast } from "@anlg/ui/components/ui/toast";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import { createFallbackChatTitle, generateChatTitle } from "./chat-title";
 import {
@@ -17,7 +17,11 @@ import {
 
 import { useLanguageModel } from "~/ai/hooks";
 import type { ContextRef } from "~/chat/context/entities";
-import type { ChatMessageSender, ChatScope, AnlgUIMessage } from "~/chat/types";
+import type {
+  ChatMessageSender,
+  ChatScope,
+  SyntheoUIMessage,
+} from "~/chat/types";
 import { useOwnerUserId } from "~/shared/owner-user";
 import { id } from "~/shared/utils";
 
@@ -93,7 +97,7 @@ export function useChatActions({
   const handleSendMessage = useCallback(
     (
       content: string,
-      parts: AnlgUIMessage["parts"],
+      parts: SyntheoUIMessage["parts"],
       sendMessage: ChatMessageSender,
       contextRefs?: ContextRef[],
     ) => {
@@ -108,7 +112,7 @@ export function useChatActions({
         createdAt: Date.now(),
         ...(contextRefs && contextRefs.length > 0 ? { contextRefs } : {}),
       };
-      const uiMessage: AnlgUIMessage = {
+      const uiMessage: SyntheoUIMessage = {
         id: messageId,
         role: "user",
         parts,

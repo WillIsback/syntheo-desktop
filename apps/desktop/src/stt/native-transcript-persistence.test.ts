@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   releaseLiveTranscript: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     flushLiveTranscript: mocks.flushLiveTranscript,
     releaseLiveTranscript: mocks.releaseLiveTranscript,
@@ -16,7 +16,7 @@ vi.mock("@anlg/plugin-transcription", () => ({
   },
 }));
 
-import type { LiveTranscriptPersistence } from "@anlg/plugin-transcription";
+import type { LiveTranscriptPersistence } from "@syntheo/plugin-transcription";
 
 import { createNativeTranscriptPersistence } from "./native-transcript-persistence";
 

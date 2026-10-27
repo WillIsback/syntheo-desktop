@@ -32,7 +32,7 @@ impl BatchSttAdapter for OpenAIAdapter {
 
     fn is_supported_languages(
         &self,
-        languages: &[anlg_language::Language],
+        languages: &[syntheo_language::Language],
         _model: Option<&str>,
     ) -> bool {
         OpenAIAdapter::is_supported_languages_batch(languages)
@@ -673,7 +673,7 @@ mod tests {
                 })
                 .build();
             let error = client
-                .transcribe_file(anlg_data::english_1::AUDIO_PATH)
+                .transcribe_file(syntheo_data::english_1::AUDIO_PATH)
                 .await
                 .expect_err("an empty endpoint must not fall back to a cloud host");
             assert!(
@@ -704,12 +704,12 @@ mod tests {
             .api_key("")
             .params(ListenParams {
                 model: Some("mistralai/Voxtral-Mini-3B-2507".to_string()),
-                languages: vec![anlg_language::ISO639::Fr.into()],
+                languages: vec![syntheo_language::ISO639::Fr.into()],
                 ..Default::default()
             })
             .build();
         let response = client
-            .transcribe_file(anlg_data::english_1::AUDIO_PATH)
+            .transcribe_file(syntheo_data::english_1::AUDIO_PATH)
             .await
             .unwrap();
 
@@ -790,8 +790,8 @@ mod tests {
         let options = build_transcription_options(
             &ListenParams {
                 languages: vec![
-                    anlg_language::ISO639::En.into(),
-                    anlg_language::ISO639::Ko.into(),
+                    syntheo_language::ISO639::En.into(),
+                    syntheo_language::ISO639::Ko.into(),
                 ],
                 ..Default::default()
             },

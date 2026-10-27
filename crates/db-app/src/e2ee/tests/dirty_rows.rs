@@ -339,7 +339,7 @@ async fn witness_change_preserves_a_prepared_dirty_row() {
             sequence: 1,
             record_id: witnessed.record_id,
             workspace_id: "workspace-a".to_string(),
-            payload_hash: anlg_e2ee::payload_hash(&witnessed.payload),
+            payload_hash: syntheo_e2ee::payload_hash(&witnessed.payload),
             payload: witnessed.payload,
         }],
     )

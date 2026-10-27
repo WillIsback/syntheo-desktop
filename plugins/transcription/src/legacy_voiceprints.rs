@@ -5,7 +5,7 @@ use tauri::Manager;
 const DB_WAIT: Duration = Duration::from_secs(1);
 const DB_ATTEMPTS: usize = 30;
 
-/// Efface au démarrage les empreintes vocales laissées par Anarlog : les
+/// Efface au démarrage les empreintes vocales laissées par Syntheo : les
 /// secrets du trousseau d'abord, puis les tables qui les référencent.
 pub(crate) fn spawn<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
     tauri::async_runtime::spawn(async move {
@@ -14,7 +14,7 @@ pub(crate) fn spawn<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
                 .try_state::<tauri_plugin_db::ManagedState>()
                 .map(|state| state.pool().clone())
             {
-                if let Err(error) = anlg_db_app::purge_legacy_voiceprints(&pool, |scope, key| {
+                if let Err(error) = syntheo_db_app::purge_legacy_voiceprints(&pool, |scope, key| {
                     tauri_plugin_store2::delete_secret_blocking(&app, scope, key)
                 })
                 .await

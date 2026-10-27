@@ -2,9 +2,9 @@ import { useLingui } from "@lingui/react";
 import { Trans } from "@lingui/react/macro";
 import { useRef, useState } from "react";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { commands as sfxCommands } from "@anlg/plugin-sfx";
-import { CircleNotch, GithubLogo } from "@anlg/ui/components/icons";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import { commands as sfxCommands } from "@syntheo/plugin-sfx";
+import { CircleNotch, GithubLogo } from "@syntheo/ui/components/icons";
 
 import { OnboardingButton } from "./shared";
 import {
@@ -90,17 +90,17 @@ export function FinalSection({
         {status === "loading" ? (
           <span className="flex items-center gap-2">
             <CircleNotch className="size-4 animate-spin" />
-            <Trans>Open Anarlog</Trans>
+            <Trans>Open Syntheo</Trans>
           </span>
         ) : (
-          <Trans>Open Anarlog</Trans>
+          <Trans>Open Syntheo</Trans>
         )}
       </OnboardingButton>
       {status === "error" && (
         <p className="text-sm text-red-500" role="alert">
           {translate({
             id: "onboarding.finish-error",
-            message: "Couldn't open Anarlog. Please try again.",
+            message: "Couldn't open Syntheo. Please try again.",
           })}
         </p>
       )}

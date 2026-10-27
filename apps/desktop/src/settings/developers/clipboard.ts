@@ -1,6 +1,6 @@
 import { t } from "@lingui/core/macro";
 
-import { toast } from "@anlg/ui/components/ui/toast";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 export async function copyText(value: string, message: string) {
   try {

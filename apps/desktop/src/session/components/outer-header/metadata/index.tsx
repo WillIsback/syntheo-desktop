@@ -1,11 +1,11 @@
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { MapPin, VideoCamera } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import { MapPin, VideoCamera } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   PopoverContent,
-} from "@anlg/ui/components/ui/popover";
-import { safeFormat, safeParseDate, TZDate } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { safeFormat, safeParseDate, TZDate } from "@syntheo/utils";
 
 import { DateEditor } from "./date";
 import { ParticipantsDisplay } from "./participants";

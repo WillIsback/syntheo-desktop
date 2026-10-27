@@ -2,12 +2,12 @@ use std::path::PathBuf;
 
 use crate::cli::ProposalCommand;
 use crate::{Result, output};
-use anlg_agent_access::{
+use syntheo_agent_access::{
     CreateProposalInput, DeclineProposalInput, GetProposalInput, ListProposalsInput, Proposal,
     create_proposal, decline_proposal, get_proposal, list_proposals,
 };
 
-pub async fn run(db: &anlg_db_core::Db, command: ProposalCommand, json: bool) -> Result<()> {
+pub async fn run(db: &syntheo_db_core::Db, command: ProposalCommand, json: bool) -> Result<()> {
     match command {
         ProposalCommand::Create {
             meeting_id,

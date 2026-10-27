@@ -5,8 +5,8 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-anlg-http = { workspace = true }
-anlg-zoom = { workspace = true }
+syntheo-http = { workspace = true }
+syntheo-zoom = { workspace = true }
 
 chrono = { workspace = true, features = ["serde"] }
 dirs = { workspace = true }

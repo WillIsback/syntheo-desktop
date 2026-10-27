@@ -8,14 +8,14 @@ description = ""
 [features]
 default = []
 specta = [
-  "anlg-listener-core/specta",
-  "anlg-listener2-core/specta",
+  "syntheo-listener-core/specta",
+  "syntheo-listener2-core/specta",
 ]
 tauri-event = [
-  "anlg-listener-core/tauri-event",
-  "anlg-listener2-core/tauri-event",
+  "syntheo-listener-core/tauri-event",
+  "syntheo-listener2-core/tauri-event",
 ]
 
 [dependencies]
-anlg-listener-core = { workspace = true }
-anlg-listener2-core = { workspace = true }
+syntheo-listener-core = { workspace = true }
+syntheo-listener2-core = { workspace = true }

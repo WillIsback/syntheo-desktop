@@ -1,9 +1,9 @@
 import { Trans } from "@lingui/react/macro";
 import { useCallback } from "react";
 
-import { Trash } from "@anlg/ui/components/icons";
-import { DropdownMenuItem } from "@anlg/ui/components/ui/dropdown-menu";
-import { cn } from "@anlg/utils";
+import { Trash } from "@syntheo/ui/components/icons";
+import { DropdownMenuItem } from "@syntheo/ui/components/ui/dropdown-menu";
+import { cn } from "@syntheo/utils";
 
 import { useDeleteSession } from "~/session/hooks/useDeleteSession";
 import { useSessionSummary } from "~/session/queries";

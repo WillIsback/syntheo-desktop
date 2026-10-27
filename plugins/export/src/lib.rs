@@ -1,10 +1,10 @@
 mod commands;
 mod ext;
 mod manifest;
-pub use anlg_export_core::{
+pub use ext::*;
+pub use syntheo_export_core::{
     Error, ExportInput, ExportMetadata, Result, Transcript, TranscriptItem,
 };
-pub use ext::*;
 
 const PLUGIN_NAME: &str = "export";
 
@@ -40,7 +40,7 @@ mod test {
         // Export to a private path: export_types rewrites js/bindings.gen.ts
         // concurrently, so reading the shared file here would race with it.
         let bindings_path = std::env::temp_dir().join(format!(
-            "anlg-{PLUGIN_NAME}-manifest-sync-{}.ts",
+            "syntheo-{PLUGIN_NAME}-manifest-sync-{}.ts",
             std::process::id()
         ));
         make_specta_builder::<tauri::Wry>()

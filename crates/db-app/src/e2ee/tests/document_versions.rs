@@ -1,6 +1,6 @@
 use super::*;
 
-async fn insert_note(db: &anlg_db_core::Db, body: &str) {
+async fn insert_note(db: &syntheo_db_core::Db, body: &str) {
     sqlx::query(
         "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
          VALUES ('session-1', 'workspace-a', 'user-a', 'Note')",
@@ -18,7 +18,7 @@ async fn insert_note(db: &anlg_db_core::Db, body: &str) {
     .unwrap();
 }
 
-async fn set_body(db: &anlg_db_core::Db, body: &str) {
+async fn set_body(db: &syntheo_db_core::Db, body: &str) {
     sqlx::query("UPDATE session_documents SET body = ? WHERE id = 'doc-1'")
         .bind(body)
         .execute(db.pool())
@@ -26,7 +26,7 @@ async fn set_body(db: &anlg_db_core::Db, body: &str) {
         .unwrap();
 }
 
-async fn versions(db: &anlg_db_core::Db) -> Vec<(String, String)> {
+async fn versions(db: &syntheo_db_core::Db) -> Vec<(String, String)> {
     sqlx::query_as(
         "SELECT body, source FROM session_document_versions
          WHERE document_id = 'doc-1' ORDER BY created_at, id",

@@ -37,13 +37,13 @@ enum DrainOutcome {
     Deferred,
 }
 
-pub fn spawn(app: AppHandle, db: Arc<anlg_db_core::Db>) {
+pub fn spawn(app: AppHandle, db: Arc<syntheo_db_core::Db>) {
     tauri::async_runtime::spawn(async move {
         run(app, db).await;
     });
 }
 
-async fn run(app: AppHandle, db: Arc<anlg_db_core::Db>) {
+async fn run(app: AppHandle, db: Arc<syntheo_db_core::Db>) {
     let mut changes = db.change_notifier().subscribe();
 
     wait_for_tantivy(&app).await;
@@ -756,8 +756,8 @@ mod tests {
 
     #[tokio::test]
     async fn acknowledgement_does_not_drop_a_concurrent_change() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query("INSERT INTO sessions (id, title) VALUES ('session-1', 'Planning')")
             .execute(db.pool())
             .await
@@ -837,7 +837,7 @@ mod tests {
 
     #[tokio::test]
     async fn acknowledgement_defers_when_the_database_pool_is_busy() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
         let mut held_connection = db.pool().acquire().await.unwrap();
         let started = std::time::Instant::now();
 
@@ -852,8 +852,8 @@ mod tests {
 
     #[tokio::test]
     async fn session_projection_indexes_live_chat_and_meeting_apps() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             r#"INSERT INTO sessions (id, title, source_apps_json)
                VALUES (

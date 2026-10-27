@@ -8,7 +8,7 @@ const { openUrlMock, useMeetingChatRecordsMock } = vi.hoisted(() => ({
   useMeetingChatRecordsMock: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-opener2", () => ({
+vi.mock("@syntheo/plugin-opener2", () => ({
   commands: { openUrl: openUrlMock },
 }));
 

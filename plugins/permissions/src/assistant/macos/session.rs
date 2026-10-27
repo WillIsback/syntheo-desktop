@@ -1,12 +1,12 @@
 use std::cell::RefCell;
 use std::time::{Duration, Instant};
 
-use anlg_overlay_kit::macos::timer::RepeatingTimer;
+use syntheo_overlay_kit::macos::timer::RepeatingTimer;
 use objc2::rc::Retained;
 use objc2_app_kit::{NSPanel, NSWorkspace};
 use objc2_foundation::{MainThreadMarker, NSString, NSURL};
 
-use anlg_overlay_kit::macos::main_thread::run_on_main_thread;
+use syntheo_overlay_kit::macos::main_thread::run_on_main_thread;
 
 use crate::guidance::{SettingsGuidance, privacy_settings_deep_link_urls};
 use crate::{Error, Permission, PermissionStatus, Result};

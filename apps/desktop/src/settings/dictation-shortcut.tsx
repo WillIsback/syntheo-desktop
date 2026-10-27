@@ -3,9 +3,9 @@ import { useMutation } from "@tanstack/react-query";
 import { platform } from "@tauri-apps/plugin-os";
 import { useRef, useState } from "react";
 
-import { commands as shortcuts } from "@anlg/plugin-shortcut";
-import { Button } from "@anlg/ui/components/ui/button";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { commands as shortcuts } from "@syntheo/plugin-shortcut";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { waitForDictationCleanup } from "~/dictation/lifecycle";
 import { useDictationStatus } from "~/dictation/state";

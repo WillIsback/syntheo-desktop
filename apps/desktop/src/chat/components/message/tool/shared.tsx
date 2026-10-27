@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
-import { CircleNotch, XCircle } from "@anlg/ui/components/icons";
-import { streamdownIcons } from "@anlg/ui/components/streamdown-icons";
-import { cn } from "@anlg/utils";
+import { CircleNotch, XCircle } from "@syntheo/ui/components/icons";
+import { streamdownIcons } from "@syntheo/ui/components/streamdown-icons";
+import { cn } from "@syntheo/utils";
 
 import { extractMcpOutputText } from "~/chat/mcp/mcp-output-parser";
 

@@ -1,18 +1,18 @@
 [package]
-name = "anarlog-cli"
+name = "syntheo-cli"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
 
 [[bin]]
-name = "anarlog"
+name = "syntheo"
 path = "src/main.rs"
 
 [dependencies]
-anlg-agent-access = { workspace = true }
-anlg-db-app = { workspace = true }
-anlg-db-core = { workspace = true }
-anlg-storage = { workspace = true }
+syntheo-agent-access = { workspace = true }
+syntheo-db-app = { workspace = true }
+syntheo-db-core = { workspace = true }
+syntheo-storage = { workspace = true }
 
 base64 = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }

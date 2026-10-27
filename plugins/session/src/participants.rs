@@ -27,7 +27,7 @@ pub async fn add_session_participant(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::revive_excluded_session_participant(
+    syntheo_db_app::revive_excluded_session_participant(
         &mut transaction,
         &request.session_id,
         &request.human_id,
@@ -36,7 +36,7 @@ pub async fn add_session_participant(
     )
     .await
     .map_err(|error| error.to_string())?;
-    anlg_db_app::insert_manual_session_participant(
+    syntheo_db_app::insert_manual_session_participant(
         &mut transaction,
         &participant_id,
         &request.session_id,
@@ -63,7 +63,7 @@ pub async fn remove_session_participant(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::remove_session_participant_mapping(&mut transaction, &request.mapping_id, &now)
+    syntheo_db_app::remove_session_participant_mapping(&mut transaction, &request.mapping_id, &now)
         .await
         .map_err(|error| error.to_string())?;
 

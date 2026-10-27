@@ -1,5 +1,5 @@
-import { usesDeferredProviderAuthentication } from "@anlg/provider-validation";
-import { Spinner } from "@anlg/ui/components/ui/spinner";
+import { usesDeferredProviderAuthentication } from "@syntheo/provider-validation";
+import { Spinner } from "@syntheo/ui/components/ui/spinner";
 
 import { useConfigValues } from "~/shared/config";
 import { useSTTConnection } from "~/stt/useSTTConnection";

@@ -1,16 +1,16 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import type { EventParticipant } from "@anlg/store";
-import { MagnifyingGlass, Plus } from "@anlg/ui/components/icons";
-import { Checkbox } from "@anlg/ui/components/ui/checkbox";
+import type { EventParticipant } from "@syntheo/store";
+import { MagnifyingGlass, Plus } from "@syntheo/ui/components/icons";
+import { Checkbox } from "@syntheo/ui/components/ui/checkbox";
 import {
   AppFloatingPanel,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anlg/ui/components/ui/popover";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { cn } from "@syntheo/utils";
 
 import { preserveScrollPosition } from "./viewport-hooks";
 

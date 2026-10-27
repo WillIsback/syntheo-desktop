@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, MutexGuard};
 use std::time::{Duration, Instant};
 
-use anlg_transcription_core::listener2 as core;
+use syntheo_transcription_core::listener2 as core;
 use tauri_specta::Event;
 use tokio::task::JoinHandle;
 
@@ -696,7 +696,7 @@ mod tests {
             model: model.map(ToOwned::to_owned),
             base_url: base_url.to_string(),
             api_key: "key".to_string(),
-            languages: vec![anlg_language::ISO639::En.into()],
+            languages: vec![syntheo_language::ISO639::En.into()],
             keywords: vec![],
             num_speakers: None,
             min_speakers: None,
@@ -742,7 +742,7 @@ mod tests {
     #[test]
     fn completed_batches_survive_restart_until_discarded() {
         let dir = std::env::temp_dir().join(format!(
-            "anarlog-batch-results-{}-{}",
+            "syntheo-batch-results-{}-{}",
             std::process::id(),
             now_ms()
         ));

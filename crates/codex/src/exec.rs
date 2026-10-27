@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::process::Stdio;
 
-use anlg_cli_process::{StreamProcess, spawn_streaming_lines, spawn_with_retry};
 use serde::Serialize;
+use syntheo_cli_process::{StreamProcess, spawn_streaming_lines, spawn_with_retry};
 use tokio::process::Command;
 use tokio_util::sync::CancellationToken;
 

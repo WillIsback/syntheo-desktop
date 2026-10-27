@@ -1,10 +1,12 @@
 import { Channel } from "@tauri-apps/api/core";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { QueryEvent } from "@anlg/plugin-db";
+import type { QueryEvent } from "@syntheo/plugin-db";
 
 const { subscribe } =
-  await vi.importActual<typeof import("@anlg/plugin-db")>("@anlg/plugin-db");
+  await vi.importActual<typeof import("@syntheo/plugin-db")>(
+    "@syntheo/plugin-db",
+  );
 
 type ChannelMessage = { index: number } & (
   | { message: QueryEvent<{ id: string }> }

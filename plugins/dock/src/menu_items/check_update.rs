@@ -18,6 +18,6 @@ impl DockMenuItem for DockCheckUpdate {
             return;
         }
 
-        tauri_plugin_tray::AnlgMenuItem::TrayCheckUpdate.handle(app);
+        tauri_plugin_tray::SyntheoMenuItem::TrayCheckUpdate.handle(app);
     }
 }

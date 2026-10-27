@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   transcribe: vi.fn(),
   summarize: vi.fn(),
 }));
-vi.mock("@anlg/plugin-settings", () => ({
+vi.mock("@syntheo/plugin-settings", () => ({
   commands: { vaultBase: async () => ({ status: "ok", data: "/vault" }) },
 }));
 vi.mock("~/settings/queries", () => ({ useSettingsReady: () => true }));
@@ -22,7 +22,7 @@ vi.mock("~/db", () => ({
   liveQueryClient: { execute: mocks.execute },
   executeTransaction: mocks.transaction,
 }));
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: { audioImport: async () => ({ status: "ok", data: "/audio.wav" }) },
 }));
 vi.mock("~/db/cloudsync-activity", () => ({

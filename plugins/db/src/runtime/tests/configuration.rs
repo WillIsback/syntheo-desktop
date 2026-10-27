@@ -3,13 +3,13 @@ use super::*;
 #[tokio::test]
 async fn configures_replica_transport_without_the_cloudsync_extension() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     sqlx::query(
         "UPDATE storage_migration_state
          SET importer_version = ?, parity_verified = 1
          WHERE id = 'legacy_v1'",
     )
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .execute(db.pool())
     .await
     .unwrap();
@@ -21,7 +21,7 @@ async fn configures_replica_transport_without_the_cloudsync_extension() {
         .respond_with(witness_state)
         .mount(&witness_server)
         .await;
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -57,28 +57,28 @@ async fn configures_replica_transport_without_the_cloudsync_extension() {
 #[tokio::test]
 async fn configures_replica_transport_for_shared_workspaces() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     sqlx::query(
         "UPDATE storage_migration_state
          SET importer_version = ?, parity_verified = 1
          WHERE id = 'legacy_v1'",
     )
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .execute(db.pool())
     .await
     .unwrap();
     let runtime = PluginDbRuntime::new(db);
     let (witness_server, witness_config) =
         crate::tests::support::setup_witnesses(&["user-a", "workspace-shared"]).await;
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
-    let projection = anlg_db_app::CloudsyncWorkspaceProjection {
+    let projection = syntheo_db_app::CloudsyncWorkspaceProjection {
         account_user_id: "user-a".to_string(),
         personal_workspace_id: "user-a".to_string(),
         workspaces: vec![
-            anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+            syntheo_db_app::CloudsyncWorkspaceProjectionEntry {
                 id: "user-a".to_string(),
                 owner_user_id: "user-a".to_string(),
                 kind: "personal".to_string(),
@@ -90,7 +90,7 @@ async fn configures_replica_transport_for_shared_workspaces() {
                 created_at: "2026-07-01T00:00:00Z".to_string(),
                 updated_at: "2026-07-01T00:00:00Z".to_string(),
             },
-            anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+            syntheo_db_app::CloudsyncWorkspaceProjectionEntry {
                 id: "workspace-shared".to_string(),
                 owner_user_id: "user-b".to_string(),
                 kind: "shared".to_string(),
@@ -116,8 +116,8 @@ async fn configures_replica_transport_for_shared_workspaces() {
                     recovery_key,
                     std::collections::HashMap::from([(
                         "workspace-shared".to_string(),
-                        anlg_e2ee::WorkspaceKeyring::new(
-                            anlg_e2ee::WorkspaceKey::generate().unwrap(),
+                        syntheo_e2ee::WorkspaceKeyring::new(
+                            syntheo_e2ee::WorkspaceKey::generate().unwrap(),
                         ),
                     )]),
                 ),
@@ -162,25 +162,25 @@ async fn configures_replica_transport_for_shared_workspaces() {
 #[tokio::test]
 async fn replica_transport_rejects_a_projection_for_another_account() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     sqlx::query(
         "UPDATE storage_migration_state
          SET importer_version = ?, parity_verified = 1
          WHERE id = 'legacy_v1'",
     )
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .execute(db.pool())
     .await
     .unwrap();
     let runtime = PluginDbRuntime::new(db);
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
-    let projection = anlg_db_app::CloudsyncWorkspaceProjection {
+    let projection = syntheo_db_app::CloudsyncWorkspaceProjection {
         account_user_id: "user-b".to_string(),
         personal_workspace_id: "user-b".to_string(),
-        workspaces: vec![anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+        workspaces: vec![syntheo_db_app::CloudsyncWorkspaceProjectionEntry {
             id: "user-b".to_string(),
             owner_user_id: "user-b".to_string(),
             kind: "personal".to_string(),
@@ -214,7 +214,7 @@ async fn replica_transport_rejects_a_projection_for_another_account() {
         matches!(
             error,
             crate::Error::CloudsyncWorkspace(
-                anlg_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection
+                syntheo_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection
             )
         ),
         "{error}"
@@ -226,12 +226,12 @@ async fn replica_transport_rejects_a_projection_for_another_account() {
 async fn refreshed_workspace_keys_forget_revoked_memberships() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
     let runtime = PluginDbRuntime::new(db);
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
-    let revoked_key = anlg_e2ee::WorkspaceKey::generate().unwrap();
-    let retained_key = anlg_e2ee::WorkspaceKey::generate().unwrap();
+    let revoked_key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
+    let retained_key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
 
     runtime
         .set_e2ee_workspace_keys(E2eeWorkspaceKeyConfiguration::new(
@@ -240,18 +240,18 @@ async fn refreshed_workspace_keys_forget_revoked_memberships() {
             std::collections::HashMap::from([
                 (
                     "workspace-revoked".to_string(),
-                    anlg_e2ee::WorkspaceKeyring::new(revoked_key),
+                    syntheo_e2ee::WorkspaceKeyring::new(revoked_key),
                 ),
                 (
                     "workspace-retained".to_string(),
-                    anlg_e2ee::WorkspaceKeyring::new(retained_key),
+                    syntheo_e2ee::WorkspaceKeyring::new(retained_key),
                 ),
             ]),
         ))
         .unwrap();
     assert!(runtime.workspace_key("workspace-revoked").is_some());
 
-    let rotated_key = anlg_e2ee::WorkspaceKey::generate().unwrap();
+    let rotated_key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
     let rotated_key_id = rotated_key.key_id().to_string();
     runtime
         .set_e2ee_workspace_keys(E2eeWorkspaceKeyConfiguration::new(
@@ -259,7 +259,7 @@ async fn refreshed_workspace_keys_forget_revoked_memberships() {
             recovery_key,
             std::collections::HashMap::from([(
                 "workspace-retained".to_string(),
-                anlg_e2ee::WorkspaceKeyring::new(rotated_key),
+                syntheo_e2ee::WorkspaceKeyring::new(rotated_key),
             )]),
         ))
         .unwrap();
@@ -275,10 +275,10 @@ async fn refreshed_workspace_keys_forget_revoked_memberships() {
     );
 }
 
-fn test_full_resync_config(token: &str) -> anlg_db_core::CloudsyncRuntimeConfig {
-    anlg_db_core::CloudsyncRuntimeConfig {
+fn test_full_resync_config(token: &str) -> syntheo_db_core::CloudsyncRuntimeConfig {
+    syntheo_db_core::CloudsyncRuntimeConfig {
         connection_string: "test-database".to_string(),
-        auth: anlg_db_core::CloudsyncAuth::Token {
+        auth: syntheo_db_core::CloudsyncAuth::Token {
             token: token.to_string(),
         },
         tables: vec![],
@@ -341,9 +341,9 @@ async fn install_blocked_full_resync_cancellation(
 
 async fn assert_auth_invalidation_cancels_inflight_configuration(logout: bool) {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = std::sync::Arc::new(PluginDbRuntime::new(db));
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -441,18 +441,18 @@ async fn spawn_stalled_witness_configuration() -> (
     })
     .await
     .unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     sqlx::query(
         "UPDATE storage_migration_state
              SET importer_version = ?, parity_verified = 1
              WHERE id = 'legacy_v1'",
     )
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .execute(db.pool())
     .await
     .unwrap();
     let runtime = std::sync::Arc::new(PluginDbRuntime::new(std::sync::Arc::new(db)));
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -548,20 +548,20 @@ async fn suspend_drains_token_configuration_during_large_replica_cleanup() {
         .await
         .unwrap(),
     );
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     sqlx::query(
         "UPDATE storage_migration_state
              SET importer_version = ?, parity_verified = 1
              WHERE id = 'legacy_v1'",
     )
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .execute(db.pool())
     .await
     .unwrap();
-    anlg_db_app::claim_cloudsync_workspace(db.pool(), "user-a")
+    syntheo_db_app::claim_cloudsync_workspace(db.pool(), "user-a")
         .await
         .unwrap();
-    anlg_db_app::set_cloudsync_personal_write_scope(db.pool(), "user-a")
+    syntheo_db_app::set_cloudsync_personal_write_scope(db.pool(), "user-a")
         .await
         .unwrap();
     sqlx::query(
@@ -595,7 +595,7 @@ async fn suspend_drains_token_configuration_during_large_replica_cleanup() {
         .unwrap();
 
     let runtime = std::sync::Arc::new(PluginDbRuntime::new(std::sync::Arc::clone(&db)));
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -603,10 +603,10 @@ async fn suspend_drains_token_configuration_during_large_replica_cleanup() {
         .set_e2ee_recovery_key("user-a", &recovery_key)
         .unwrap();
     let key = runtime.workspace_key("user-a").unwrap();
-    let generation = anlg_db_app::stage_cloudsync_poison_recovery(db.pool(), "user-a", "user-a")
+    let generation = syntheo_db_app::stage_cloudsync_poison_recovery(db.pool(), "user-a", "user-a")
         .await
         .unwrap();
-    let recovery = anlg_db_app::ensure_cloudsync_recovery_state(
+    let recovery = syntheo_db_app::ensure_cloudsync_recovery_state(
         db.pool(),
         &generation,
         "user-a",
@@ -617,7 +617,7 @@ async fn suspend_drains_token_configuration_during_large_replica_cleanup() {
     .unwrap();
     assert_eq!(
         recovery.phase,
-        anlg_db_app::CloudsyncRecoveryPhase::NeedFirstLogout
+        syntheo_db_app::CloudsyncRecoveryPhase::NeedFirstLogout
     );
 
     let witness_state = InitiallyUninitializedWitness::default();
@@ -737,11 +737,11 @@ async fn activity_begin_cancels_and_drains_a_stalled_witness_configuration() {
 #[tokio::test]
 async fn stale_configuration_waiting_after_a_newer_attempt_does_not_clear_its_key() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     let stale_generation = runtime.begin_cloudsync_auth_configuration();
     let _newer_generation = runtime.begin_cloudsync_auth_configuration();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();

@@ -1,4 +1,4 @@
-import type { RecoveryAudioChunk } from "@anlg/plugin-transcription";
+import type { RecoveryAudioChunk } from "@syntheo/plugin-transcription";
 
 export type RecoveryInterval = { start: number; end: number };
 

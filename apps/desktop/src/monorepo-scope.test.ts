@@ -3,7 +3,7 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 // Garde-fou : le dépôt ne contient plus que le client desktop et la CLI. Les
-// applications serveur, web, mobile, Stripe et watchOS héritées d'Anarlog sont
+// applications serveur, web, mobile, Stripe et watchOS héritées d'Syntheo sont
 // supprimées, ainsi que leurs packages exclusifs.
 // Vitest s'exécute depuis apps/desktop (environnement jsdom, pas d'URL file:).
 const REPO_ROOT = join(process.cwd(), "../..");
@@ -44,7 +44,7 @@ describe("monorepo scope", () => {
       "scripts/setup-devtools.sh",
     ];
     const offenders = files.filter((file) =>
-      /apps\/(web|mobile|api|stripe|watch)\b|@anlg\/web\b|supabase/.test(
+      /apps\/(web|mobile|api|stripe|watch)\b|@syntheo\/web\b|supabase/.test(
         read(file),
       ),
     );

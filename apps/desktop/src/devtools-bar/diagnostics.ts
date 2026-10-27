@@ -1,7 +1,7 @@
 import { getIdentifier, getVersion } from "@tauri-apps/api/app";
 
-import { getCloudsyncStatus } from "@anlg/plugin-db";
-import { commands as miscCommands } from "@anlg/plugin-misc";
+import { getCloudsyncStatus } from "@syntheo/plugin-db";
+import { commands as miscCommands } from "@syntheo/plugin-misc";
 
 import { getTopIpcCommands, useDevtoolsMetrics } from "./metrics";
 import { readReactScanReport } from "./react-tools";

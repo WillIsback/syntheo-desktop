@@ -1,4 +1,4 @@
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 const levelColors: Record<string, string> = {
   ERROR: "text-red-700 dark:text-red-400",

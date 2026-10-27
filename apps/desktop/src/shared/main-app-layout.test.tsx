@@ -14,7 +14,7 @@ vi.mock("@tauri-apps/api/webviewWindow", () => ({
   getCurrentWebviewWindow: () => ({}),
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   events: {},
   getCurrentWebviewWindowLabel: () => mocks.windowLabel,
 }));
@@ -34,7 +34,7 @@ vi.mock("~/session/queries", () => ({
   getOrCreateSessionForEventId: vi.fn(),
 }));
 
-vi.mock("@anlg/ui/hooks/use-mount-effect", () => ({
+vi.mock("@syntheo/ui/hooks/use-mount-effect", () => ({
   useMountEffect: vi.fn(),
 }));
 

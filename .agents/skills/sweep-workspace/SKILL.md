@@ -1,20 +1,20 @@
 ---
 name: sweep-workspace
-description: Use only in the Anarlog repository when the active checkout branch is exactly gitbutler/workspace. Coordinate a GitButler workspace PR sweep by merging already-ready PRs, updating the workspace, then running create-prs, fix-prs, and update-prs in that order.
+description: Use only in the Syntheo repository when the active checkout branch is exactly gitbutler/workspace. Coordinate a GitButler workspace PR sweep by merging already-ready PRs, updating the workspace, then running create-prs, fix-prs, and update-prs in that order.
 ---
 
 # Sweep GitButler workspace
 
 ## Applicability
 
-Use only in the Anarlog repository or its checkouts/worktrees when the active
+Use only in the Syntheo repository or its checkouts/worktrees when the active
 checkout branch is exactly `gitbutler/workspace`. Before running this workflow,
 check with `git symbolic-ref --quiet --short HEAD` (a read-only branch check).
 On any other branch or detached HEAD, skip this skill and use the normal Git
 workflow. Do not initialize GitButler or switch branches to activate the skill.
 Use this checkout's skills, not a global copy or another checkout's skills.
 
-Use this skill when asked to sweep PRs in the Anarlog GitButler workspace.
+Use this skill when asked to sweep PRs in the Syntheo GitButler workspace.
 
 Read the repository-local [but](../gitbutler/SKILL.md) skill and the active repository's AGENTS.md and workflow
 skill when present. Use `but` for version control and the repository's preferred

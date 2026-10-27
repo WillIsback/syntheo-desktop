@@ -16,7 +16,7 @@ vi.mock("@tauri-apps/api/core", () => ({
   convertFileSrc: mocks.convertFileSrc,
 }));
 
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     attachmentRemove: mocks.attachmentRemove,
     attachmentSave: mocks.attachmentSave,

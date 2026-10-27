@@ -18,87 +18,87 @@ members = [
 ]
 
 [workspace.dependencies]
-anlg-aec = { path = "crates/aec", package = "aec" }
-anlg-agent-access = { path = "crates/agent-access", package = "agent-access" }
-anlg-agent-core = { path = "crates/agent-core", package = "agent-core" }
-anlg-api-client = { path = "crates/api-client", package = "api-client" }
-anlg-apple-calendar = { path = "crates/apple-calendar", package = "apple-calendar" }
-anlg-apple-todo = { path = "crates/apple-todo", package = "apple-todo" }
-anlg-askama-utils = { path = "crates/askama-utils", package = "askama-utils" }
-anlg-attachment-sync-core = { path = "crates/attachment-sync-core", package = "attachment-sync-core" }
-anlg-audacity = { path = "crates/audacity", package = "audacity" }
-anlg-audio = { path = "crates/audio", package = "audio" }
-anlg-audio-actual = { path = "crates/audio-actual", package = "audio-actual" }
-anlg-audio-device = { path = "crates/audio-device", package = "audio-device" }
-anlg-audio-interface = { path = "crates/audio-interface", package = "audio-interface" }
-anlg-audio-mime = { path = "crates/audio-mime", package = "audio-mime" }
-anlg-audio-mock = { path = "crates/audio-mock", package = "audio-mock" }
-anlg-audio-snapshot = { path = "crates/audio-snapshot", package = "audio-snapshot" }
-anlg-audio-sync = { path = "crates/audio-sync", package = "audio-sync" }
-anlg-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
-anlg-brand = { path = "crates/brand", package = "brand" }
-anlg-buffer = { path = "crates/buffer", package = "buffer" }
-anlg-bundle = { path = "crates/bundle", package = "bundle" }
-anlg-calendar = { path = "crates/calendar", package = "calendar" }
-anlg-calendar-interface = { path = "crates/calendar-interface", package = "calendar-interface" }
-anlg-claude = { path = "crates/claude", package = "claude" }
-anlg-cli-process = { path = "crates/cli-process", package = "cli-process" }
-anlg-cloudsync = { path = "crates/cloudsync", package = "cloudsync" }
-anlg-codex = { path = "crates/codex", package = "codex" }
-anlg-data = { path = "crates/data", package = "data" }
-anlg-db-app = { path = "crates/db-app", package = "db-app" }
-anlg-db-change = { path = "crates/db-change", package = "db-change" }
-anlg-db-core = { path = "crates/db-core", package = "db-core" }
-anlg-db-execute = { path = "crates/db-execute", package = "db-execute" }
-anlg-db-migrate = { path = "crates/db-migrate", package = "db-migrate" }
-anlg-db-reactive = { path = "crates/db-reactive", package = "db-reactive" }
-anlg-db-sync = { path = "crates/db-sync", package = "db-sync" }
-anlg-detect = { path = "crates/detect", package = "detect" }
-anlg-device-monitor = { path = "crates/device-monitor", package = "device-monitor" }
-anlg-dictation-ui-macos = { path = "crates/dictation-ui-macos", package = "dictation-ui-macos" }
-anlg-e2ee = { path = "crates/e2ee", package = "e2ee" }
-anlg-export-core = { path = "crates/export-core", package = "export-core" }
-anlg-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
-anlg-fs-format = { path = "crates/fs-format", package = "fs-format" }
-anlg-fs-sync-core = { path = "crates/fs-sync-core", package = "fs-sync-core" }
-anlg-gbnf = { path = "crates/gbnf", package = "gbnf" }
-anlg-github-issues = { path = "crates/github-issues", package = "github-issues" }
-anlg-google-calendar = { path = "crates/google-calendar", package = "google-calendar" }
-anlg-hooks = { path = "crates/hooks", package = "hooks" }
-anlg-host = { path = "crates/host", package = "host" }
-anlg-http = { path = "crates/http", package = "anlg-http-utils" }
-anlg-intercept = { path = "crates/intercept", package = "intercept" }
-anlg-language = { path = "crates/language", package = "language" }
-anlg-listener-core = { path = "crates/listener-core", package = "listener-core" }
-anlg-listener2-core = { path = "crates/listener2-core", package = "listener2-core" }
-anlg-meeting-import = { path = "crates/meeting-import", package = "meeting-import" }
-anlg-mp3 = { path = "crates/mp3", package = "mp3" }
-anlg-notification = { path = "crates/notification", package = "notification" }
-anlg-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }
-anlg-onnx = { path = "crates/onnx", package = "onnx" }
-anlg-opencode = { path = "crates/opencode", package = "opencode" }
-anlg-outlook-calendar = { path = "crates/outlook-calendar", package = "outlook-calendar" }
-anlg-overlay-kit = { path = "crates/overlay-kit", package = "overlay-kit" }
-anlg-resampler = { path = "crates/resampler", package = "resampler" }
-anlg-session-ingest = { path = "crates/session-ingest", package = "session-ingest" }
-anlg-shortcut-macos = { path = "crates/shortcut-macos", package = "shortcut-macos" }
-anlg-storage = { path = "crates/storage", package = "storage" }
-anlg-summary = { path = "crates/summary", package = "summary" }
-anlg-tcc = { path = "crates/tcc", package = "tcc" }
-anlg-template-app = { path = "crates/template-app", package = "template-app" }
-anlg-template-app-legacy = { path = "crates/template-app-legacy", package = "template-app-legacy" }
-anlg-ticket-interface = { path = "crates/ticket-interface", package = "ticket-interface" }
-anlg-tiptap = { path = "crates/tiptap", package = "tiptap" }
-anlg-transcript = { path = "crates/transcript", package = "transcript" }
-anlg-transcription-core = { path = "crates/transcription-core", package = "transcription-core" }
-anlg-user-error = { path = "crates/user-error", package = "user-error" }
-anlg-vad = { path = "crates/vad", package = "vad" }
-anlg-vad-masking = { path = "crates/vad-masking", package = "vad-masking" }
-anlg-whisper = { path = "crates/whisper", package = "whisper" }
-anlg-ws-client = { path = "crates/ws-client", package = "ws-client" }
-anlg-zoom = { path = "crates/zoom", package = "zoom" }
 keyring = "4.1.4"
 progenitor-client = "0.13"
+syntheo-aec = { path = "crates/aec", package = "aec" }
+syntheo-agent-access = { path = "crates/agent-access", package = "agent-access" }
+syntheo-agent-core = { path = "crates/agent-core", package = "agent-core" }
+syntheo-api-client = { path = "crates/api-client", package = "api-client" }
+syntheo-apple-calendar = { path = "crates/apple-calendar", package = "apple-calendar" }
+syntheo-apple-todo = { path = "crates/apple-todo", package = "apple-todo" }
+syntheo-askama-utils = { path = "crates/askama-utils", package = "askama-utils" }
+syntheo-attachment-sync-core = { path = "crates/attachment-sync-core", package = "attachment-sync-core" }
+syntheo-audacity = { path = "crates/audacity", package = "audacity" }
+syntheo-audio = { path = "crates/audio", package = "audio" }
+syntheo-audio-actual = { path = "crates/audio-actual", package = "audio-actual" }
+syntheo-audio-device = { path = "crates/audio-device", package = "audio-device" }
+syntheo-audio-interface = { path = "crates/audio-interface", package = "audio-interface" }
+syntheo-audio-mime = { path = "crates/audio-mime", package = "audio-mime" }
+syntheo-audio-mock = { path = "crates/audio-mock", package = "audio-mock" }
+syntheo-audio-snapshot = { path = "crates/audio-snapshot", package = "audio-snapshot" }
+syntheo-audio-sync = { path = "crates/audio-sync", package = "audio-sync" }
+syntheo-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
+syntheo-brand = { path = "crates/brand", package = "brand" }
+syntheo-buffer = { path = "crates/buffer", package = "buffer" }
+syntheo-bundle = { path = "crates/bundle", package = "bundle" }
+syntheo-calendar = { path = "crates/calendar", package = "calendar" }
+syntheo-calendar-interface = { path = "crates/calendar-interface", package = "calendar-interface" }
+syntheo-claude = { path = "crates/claude", package = "claude" }
+syntheo-cli-process = { path = "crates/cli-process", package = "cli-process" }
+syntheo-cloudsync = { path = "crates/cloudsync", package = "cloudsync" }
+syntheo-codex = { path = "crates/codex", package = "codex" }
+syntheo-data = { path = "crates/data", package = "data" }
+syntheo-db-app = { path = "crates/db-app", package = "db-app" }
+syntheo-db-change = { path = "crates/db-change", package = "db-change" }
+syntheo-db-core = { path = "crates/db-core", package = "db-core" }
+syntheo-db-execute = { path = "crates/db-execute", package = "db-execute" }
+syntheo-db-migrate = { path = "crates/db-migrate", package = "db-migrate" }
+syntheo-db-reactive = { path = "crates/db-reactive", package = "db-reactive" }
+syntheo-db-sync = { path = "crates/db-sync", package = "db-sync" }
+syntheo-detect = { path = "crates/detect", package = "detect" }
+syntheo-device-monitor = { path = "crates/device-monitor", package = "device-monitor" }
+syntheo-dictation-ui-macos = { path = "crates/dictation-ui-macos", package = "dictation-ui-macos" }
+syntheo-e2ee = { path = "crates/e2ee", package = "e2ee" }
+syntheo-export-core = { path = "crates/export-core", package = "export-core" }
+syntheo-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
+syntheo-fs-format = { path = "crates/fs-format", package = "fs-format" }
+syntheo-fs-sync-core = { path = "crates/fs-sync-core", package = "fs-sync-core" }
+syntheo-gbnf = { path = "crates/gbnf", package = "gbnf" }
+syntheo-github-issues = { path = "crates/github-issues", package = "github-issues" }
+syntheo-google-calendar = { path = "crates/google-calendar", package = "google-calendar" }
+syntheo-hooks = { path = "crates/hooks", package = "hooks" }
+syntheo-host = { path = "crates/host", package = "host" }
+syntheo-http = { path = "crates/http", package = "syntheo-http-utils" }
+syntheo-intercept = { path = "crates/intercept", package = "intercept" }
+syntheo-language = { path = "crates/language", package = "language" }
+syntheo-listener-core = { path = "crates/listener-core", package = "listener-core" }
+syntheo-listener2-core = { path = "crates/listener2-core", package = "listener2-core" }
+syntheo-meeting-import = { path = "crates/meeting-import", package = "meeting-import" }
+syntheo-mp3 = { path = "crates/mp3", package = "mp3" }
+syntheo-notification = { path = "crates/notification", package = "notification" }
+syntheo-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }
+syntheo-onnx = { path = "crates/onnx", package = "onnx" }
+syntheo-opencode = { path = "crates/opencode", package = "opencode" }
+syntheo-outlook-calendar = { path = "crates/outlook-calendar", package = "outlook-calendar" }
+syntheo-overlay-kit = { path = "crates/overlay-kit", package = "overlay-kit" }
+syntheo-resampler = { path = "crates/resampler", package = "resampler" }
+syntheo-session-ingest = { path = "crates/session-ingest", package = "session-ingest" }
+syntheo-shortcut-macos = { path = "crates/shortcut-macos", package = "shortcut-macos" }
+syntheo-storage = { path = "crates/storage", package = "storage" }
+syntheo-summary = { path = "crates/summary", package = "summary" }
+syntheo-tcc = { path = "crates/tcc", package = "tcc" }
+syntheo-template-app = { path = "crates/template-app", package = "template-app" }
+syntheo-template-app-legacy = { path = "crates/template-app-legacy", package = "template-app-legacy" }
+syntheo-ticket-interface = { path = "crates/ticket-interface", package = "ticket-interface" }
+syntheo-tiptap = { path = "crates/tiptap", package = "tiptap" }
+syntheo-transcript = { path = "crates/transcript", package = "transcript" }
+syntheo-transcription-core = { path = "crates/transcription-core", package = "transcription-core" }
+syntheo-user-error = { path = "crates/user-error", package = "user-error" }
+syntheo-vad = { path = "crates/vad", package = "vad" }
+syntheo-vad-masking = { path = "crates/vad-masking", package = "vad-masking" }
+syntheo-whisper = { path = "crates/whisper", package = "whisper" }
+syntheo-ws-client = { path = "crates/ws-client", package = "ws-client" }
+syntheo-zoom = { path = "crates/zoom", package = "zoom" }
 
 openai-transcription = { path = "crates/openai-transcription", package = "openai-transcription" }
 owhisper-client = { path = "crates/owhisper-client", package = "owhisper-client" }
@@ -163,11 +163,10 @@ tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-todo = { path = "plugins/todo" }
 tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-transcription = { path = "plugins/transcription" }
-tauri-plugin-tray = { path = "plugins/tray", package = "tauri-plugin-anlg-tray" }
+tauri-plugin-tray = { path = "plugins/tray", package = "tauri-plugin-syntheo-tray" }
 tauri-plugin-updater2 = { path = "plugins/updater2" }
 tauri-plugin-windows = { path = "plugins/windows" }
 
-anlg-supervisor = { path = "crates/supervisor", package = "supervisor" }
 async-stream = "0.3.6"
 futures-channel = "0.3.31"
 futures-util = "0.3.31"
@@ -178,6 +177,7 @@ rayon = "1.11"
 reqwest = "0.13"
 reqwest-middleware = "0.5"
 reqwest-tracing = "0.7"
+syntheo-supervisor = { path = "crates/supervisor", package = "supervisor" }
 tokio = "1"
 tokio-stream = "0.1.17"
 tokio-tungstenite = "0.29"

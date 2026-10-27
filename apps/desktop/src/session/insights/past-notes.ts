@@ -7,9 +7,9 @@ import { z } from "zod";
 import {
   commands as templateCommands,
   type JsonValue,
-} from "@anlg/plugin-template";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { format, safeParseDate } from "@anlg/utils";
+} from "@syntheo/plugin-template";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { format, safeParseDate } from "@syntheo/utils";
 
 import systemPromptTemplate from "./past-note-key-facts.system.md.jinja?raw";
 import userPromptTemplate from "./past-note-key-facts.user.md.jinja?raw";

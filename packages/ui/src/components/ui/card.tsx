@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "outline-solid" | "ghost";

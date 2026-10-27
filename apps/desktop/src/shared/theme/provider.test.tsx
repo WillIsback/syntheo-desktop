@@ -16,9 +16,7 @@ const writeStoredThemePreference = vi.hoisted(() => vi.fn());
 const setDockIcon = vi.hoisted(() =>
   vi.fn(async () => ({ status: "ok", data: null })),
 );
-const getIdentifier = vi.hoisted(() =>
-  vi.fn(async () => "com.hyprnote.stable"),
-);
+const getIdentifier = vi.hoisted(() => vi.fn(async () => "com.syntheo.stable"));
 const nativeTheme = vi.hoisted(() => vi.fn(async () => "light"));
 const setNativeTheme = vi.hoisted(() => vi.fn(async () => undefined));
 const onThemeChanged = vi.hoisted(() =>
@@ -43,7 +41,7 @@ vi.mock("@tauri-apps/api/window", () => ({
   }),
 }));
 
-vi.mock("@anlg/plugin-icon", () => ({
+vi.mock("@syntheo/plugin-icon", () => ({
   commands: { setDockIcon },
 }));
 
@@ -89,7 +87,7 @@ describe("AppThemeProvider", () => {
     writeStoredThemePreference.mockClear();
     setDockIcon.mockClear();
     getIdentifier.mockReset();
-    getIdentifier.mockResolvedValue("com.hyprnote.stable");
+    getIdentifier.mockResolvedValue("com.syntheo.stable");
     nativeTheme.mockReset();
     nativeTheme.mockResolvedValue("light");
     setNativeTheme.mockReset();
@@ -154,7 +152,7 @@ describe("AppThemeProvider", () => {
   it.each([
     {
       name: "channel-specific default",
-      identifier: "com.hyprnote.staging",
+      identifier: "com.syntheo.staging",
       theme: "system",
       appIcon: "default",
       expected: "staging",
@@ -168,7 +166,7 @@ describe("AppThemeProvider", () => {
     },
     {
       name: "explicit dark appearance",
-      identifier: "com.hyprnote.stable",
+      identifier: "com.syntheo.stable",
       theme: "dark",
       appIcon: "anagram",
       expected: "anagram-dark",

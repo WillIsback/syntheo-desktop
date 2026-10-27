@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
-import { Waveform } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { Waveform } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { AUDIO_EXTENSIONS } from "~/stt/useUploadFile";
 

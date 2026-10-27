@@ -116,7 +116,7 @@ impl MacOSBackend {
     }
 }
 
-const TAP_DEVICE_NAME: &str = "anarlog-audio-tap";
+const TAP_DEVICE_NAME: &str = "syntheo-audio-tap";
 
 const PROCESS_OUTPUT_DEVICES: ca::PropAddr = ca::PropAddr {
     selector: ca::PropSelector::PROCESS_DEVICES,

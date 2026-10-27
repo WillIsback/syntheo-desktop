@@ -1,7 +1,7 @@
 import { t } from "@lingui/core/macro";
 
-import { commands as notificationCommands } from "@anlg/plugin-notification";
-import { parseEventInstant } from "@anlg/utils";
+import { commands as notificationCommands } from "@syntheo/plugin-notification";
+import { parseEventInstant } from "@syntheo/utils";
 
 import { getIgnoredEventSets } from "~/calendar/ignored-events";
 import { liveQueryClient } from "~/db";

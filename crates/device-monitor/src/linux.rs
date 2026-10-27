@@ -78,7 +78,7 @@ impl DefaultDevices {
 }
 
 fn is_headphone_from_default_output_device() -> Option<bool> {
-    anlg_audio_device::linux::is_headphone_from_default_output_device()
+    syntheo_audio_device::linux::is_headphone_from_default_output_device()
 }
 
 fn setup_pulseaudio(stop_rx: &mpsc::Receiver<()>) -> Option<PulseAudioHandles> {
@@ -112,7 +112,7 @@ fn setup_pulseaudio(stop_rx: &mpsc::Receiver<()>) -> Option<PulseAudioHandles> {
         }
     };
 
-    let context = match Context::new_with_proplist(&*mainloop.borrow(), "AnarlogContext", &proplist)
+    let context = match Context::new_with_proplist(&*mainloop.borrow(), "SyntheoContext", &proplist)
     {
         Some(c) => Rc::new(RefCell::new(c)),
         None => {
@@ -187,14 +187,14 @@ fn refresh_default_devices(
         let changes = tracker.borrow_mut().observe(source, sink);
         if changes.source_changed {
             tracing::info!(
-                anarlog.audio.default_source = source.unwrap_or(""),
+                syntheo.audio.default_source = source.unwrap_or(""),
                 "default_source_changed"
             );
             emit(DeviceSwitch::DefaultInputChanged);
         }
         if changes.sink_changed {
             tracing::info!(
-                anarlog.audio.default_sink = sink.unwrap_or(""),
+                syntheo.audio.default_sink = sink.unwrap_or(""),
                 "default_sink_changed"
             );
             emit(DeviceSwitch::DefaultOutputChanged {
@@ -226,10 +226,10 @@ fn refresh_default_sink_port(
             .active_port
             .as_ref()
             .and_then(|port| port.name.as_deref())
-            .map(anlg_audio_device::linux::is_headphone_port);
+            .map(syntheo_audio_device::linux::is_headphone_port);
         if tracker.borrow_mut().observe_sink_headphone(headphone) {
             tracing::info!(
-                anarlog.audio.default_sink_headphone = headphone,
+                syntheo.audio.default_sink_headphone = headphone,
                 "default_sink_port_changed"
             );
             emit(DeviceSwitch::DefaultOutputChanged { headphone });

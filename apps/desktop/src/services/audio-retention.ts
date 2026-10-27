@@ -2,7 +2,7 @@ import {
   commands as transcriptionCommands,
   events as transcriptionEvents,
   type SessionAudioRetentionEvent,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import type { AudioRetentionPolicy } from "./audio-retention-policy";
 

@@ -31,7 +31,7 @@ import {
 } from "react";
 import { useDebounceCallback } from "usehooks-ts";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 import { EditorErrorBoundary } from "../editor-error-boundary";
 import {

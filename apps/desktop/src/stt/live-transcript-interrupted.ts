@@ -1,4 +1,4 @@
-import type { DegradedError } from "@anlg/plugin-transcription";
+import type { DegradedError } from "@syntheo/plugin-transcription";
 
 import { PROVIDERS } from "~/settings/ai/stt/shared";
 
@@ -55,7 +55,7 @@ function getPauseCause({
   }
 
   if (degraded) {
-    return `Anarlog can't reach ${providerName}`;
+    return `Syntheo can't reach ${providerName}`;
   }
 
   return `${providerName} stopped sending words`;

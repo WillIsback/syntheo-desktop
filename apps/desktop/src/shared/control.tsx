@@ -12,9 +12,9 @@ import {
   House,
   MagnifyingGlass,
   Warning,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 const routeErrorKeys = new WeakMap<object, number>();
 let nextRouteErrorKey = 0;

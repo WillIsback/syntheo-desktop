@@ -8,8 +8,8 @@ import {
   Plus,
   Sparkle,
   X,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -17,9 +17,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { cn } from "@syntheo/utils";
 
 import { type WebTemplate } from "./codec";
 import { getTemplateCopyTitle, type UserTemplate } from "./queries";

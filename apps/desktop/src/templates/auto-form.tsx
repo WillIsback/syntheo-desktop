@@ -3,15 +3,15 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
-import { PromptEditor, type PromptEditorHandle } from "@anlg/editor/prompt";
-import { commands as templateCommands } from "@anlg/plugin-template";
+import { PromptEditor, type PromptEditorHandle } from "@syntheo/editor/prompt";
+import { commands as templateCommands } from "@syntheo/plugin-template";
 import {
   Check,
   DotsThree,
   MagicWand,
   Sparkle,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -19,9 +19,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { cn } from "@syntheo/utils";
 
 import { AutoFormatExamplesDialog } from "./auto-format-examples-dialog";
 

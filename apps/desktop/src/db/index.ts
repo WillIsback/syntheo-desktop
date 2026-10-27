@@ -1,6 +1,12 @@
-import { createDb } from "@anlg/db";
-import { createUseDrizzleLiveQuery, createUseLiveQuery } from "@anlg/db-react";
-import { tauriLiveQueryClient, tauriTransactionClient } from "@anlg/db-tauri";
+import { createDb } from "@syntheo/db";
+import {
+  createUseDrizzleLiveQuery,
+  createUseLiveQuery,
+} from "@syntheo/db-react";
+import {
+  tauriLiveQueryClient,
+  tauriTransactionClient,
+} from "@syntheo/db-tauri";
 
 export const liveQueryClient = tauriLiveQueryClient;
 export const db = createDb(liveQueryClient);

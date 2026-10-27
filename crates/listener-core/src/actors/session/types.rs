@@ -2,15 +2,15 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{Instant, SystemTime};
 
-use anlg_audio::AudioProvider;
-use anlg_transcript::IdentityAssignment;
+use syntheo_audio::AudioProvider;
+use syntheo_transcript::IdentityAssignment;
 
 use crate::{ListenerRuntime, LiveTranscriptEngine, TranscriptionMode};
 
 pub const SESSION_SUPERVISOR_PREFIX: &str = "session_supervisor_";
 
 pub fn session_span(session_id: &str) -> tracing::Span {
-    tracing::info_span!("session", anarlog.session.id = %session_id)
+    tracing::info_span!("session", syntheo.session.id = %session_id)
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -19,7 +19,7 @@ pub struct SessionParams {
     pub session_id: String,
     #[serde(default)]
     pub retain_audio: Option<bool>,
-    pub languages: Vec<anlg_language::Language>,
+    pub languages: Vec<syntheo_language::Language>,
     pub onboarding: bool,
     #[serde(default)]
     pub transcription_mode: TranscriptionMode,
@@ -43,7 +43,7 @@ pub struct SessionParams {
 #[cfg_attr(feature = "specta", derive(specta::Type))]
 pub struct SessionConfigUpdate {
     pub session_id: String,
-    pub languages: Vec<anlg_language::Language>,
+    pub languages: Vec<syntheo_language::Language>,
     #[serde(default)]
     pub participant_human_ids: Vec<String>,
     #[serde(default)]
@@ -60,7 +60,7 @@ pub fn resolve_transcription_mode(
     requested: TranscriptionMode,
     base_url: &str,
     model: &str,
-    languages: &[anlg_language::Language],
+    languages: &[syntheo_language::Language],
 ) -> TranscriptionMode {
     use owhisper_client::{AdapterKind, OpenAIAdapter};
 

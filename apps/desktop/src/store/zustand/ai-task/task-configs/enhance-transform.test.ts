@@ -27,11 +27,11 @@ vi.mock("~/session/content-queries", () => ({
   loadSessionContentSnapshot: mocks.loadSessionContentSnapshot,
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: { renderSessionTranscript: mocks.renderSessionTranscript },
 }));
 
-vi.mock("@anlg/plugin-template", () => ({
+vi.mock("@syntheo/plugin-template", () => ({
   commands: {
     dominantLanguage: mocks.dominantLanguage,
     summaryLengthPolicy: mocks.summaryLengthPolicy,
@@ -1460,11 +1460,11 @@ describe("enhanceTransform.transformArgs", () => {
       { sessionId: "session-1", enhancedNoteId: "note-1" },
       {
         ...settingsValues,
-        personalization_dictionary_terms: JSON.stringify(["Anarlog", "Char"]),
+        personalization_dictionary_terms: JSON.stringify(["Syntheo", "Char"]),
       },
     );
 
-    expect(result.dictionaryTerms).toEqual(["Anarlog", "Char"]);
+    expect(result.dictionaryTerms).toEqual(["Syntheo", "Char"]);
   });
 
   it("falls back to generic enhancement when template loading fails", async () => {

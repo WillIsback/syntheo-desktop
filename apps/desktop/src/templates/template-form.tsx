@@ -2,9 +2,9 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
 import { useRef, useState } from "react";
 
-import { Check, DotsThree, Heart, Plus, X } from "@anlg/ui/components/icons";
-import { Badge } from "@anlg/ui/components/ui/badge";
-import { Button } from "@anlg/ui/components/ui/button";
+import { Check, DotsThree, Heart, Plus, X } from "@syntheo/ui/components/icons";
+import { Badge } from "@syntheo/ui/components/ui/badge";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -12,10 +12,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { Input } from "@anlg/ui/components/ui/input";
-import { Textarea } from "@anlg/ui/components/ui/textarea";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { Input } from "@syntheo/ui/components/ui/input";
+import { Textarea } from "@syntheo/ui/components/ui/textarea";
+import { cn } from "@syntheo/utils";
 
 import {
   type UserTemplate,

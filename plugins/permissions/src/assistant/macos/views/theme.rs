@@ -1,4 +1,4 @@
-use anlg_overlay_kit::macos::support::srgb;
+use syntheo_overlay_kit::macos::support::srgb;
 use objc2::rc::Retained;
 use objc2_app_kit::NSColor;
 

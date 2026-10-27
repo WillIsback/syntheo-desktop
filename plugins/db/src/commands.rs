@@ -32,14 +32,14 @@ fn e2ee_device_key_name(account_user_id: &str) -> Result<String, String> {
 async fn load_e2ee_recovery_key<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     account_user_id: &str,
-) -> Result<Option<anlg_e2ee::RecoveryKey>, String> {
+) -> Result<Option<syntheo_e2ee::RecoveryKey>, String> {
     let key = e2ee_recovery_key_name(account_user_id)?;
     read_e2ee_secret_with_timeout(
         E2EE_SECRET_READ_TIMEOUT,
         tauri_plugin_store2::read_secret(app, E2EE_SECRET_SCOPE.to_string(), key),
     )
     .await?
-    .map(|value| anlg_e2ee::RecoveryKey::parse(&value).map_err(|error| error.to_string()))
+    .map(|value| syntheo_e2ee::RecoveryKey::parse(&value).map_err(|error| error.to_string()))
     .transpose()
 }
 
@@ -56,9 +56,9 @@ async fn read_e2ee_secret_with_timeout(
 #[specta::specta]
 pub(crate) async fn list_meetings(
     state: tauri::State<'_, ManagedState>,
-    input: anlg_agent_access::ListMeetingsInput,
-) -> Result<anlg_agent_access::MeetingPage, String> {
-    anlg_agent_access::list_meetings(state.pool(), input)
+    input: syntheo_agent_access::ListMeetingsInput,
+) -> Result<syntheo_agent_access::MeetingPage, String> {
+    syntheo_agent_access::list_meetings(state.pool(), input)
         .await
         .map_err(|error| error.to_string())
 }
@@ -67,9 +67,9 @@ pub(crate) async fn list_meetings(
 #[specta::specta]
 pub(crate) async fn get_meeting(
     state: tauri::State<'_, ManagedState>,
-    input: anlg_agent_access::GetMeetingInput,
-) -> Result<anlg_agent_access::Meeting, String> {
-    anlg_agent_access::get_meeting(state.pool(), input)
+    input: syntheo_agent_access::GetMeetingInput,
+) -> Result<syntheo_agent_access::Meeting, String> {
+    syntheo_agent_access::get_meeting(state.pool(), input)
         .await
         .map_err(|error| error.to_string())
 }
@@ -78,9 +78,9 @@ pub(crate) async fn get_meeting(
 #[specta::specta]
 pub(crate) async fn get_meeting_transcript(
     state: tauri::State<'_, ManagedState>,
-    input: anlg_agent_access::GetMeetingTranscriptInput,
-) -> Result<anlg_agent_access::TranscriptPage, String> {
-    anlg_agent_access::get_meeting_transcript(state.pool(), input)
+    input: syntheo_agent_access::GetMeetingTranscriptInput,
+) -> Result<syntheo_agent_access::TranscriptPage, String> {
+    syntheo_agent_access::get_meeting_transcript(state.pool(), input)
         .await
         .map_err(|error| error.to_string())
 }
@@ -89,9 +89,9 @@ pub(crate) async fn get_meeting_transcript(
 #[specta::specta]
 pub(crate) async fn get_recurring_meeting_history(
     state: tauri::State<'_, ManagedState>,
-    input: anlg_agent_access::GetRecurringMeetingHistoryInput,
-) -> Result<anlg_agent_access::MeetingPage, String> {
-    anlg_agent_access::get_recurring_meeting_history(state.pool(), input)
+    input: syntheo_agent_access::GetRecurringMeetingHistoryInput,
+) -> Result<syntheo_agent_access::MeetingPage, String> {
+    syntheo_agent_access::get_recurring_meeting_history(state.pool(), input)
         .await
         .map_err(|error| error.to_string())
 }
@@ -130,7 +130,7 @@ pub(crate) async fn execute_proxy(
     method: String,
 ) -> Result<ExecuteProxyResult, String> {
     let method = method
-        .parse::<anlg_db_execute::ProxyQueryMethod>()
+        .parse::<syntheo_db_execute::ProxyQueryMethod>()
         .map_err(|error| error.to_string())?;
     state
         .execute_proxy(sql, params, method)
@@ -196,11 +196,14 @@ pub(crate) async fn apply_session_ingest(
             return Ok(crate::SessionIngestApplyResult::Rejected);
         }
     };
-    match anlg_session_ingest::apply_session_envelope(state.pool(), &workspace_id, &envelope).await
+    match syntheo_session_ingest::apply_session_envelope(state.pool(), &workspace_id, &envelope)
+        .await
     {
         Ok(outcome) => Ok(match outcome {
-            anlg_session_ingest::ApplyOutcome::Applied => crate::SessionIngestApplyResult::Applied,
-            anlg_session_ingest::ApplyOutcome::AlreadyApplied => {
+            syntheo_session_ingest::ApplyOutcome::Applied => {
+                crate::SessionIngestApplyResult::Applied
+            }
+            syntheo_session_ingest::ApplyOutcome::AlreadyApplied => {
                 crate::SessionIngestApplyResult::AlreadyApplied
             }
         }),
@@ -244,7 +247,7 @@ pub(crate) fn inspect_e2ee_recovery_key(
     recovery_key: String,
 ) -> Result<crate::E2eeRecoveryKeyIdentity, String> {
     let recovery_key =
-        anlg_e2ee::RecoveryKey::parse(&recovery_key).map_err(|error| error.to_string())?;
+        syntheo_e2ee::RecoveryKey::parse(&recovery_key).map_err(|error| error.to_string())?;
     Ok(crate::E2eeRecoveryKeyIdentity {
         key_id: recovery_key.key_id(),
     })
@@ -277,10 +280,10 @@ pub(crate) async fn create_e2ee_identity<R: tauri::Runtime>(
     )
     .await?
     {
-        anlg_e2ee::RecoveryKey::parse(&code).map_err(|error| error.to_string())?;
+        syntheo_e2ee::RecoveryKey::parse(&code).map_err(|error| error.to_string())?;
         return Ok(code);
     }
-    let recovery_key = anlg_e2ee::RecoveryKey::generate().map_err(|error| error.to_string())?;
+    let recovery_key = syntheo_e2ee::RecoveryKey::generate().map_err(|error| error.to_string())?;
     let recovery_code = recovery_key.expose_code().to_string();
     tauri_plugin_store2::write_secret(
         app,
@@ -308,7 +311,7 @@ pub(crate) async fn import_e2ee_identity<R: tauri::Runtime>(
     }
 
     let recovery_key =
-        anlg_e2ee::RecoveryKey::parse(&recovery_key).map_err(|error| error.to_string())?;
+        syntheo_e2ee::RecoveryKey::parse(&recovery_key).map_err(|error| error.to_string())?;
     tauri_plugin_store2::write_secret(
         app,
         E2EE_SECRET_SCOPE.to_string(),
@@ -337,11 +340,11 @@ pub(crate) async fn get_or_create_e2ee_device_identity<R: tauri::Runtime>(
     .await?;
     let key = match existing {
         Some(value) => {
-            anlg_e2ee::DeviceEnrollmentKey::parse(&value).map_err(|error| error.to_string())?
+            syntheo_e2ee::DeviceEnrollmentKey::parse(&value).map_err(|error| error.to_string())?
         }
         None => {
             let key =
-                anlg_e2ee::DeviceEnrollmentKey::generate().map_err(|error| error.to_string())?;
+                syntheo_e2ee::DeviceEnrollmentKey::generate().map_err(|error| error.to_string())?;
             tauri_plugin_store2::write_secret(
                 app,
                 E2EE_SECRET_SCOPE.to_string(),
@@ -370,7 +373,7 @@ pub(crate) async fn seal_e2ee_recovery_key_for_device<R: tauri::Runtime>(
     let recovery_key = load_e2ee_recovery_key(app, &account_user_id)
         .await?
         .ok_or_else(|| "E2EE recovery key is not configured".to_string())?;
-    anlg_e2ee::seal_recovery_key_for_device(
+    syntheo_e2ee::seal_recovery_key_for_device(
         &recovery_key,
         &recipient_public_key,
         &account_user_id,
@@ -400,7 +403,7 @@ pub(crate) async fn seal_workspace_e2ee_key_for_recipients<R: tauri::Runtime>(
     }
 
     let key = if rotate {
-        anlg_e2ee::WorkspaceKey::generate().map_err(|error| error.to_string())
+        syntheo_e2ee::WorkspaceKey::generate().map_err(|error| error.to_string())
     } else {
         match state.workspace_key(&workspace_id) {
             Some(key) => Ok(key),
@@ -423,11 +426,11 @@ pub(crate) async fn seal_workspace_e2ee_key_for_recipients<R: tauri::Runtime>(
 }
 
 fn open_workspace_e2ee_source_key(
-    recovery_key: &anlg_e2ee::RecoveryKey,
+    recovery_key: &syntheo_e2ee::RecoveryKey,
     account_user_id: &str,
     workspace_id: &str,
     source_grant: crate::CloudsyncWorkspaceKeyGrant,
-) -> Result<anlg_e2ee::WorkspaceKey, String> {
+) -> Result<syntheo_e2ee::WorkspaceKey, String> {
     if source_grant.workspace_id != workspace_id || !source_grant.is_active {
         return Err("workspace E2EE source grant is invalid".to_string());
     }
@@ -440,7 +443,7 @@ fn open_workspace_e2ee_source_key(
 }
 
 fn seal_workspace_e2ee_key(
-    key: anlg_e2ee::WorkspaceKey,
+    key: syntheo_e2ee::WorkspaceKey,
     account_user_id: &str,
     workspace_id: &str,
     recipients: Vec<crate::WorkspaceE2eeKeyRecipient>,
@@ -464,7 +467,7 @@ fn seal_workspace_e2ee_key(
             let user_id = uuid::Uuid::parse_str(recipient.user_id.trim())
                 .expect("recipient IDs were validated")
                 .to_string();
-            let grant = anlg_e2ee::seal_workspace_key_for_member(
+            let grant = syntheo_e2ee::seal_workspace_key_for_member(
                 &key,
                 &recipient.public_key,
                 &workspace_id,
@@ -506,7 +509,7 @@ pub(crate) async fn import_e2ee_device_enrollment<R: tauri::Runtime>(
     .await?
     .ok_or_else(|| "E2EE device identity is not configured".to_string())?;
     let device_key =
-        anlg_e2ee::DeviceEnrollmentKey::parse(&device_key).map_err(|error| error.to_string())?;
+        syntheo_e2ee::DeviceEnrollmentKey::parse(&device_key).map_err(|error| error.to_string())?;
     let recovery_key = device_key
         .open_recovery_key(&account_user_id, &request_id, &package.clone().into())
         .map_err(|error| error.to_string())?;
@@ -529,7 +532,7 @@ pub(crate) async fn subscribe<R: tauri::Runtime>(
     sql: String,
     params: Vec<serde_json::Value>,
     on_event: Channel<QueryEvent>,
-) -> Result<anlg_db_reactive::SubscriptionRegistration, String> {
+) -> Result<syntheo_db_reactive::SubscriptionRegistration, String> {
     state
         .subscribe(sql, params, state.query_channel(webview.label(), on_event))
         .await
@@ -629,14 +632,14 @@ fn shared_workspace_ids(
 }
 
 fn open_shared_workspace_keyrings(
-    recovery_key: &anlg_e2ee::RecoveryKey,
+    recovery_key: &syntheo_e2ee::RecoveryKey,
     account_user_id: &str,
     shared_workspace_ids: std::collections::HashSet<String>,
     grants: Vec<crate::CloudsyncWorkspaceKeyGrant>,
-) -> Result<std::collections::HashMap<String, anlg_e2ee::WorkspaceKeyring>, String> {
+) -> Result<std::collections::HashMap<String, syntheo_e2ee::WorkspaceKeyring>, String> {
     struct PendingKeyring {
-        active: Option<anlg_e2ee::WorkspaceKey>,
-        retired: Vec<anlg_e2ee::WorkspaceKey>,
+        active: Option<syntheo_e2ee::WorkspaceKey>,
+        retired: Vec<syntheo_e2ee::WorkspaceKey>,
         key_ids: std::collections::HashSet<String>,
     }
 
@@ -679,7 +682,7 @@ fn open_shared_workspace_keyrings(
         let Some(active) = pending.active else {
             return Err("shared workspace active E2EE key is unavailable".to_string());
         };
-        let mut keyring = anlg_e2ee::WorkspaceKeyring::new(active);
+        let mut keyring = syntheo_e2ee::WorkspaceKeyring::new(active);
         for key in pending.retired {
             keyring.insert_retired(key);
         }
@@ -878,13 +881,13 @@ mod tests {
     use super::*;
 
     fn grant(
-        recovery_key: &anlg_e2ee::RecoveryKey,
+        recovery_key: &syntheo_e2ee::RecoveryKey,
         workspace_id: &str,
         account_user_id: &str,
-        key: &anlg_e2ee::WorkspaceKey,
+        key: &syntheo_e2ee::WorkspaceKey,
         is_active: bool,
     ) -> crate::CloudsyncWorkspaceKeyGrant {
-        let sealed = anlg_e2ee::seal_workspace_key_for_member(
+        let sealed = syntheo_e2ee::seal_workspace_key_for_member(
             key,
             &recovery_key.member_identity_key().unwrap().public_key(),
             workspace_id,
@@ -927,9 +930,9 @@ mod tests {
 
     #[test]
     fn opens_active_and_retired_shared_workspace_grants() {
-        let recovery_key = anlg_e2ee::RecoveryKey::generate().unwrap();
-        let retired = anlg_e2ee::WorkspaceKey::generate().unwrap();
-        let active = anlg_e2ee::WorkspaceKey::generate().unwrap();
+        let recovery_key = syntheo_e2ee::RecoveryKey::generate().unwrap();
+        let retired = syntheo_e2ee::WorkspaceKey::generate().unwrap();
+        let active = syntheo_e2ee::WorkspaceKey::generate().unwrap();
         let retired_key_id = retired.key_id().to_string();
         let active_key_id = active.key_id().to_string();
 
@@ -951,8 +954,8 @@ mod tests {
 
     #[test]
     fn shared_workspace_grants_fail_closed() {
-        let recovery_key = anlg_e2ee::RecoveryKey::generate().unwrap();
-        let key = anlg_e2ee::WorkspaceKey::generate().unwrap();
+        let recovery_key = syntheo_e2ee::RecoveryKey::generate().unwrap();
+        let key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
         let workspace_ids = std::collections::HashSet::from(["workspace-shared".to_string()]);
 
         assert!(
@@ -1001,9 +1004,9 @@ mod tests {
         const OWNER: &str = "11111111-1111-4111-8111-111111111111";
         const MEMBER: &str = "22222222-2222-4222-8222-222222222222";
         const WORKSPACE: &str = "33333333-3333-4333-8333-333333333333";
-        let owner_recovery = anlg_e2ee::RecoveryKey::generate().unwrap();
-        let member_recovery = anlg_e2ee::RecoveryKey::generate().unwrap();
-        let key = anlg_e2ee::WorkspaceKey::generate().unwrap();
+        let owner_recovery = syntheo_e2ee::RecoveryKey::generate().unwrap();
+        let member_recovery = syntheo_e2ee::RecoveryKey::generate().unwrap();
+        let key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
         let expected_key_id = key.key_id().to_string();
 
         let sealed = seal_workspace_e2ee_key(
@@ -1034,7 +1037,7 @@ mod tests {
                 .open_workspace_key(
                     WORKSPACE,
                     user_id,
-                    &anlg_e2ee::WorkspaceKeyGrant {
+                    &syntheo_e2ee::WorkspaceKeyGrant {
                         key_id: sealed.key_id.clone(),
                         ephemeral_public_key: upload.ephemeral_public_key.clone(),
                         nonce: upload.nonce.clone(),
@@ -1051,7 +1054,7 @@ mod tests {
         const OWNER: &str = "11111111-1111-4111-8111-111111111111";
         const MEMBER: &str = "22222222-2222-4222-8222-222222222222";
         const WORKSPACE: &str = "33333333-3333-4333-8333-333333333333";
-        let recovery_key = anlg_e2ee::RecoveryKey::generate().unwrap();
+        let recovery_key = syntheo_e2ee::RecoveryKey::generate().unwrap();
         let recipient = crate::WorkspaceE2eeKeyRecipient {
             user_id: MEMBER.to_string(),
             public_key: recovery_key.member_identity_key().unwrap().public_key(),
@@ -1059,7 +1062,7 @@ mod tests {
 
         assert!(
             seal_workspace_e2ee_key(
-                anlg_e2ee::WorkspaceKey::generate().unwrap(),
+                syntheo_e2ee::WorkspaceKey::generate().unwrap(),
                 OWNER,
                 WORKSPACE,
                 vec![recipient.clone()],
@@ -1068,7 +1071,7 @@ mod tests {
         );
         assert!(
             seal_workspace_e2ee_key(
-                anlg_e2ee::WorkspaceKey::generate().unwrap(),
+                syntheo_e2ee::WorkspaceKey::generate().unwrap(),
                 MEMBER,
                 WORKSPACE,
                 vec![recipient.clone(), recipient],
@@ -1081,10 +1084,10 @@ mod tests {
     fn opens_an_active_source_grant_after_runtime_keys_are_lost() {
         const OWNER: &str = "11111111-1111-4111-8111-111111111111";
         const WORKSPACE: &str = "33333333-3333-4333-8333-333333333333";
-        let recovery_key = anlg_e2ee::RecoveryKey::generate().unwrap();
-        let key = anlg_e2ee::WorkspaceKey::generate().unwrap();
+        let recovery_key = syntheo_e2ee::RecoveryKey::generate().unwrap();
+        let key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
         let expected_key_id = key.key_id().to_string();
-        let grant = anlg_e2ee::seal_workspace_key_for_member(
+        let grant = syntheo_e2ee::seal_workspace_key_for_member(
             &key,
             &recovery_key.member_identity_key().unwrap().public_key(),
             WORKSPACE,

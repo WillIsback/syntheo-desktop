@@ -26,7 +26,7 @@ capture, separation, and persistence only. It does not validate acoustic echo
 cancellation, physical devices, drivers, or real-room acoustics.
 EOF
 
-if [[ "${ANARLOG_AUDIO_QA_IN_DBUS:-0}" != "1" ]]; then
+if [[ "${SYNTHEO_AUDIO_QA_IN_DBUS:-0}" != "1" ]]; then
   for command in dbus-run-session dpkg-deb ffmpeg pnpm python3; do
     if ! command -v "$command" >/dev/null 2>&1; then
       echo "Missing required command: $command" >&2
@@ -61,20 +61,20 @@ if [[ "${ANARLOG_AUDIO_QA_IN_DBUS:-0}" != "1" ]]; then
 
   mapfile -t package_binaries < <(
     dpkg-query -L "$package_name" \
-      | grep -E '^/usr/bin/anarlog(-staging)?$' \
+      | grep -E '^/usr/bin/syntheo(-staging)?$' \
       | sort -u
   )
   if [[ ${#package_binaries[@]} -ne 1 ]]; then
-    printf "Expected one Anarlog executable, found: %s\n" \
+    printf "Expected one Syntheo executable, found: %s\n" \
       "${package_binaries[*]:-none}" >&2
     exit 1
   fi
   if [[ ! -x "${package_binaries[0]}" ]]; then
-    echo "Installed Anarlog executable is not runnable" >&2
+    echo "Installed Syntheo executable is not runnable" >&2
     exit 1
   fi
 
-  qa_root=$(mktemp -d -t anarlog-linux-audio-qa.XXXXXXXX)
+  qa_root=$(mktemp -d -t syntheo-linux-audio-qa.XXXXXXXX)
   install -d -m 700 "$qa_root/runtime"
   mkdir -p \
     "$qa_root/cache" \
@@ -93,7 +93,7 @@ ctl.!default {
 EOF
 
   export ALSA_CONFIG_PATH="$qa_root/asound.conf"
-  export ANARLOG_AUDIO_QA_IN_DBUS=1
+  export SYNTHEO_AUDIO_QA_IN_DBUS=1
   export APP_BINARY_PATH="${package_binaries[0]}"
   export PULSE_SERVER="unix:$qa_root/runtime/pulse/native"
   export PIPEWIRE_RUNTIME_DIR="$qa_root/runtime"

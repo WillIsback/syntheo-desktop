@@ -4,16 +4,16 @@ import { PROVIDERS } from "./shared";
 
 describe("hosted transcription", () => {
   test("hosted_stt_is_never_auto_selected", async () => {
-    // Le modèle hébergé « Anarlog cloud » exige un compte qui n'existe plus :
+    // Le modèle hébergé « Syntheo cloud » exige un compte qui n'existe plus :
     // il ne doit jamais être proposé ni choisi par défaut.
     const { getDefaultSttSelection } = await import("./selection");
     const selectable = PROVIDERS.filter(({ disabled }) => !disabled).map(
       ({ id }) => id,
     );
-    expect(selectable).not.toContain("anarlog");
+    expect(selectable).not.toContain("syntheo");
     expect(
       getDefaultSttSelection(selectable, {
-        anarlog: {
+        syntheo: {
           configured: true,
           models: [{ id: "cloud", isDownloaded: true }],
         },

@@ -1,4 +1,4 @@
-use anlg_hooks::{HookEvent, HookResult, run_hooks_for_event};
+use syntheo_hooks::{HookEvent, HookResult, run_hooks_for_event};
 
 use crate::config;
 

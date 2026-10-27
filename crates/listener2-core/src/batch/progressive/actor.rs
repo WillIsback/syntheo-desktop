@@ -472,16 +472,16 @@ async fn process_stream_loop<S, Item, E, F>(
                     Ok(None) => {
                         if completions_seen >= expected_completions {
                             tracing::info!(
-                                anarlog.response.count = response_count,
+                                syntheo.response.count = response_count,
                                 "{context} completed"
                             );
                             break;
                         }
 
                         tracing::error!(
-                            anarlog.response.count = response_count,
-                            anarlog.completions.expected = expected_completions,
-                            anarlog.completions.seen = completions_seen,
+                            syntheo.response.count = response_count,
+                            syntheo.completions.expected = expected_completions,
+                            syntheo.completions.seen = completions_seen,
                             "{context} ended without completion signal"
                         );
                         send_actor_message(
@@ -496,8 +496,8 @@ async fn process_stream_loop<S, Item, E, F>(
                     }
                     Err(elapsed) => {
                         tracing::warn!(
-                            anarlog.timeout.elapsed = ?elapsed,
-                            anarlog.response.count = response_count,
+                            syntheo.timeout.elapsed = ?elapsed,
+                            syntheo.response.count = response_count,
                             "{context} timeout"
                         );
                         send_actor_message(
@@ -527,8 +527,8 @@ fn send_actor_message(
 ) {
     if let Err(_error) = myself.send_message(message) {
         tracing::error!(
-            anarlog.operation = context,
-            anarlog.message.kind = message_kind,
+            syntheo.operation = context,
+            syntheo.message.kind = message_kind,
             error.type = "actor_message_delivery_failed",
             "progressive_actor_message_delivery_failed"
         );

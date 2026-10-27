@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-dictation",
+  "name": "@syntheo/plugin-dictation",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

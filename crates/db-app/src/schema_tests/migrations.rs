@@ -3,16 +3,16 @@ use super::*;
 #[tokio::test]
 async fn cloud_authority_upgrade_preserves_pending_legacy_ciphertext() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20261005090000_e2ee_cloud_authority"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
     )
     .await
     .unwrap();
-    let key = anlg_e2ee::RecoveryKey::parse(
+    let key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap()
@@ -30,7 +30,7 @@ async fn cloud_authority_upgrade_preserves_pending_legacy_ciphertext() {
             serde_json::json!("Offline before upgrade"),
         )
         .unwrap();
-    let hash = anlg_e2ee::payload_hash(&sealed.payload);
+    let hash = syntheo_e2ee::payload_hash(&sealed.payload);
     sqlx::query("INSERT INTO e2ee_local_state(record_id,workspace_id,table_name,row_id,field_name,revision,writer_id,payload_hash,payload) VALUES(?,'user-a','sessions','s','title',1,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',?,?)")
         .bind(&sealed.record_id).bind(&hash).bind(&sealed.payload)
         .execute(db.pool()).await.unwrap();
@@ -138,8 +138,8 @@ async fn migrations_apply_cleanly() {
     assert_eq!(
         tables,
         vec![
-            "_anlg_schema_compat",
             "_sqlx_migrations",
+            "_syntheo_schema_compat",
             "action_items",
             "app_settings",
             "attachment_local_state",
@@ -224,7 +224,7 @@ async fn event_attendance_migration_is_plain_and_downgrade_safe() {
         .unwrap();
     assert!(matches!(
         migration.scope,
-        anlg_db_migrate::MigrationScope::Plain
+        syntheo_db_migrate::MigrationScope::Plain
     ));
     assert!(
         !cloudsync_table_registry()
@@ -233,9 +233,9 @@ async fn event_attendance_migration_is_plain_and_downgrade_safe() {
     );
 
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260930120000_event_attendance"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -260,7 +260,7 @@ async fn event_attendance_migration_is_plain_and_downgrade_safe() {
     .await
     .unwrap();
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let column_type: String = sqlx::query_scalar(
         "SELECT type FROM pragma_table_info('events') WHERE name = 'attendance_json'",
@@ -330,9 +330,9 @@ async fn event_attendance_migration_is_plain_and_downgrade_safe() {
 #[tokio::test]
 async fn personal_workspace_migration_preserves_existing_session_workspace_ids() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260716120000_personal_workspaces"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -348,7 +348,7 @@ async fn personal_workspace_migration_preserves_existing_session_workspace_ids()
     .await
     .unwrap();
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
     sqlx::query(
         "INSERT INTO workspaces (id, owner_user_id, name)
              VALUES ('user-1', 'user-1', 'Personal')",
@@ -410,7 +410,7 @@ async fn workspace_tables_can_be_initialized_by_cloudsync() {
     for table_name in ["workspaces", "workspace_memberships"] {
         db.cloudsync_init(table_name, None, None).await.unwrap();
         assert!(
-            anlg_db_core::cloudsync_is_enabled_on(db.pool(), table_name)
+            syntheo_db_core::cloudsync_is_enabled_on(db.pool(), table_name)
                 .await
                 .unwrap()
         );
@@ -469,9 +469,9 @@ async fn search_index_migrations_apply_before_cloudsync_initialization() {
 #[tokio::test]
 async fn search_index_migrations_apply_to_initialized_cloudsync_tables() {
     let db = Db::connect_memory().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260714120000_search_index_queue"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -508,7 +508,7 @@ async fn search_index_migrations_apply_to_initialized_cloudsync_tables() {
         .filter(|table| table.enabled)
     {
         assert!(
-            anlg_db_core::cloudsync_is_enabled_on(db.pool(), &table.table_name)
+            syntheo_db_core::cloudsync_is_enabled_on(db.pool(), &table.table_name)
                 .await
                 .unwrap()
         );
@@ -518,9 +518,9 @@ async fn search_index_migrations_apply_to_initialized_cloudsync_tables() {
 #[tokio::test]
 async fn migration_repairs_empty_titles_from_summary_headings() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260713164500_repair_empty_session_titles"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -550,7 +550,7 @@ async fn migration_repairs_empty_titles_from_summary_headings() {
         .await
         .unwrap();
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let titles =
         sqlx::query_as::<_, (String, String)>("SELECT id, title FROM sessions ORDER BY id")
@@ -569,9 +569,9 @@ async fn migration_repairs_empty_titles_from_summary_headings() {
 #[tokio::test]
 async fn repair_migration_recreates_missing_templates_table() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: &APP_MIGRATION_STEPS[..3],
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -584,7 +584,7 @@ async fn repair_migration_recreates_missing_templates_table() {
         .await
         .unwrap();
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let row_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM templates")
         .fetch_one(db.pool())
@@ -624,9 +624,9 @@ async fn prepare_schema_recreates_templates_after_repair_migration_was_already_a
 #[tokio::test]
 async fn synced_preferences_backfill_reads_legacy_documents() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260810120000_synced_preferences"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -649,7 +649,7 @@ async fn synced_preferences_backfill_reads_legacy_documents() {
     .await
     .unwrap();
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let rows = sqlx::query_as::<_, (String, String, String, String)>(
         "SELECT id, workspace_id, value_json, updated_at FROM synced_preferences ORDER BY id",
@@ -687,9 +687,9 @@ async fn synced_preferences_backfill_reads_legacy_documents() {
 #[tokio::test]
 async fn prepare_schema_seeds_templates_when_repair_migration_creates_missing_table() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: &APP_MIGRATION_STEPS[..3],
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -717,7 +717,7 @@ async fn enterprise_session_delivery_tables_are_registered() {
         .iter()
         .find(|step| step.id == "20260814090000_enterprise_session_delivery")
         .unwrap();
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
 
     let db = test_db().await;
     let tables: Vec<String> = sqlx::query_scalar(

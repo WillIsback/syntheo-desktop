@@ -1,6 +1,6 @@
 #![cfg_attr(not(target_os = "windows"), allow(dead_code))]
 
-use anlg_notification_interface::Notification;
+use syntheo_notification_interface::Notification;
 
 pub(crate) fn expand_home(path: &str) -> String {
     let rest = path.strip_prefix("~/").or_else(|| path.strip_prefix("~\\"));
@@ -40,7 +40,7 @@ fn parse_default_icon(spec: &str) -> Option<(String, i32)> {
 #[cfg(target_os = "windows")]
 mod win {
     use super::expand_home;
-    use anlg_notification_interface::{NotificationIcon, NotificationIconAsset};
+    use syntheo_notification_interface::{NotificationIcon, NotificationIconAsset};
     use windows::Win32::Foundation::GENERIC_READ;
     use windows::Win32::Graphics::Gdi::{
         BI_BITFIELDS, BITMAPINFO, BITMAPV5HEADER, CreateCompatibleDC, CreateDIBSection,
@@ -449,12 +449,12 @@ mod tests {
         let previous_home = std::env::var("HOME").ok();
         let previous_profile = std::env::var("USERPROFILE").ok();
         unsafe {
-            std::env::set_var("HOME", "/home/anarlog");
+            std::env::set_var("HOME", "/home/syntheo");
             std::env::remove_var("USERPROFILE");
         }
         assert_eq!(
             expand_home("~/icons/zoom.png"),
-            "/home/anarlog/icons/zoom.png"
+            "/home/syntheo/icons/zoom.png"
         );
         assert_eq!(expand_home("/usr/share/zoom.png"), "/usr/share/zoom.png");
         match previous_home {

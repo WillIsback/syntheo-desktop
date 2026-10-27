@@ -38,14 +38,14 @@ async fn run_tombstone_statements(
     restore: bool,
 ) -> Result<u64, String> {
     for table in SESSION_CHILD_TABLES {
-        anlg_db_app::update_session_child_tombstone(conn, table, session_id, tombstone, restore)
+        syntheo_db_app::update_session_child_tombstone(conn, table, session_id, tombstone, restore)
             .await
             .map_err(|error| error.to_string())?;
     }
-    anlg_db_app::update_entity_mentions_tombstone(conn, session_id, tombstone, restore)
+    syntheo_db_app::update_entity_mentions_tombstone(conn, session_id, tombstone, restore)
         .await
         .map_err(|error| error.to_string())?;
-    anlg_db_app::update_sessions_tombstone(conn, session_id, tombstone, restore)
+    syntheo_db_app::update_sessions_tombstone(conn, session_id, tombstone, restore)
         .await
         .map_err(|error| error.to_string())
 }
@@ -59,9 +59,10 @@ pub async fn soft_delete_session(
         .await
         .map_err(|error| error.to_string())?;
 
-    let Some(session) = anlg_db_app::load_session_delete_row(&mut transaction, &request.session_id)
-        .await
-        .map_err(|error| error.to_string())?
+    let Some(session) =
+        syntheo_db_app::load_session_delete_row(&mut transaction, &request.session_id)
+            .await
+            .map_err(|error| error.to_string())?
     else {
         transaction
             .rollback()
@@ -111,7 +112,7 @@ pub async fn restore_deleted_session(
     .await?;
     let outcome = if restored == 1 {
         RestoreDeletedSessionOutcome::Restored
-    } else if anlg_db_app::session_is_alive(&mut transaction, &request.session_id)
+    } else if syntheo_db_app::session_is_alive(&mut transaction, &request.session_id)
         .await
         .map_err(|error| error.to_string())?
     {

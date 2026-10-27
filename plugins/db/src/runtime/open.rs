@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anlg_db_core::{Db, DbOpenError, DbOpenOptions, DbStorage};
+use syntheo_db_core::{Db, DbOpenError, DbOpenOptions, DbStorage};
 
 use crate::Result;
 
@@ -21,7 +21,7 @@ async fn open_app_db_with(db_path: Option<&Path>, prepare_schema: bool) -> Resul
     match Db::open(app_db_open_options(storage, true)).await {
         Ok(db) => {
             if prepare_schema {
-                anlg_db_app::prepare_schema(&db).await?;
+                syntheo_db_app::prepare_schema(&db).await?;
             }
             Ok(db)
         }
@@ -72,7 +72,7 @@ pub(super) async fn open_app_db_without_cloudsync(
         return Err(cloudsync_error.into());
     }
 
-    if prepare_schema && let Err(error) = anlg_db_app::prepare_schema(&db).await {
+    if prepare_schema && let Err(error) = syntheo_db_app::prepare_schema(&db).await {
         db.pool().close().await;
         return Err(error.into());
     }

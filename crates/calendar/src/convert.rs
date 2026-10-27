@@ -1,24 +1,24 @@
-use anlg_apple_calendar::types::{
+use chrono::{DateTime, MappedLocalTime, NaiveDateTime, Utc};
+use std::collections::HashSet;
+use syntheo_apple_calendar::types::{
     AppleCalendar, AppleEvent, EventStatus as AppleEventStatus, Participant, ParticipantRole,
     ParticipantStatus, ParticipantType,
 };
-use anlg_calendar_interface::{
+use syntheo_calendar_interface::{
     AttendanceResponseCounts, AttendanceRosterStatus, AttendeeRole, AttendeeStatus, CalendarEvent,
     CalendarListItem, CalendarProviderType, EventAttendance, EventAttendee, EventPerson,
     EventStatus, SelfAttendanceStatus,
 };
-use anlg_google_calendar::{
+use syntheo_google_calendar::{
     AccessRole as GoogleAccessRole, Attendee as GoogleAttendee, AttendeeResponseStatus,
     CalendarListEntry as GoogleCalendar, Event as GoogleEvent, EventDateTime,
     EventStatus as GoogleEventStatus,
 };
-use anlg_outlook_calendar::{
+use syntheo_outlook_calendar::{
     Attendee as OutlookAttendee, AttendeeType, Calendar as OutlookCalendar,
     DateTimeTimeZone as OutlookDateTimeTimeZone, Event as OutlookEvent, EventShowAs,
     ResponseType as OutlookResponseType,
 };
-use chrono::{DateTime, MappedLocalTime, NaiveDateTime, Utc};
-use std::collections::HashSet;
 
 use crate::windows_tz::windows_tz_to_iana;
 
@@ -100,7 +100,7 @@ pub fn convert_apple_calendars(calendars: Vec<AppleCalendar>) -> Vec<CalendarLis
         .collect()
 }
 
-fn apple_color_to_css(color: anlg_apple_calendar::types::CalendarColor) -> String {
+fn apple_color_to_css(color: syntheo_apple_calendar::types::CalendarColor) -> String {
     format!(
         "rgba({}, {}, {}, {})",
         (color.red * 255.0).round(),
@@ -851,7 +851,7 @@ fn extract_video_entry_point(event: &GoogleEvent) -> Option<String> {
         .find(|ep| {
             matches!(
                 ep.entry_point_type,
-                anlg_google_calendar::EntryPointType::Video
+                syntheo_google_calendar::EntryPointType::Video
             )
         })
         .map(|ep| ep.uri.clone())

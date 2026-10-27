@@ -1,4 +1,4 @@
-import type { SessionMentionDropConfig } from "@anlg/editor/note";
+import type { SessionMentionDropConfig } from "@syntheo/editor/note";
 
 import {
   hasSessionContextDragData,

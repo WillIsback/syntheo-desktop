@@ -1,7 +1,7 @@
 import type {
   RenderTranscriptRequest,
   SpeakerContext,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import { liveQueryClient } from "~/db";
 import type { RenderLabelContext } from "~/stt/live-segment";

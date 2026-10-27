@@ -280,7 +280,7 @@ test("desktop release workflows do not submit to the Mac App Store", async () =>
 
   assert.doesNotMatch(desktopCi, /Build unsigned Mac App Store candidate/);
   assert.doesNotMatch(desktopCi, /tauri.conf.app-store.json/);
-  assert.doesNotMatch(desktopCi, /anarlog-mac-app-store-unsigned/);
+  assert.doesNotMatch(desktopCi, /syntheo-mac-app-store-unsigned/);
   assert.doesNotMatch(storeWorkflow, /\n  mac-app-store:\n/);
   assert.doesNotMatch(storeWorkflow, /include_macos/);
   assert.doesNotMatch(storeWorkflow, /app-store-connect-submit/);
@@ -299,7 +299,7 @@ const provenance = {
 
 async function createManifestFixture(t, contents) {
   const directory = await mkdtemp(
-    path.join(os.tmpdir(), "anarlog-release-provenance-"),
+    path.join(os.tmpdir(), "syntheo-release-provenance-"),
   );
   t.after(() => rm(directory, { recursive: true, force: true }));
   const assetDir = path.join(directory, "assets");

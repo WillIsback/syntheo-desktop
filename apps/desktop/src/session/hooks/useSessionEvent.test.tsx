@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("~/db", async () => {
-  const { createUseLiveQuery } = await import("@anlg/db-react");
+  const { createUseLiveQuery } = await import("@syntheo/db-react");
   return {
     executeTransaction: vi.fn(),
     liveQueryClient: mocks,

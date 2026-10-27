@@ -1,9 +1,9 @@
-use anlg_cloudsync::ReservedConnection;
 use sqlx::Sqlite;
 use sqlx::pool::PoolConnection;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
+use syntheo_cloudsync::ReservedConnection;
 use tokio::sync::MutexGuard;
 
 use super::pinned::{
@@ -40,7 +40,7 @@ const CLOUDSYNC_POOL_DRAIN_TIMEOUT: Duration = Duration::from_secs(1);
 impl Db {
     pub(crate) async fn reserve_cloudsync_connection(
         &self,
-    ) -> Result<ReservedConnection<PinnedCloudsyncConnection>, anlg_cloudsync::Error> {
+    ) -> Result<ReservedConnection<PinnedCloudsyncConnection>, syntheo_cloudsync::Error> {
         reserve_pinned_connection(&self.pool, &self.cloudsync_connection).await
     }
 
@@ -53,7 +53,7 @@ impl Db {
 
     async fn lock_cloudsync_connection(
         &self,
-    ) -> Result<MutexGuard<'_, Option<PoolConnection<Sqlite>>>, anlg_cloudsync::Error> {
+    ) -> Result<MutexGuard<'_, Option<PoolConnection<Sqlite>>>, syntheo_cloudsync::Error> {
         let mut connection = self.cloudsync_connection.lock().await;
         if connection.is_none() {
             *connection = Some(self.pool.acquire().await?);
@@ -82,9 +82,9 @@ impl Db {
         self.cloudsync_path.as_deref()
     }
 
-    pub async fn cloudsync_version(&self) -> Result<String, anlg_cloudsync::Error> {
+    pub async fn cloudsync_version(&self) -> Result<String, syntheo_cloudsync::Error> {
         let mut connection = self.lock_cloudsync_connection().await?;
-        let result = anlg_cloudsync::version(&mut **connection.as_mut().unwrap()).await;
+        let result = syntheo_cloudsync::version(&mut **connection.as_mut().unwrap()).await;
         self.release_single_pool_connection(&mut connection);
         result
     }
@@ -94,7 +94,7 @@ impl Db {
         table_name: &str,
         crdt_algo: Option<&str>,
         init_flags: Option<i64>,
-    ) -> Result<(), anlg_cloudsync::Error> {
+    ) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.reserve_cloudsync_connection().await?;
         let result = interruptible_init(
             &mut connection,
@@ -112,9 +112,9 @@ impl Db {
         &self,
         table_name: &str,
         filter_expression: &str,
-    ) -> Result<(), anlg_cloudsync::Error> {
+    ) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.lock_cloudsync_connection().await?;
-        let result = anlg_cloudsync::set_filter(
+        let result = syntheo_cloudsync::set_filter(
             &mut **connection.as_mut().unwrap(),
             table_name,
             filter_expression,
@@ -144,7 +144,7 @@ impl Db {
                 tokio::time::timeout_at(acquisition_deadline, self.pool.acquire())
                     .await
                     .map_err(|_| CloudsyncRuntimeError::LocalStatusBusy)?
-                    .map_err(anlg_cloudsync::Error::from)?,
+                    .map_err(syntheo_cloudsync::Error::from)?,
             );
         }
         let mut pinned =
@@ -163,7 +163,7 @@ impl Db {
                     )
                     .await;
                     self.release_reserved_cloudsync_connection(pinned);
-                    return Err(anlg_cloudsync::Error::from(error).into());
+                    return Err(syntheo_cloudsync::Error::from(error).into());
                 }
                 Err(_) => {
                     return_pool_connections(
@@ -179,7 +179,7 @@ impl Db {
             }
         }
 
-        let result: Result<(), anlg_cloudsync::Error> = async {
+        let result: Result<(), syntheo_cloudsync::Error> = async {
             init_enabled_tables(&mut pinned, tables, &self.cloudsync_interrupt).await?;
             for connection in &mut connections {
                 init_enabled_tables(connection, tables, &self.cloudsync_interrupt).await?;
@@ -225,12 +225,12 @@ impl Db {
     pub async fn cloudsync_network_init(
         &self,
         connection_string: &str,
-    ) -> Result<(), anlg_cloudsync::Error> {
+    ) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.lock_cloudsync_connection().await?;
         let result = async {
             let connection = &mut **connection.as_mut().unwrap();
-            anlg_cloudsync::network_init(&mut *connection, connection_string).await?;
-            anlg_cloudsync::network_set_request_deadlines(connection).await
+            syntheo_cloudsync::network_init(&mut *connection, connection_string).await?;
+            syntheo_cloudsync::network_set_request_deadlines(connection).await
         }
         .await;
         self.release_single_pool_connection(&mut connection);
@@ -240,10 +240,11 @@ impl Db {
     pub async fn cloudsync_network_set_apikey(
         &self,
         api_key: &str,
-    ) -> Result<(), anlg_cloudsync::Error> {
+    ) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.lock_cloudsync_connection().await?;
         let result =
-            anlg_cloudsync::network_set_apikey(&mut **connection.as_mut().unwrap(), api_key).await;
+            syntheo_cloudsync::network_set_apikey(&mut **connection.as_mut().unwrap(), api_key)
+                .await;
         self.release_single_pool_connection(&mut connection);
         result
     }
@@ -251,10 +252,10 @@ impl Db {
     pub async fn cloudsync_network_set_token(
         &self,
         token: &str,
-    ) -> Result<(), anlg_cloudsync::Error> {
+    ) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.lock_cloudsync_connection().await?;
         let result =
-            anlg_cloudsync::network_set_token(&mut **connection.as_mut().unwrap(), token).await;
+            syntheo_cloudsync::network_set_token(&mut **connection.as_mut().unwrap(), token).await;
         self.release_single_pool_connection(&mut connection);
         result
     }
@@ -262,7 +263,7 @@ impl Db {
     pub async fn cloudsync_begin_alter(
         &self,
         table_name: &str,
-    ) -> Result<(), anlg_cloudsync::Error> {
+    ) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.lock_cloudsync_connection().await?;
         let result =
             cloudsync_begin_alter_on(&mut **connection.as_mut().unwrap(), table_name).await;
@@ -273,7 +274,7 @@ impl Db {
     pub async fn cloudsync_commit_alter(
         &self,
         table_name: &str,
-    ) -> Result<(), anlg_cloudsync::Error> {
+    ) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.lock_cloudsync_connection().await?;
         let result =
             cloudsync_commit_alter_on(&mut **connection.as_mut().unwrap(), table_name).await;
@@ -281,7 +282,10 @@ impl Db {
         result
     }
 
-    pub async fn cloudsync_cleanup(&self, table_name: &str) -> Result<(), anlg_cloudsync::Error> {
+    pub async fn cloudsync_cleanup(
+        &self,
+        table_name: &str,
+    ) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.reserve_cloudsync_connection().await?;
         let result =
             interruptible_cleanup(&mut connection, table_name, &self.cloudsync_interrupt).await;
@@ -289,9 +293,9 @@ impl Db {
         result
     }
 
-    pub async fn cloudsync_terminate(&self) -> Result<(), anlg_cloudsync::Error> {
+    pub async fn cloudsync_terminate(&self) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.lock_cloudsync_connection().await?;
-        let result = anlg_cloudsync::terminate(&mut **connection.as_mut().unwrap()).await;
+        let result = syntheo_cloudsync::terminate(&mut **connection.as_mut().unwrap()).await;
         self.release_single_pool_connection(&mut connection);
         result
     }
@@ -308,7 +312,7 @@ impl Db {
                 tokio::time::timeout_at(acquisition_deadline, self.pool.acquire())
                     .await
                     .map_err(|_| CloudsyncRuntimeError::LocalStatusBusy)?
-                    .map_err(anlg_cloudsync::Error::from)?,
+                    .map_err(syntheo_cloudsync::Error::from)?,
             );
         }
 
@@ -322,7 +326,7 @@ impl Db {
                     if let Err(close_error) = close_pool_connections(connections).await {
                         tracing::warn!(%close_error, "failed to close cloudsync connections after pool acquisition failure");
                     }
-                    return Err(anlg_cloudsync::Error::from(error).into());
+                    return Err(syntheo_cloudsync::Error::from(error).into());
                 }
                 Err(_) => {
                     connections.push(pinned.take().unwrap());
@@ -336,11 +340,11 @@ impl Db {
         }
 
         let mut terminate_error = None;
-        if let Err(error) = anlg_cloudsync::terminate(&mut **pinned.as_mut().unwrap()).await {
+        if let Err(error) = syntheo_cloudsync::terminate(&mut **pinned.as_mut().unwrap()).await {
             terminate_error = Some(error);
         }
         for connection in &mut connections {
-            if let Err(error) = anlg_cloudsync::terminate(&mut **connection).await
+            if let Err(error) = syntheo_cloudsync::terminate(&mut **connection).await
                 && terminate_error.is_none()
             {
                 terminate_error = Some(error);
@@ -357,37 +361,38 @@ impl Db {
         close_result.map_err(Into::into)
     }
 
-    pub(crate) async fn cloudsync_close_connection(&self) -> Result<(), anlg_cloudsync::Error> {
+    pub(crate) async fn cloudsync_close_connection(&self) -> Result<(), syntheo_cloudsync::Error> {
         let connection = self.cloudsync_connection.lock().await.take();
         match connection {
             Some(connection) => connection
                 .close()
                 .await
-                .map_err(anlg_cloudsync::Error::from),
+                .map_err(syntheo_cloudsync::Error::from),
             None => Ok(()),
         }
     }
 
-    pub async fn cloudsync_network_cleanup(&self) -> Result<(), anlg_cloudsync::Error> {
+    pub async fn cloudsync_network_cleanup(&self) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.lock_cloudsync_connection().await?;
-        let result = anlg_cloudsync::network_cleanup(&mut **connection.as_mut().unwrap()).await;
+        let result = syntheo_cloudsync::network_cleanup(&mut **connection.as_mut().unwrap()).await;
         self.release_single_pool_connection(&mut connection);
         result
     }
 
     pub async fn cloudsync_network_has_unsent_changes(
         &self,
-    ) -> Result<bool, anlg_cloudsync::Error> {
+    ) -> Result<bool, syntheo_cloudsync::Error> {
         let mut connection = self.lock_cloudsync_connection().await?;
         let result =
-            anlg_cloudsync::network_has_unsent_changes(&mut **connection.as_mut().unwrap()).await;
+            syntheo_cloudsync::network_has_unsent_changes(&mut **connection.as_mut().unwrap())
+                .await;
         self.release_single_pool_connection(&mut connection);
         result
     }
 
     pub async fn cloudsync_pending_payload_batch(
         &self,
-    ) -> Result<anlg_cloudsync::PendingPayloadBatch, anlg_cloudsync::Error> {
+    ) -> Result<syntheo_cloudsync::PendingPayloadBatch, syntheo_cloudsync::Error> {
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
         let mut connection = self.reserve_cloudsync_connection().await?;
         let result =
@@ -398,7 +403,7 @@ impl Db {
 
     pub async fn cloudsync_network_status(
         &self,
-    ) -> Result<anlg_cloudsync::NetworkStatus, anlg_cloudsync::Error> {
+    ) -> Result<syntheo_cloudsync::NetworkStatus, syntheo_cloudsync::Error> {
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
         let mut connection = self.reserve_cloudsync_connection().await?;
         let result =
@@ -409,12 +414,12 @@ impl Db {
 
     pub async fn cloudsync_reconcile_confirmed_pending_payload(
         &self,
-        batch: anlg_cloudsync::PendingPayloadBatch,
-        status: &anlg_cloudsync::NetworkStatus,
-    ) -> Result<bool, anlg_cloudsync::Error> {
+        batch: syntheo_cloudsync::PendingPayloadBatch,
+        status: &syntheo_cloudsync::NetworkStatus,
+    ) -> Result<bool, syntheo_cloudsync::Error> {
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
         let mut connection = self.lock_cloudsync_connection().await?;
-        let result = anlg_cloudsync::reconcile_confirmed_pending_payload(
+        let result = syntheo_cloudsync::reconcile_confirmed_pending_payload(
             connection.as_mut().unwrap(),
             batch,
             status,
@@ -426,7 +431,7 @@ impl Db {
 
     pub async fn cloudsync_network_send_changes(
         &self,
-    ) -> Result<anlg_cloudsync::NetworkResult, anlg_cloudsync::Error> {
+    ) -> Result<syntheo_cloudsync::NetworkResult, syntheo_cloudsync::Error> {
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
         let mut connection = self.reserve_cloudsync_connection().await?;
         let result = guarded_interruptible_network_send_changes(
@@ -442,7 +447,7 @@ impl Db {
     pub async fn cloudsync_network_receive_changes(
         &self,
         max_chunks: Option<i64>,
-    ) -> Result<anlg_cloudsync::NetworkResult, anlg_cloudsync::Error> {
+    ) -> Result<syntheo_cloudsync::NetworkResult, syntheo_cloudsync::Error> {
         // Keep the argument for mobile ABI compatibility while preventing callers
         // from bypassing the one-chunk production receive bound.
         let _ = max_chunks;
@@ -457,15 +462,18 @@ impl Db {
     pub async fn cloudsync_network_check_changes(
         &self,
         max_chunks: Option<i64>,
-    ) -> Result<anlg_cloudsync::NetworkResult, anlg_cloudsync::Error> {
+    ) -> Result<syntheo_cloudsync::NetworkResult, syntheo_cloudsync::Error> {
         self.cloudsync_network_receive_changes(max_chunks).await
     }
 
-    pub async fn cloudsync_network_reset_sync_version(&self) -> Result<(), anlg_cloudsync::Error> {
+    pub async fn cloudsync_network_reset_sync_version(
+        &self,
+    ) -> Result<(), syntheo_cloudsync::Error> {
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
         let mut connection = self.lock_cloudsync_connection().await?;
         let result =
-            anlg_cloudsync::network_reset_sync_version(&mut **connection.as_mut().unwrap()).await;
+            syntheo_cloudsync::network_reset_sync_version(&mut **connection.as_mut().unwrap())
+                .await;
         self.release_single_pool_connection(&mut connection);
         if result.is_ok() {
             let mut runtime = self.cloudsync_runtime.lock().unwrap();
@@ -477,11 +485,11 @@ impl Db {
 
     pub async fn cloudsync_network_reset_receive_version(
         &self,
-    ) -> Result<(), anlg_cloudsync::Error> {
+    ) -> Result<(), syntheo_cloudsync::Error> {
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
         let mut connection = self.lock_cloudsync_connection().await?;
         let result =
-            anlg_cloudsync::network_reset_receive_version(connection.as_mut().unwrap()).await;
+            syntheo_cloudsync::network_reset_receive_version(connection.as_mut().unwrap()).await;
         self.release_single_pool_connection(&mut connection);
         if result.is_ok() {
             let mut runtime = self.cloudsync_runtime.lock().unwrap();
@@ -491,7 +499,7 @@ impl Db {
         result
     }
 
-    pub async fn cloudsync_network_logout(&self) -> Result<(), anlg_cloudsync::Error> {
+    pub async fn cloudsync_network_logout(&self) -> Result<(), syntheo_cloudsync::Error> {
         let mut connection = self.reserve_cloudsync_connection().await?;
         let result = interruptible_network_logout(&mut connection, &self.cloudsync_interrupt).await;
         self.release_reserved_cloudsync_connection(connection);
@@ -502,7 +510,7 @@ impl Db {
         &self,
         wait_ms: Option<i64>,
         max_retries: Option<i64>,
-    ) -> Result<anlg_cloudsync::NetworkResult, anlg_cloudsync::Error> {
+    ) -> Result<syntheo_cloudsync::NetworkResult, syntheo_cloudsync::Error> {
         // These legacy arguments remain in the mobile ABI; retries now belong to
         // the runtime so every call performs exactly one bounded transport step.
         let _ = (wait_ms, max_retries);
@@ -528,7 +536,7 @@ impl Db {
     pub async fn cloudsync_manual_send_only(
         &self,
         cancelled: &AtomicBool,
-    ) -> Result<anlg_cloudsync::NetworkResult, CloudsyncRuntimeError> {
+    ) -> Result<syntheo_cloudsync::NetworkResult, CloudsyncRuntimeError> {
         let _lifecycle = self.cloudsync_lifecycle.lock().await;
         self.ensure_manual_transport_ready()?;
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
@@ -548,7 +556,7 @@ impl Db {
 
     pub async fn cloudsync_manual_pending_payload_batch(
         &self,
-    ) -> Result<anlg_cloudsync::PendingPayloadBatch, CloudsyncRuntimeError> {
+    ) -> Result<syntheo_cloudsync::PendingPayloadBatch, CloudsyncRuntimeError> {
         let _lifecycle = self.cloudsync_lifecycle.lock().await;
         self.ensure_manual_transport_ready()?;
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
@@ -561,7 +569,7 @@ impl Db {
 
     pub async fn cloudsync_manual_network_status(
         &self,
-    ) -> Result<anlg_cloudsync::NetworkStatus, CloudsyncRuntimeError> {
+    ) -> Result<syntheo_cloudsync::NetworkStatus, CloudsyncRuntimeError> {
         let _lifecycle = self.cloudsync_lifecycle.lock().await;
         self.ensure_manual_transport_ready()?;
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
@@ -574,14 +582,14 @@ impl Db {
 
     pub async fn cloudsync_manual_reconcile_confirmed_pending_payload(
         &self,
-        batch: anlg_cloudsync::PendingPayloadBatch,
-        status: &anlg_cloudsync::NetworkStatus,
+        batch: syntheo_cloudsync::PendingPayloadBatch,
+        status: &syntheo_cloudsync::NetworkStatus,
     ) -> Result<bool, CloudsyncRuntimeError> {
         let _lifecycle = self.cloudsync_lifecycle.lock().await;
         self.ensure_manual_transport_ready()?;
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
         let mut connection = self.lock_cloudsync_connection().await?;
-        let result = anlg_cloudsync::reconcile_confirmed_pending_payload(
+        let result = syntheo_cloudsync::reconcile_confirmed_pending_payload(
             connection.as_mut().unwrap(),
             batch,
             status,
@@ -593,7 +601,7 @@ impl Db {
 
     pub async fn cloudsync_manual_receive_one(
         &self,
-    ) -> Result<anlg_cloudsync::NetworkResult, CloudsyncRuntimeError> {
+    ) -> Result<syntheo_cloudsync::NetworkResult, CloudsyncRuntimeError> {
         let _lifecycle = self.cloudsync_lifecycle.lock().await;
         self.ensure_manual_transport_ready()?;
         let _sync_operation = self.cloudsync_sync_operation.lock().await;
@@ -607,7 +615,7 @@ impl Db {
     pub(crate) async fn apply_cloudsync_auth(
         &self,
         auth: &CloudsyncAuth,
-    ) -> Result<(), anlg_cloudsync::Error> {
+    ) -> Result<(), syntheo_cloudsync::Error> {
         match auth {
             CloudsyncAuth::None => Ok(()),
             CloudsyncAuth::ApiKey { api_key } => self.cloudsync_network_set_apikey(api_key).await,

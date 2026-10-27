@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
-pub use anlg_notification_interface::*;
+pub use syntheo_notification_interface::*;
 
 struct TimedEntry<T> {
     value: T,
@@ -107,8 +107,8 @@ const MAX_RECENT_NOTIFICATIONS: usize = 256;
 const MAX_NOTIFICATION_CONTEXTS: usize = 256;
 
 fn resolve_default_icon(
-    notification: &anlg_notification_interface::Notification,
-) -> anlg_notification_interface::Notification {
+    notification: &syntheo_notification_interface::Notification,
+) -> syntheo_notification_interface::Notification {
     let mut resolved = notification.clone();
 
     if resolved.icon.is_none() {
@@ -165,18 +165,18 @@ fn get_menu_context(key: &str) -> NotificationContext {
     }
 }
 
-fn show_inner(notification: &anlg_notification_interface::Notification) {
+fn show_inner(notification: &syntheo_notification_interface::Notification) {
     #[cfg(all(feature = "legacy", target_os = "macos"))]
-    anlg_notification_macos::show(notification);
+    syntheo_notification_macos::show(notification);
 
     #[cfg(all(feature = "legacy", target_os = "linux"))]
-    anlg_notification_linux::show(notification);
+    syntheo_notification_linux::show(notification);
 
     #[cfg(all(feature = "legacy", target_os = "windows"))]
-    anlg_notification_windows::show(notification);
+    syntheo_notification_windows::show(notification);
 }
 
-pub fn show(notification: &anlg_notification_interface::Notification) {
+pub fn show(notification: &syntheo_notification_interface::Notification) {
     let resolved_notification = resolve_default_icon(notification);
 
     let Some(key) = &notification.key else {
@@ -218,13 +218,13 @@ pub fn show(notification: &anlg_notification_interface::Notification) {
 
 pub fn clear() {
     #[cfg(all(feature = "legacy", target_os = "macos"))]
-    anlg_notification_macos::dismiss_all();
+    syntheo_notification_macos::dismiss_all();
 
     #[cfg(all(feature = "legacy", target_os = "linux"))]
-    anlg_notification_linux::dismiss_all();
+    syntheo_notification_linux::dismiss_all();
 
     #[cfg(all(feature = "legacy", target_os = "windows"))]
-    anlg_notification_windows::dismiss_all();
+    syntheo_notification_windows::dismiss_all();
 }
 
 pub fn setup_dismiss_handler<F>(f: F)
@@ -236,7 +236,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
-        anlg_notification_macos::setup_dismiss_handler(move |key, _tag| {
+        syntheo_notification_macos::setup_dismiss_handler(move |key, _tag| {
             f(get_context(&key));
         });
     }
@@ -244,7 +244,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "linux"))]
     {
         let f = f.clone();
-        anlg_notification_linux::setup_notification_dismiss_handler(move |key| {
+        syntheo_notification_linux::setup_notification_dismiss_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -252,7 +252,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "windows"))]
     {
         let f = f.clone();
-        anlg_notification_windows::setup_notification_dismiss_handler(move |key| {
+        syntheo_notification_windows::setup_notification_dismiss_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -269,7 +269,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
-        anlg_notification_macos::setup_collapsed_confirm_handler(move |key, _tag| {
+        syntheo_notification_macos::setup_collapsed_confirm_handler(move |key, _tag| {
             f(get_context(&key));
         });
     }
@@ -277,7 +277,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "linux"))]
     {
         let f = f.clone();
-        anlg_notification_linux::setup_notification_confirm_handler(move |key| {
+        syntheo_notification_linux::setup_notification_confirm_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -285,7 +285,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "windows"))]
     {
         let f = f.clone();
-        anlg_notification_windows::setup_notification_confirm_handler(move |key| {
+        syntheo_notification_windows::setup_notification_confirm_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -302,7 +302,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
-        anlg_notification_macos::setup_expanded_accept_handler(move |key, _tag| {
+        syntheo_notification_macos::setup_expanded_accept_handler(move |key, _tag| {
             f(get_context(&key));
         });
     }
@@ -310,7 +310,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "linux"))]
     {
         let f = f.clone();
-        anlg_notification_linux::setup_notification_accept_handler(move |key| {
+        syntheo_notification_linux::setup_notification_accept_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -318,7 +318,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "windows"))]
     {
         let f = f.clone();
-        anlg_notification_windows::setup_notification_accept_handler(move |key| {
+        syntheo_notification_windows::setup_notification_accept_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -335,7 +335,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
-        anlg_notification_macos::setup_collapsed_timeout_handler(move |key, _tag| {
+        syntheo_notification_macos::setup_collapsed_timeout_handler(move |key, _tag| {
             f(get_context(&key));
         });
     }
@@ -343,7 +343,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "linux"))]
     {
         let f = f.clone();
-        anlg_notification_linux::setup_notification_timeout_handler(move |key| {
+        syntheo_notification_linux::setup_notification_timeout_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -351,7 +351,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "windows"))]
     {
         let f = f.clone();
-        anlg_notification_windows::setup_notification_timeout_handler(move |key| {
+        syntheo_notification_windows::setup_notification_timeout_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -368,7 +368,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
-        anlg_notification_macos::setup_option_selected_handler(move |key, tag| {
+        syntheo_notification_macos::setup_option_selected_handler(move |key, tag| {
             f(get_menu_context(&key), tag);
         });
     }
@@ -376,17 +376,21 @@ where
     #[cfg(all(feature = "legacy", target_os = "linux"))]
     {
         let f = f.clone();
-        anlg_notification_linux::setup_notification_option_selected_handler(move |key, index| {
-            f(get_menu_context(&key), index);
-        });
+        syntheo_notification_linux::setup_notification_option_selected_handler(
+            move |key, index| {
+                f(get_menu_context(&key), index);
+            },
+        );
     }
 
     #[cfg(all(feature = "legacy", target_os = "windows"))]
     {
         let f = f.clone();
-        anlg_notification_windows::setup_notification_option_selected_handler(move |key, index| {
-            f(get_menu_context(&key), index);
-        });
+        syntheo_notification_windows::setup_notification_option_selected_handler(
+            move |key, index| {
+                f(get_menu_context(&key), index);
+            },
+        );
     }
 
     let _ = f;
@@ -401,7 +405,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "macos"))]
     {
         let f = f.clone();
-        anlg_notification_macos::setup_footer_action_handler(move |key, _tag| {
+        syntheo_notification_macos::setup_footer_action_handler(move |key, _tag| {
             f(get_context(&key));
         });
     }
@@ -409,7 +413,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "linux"))]
     {
         let f = f.clone();
-        anlg_notification_linux::setup_notification_footer_action_handler(move |key| {
+        syntheo_notification_linux::setup_notification_footer_action_handler(move |key| {
             f(get_context(&key));
         });
     }
@@ -417,7 +421,7 @@ where
     #[cfg(all(feature = "legacy", target_os = "windows"))]
     {
         let f = f.clone();
-        anlg_notification_windows::setup_notification_footer_action_handler(move |key| {
+        syntheo_notification_windows::setup_notification_footer_action_handler(move |key| {
             f(get_context(&key));
         });
     }

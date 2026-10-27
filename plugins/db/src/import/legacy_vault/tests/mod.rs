@@ -1,6 +1,6 @@
 use super::*;
-use anlg_db_core::Db;
 use serde_json::Value;
+use syntheo_db_core::Db;
 
 mod documents;
 mod importer;
@@ -8,7 +8,7 @@ mod transcripts;
 
 async fn test_db() -> Db {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     db
 }
 

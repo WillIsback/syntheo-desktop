@@ -73,7 +73,7 @@ impl<W: Write> RedactingWriter<W> {
     }
 
     fn redact_line(&self, line: &str) -> String {
-        if anlg_user_error::is_user_error_text(line) {
+        if syntheo_user_error::is_user_error_text(line) {
             return String::new();
         }
         redact_sensitive_text(line, self.home_dir.as_deref())

@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-importer",
+  "name": "@syntheo/plugin-importer",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

@@ -1,10 +1,10 @@
 use std::collections::HashSet;
 
-use anlg_db_app::{
+use serde::{Deserialize, Serialize};
+use syntheo_db_app::{
     PILOT_METADATA_LIMIT, count_pilot_pending_sessions, list_pilot_legacy_session_candidates,
     list_pilot_setting_rows,
 };
-use serde::{Deserialize, Serialize};
 
 use crate::{Error, Result, output};
 
@@ -50,7 +50,7 @@ fn failure() -> Error {
     Error::operation("read pilot capture usage", "capture metadata unavailable")
 }
 
-pub async fn read(db: &anlg_db_core::Db, from_ms: i64, until_ms: i64) -> Result<PilotUsage> {
+pub async fn read(db: &syntheo_db_core::Db, from_ms: i64, until_ms: i64) -> Result<PilotUsage> {
     if from_ms < 0 || until_ms <= from_ms || until_ms - from_ms > 366 * 86_400_000 {
         return Err(Error::operation(
             "read pilot capture usage",
@@ -140,7 +140,7 @@ pub async fn read(db: &anlg_db_core::Db, from_ms: i64, until_ms: i64) -> Result<
     })
 }
 
-pub async fn run(db: &anlg_db_core::Db, from_ms: i64, until_ms: i64) -> Result<()> {
+pub async fn run(db: &syntheo_db_core::Db, from_ms: i64, until_ms: i64) -> Result<()> {
     output::emit(&output::json(
         "meetings.pilot-usage",
         &read(db, from_ms, until_ms).await?,
@@ -156,8 +156,8 @@ mod tests {
     #[tokio::test]
     async fn pilot_usage_reads_capture_clocks_without_exporting_private_meeting_or_account_fields()
     {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         let from = 1_790_812_800_000_i64;
         let until = from + 86_400_000;
         sqlx::query("INSERT INTO sessions(id,title) VALUES('private-meeting-id','Private meeting title'),('legacy-id','Private legacy title')")
@@ -196,8 +196,8 @@ mod tests {
 
     #[tokio::test]
     async fn legacy_capture_in_measured_session_still_counts_as_unmeasured() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         let from = 1_790_812_800_000_i64;
         let until = from + 86_400_000;
         sqlx::query("INSERT INTO sessions(id,title) VALUES('meeting','')")

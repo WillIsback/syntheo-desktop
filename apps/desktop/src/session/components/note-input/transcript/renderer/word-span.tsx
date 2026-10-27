@@ -1,6 +1,6 @@
 import { Fragment, memo, useMemo } from "react";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 import type { HighlightSegment } from "./utils";
 

@@ -1,4 +1,4 @@
-import type { AudioSourceMetadata } from "@anlg/plugin-fs-sync";
+import type { AudioSourceMetadata } from "@syntheo/plugin-fs-sync";
 
 export function estimateUploadedAudioSessionCreatedAt(
   metadata: Pick<

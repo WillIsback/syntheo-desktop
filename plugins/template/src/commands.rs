@@ -11,9 +11,9 @@ pub struct DominantLanguageRequest {
 #[tauri::command]
 #[specta::specta]
 pub fn summary_length_policy(
-    request: anlg_summary::SummaryLengthPolicyRequest,
-) -> Result<Option<anlg_summary::SummaryLengthPolicy>, String> {
-    Ok(anlg_summary::summary_length_policy_for_texts(
+    request: syntheo_summary::SummaryLengthPolicyRequest,
+) -> Result<Option<syntheo_summary::SummaryLengthPolicy>, String> {
+    Ok(syntheo_summary::summary_length_policy_for_texts(
         &request.transcript_texts,
         request.template_section_count as usize,
     ))
@@ -25,16 +25,16 @@ pub fn dominant_language(request: DominantLanguageRequest) -> Result<Option<Stri
     let Ok(languages) = request
         .candidates
         .iter()
-        .map(|candidate| anlg_language::Language::from_str(candidate))
+        .map(|candidate| syntheo_language::Language::from_str(candidate))
         .collect::<Result<Vec<_>, _>>()
     else {
         return Ok(None);
     };
     let candidate_codes = languages
         .iter()
-        .map(anlg_language::Language::iso639)
+        .map(syntheo_language::Language::iso639)
         .collect::<Vec<_>>();
-    let dominant = anlg_language::dominant_language(
+    let dominant = syntheo_language::dominant_language(
         request.texts.iter().map(String::as_str),
         &candidate_codes,
     );
@@ -51,17 +51,17 @@ pub fn dominant_language(request: DominantLanguageRequest) -> Result<Option<Stri
 #[tauri::command]
 #[specta::specta]
 pub fn prepare_generated_summary(
-    request: anlg_summary::PrepareGeneratedSummaryRequest,
-) -> Result<Option<anlg_summary::PreparedGeneratedSummary>, String> {
-    Ok(anlg_summary::prepare_generated_summary(request))
+    request: syntheo_summary::PrepareGeneratedSummaryRequest,
+) -> Result<Option<syntheo_summary::PreparedGeneratedSummary>, String> {
+    Ok(syntheo_summary::prepare_generated_summary(request))
 }
 
 #[tauri::command]
 #[specta::specta]
 pub fn compose_generated_summary(
-    request: anlg_summary::ComposeGeneratedSummaryRequest,
+    request: syntheo_summary::ComposeGeneratedSummaryRequest,
 ) -> Result<String, String> {
-    Ok(anlg_summary::compose_generated_summary(request))
+    Ok(syntheo_summary::compose_generated_summary(request))
 }
 
 #[tauri::command]
@@ -110,9 +110,9 @@ pub async fn apply_session_content_corrections<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn render<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
-    tpl: anlg_template_app::Template,
+    tpl: syntheo_template_app::Template,
 ) -> Result<String, String> {
-    anlg_template_app::render(tpl).map_err(|e| e.to_string())
+    syntheo_template_app::render(tpl).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -129,7 +129,7 @@ pub async fn render_custom<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn get_template_source<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
-    template: anlg_template_app::EditableTemplate,
+    template: syntheo_template_app::EditableTemplate,
 ) -> Result<String, String> {
-    Ok(anlg_template_app::template_source(template).to_string())
+    Ok(syntheo_template_app::template_source(template).to_string())
 }

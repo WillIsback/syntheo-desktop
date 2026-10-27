@@ -15,7 +15,7 @@ impl StartupSnapshot {
     }
 
     fn settings_path(&self) -> PathBuf {
-        anlg_storage::vault::compute_settings_path(&self.startup_vault_base)
+        syntheo_storage::vault::compute_settings_path(&self.startup_vault_base)
     }
 
     pub fn startup_vault_base(&self) -> &PathBuf {
@@ -52,12 +52,12 @@ impl StartupSnapshot {
         let merged = merge_settings(existing, settings);
         let content = serde_json::to_string_pretty(&merged)?;
 
-        anlg_storage::fs::atomic_write_async(&self.settings_path(), &content).await?;
+        syntheo_storage::fs::atomic_write_async(&self.settings_path(), &content).await?;
         Ok(())
     }
 
     pub fn reset(&self) -> crate::Result<()> {
-        anlg_storage::fs::atomic_write(&self.settings_path(), "{}")?;
+        syntheo_storage::fs::atomic_write(&self.settings_path(), "{}")?;
         Ok(())
     }
 }
@@ -80,7 +80,7 @@ mod tests {
     use serde_json::json;
     use tempfile::tempdir;
 
-    // Les sélections héritées (hyprnote, anarlog…) sont vidées par la
+    // Les sélections héritées (syntheo, syntheo…) sont vidées par la
     // normalisation des réglages du desktop : le fichier n'est pas réécrit ici.
     #[tokio::test]
     async fn load_and_save_keep_stored_provider_names() {
@@ -92,7 +92,7 @@ mod tests {
         snapshot
             .save(json!({
                 "ai": {
-                    "current_llm_provider": "hyprnote",
+                    "current_llm_provider": "syntheo",
                     "current_stt_provider": "nvidia"
                 }
             }))
@@ -103,7 +103,7 @@ mod tests {
             snapshot.load().await.unwrap(),
             json!({
                 "ai": {
-                    "current_llm_provider": "hyprnote",
+                    "current_llm_provider": "syntheo",
                     "current_stt_provider": "nvidia"
                 }
             }),

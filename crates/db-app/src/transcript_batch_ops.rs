@@ -214,7 +214,7 @@ pub async fn mark_session_audio_transcription_complete(
 mod tests {
     use super::*;
     use crate::prepare_schema;
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();

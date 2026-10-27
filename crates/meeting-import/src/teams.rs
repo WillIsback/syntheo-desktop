@@ -1,5 +1,5 @@
-use anlg_http::HttpClient;
 use serde::Deserialize;
+use syntheo_http::HttpClient;
 
 use crate::error::Error;
 use crate::json::{ImportedMeeting, nonempty};
@@ -123,7 +123,7 @@ impl CalendarEvent {
     pub fn imported(
         &self,
         meeting: &OnlineMeeting,
-        transcript: Vec<anlg_zoom::TranscriptSegment>,
+        transcript: Vec<syntheo_zoom::TranscriptSegment>,
     ) -> Option<ImportedMeeting> {
         let id = meeting
             .id

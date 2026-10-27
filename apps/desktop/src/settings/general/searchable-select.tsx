@@ -1,8 +1,8 @@
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo, useState } from "react";
 
-import { CaretDown, Check } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { CaretDown, Check } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -10,14 +10,14 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@anlg/ui/components/ui/command";
+} from "@syntheo/ui/components/ui/command";
 import {
   AppFloatingPanel,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anlg/ui/components/ui/popover";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { cn } from "@syntheo/utils";
 
 export interface SearchableSelectOption {
   value: string;

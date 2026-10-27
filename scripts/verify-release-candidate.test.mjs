@@ -11,7 +11,7 @@ const script = fileURLToPath(
 );
 
 test("only a checked-out, merged candidate with matching workflow identity can ship", () => {
-  const cwd = mkdtempSync(path.join(tmpdir(), "anarlog-release-candidate-"));
+  const cwd = mkdtempSync(path.join(tmpdir(), "syntheo-release-candidate-"));
   const env = {
     ...process.env,
     GIT_AUTHOR_NAME: "Test",

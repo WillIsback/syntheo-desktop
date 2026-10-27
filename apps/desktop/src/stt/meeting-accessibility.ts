@@ -1,4 +1,4 @@
-import type { MeetingAccessibilityInspection } from "@anlg/plugin-detect";
+import type { MeetingAccessibilityInspection } from "@syntheo/plugin-detect";
 
 export function inspectionShowsActiveMeeting(
   inspection: MeetingAccessibilityInspection,

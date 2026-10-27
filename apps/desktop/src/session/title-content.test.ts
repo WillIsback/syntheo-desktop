@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { schema } from "@anlg/editor/note";
+import { schema } from "@syntheo/editor/note";
 
 import {
   documentTitlePlaceholder,

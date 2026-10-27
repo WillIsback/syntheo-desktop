@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-mcp",
+  "name": "@syntheo/plugin-mcp",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

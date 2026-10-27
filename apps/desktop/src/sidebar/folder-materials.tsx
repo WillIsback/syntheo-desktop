@@ -1,8 +1,8 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useRef, useState } from "react";
 
-import { PencilSimple, Plus, Trash, X } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { PencilSimple, Plus, Trash, X } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { FolderNameDialog } from "./folder-name-dialog";
 import { useSidebarNotes } from "./note-filter";

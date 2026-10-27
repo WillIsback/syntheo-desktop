@@ -1,4 +1,4 @@
-import type { InstalledApp } from "@anlg/plugin-detect";
+import type { InstalledApp } from "@syntheo/plugin-detect";
 
 function isAppIgnored({
   bundleId,

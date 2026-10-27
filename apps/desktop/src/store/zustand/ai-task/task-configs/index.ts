@@ -6,7 +6,7 @@ import type {
   TitleSystem,
   TitleUser,
   SummaryLengthPolicy,
-} from "@anlg/plugin-template";
+} from "@syntheo/plugin-template";
 
 import type { EnhanceImageContext } from "./enhance-images";
 import { enhanceSuccess, runEnhanceSuccess } from "./enhance-success";

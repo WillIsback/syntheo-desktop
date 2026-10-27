@@ -285,7 +285,7 @@ mod tests {
         let native =
             "2026-10-01T00:00:00Z INFO db_core::cloudsync::runtime::background: sync completed";
         let recovery = "2026-10-01T00:00:01Z WARN tauri_plugin_db::runtime::recovery: CloudSync recovery delayed";
-        let console = "2026-10-01T00:00:02Z WARN anarlog.webview.console: webview_console_event diagnostic=\"[cloudsync] local sync configuration failed\"";
+        let console = "2026-10-01T00:00:02Z WARN syntheo.webview.console: webview_console_event diagnostic=\"[cloudsync] local sync configuration failed\"";
         let multiline = "2026-10-01T00:00:03Z WARN db_core::cloudsync::runtime: CloudSync failed\n  caused by: timed out";
         std::fs::write(
             temp.path().join("app.log.1"),

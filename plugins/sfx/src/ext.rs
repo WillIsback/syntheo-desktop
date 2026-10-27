@@ -33,9 +33,9 @@ pub(crate) fn to_speaker(
     looping: bool,
     volume: f32,
 ) -> std::sync::mpsc::Sender<SoundControl> {
-    use anlg_audio_utils::open_default_playback_sink;
     use rodio::source::Source;
     use rodio::{Decoder, Player};
+    use syntheo_audio_utils::open_default_playback_sink;
     let (tx, rx) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {

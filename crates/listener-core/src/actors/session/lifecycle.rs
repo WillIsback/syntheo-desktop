@@ -22,7 +22,7 @@ pub(crate) fn emit_session_ended(
     });
 
     if let Some(reason) = failure_reason {
-        tracing::info!(anarlog.session.stop_reason = %reason, "session_stopped");
+        tracing::info!(syntheo.session.stop_reason = %reason, "session_stopped");
     } else {
         tracing::info!("session_stopped");
     }

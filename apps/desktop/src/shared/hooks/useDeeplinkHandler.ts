@@ -4,8 +4,8 @@ import {
   type DeepLink,
   commands as deeplink2Commands,
   events as deeplink2Events,
-} from "@anlg/plugin-deeplink2";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+} from "@syntheo/plugin-deeplink2";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { stopActiveWelcomeDemo } from "~/onboarding/welcome-note";
 import { subscribeThenDrainDeepLinks } from "~/shared/deeplink";

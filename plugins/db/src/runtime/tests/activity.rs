@@ -20,7 +20,7 @@ fn local_write_activities_wait_longer_than_capture_to_drain() {
 #[tokio::test]
 async fn cloudsync_activity_leases_are_idempotent_and_preserved_by_identity_clear() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
 
     runtime
@@ -67,7 +67,7 @@ async fn cloudsync_activity_leases_are_idempotent_and_preserved_by_identity_clea
 #[tokio::test]
 async fn cloudsync_activity_pause_is_process_scoped() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
     runtime
         .begin_cloudsync_activity("capture".to_string(), "session-1".to_string())
@@ -124,7 +124,7 @@ async fn clearing_activities_wakes_resume_waiters() {
 #[tokio::test]
 async fn paused_cloudsync_status_does_not_probe_the_busy_database() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
     runtime
         .begin_cloudsync_activity("capture".to_string(), "session-1".to_string())
@@ -147,7 +147,7 @@ async fn paused_cloudsync_status_does_not_probe_the_busy_database() {
 #[tokio::test]
 async fn activity_begin_waits_for_an_in_flight_cloudsync_control_operation() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     let control_operation = runtime.cloudsync_control_operation.lock().await;
     let mut begin =
@@ -170,7 +170,7 @@ async fn activity_begin_waits_for_an_in_flight_cloudsync_control_operation() {
 #[tokio::test]
 async fn activity_begin_timeout_fails_closed_and_releases_the_new_lease() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     let control_operation = runtime.cloudsync_control_operation.lock().await;
 
@@ -199,7 +199,7 @@ async fn activity_begin_timeout_fails_closed_and_releases_the_new_lease() {
 #[tokio::test]
 async fn duplicate_activity_begin_timeout_preserves_the_existing_lease() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     runtime
         .begin_cloudsync_activity("capture".to_string(), "session-1".to_string())
@@ -232,7 +232,7 @@ async fn duplicate_activity_begin_timeout_preserves_the_existing_lease() {
 #[tokio::test]
 async fn activity_end_cancels_a_begin_waiting_for_cloudsync_control() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     let control_operation = runtime.cloudsync_control_operation.lock().await;
     let mut begin =
@@ -263,15 +263,15 @@ async fn activity_end_cancels_a_begin_waiting_for_cloudsync_control() {
 #[tokio::test]
 async fn cloudsync_configuration_and_start_fail_promptly_during_activity() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     runtime
         .begin_cloudsync_activity("capture".to_string(), "session-1".to_string())
         .await
         .unwrap();
-    let config = serde_json::to_string(&anlg_db_core::CloudsyncRuntimeConfig {
+    let config = serde_json::to_string(&syntheo_db_core::CloudsyncRuntimeConfig {
         connection_string: "managed-database-id".to_string(),
-        auth: anlg_db_core::CloudsyncAuth::None,
+        auth: syntheo_db_core::CloudsyncAuth::None,
         tables: Vec::new(),
         sync_interval_ms: DEFAULT_CLOUDSYNC_INTERVAL_MS,
         wait_ms: Some(5_000),
@@ -328,18 +328,18 @@ async fn cloudsync_configuration_and_start_fail_promptly_during_activity() {
 #[tokio::test]
 async fn cloudsync_start_prearms_reconciliation() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     sqlx::query(
         "UPDATE storage_migration_state
              SET importer_version = ?, parity_verified = 1
              WHERE id = 'legacy_v1'",
     )
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .execute(db.pool())
     .await
     .unwrap();
     let runtime = PluginDbRuntime::new(db);
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -360,7 +360,7 @@ async fn cloudsync_start_prearms_reconciliation() {
 #[tokio::test]
 async fn cloudsync_control_rechecks_activity_after_acquiring_serialization() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     let control_operation = runtime.cloudsync_control_operation.lock().await;
     let mut start = Box::pin(runtime.start_cloudsync());
@@ -385,7 +385,7 @@ async fn cloudsync_control_rechecks_activity_after_acquiring_serialization() {
 #[tokio::test]
 async fn local_account_binding_is_not_deferred_by_cloudsync_activity() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     runtime
         .begin_cloudsync_activity("capture".to_string(), "session-1".to_string())
@@ -410,7 +410,7 @@ async fn local_account_binding_is_not_deferred_by_cloudsync_activity() {
 #[tokio::test]
 async fn local_account_binding_times_out_before_mutation_and_remains_fail_closed() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
     let control = runtime.cloudsync_control_operation.lock().await;
 
@@ -446,7 +446,7 @@ async fn local_account_binding_times_out_before_mutation_and_remains_fail_closed
             .await
             .unwrap()
     );
-    anlg_db_app::claim_cloudsync_workspace(db.pool(), "user-b")
+    syntheo_db_app::claim_cloudsync_workspace(db.pool(), "user-b")
         .await
         .unwrap();
     sqlx::query("INSERT INTO sessions (id, workspace_id, title) VALUES ('note', 'user-b', 'Note')")
@@ -464,7 +464,7 @@ async fn local_account_binding_times_out_before_mutation_and_remains_fail_closed
 #[tokio::test]
 async fn stop_suspend_and_logout_are_not_deferred_by_cloudsync_activity() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     runtime
         .begin_cloudsync_activity("capture".to_string(), "session-1".to_string())
@@ -510,7 +510,7 @@ async fn stop_suspend_and_logout_are_not_deferred_by_cloudsync_activity() {
 #[tokio::test]
 async fn sign_out_suspend_preserves_activity_leases() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     runtime
         .begin_cloudsync_activity("capture".to_string(), "session-1".to_string())
@@ -552,7 +552,7 @@ async fn sign_out_and_auth_loss_suspend_preserve_activity_leases_after_non_busy_
 
         assert!(!matches!(
             error,
-            crate::Error::Cloudsync(anlg_db_core::CloudsyncRuntimeError::LocalStatusBusy)
+            crate::Error::Cloudsync(syntheo_db_core::CloudsyncRuntimeError::LocalStatusBusy)
         ));
         assert!(runtime.e2ee_sync_hook.activity_paused());
         runtime
@@ -566,7 +566,7 @@ async fn sign_out_and_auth_loss_suspend_preserve_activity_leases_after_non_busy_
 #[tokio::test]
 async fn auth_suspension_bypasses_activity_acquisition_without_clearing_leases() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     runtime
         .e2ee_sync_hook
@@ -593,7 +593,7 @@ async fn auth_suspension_bypasses_activity_acquisition_without_clearing_leases()
 #[tokio::test]
 async fn raw_suspend_bypasses_activity_acquisition_and_preserves_leases() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     runtime
         .e2ee_sync_hook
@@ -631,7 +631,7 @@ async fn raw_suspend_bypasses_activity_acquisition_and_preserves_leases() {
 #[tokio::test]
 async fn final_activity_release_resets_the_recovery_delay_clock() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     runtime
         .begin_cloudsync_activity("capture".to_string(), "session-1".to_string())
@@ -657,7 +657,7 @@ async fn final_activity_release_resets_the_recovery_delay_clock() {
 #[tokio::test]
 async fn activity_release_does_not_hide_a_recovery_failure() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     runtime
         .begin_cloudsync_activity("capture".to_string(), "session-1".to_string())

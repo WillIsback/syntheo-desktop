@@ -1,6 +1,6 @@
 import { format, startOfWeek } from "date-fns";
 
-import { TZDate } from "@anlg/utils";
+import { TZDate } from "@syntheo/utils";
 
 import type { ActivityRecord } from "./queries";
 

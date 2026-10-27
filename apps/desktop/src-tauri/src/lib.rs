@@ -20,7 +20,7 @@ use tauri_plugin_permissions::{Permission, PermissionsPluginExt};
 use tauri_plugin_windows::AppWindow;
 
 #[cfg(any(feature = "dev", feature = "devtools"))]
-const STAGING_BUNDLE_ID: &str = "com.hyprnote.staging";
+const STAGING_BUNDLE_ID: &str = "com.syntheo.staging";
 
 const APP_EXIT_REQUESTED_EVENT: &str = "app-exit-requested";
 static EXIT_FLUSH_COMPLETE: AtomicBool = AtomicBool::new(false);
@@ -40,10 +40,12 @@ fn start_exit_hard_fallback() {
 }
 
 fn should_allow_immediate_exit() -> bool {
-    EXIT_FLUSH_COMPLETE.load(Ordering::SeqCst) || anlg_intercept::should_force_quit()
+    EXIT_FLUSH_COMPLETE.load(Ordering::SeqCst) || syntheo_intercept::should_force_quit()
 }
 
-fn create_audio_provider(_bundle_id: &str) -> std::sync::Arc<dyn anlg_audio_actual::AudioProvider> {
+fn create_audio_provider(
+    _bundle_id: &str,
+) -> std::sync::Arc<dyn syntheo_audio_actual::AudioProvider> {
     #[cfg(any(feature = "dev", feature = "devtools"))]
     {
         let bundle_id = _bundle_id;
@@ -55,10 +57,10 @@ fn create_audio_provider(_bundle_id: &str) -> std::sync::Arc<dyn anlg_audio_actu
         let mock_audio_allowed = cfg!(feature = "dev") || bundle_id == STAGING_BUNDLE_ID;
 
         if mock_audio_allowed && selection > 0 {
-            return std::sync::Arc::new(anlg_audio_mock::MockAudio::new(selection));
+            return std::sync::Arc::new(syntheo_audio_mock::MockAudio::new(selection));
         }
     }
-    std::sync::Arc::new(anlg_audio_actual::ActualAudio)
+    std::sync::Arc::new(syntheo_audio_actual::ActualAudio)
 }
 
 pub fn main() {
@@ -73,7 +75,7 @@ pub fn main() {
         .build()
         .expect("tokio runtime");
     tauri::async_runtime::set(runtime.handle().clone());
-    anlg_db_sync::set_runtime_handle(runtime.handle().clone());
+    syntheo_db_sync::set_runtime_handle(runtime.handle().clone());
 
     let context = tauri::generate_context!();
     let identifier = context.config().identifier.clone();
@@ -117,7 +119,7 @@ pub fn main() {
         db
     });
 
-    let audio: std::sync::Arc<dyn anlg_audio_actual::AudioProvider> =
+    let audio: std::sync::Arc<dyn syntheo_audio_actual::AudioProvider> =
         create_audio_provider(&context.config().identifier);
     let cloudsync_config = match cloudsync_runtime_config_from_env() {
         Ok(config) => config,
@@ -336,9 +338,9 @@ pub fn main() {
             }
 
             {
-                use tauri_plugin_tray::AnlgMenuItem;
+                use tauri_plugin_tray::SyntheoMenuItem;
                 app_handle.on_menu_event(|app, event| {
-                    if let Ok(item) = AnlgMenuItem::try_from(event.id().clone()) {
+                    if let Ok(item) = SyntheoMenuItem::try_from(event.id().clone()) {
                         item.handle(app);
                     } else {
                         tauri_plugin_tray::handle_agenda_menu_event(app, event.id());
@@ -406,7 +408,7 @@ pub fn main() {
     }
 
     #[cfg(target_os = "macos")]
-    anlg_intercept::setup_force_quit_handler();
+    syntheo_intercept::setup_force_quit_handler();
 
     #[allow(unused_variables)]
     app.run(move |app, event| match event {
@@ -447,7 +449,7 @@ pub fn main() {
             }
         }
         tauri::RunEvent::Exit => {
-            anlg_host::kill_processes_by_matcher(anlg_host::ProcessMatcher::Sidecar);
+            syntheo_host::kill_processes_by_matcher(syntheo_host::ProcessMatcher::Sidecar);
         }
         _ => {}
     });
@@ -455,7 +457,7 @@ pub fn main() {
 }
 
 fn startup_failure_message(error: &impl std::fmt::Display) -> String {
-    format!("Anarlog failed to start: {error}")
+    format!("Syntheo failed to start: {error}")
 }
 
 fn exit_after_startup_failure(identifier: &str, error: &impl std::fmt::Display) -> ! {
@@ -469,11 +471,11 @@ fn exit_after_startup_failure(identifier: &str, error: &impl std::fmt::Display) 
         // Startup can fail before the database is reachable, so the alert text
         // is fixed per failure class instead of embedding the error.
         let alert = if db::is_transient_lock_error(error) {
-            "display alert \"Anarlog is not ready yet\" message \"Another Anarlog process is still using your data, possibly finishing an update. Your existing data was left unchanged. Please wait a moment and open Anarlog again.\" as critical buttons {\"OK\"} default button \"OK\""
+            "display alert \"Syntheo is not ready yet\" message \"Another Syntheo process is still using your data, possibly finishing an update. Your existing data was left unchanged. Please wait a moment and open Syntheo again.\" as critical buttons {\"OK\"} default button \"OK\""
         } else if db::is_newer_schema_error(error) {
-            "display alert \"Anarlog needs an update\" message \"Your data was updated by a newer version of Anarlog, such as Anarlog Nightly, and this version cannot open it yet. Your existing data was left unchanged. Install the latest version of Anarlog, or keep using the newer app until this version catches up.\" as critical buttons {\"OK\"} default button \"OK\""
+            "display alert \"Syntheo needs an update\" message \"Your data was updated by a newer version of Syntheo, such as Syntheo Nightly, and this version cannot open it yet. Your existing data was left unchanged. Install the latest version of Syntheo, or keep using the newer app until this version catches up.\" as critical buttons {\"OK\"} default button \"OK\""
         } else {
-            "display alert \"Anarlog could not start\" message \"Your existing data was left unchanged. Please restart the app. If the problem continues, contact support.\" as critical buttons {\"OK\"} default button \"OK\""
+            "display alert \"Syntheo could not start\" message \"Your existing data was left unchanged. Please restart the app. If the problem continues, contact support.\" as critical buttons {\"OK\"} default button \"OK\""
         };
         let _ = std::process::Command::new("/usr/bin/osascript")
             .args(["-e", alert])
@@ -505,7 +507,7 @@ fn append_startup_failure_to_log(identifier: &str, message: &str) {
             return;
         };
         let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.6fZ");
-        let _ = writeln!(file, "{timestamp} ERROR anarlog::startup: {message}");
+        let _ = writeln!(file, "{timestamp} ERROR syntheo::startup: {message}");
     }
     #[cfg(not(target_os = "macos"))]
     {
@@ -576,7 +578,7 @@ mod test {
     #[test]
     fn complete_quit_allows_immediate_exit_without_frontend_flush() {
         assert!(!should_allow_immediate_exit());
-        anlg_intercept::set_force_quit();
+        syntheo_intercept::set_force_quit();
         assert!(should_allow_immediate_exit());
     }
 

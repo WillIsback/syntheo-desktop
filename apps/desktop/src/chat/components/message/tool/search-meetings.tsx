@@ -1,14 +1,14 @@
 import { useCallback, useMemo } from "react";
 
-import { MagnifyingGlass } from "@anlg/ui/components/icons";
-import { Card, CardContent } from "@anlg/ui/components/ui/card";
+import { MagnifyingGlass } from "@syntheo/ui/components/icons";
+import { Card, CardContent } from "@syntheo/ui/components/ui/card";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@anlg/ui/components/ui/carousel";
+} from "@syntheo/ui/components/ui/carousel";
 
 import { useToolState } from "./shared";
 

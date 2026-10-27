@@ -3,8 +3,8 @@ import { platform } from "@tauri-apps/plugin-os";
 import {
   ResizablePanel,
   ResizablePanelGroup,
-} from "@anlg/ui/components/ui/resizable";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/resizable";
+import { cn } from "@syntheo/utils";
 
 export { MainShellBodyFrame } from "./body-frame";
 export { MainChatPanels } from "./chat-panels";

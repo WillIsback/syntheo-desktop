@@ -17,13 +17,13 @@ const mocks = vi.hoisted(() => ({
   composeGeneratedSummary: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-db", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@anlg/plugin-db")>()),
+vi.mock("@syntheo/plugin-db", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@syntheo/plugin-db")>()),
   beginCloudsyncActivity: mocks.beginCloudsyncActivity,
   endCloudsyncActivity: mocks.endCloudsyncActivity,
 }));
 
-vi.mock("@anlg/plugin-template", () => ({
+vi.mock("@syntheo/plugin-template", () => ({
   commands: {
     prepareGeneratedSummary: mocks.prepareGeneratedSummary,
     composeGeneratedSummary: mocks.composeGeneratedSummary,

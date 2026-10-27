@@ -1,1 +1,1 @@
-pub(crate) use anlg_db_sync::{E2eeWitnessCancellation, E2eeWitnessClient};
+pub(crate) use syntheo_db_sync::{E2eeWitnessCancellation, E2eeWitnessClient};

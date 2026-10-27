@@ -1,8 +1,8 @@
 use std::convert::TryFrom;
 
-use anlg_audio_interface::AsyncSource;
 use bytes::{BufMut, Bytes, BytesMut};
 use futures_util::{Stream, StreamExt};
+use syntheo_audio_interface::AsyncSource;
 
 mod error;
 mod pcm;
@@ -52,7 +52,7 @@ pub trait AudioFormatExt: AsyncSource {
     where
         Self: Sized + Send + Unpin + 'static,
     {
-        anlg_resampler::ResamplerDynamicOld::new(self, sample_rate)
+        syntheo_resampler::ResamplerDynamicOld::new(self, sample_rate)
             .chunks(chunk_size)
             .map(|chunk| {
                 let n = std::mem::size_of::<f32>() * chunk.len();
@@ -183,7 +183,7 @@ pub fn mix_audio_pcm16le(mic: &[u8], speaker: &[u8]) -> Vec<u8> {
     mixed
 }
 
-pub use anlg_audio_mime::content_type_to_extension;
+pub use syntheo_audio_mime::content_type_to_extension;
 
 pub fn source_from_path(
     path: impl AsRef<std::path::Path>,
@@ -617,14 +617,14 @@ mod tests {
     #[test]
     fn audio_file_metadata_reads_supported_formats() {
         for (label, path) in [
-            ("wav", anlg_data::english_1::AUDIO_PATH),
-            ("mp3", anlg_data::english_1::AUDIO_MP3_PATH),
-            ("mp4", anlg_data::english_1::AUDIO_MP4_PATH),
-            ("m4a", anlg_data::english_1::AUDIO_M4A_PATH),
-            ("ogg", anlg_data::english_1::AUDIO_OGG_PATH),
-            ("flac", anlg_data::english_1::AUDIO_FLAC_PATH),
-            ("aac", anlg_data::english_1::AUDIO_AAC_PATH),
-            ("aiff", anlg_data::english_1::AUDIO_AIFF_PATH),
+            ("wav", syntheo_data::english_1::AUDIO_PATH),
+            ("mp3", syntheo_data::english_1::AUDIO_MP3_PATH),
+            ("mp4", syntheo_data::english_1::AUDIO_MP4_PATH),
+            ("m4a", syntheo_data::english_1::AUDIO_M4A_PATH),
+            ("ogg", syntheo_data::english_1::AUDIO_OGG_PATH),
+            ("flac", syntheo_data::english_1::AUDIO_FLAC_PATH),
+            ("aac", syntheo_data::english_1::AUDIO_AAC_PATH),
+            ("aiff", syntheo_data::english_1::AUDIO_AIFF_PATH),
         ] {
             let metadata = audio_file_metadata(path).unwrap();
             assert!(metadata.sample_rate > 0, "{label}");

@@ -74,7 +74,7 @@ pub async fn import_recording(
         .fetch_optional(pool).await.map_err(database)?;
     if vault.is_none() {
         return Err(Error::Invalid(
-            "Open the updated Anarlog desktop app before importing recordings".into(),
+            "Open the updated Syntheo desktop app before importing recordings".into(),
         ));
     }
     let source = tokio::fs::canonicalize(&input.file_path)
@@ -128,10 +128,10 @@ pub async fn import_recording(
                 return Ok(existing);
         }
         let now: String = sqlx::query_scalar("SELECT strftime('%Y-%m-%dT%H:%M:%fZ', 'now')").fetch_one(&mut *tx).await.map_err(database)?;
-        anlg_db_app::insert_session(&mut tx, &id, &title, "", "", &folder, &now).await.map_err(database)?;
-        anlg_db_app::insert_empty_session_note(&mut tx, &id, "", &now).await.map_err(database)?;
-        anlg_db_app::upsert_session_owner_human(&mut tx, &id, &now).await.map_err(database)?;
-        anlg_db_app::insert_owner_session_participant(&mut tx, &uuid::Uuid::new_v4().to_string(), &id, &now).await.map_err(database)?;
+        syntheo_db_app::insert_session(&mut tx, &id, &title, "", "", &folder, &now).await.map_err(database)?;
+        syntheo_db_app::insert_empty_session_note(&mut tx, &id, "", &now).await.map_err(database)?;
+        syntheo_db_app::upsert_session_owner_human(&mut tx, &id, &now).await.map_err(database)?;
+        syntheo_db_app::insert_owner_session_participant(&mut tx, &uuid::Uuid::new_v4().to_string(), &id, &now).await.map_err(database)?;
         sqlx::query("INSERT INTO local_recording_import_jobs (id, meeting_id, request_key, file_path, updated_at) VALUES (?, ?, ?, ?, unixepoch())")
             .bind(&id).bind(&id).bind(&input.request_key).bind(source.to_string_lossy().as_ref()).execute(&mut *tx).await.map_err(database)?;
         tx.commit().await.map_err(database)?;
@@ -144,7 +144,7 @@ pub async fn import_recording(
 mod tests {
     use super::*;
 
-    async fn worker_vault(db: &anlg_db_core::Db, vault: &str) {
+    async fn worker_vault(db: &syntheo_db_core::Db, vault: &str) {
         sqlx::query("INSERT INTO local_recording_import_worker (id, vault_path, updated_at) VALUES ('desktop', ?, unixepoch())")
             .bind(vault)
             .execute(db.pool())
@@ -155,10 +155,10 @@ mod tests {
     #[tokio::test]
     async fn concurrent_retries_create_one_meeting_without_copying_the_recording() {
         let dir = tempfile::tempdir().unwrap();
-        let db = anlg_db_core::Db::connect_local_plain(dir.path().join("app.db"))
+        let db = syntheo_db_core::Db::connect_local_plain(dir.path().join("app.db"))
             .await
             .unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         worker_vault(&db, dir.path().to_string_lossy().as_ref()).await;
         sqlx::query("INSERT INTO folders (id, path) VALUES ('research', 'Research')")
             .execute(db.pool())
@@ -215,10 +215,10 @@ mod tests {
     #[tokio::test]
     async fn unavailable_worker_and_invalid_files_leave_no_meetings() {
         let dir = tempfile::tempdir().unwrap();
-        let db = anlg_db_core::Db::connect_local_plain(dir.path().join("app.db"))
+        let db = syntheo_db_core::Db::connect_local_plain(dir.path().join("app.db"))
             .await
             .unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         let file = dir.path().join("empty.wav");
         tokio::fs::write(&file, b"").await.unwrap();
         let input = ImportRecordingInput {

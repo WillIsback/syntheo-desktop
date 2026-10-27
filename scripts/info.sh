@@ -9,21 +9,21 @@ has_app_data() {
 }
 
 # Mirrors resolve_app_folder in crates/storage/src/global.rs.
-stable_app_folder="$app_support/anarlog"
-if has_app_data "$app_support/hyprnote" && ! has_app_data "$app_support/anarlog"; then
-    stable_app_folder="$app_support/hyprnote"
+stable_app_folder="$app_support/syntheo"
+if has_app_data "$app_support/syntheo" && ! has_app_data "$app_support/syntheo"; then
+    stable_app_folder="$app_support/syntheo"
 fi
 
 if [ -f "$stable_app_folder/store.json" ]; then
     stable_user_id=$(jq -r '."auth-user-id" // empty' "$stable_app_folder/store.json")
 fi
 
-if [ -d "/Applications/Anarlog.app" ]; then
-    stable_version=$(defaults read /Applications/Anarlog.app/Contents/Info.plist CFBundleShortVersionString 2>/dev/null || echo "")
+if [ -d "/Applications/Syntheo.app" ]; then
+    stable_version=$(defaults read /Applications/Syntheo.app/Contents/Info.plist CFBundleShortVersionString 2>/dev/null || echo "")
 elif [ -d "/Applications/Char.app" ]; then
     stable_version=$(defaults read /Applications/Char.app/Contents/Info.plist CFBundleShortVersionString 2>/dev/null || echo "")
-elif [ -d "/Applications/Hyprnote.app" ]; then
-    stable_version=$(defaults read /Applications/Hyprnote.app/Contents/Info.plist CFBundleShortVersionString 2>/dev/null || echo "")
+elif [ -d "/Applications/Syntheo.app" ]; then
+    stable_version=$(defaults read /Applications/Syntheo.app/Contents/Info.plist CFBundleShortVersionString 2>/dev/null || echo "")
 fi
 
 cat << EOF

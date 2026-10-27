@@ -1,6 +1,6 @@
 ---
 name: release-docs
-description: Prepare Anarlog release notes and documentation, publish the website changelog when the app is published, and verify the live content without a separate request.
+description: Prepare Syntheo release notes and documentation, publish the website changelog when the app is published, and verify the live content without a separate request.
 metadata:
   internal: true
 ---
@@ -23,7 +23,7 @@ release/tag checks are not applicable.
    CLI/MCP/API examples, screenshots, troubleshooting, and platform availability.
    Preserve external-contributor credits and describe shipped behavior only.
 2. Prepare the changelog with its `date` and plain-text `summary`. Run changed-file
-   formatting, `pnpm -F @anlg/changelog typecheck`, and affected web checks from
+   formatting, `pnpm -F @syntheo/changelog typecheck`, and affected web checks from
    `web_ci.yaml`/root `AGENTS.md`. For docs, use the Mintlify version pinned in
    `cli_ci.yaml` to run `validate` and
    `broken-links --check-anchors --check-redirects` from `docs/`; preview affected
@@ -56,8 +56,8 @@ before selecting the deployment; do not assume merging the notes publishes them.
    metadata; never deploy the old desktop candidate over newer website/package
    content. If `main` contains unrelated unapproved web changes, resolve that source
    scope before deploying and report the concrete publication blocker.
-4. Fetch `https://anarlog.so/changelog/desktop/<version>/` and
-   `https://anarlog.so/changelog/` from the live site. Verify the expected version,
+4. Fetch `https://github.com/WillIsback/syntheo-desktop/changelog/desktop/<version>/` and
+   `https://github.com/WillIsback/syntheo-desktop/changelog/` from the live site. Verify the expected version,
    summary and release-note sections/body, plus the index link. For the latest
    desktop release, verify it is marked Latest within the Desktop stream. Verify
    the legacy `/changelog/<version>/` URL redirects to its Desktop page. HTTP 200, a generic page, a source file, a
@@ -92,7 +92,7 @@ before selecting the deployment; do not assume merging the notes publishes them.
 ## Other documentation and completion
 
 Publish changed Mintlify content through its configured connected deployment and
-verify the actual changed content at `https://docs.anarlog.so`, including
+verify the actual changed content at `https://github.com/WillIsback/syntheo-desktop/tree/main/docs`, including
 `skill.md`, `llms.txt`, and `llms-full.txt` when affected. Mintlify and Vercel are
 separate publication paths; inspect current configuration rather than assuming
 that a website deployment also updates docs. Reuse unchanged surfaces with evidence.

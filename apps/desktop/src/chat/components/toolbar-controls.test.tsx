@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   useRecentChatGroups: vi.fn(() => []),
 }));
 
-vi.mock("@anlg/ui/components/ui/button", () => ({
+vi.mock("@syntheo/ui/components/ui/button", () => ({
   Button: ({
     children,
     ...props
@@ -17,7 +17,7 @@ vi.mock("@anlg/ui/components/ui/button", () => ({
   ),
 }));
 
-vi.mock("@anlg/ui/components/ui/dropdown-menu", () => ({
+vi.mock("@syntheo/ui/components/ui/dropdown-menu", () => ({
   appFloatingMenuPanelClassName: "",
   AppFloatingPanel: ({ children }: { children: ReactNode }) => (
     <div>{children}</div>

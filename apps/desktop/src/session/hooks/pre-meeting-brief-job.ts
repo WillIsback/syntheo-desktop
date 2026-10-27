@@ -1,7 +1,7 @@
 import type { LanguageModel } from "ai";
 import { useEffect, useSyncExternalStore } from "react";
 
-import { md2json, type JSONContent } from "@anlg/editor/markdown";
+import { md2json, type JSONContent } from "@syntheo/editor/markdown";
 
 import type { PastSessionNote } from "~/session/insights/past-notes";
 import {

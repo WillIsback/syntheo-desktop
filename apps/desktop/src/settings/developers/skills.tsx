@@ -3,8 +3,8 @@ import { Trans } from "@lingui/react/macro";
 import { Claude, Cursor, OpenAI } from "@lobehub/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { CaretDown, Check, CircleNotch } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { CaretDown, Check, CircleNotch } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -13,8 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { toast } from "@anlg/ui/components/ui/toast";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import { commands, type SkillAgent } from "~/types/tauri.gen";
 
@@ -99,8 +99,8 @@ export function SkillsRow() {
       void queryClient.invalidateQueries({ queryKey: SKILL_AGENTS_QUERY_KEY });
       toast.success(
         statuses.length === 1
-          ? t`Anarlog skill added to ${statuses[0].displayName}`
-          : t`Anarlog skill added to ${statuses.length} agents`,
+          ? t`Syntheo skill added to ${statuses[0].displayName}`
+          : t`Syntheo skill added to ${statuses.length} agents`,
       );
     },
     onError: (error) => {
@@ -120,7 +120,7 @@ export function SkillsRow() {
         </h3>
         <p className="text-muted-foreground mt-1 text-xs">
           <Trans>
-            Teach coding agents when and how to use the Anarlog CLI and MCP
+            Teach coding agents when and how to use the Syntheo CLI and MCP
           </Trans>
         </p>
       </div>

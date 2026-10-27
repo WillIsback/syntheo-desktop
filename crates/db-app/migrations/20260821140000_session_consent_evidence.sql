@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS session_disclosure_attempts (
     )
   ),
   surface TEXT NOT NULL DEFAULT '' CHECK (length(surface) <= 128),
-  message_version TEXT NOT NULL DEFAULT 'anarlog-disclosure-v1' CHECK (
+  message_version TEXT NOT NULL DEFAULT 'syntheo-disclosure-v1' CHECK (
     length(message_version) BETWEEN 1 AND 64
   ),
   message TEXT NOT NULL DEFAULT '' CHECK (length(CAST(message AS BLOB)) <= 4096),

@@ -1,7 +1,7 @@
 import { useStore } from "zustand";
 
-import { commands as trayCommands } from "@anlg/plugin-tray";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { commands as trayCommands } from "@syntheo/plugin-tray";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { useSession } from "~/session/queries";
 import { type LiveSessionStatus } from "~/store/zustand/listener/general-shared";

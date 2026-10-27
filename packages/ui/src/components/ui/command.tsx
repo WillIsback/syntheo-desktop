@@ -2,8 +2,8 @@ import { type DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
 import * as React from "react";
 
-import { Dialog, DialogContent } from "@anlg/ui/components/ui/dialog";
-import { cn } from "@anlg/utils";
+import { Dialog, DialogContent } from "@syntheo/ui/components/ui/dialog";
+import { cn } from "@syntheo/utils";
 
 import { MagnifyingGlass } from "../icons";
 import { appFloatingItemClassName } from "./floating-content";

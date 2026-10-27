@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react";
 import { createRequire } from "node:module";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { LiveTranscriptDelta } from "@anlg/plugin-transcription";
+import type { LiveTranscriptDelta } from "@syntheo/plugin-transcription";
 
 const mocks = vi.hoisted(() => ({
   execute: vi.fn(),
@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
   transcriptRows: [] as Array<Record<string, unknown>>,
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: { promoteVoiceprintCandidates: mocks.promoteVoiceprintCandidates },
 }));
 

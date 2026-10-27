@@ -1,10 +1,10 @@
 // Tremor ProgressBar v0.0.3, Apache-2.0. See LICENSE.
 // Source: tremorlabs/tremor@ca4d588f47820ff3d514d37fa4ee08a4222dec11.
-// Adapted to Anarlog's theme tokens and reduced-motion preference.
+// Adapted to Syntheo's theme tokens and reduced-motion preference.
 import type { HTMLAttributes } from "react";
 
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { cn } from "@anlg/utils";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { cn } from "@syntheo/utils";
 
 export function ProgressBar({
   value = 0,

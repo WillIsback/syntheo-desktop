@@ -4,10 +4,10 @@ use std::{
     time::Duration,
 };
 
-use anlg_db_app::{AppendOutcome, LiveTranscriptInsert, append_live_transcript_deltas};
-use anlg_transcript::WordState;
-use anlg_transcription_core::listener::LiveTranscriptDelta;
 use futures_util::future::BoxFuture;
+use syntheo_db_app::{AppendOutcome, LiveTranscriptInsert, append_live_transcript_deltas};
+use syntheo_transcript::WordState;
+use syntheo_transcription_core::listener::LiveTranscriptDelta;
 use tauri::Manager;
 use tauri_specta::Event;
 use tokio::{
@@ -587,9 +587,9 @@ async fn run_writer(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
-    use anlg_transcript::{FinalizedWord, PartialWord, WordState};
     use sqlx::SqlitePool;
+    use syntheo_db_core::Db;
+    use syntheo_transcript::{FinalizedWord, PartialWord, WordState};
 
     struct PoolJournalStore(SqlitePool);
 
@@ -649,7 +649,7 @@ mod tests {
     #[tokio::test]
     async fn appends_deltas_and_flushes_with_final_word_progress() {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO sessions (id, workspace_id, owner_user_id)
              VALUES ('session-1', 'workspace-1', 'owner-1')",
@@ -713,7 +713,7 @@ mod tests {
     #[tokio::test]
     async fn rejected_registration_restores_previous_journal() {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO sessions (id, workspace_id, owner_user_id)
              VALUES ('session-1', 'workspace-1', 'owner-1')",

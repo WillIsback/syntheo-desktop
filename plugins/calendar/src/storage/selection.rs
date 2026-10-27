@@ -21,7 +21,7 @@ pub async fn set_calendar_enabled(
         .map_err(|error| error.to_string())?;
 
     let result = async {
-        anlg_db_app::update_calendar_enabled(
+        syntheo_db_app::update_calendar_enabled(
             &mut transaction,
             request.enabled,
             &now,
@@ -29,7 +29,7 @@ pub async fn set_calendar_enabled(
         )
         .await
         .map_err(|error| error.to_string())?;
-        anlg_db_app::tombstone_events_when_calendar_disabled(
+        syntheo_db_app::tombstone_events_when_calendar_disabled(
             &mut transaction,
             &now,
             &request.calendar_id,
@@ -54,11 +54,11 @@ pub async fn set_calendar_enabled(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO calendars (id, tracking_id_calendar, name, enabled, provider, connection_id)
              VALUES ('cal-1', 'primary', 'Work', 1, 'google', 'conn-1')",

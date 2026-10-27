@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { AIProviderStorage } from "@anlg/store";
+import type { AIProviderStorage } from "@syntheo/store";
 
 import { type ProviderId, PROVIDERS } from "~/settings/ai/stt/shared";
 import { useAiProvidersState } from "~/settings/providers";

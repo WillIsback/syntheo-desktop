@@ -67,7 +67,7 @@ fn update_pipewire_initialization(
         pw::stream::StreamState::Streaming if sample_rate > 0 => {
             if let Some(init_tx) = init_tx.take() {
                 tracing::info!(
-                    anarlog.audio.sample_rate_hz = sample_rate,
+                    syntheo.audio.sample_rate_hz = sample_rate,
                     "pipewire_capture_initialized"
                 );
                 let _ = init_tx.send(Ok(()));
@@ -322,11 +322,11 @@ fn pipewire_capture_setup(
         *pw::keys::STREAM_CAPTURE_SINK => "true",
     };
     if let Some(target) = resolve_sink_name() {
-        tracing::info!(anarlog.audio.device = %target, "pipewire_targeting_sink");
+        tracing::info!(syntheo.audio.device = %target, "pipewire_targeting_sink");
         stream_props.insert("target.object", target);
     }
 
-    let stream = pw::stream::StreamBox::new(&core, "anarlog-speaker-capture", stream_props)
+    let stream = pw::stream::StreamBox::new(&core, "syntheo-speaker-capture", stream_props)
         .context("Failed to create PipeWire stream")?;
 
     let _shutdown = shutdown_rx.attach(mainloop.loop_(), {
@@ -481,7 +481,7 @@ fn pulseaudio_capture_loop(
     init_tx: std::sync::mpsc::Sender<Result<()>>,
 ) -> Result<()> {
     let mut mainloop = Mainloop::new().context("Failed to create PulseAudio mainloop")?;
-    let mut context = PaContext::new(&mainloop, "anarlog-speaker-capture")
+    let mut context = PaContext::new(&mainloop, "syntheo-speaker-capture")
         .context("Failed to create PulseAudio context")?;
 
     context
@@ -506,11 +506,11 @@ fn pulseaudio_capture_loop(
 
         let monitor_device = resolve_monitor_device(&mut mainloop, &context)
             .context("Failed to resolve PulseAudio monitor source")?;
-        tracing::info!(anarlog.audio.device = %monitor_device, "connecting_to_monitor_device");
+        tracing::info!(syntheo.audio.device = %monitor_device, "connecting_to_monitor_device");
 
         mainloop.lock();
         let stream_result = (|| -> Result<_> {
-            let mut stream = PaStream::new(&mut context, "anarlog-capture", &spec, None)
+            let mut stream = PaStream::new(&mut context, "syntheo-capture", &spec, None)
                 .context("Failed to create PulseAudio stream")?;
             stream
                 .connect_record(
@@ -548,7 +548,7 @@ fn pulseaudio_capture_loop(
 
     current_sample_rate.store(actual_rate, Ordering::Release);
     tracing::info!(
-        anarlog.audio.sample_rate_hz = actual_rate,
+        syntheo.audio.sample_rate_hz = actual_rate,
         "pulseaudio_capture_initialized"
     );
     let _ = init_tx.send(Ok(()));
@@ -799,7 +799,7 @@ fn pick_sink_in_use(
         None => {
             let sink = candidates.swap_remove(0);
             tracing::info!(
-                anarlog.audio.device = %sink.name,
+                syntheo.audio.device = %sink.name,
                 "speaker_capture_following_active_sink"
             );
             sink
@@ -810,7 +810,7 @@ fn pick_sink_in_use(
 
 // `None` leaves PipeWire on the default sink.
 fn resolve_sink_name() -> Option<String> {
-    with_pulse_context("anarlog-speaker-list", |mainloop, context| {
+    with_pulse_context("syntheo-speaker-list", |mainloop, context| {
         sink_in_use(mainloop, context).map(|sink| sink.name)
     })
     .flatten()

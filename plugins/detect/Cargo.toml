@@ -10,23 +10,23 @@ description = ""
 
 [features]
 default = ["zoom", "sleep"]
-zoom = ["anlg-detect/zoom"]
-language = ["anlg-detect/language"]
-sleep = ["anlg-detect/sleep"]
+zoom = ["syntheo-detect/zoom"]
+language = ["syntheo-detect/language"]
+sleep = ["syntheo-detect/sleep"]
 test-support = []
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
-anlg-detect = { workspace = true, features = ["mic"] }
 specta-typescript = { workspace = true }
+syntheo-detect = { workspace = true, features = ["mic"] }
 tauri-plugin-detect = { path = ".", features = ["test-support"] }
 tokio = { workspace = true, features = ["test-util"] }
 
 [dependencies]
-anlg-detect = { workspace = true, features = ["mic", "list", "language", "sleep", "screen"] }
-anlg-notification-interface = { workspace = true }
+syntheo-detect = { workspace = true, features = ["mic", "list", "language", "sleep", "screen"] }
+syntheo-notification-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }
 tauri-plugin-settings = { workspace = true }

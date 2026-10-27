@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   commands as transcriptionCommands,
   events as transcriptionEvents,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import {
   completeCaptureTranscript,
@@ -158,7 +158,7 @@ const {
   openNewMock: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-db", () => ({
+vi.mock("@syntheo/plugin-db", () => ({
   beginCloudsyncActivity: beginCloudsyncActivityMock,
   endCloudsyncActivity: endCloudsyncActivityMock,
   execute: vi.fn(async () => []),
@@ -167,7 +167,7 @@ vi.mock("@anlg/plugin-db", () => ({
   subscribe: vi.fn(async () => () => {}),
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     acknowledgeStoppedCapture: acknowledgeStoppedCaptureMock,
     getStoppedCapture: getStoppedCaptureMock,
@@ -205,13 +205,13 @@ vi.mock("@tauri-apps/plugin-os", () => ({
   platform: () => "macos",
 }));
 
-vi.mock("@anlg/plugin-permissions", () => ({
+vi.mock("@syntheo/plugin-permissions", () => ({
   commands: {
     checkPermission: vi.fn(async () => ({ status: "ok", data: "authorized" })),
   },
 }));
 
-vi.mock("@anlg/plugin-detect", () => ({
+vi.mock("@syntheo/plugin-detect", () => ({
   commands: {
     listMicUsingApplications: listMicUsingApplicationsMock,
     sendMeetingChatMessage: sendMeetingChatMessageMock,
@@ -227,7 +227,7 @@ vi.mock("./empty-automatic-capture", () => ({
   discardEmptyAutomaticCapture: emptyCaptureMock,
 }));
 
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     audioExist: vi.fn().mockResolvedValue({ status: "ok", data: false }),
     audioPath: audioPathMock,
@@ -235,7 +235,7 @@ vi.mock("@anlg/plugin-fs-sync", () => ({
   },
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: {
     warning: toastWarningMock,
     error: toastErrorMock,
@@ -600,7 +600,7 @@ describe("useStartListening", () => {
     leftSidebarExpanded.value = true;
     useSTTConnectionMock.mockReturnValue({
       conn: {
-        provider: "anarlog",
+        provider: "syntheo",
         model: "am-test",
         baseUrl: "http://localhost:8080",
         apiKey: "",
@@ -2151,7 +2151,7 @@ describe("useStartListening", () => {
     listMicUsingApplicationsMock
       .mockResolvedValueOnce({
         status: "ok",
-        data: [{ id: "com.anarlog.dev", name: "Anarlog Dev" }],
+        data: [{ id: "fr.willisback.syntheo.dev", name: "Syntheo Dev" }],
       })
       .mockResolvedValueOnce({
         status: "ok",
@@ -2185,7 +2185,7 @@ describe("useStartListening", () => {
     expect(sendMeetingChatMessageMock).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining("J'utilise Syntheo"),
-      ["com.anarlog.dev"],
+      ["fr.willisback.syntheo.dev"],
     );
     expect(sendMeetingChatMessageMock).toHaveBeenNthCalledWith(
       2,

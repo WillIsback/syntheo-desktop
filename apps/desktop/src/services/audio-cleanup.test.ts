@@ -9,14 +9,14 @@ const mocks = vi.hoisted(() => ({
   snapshot: vi.fn(),
   acknowledge: vi.fn(),
 }));
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     getCaptureAudioCleanupStatus: mocks.snapshot,
     acknowledgeCaptureAudioCleanupStatus: mocks.acknowledge,
   },
   events: { captureStatusEvent: { listen: mocks.listen } },
 }));
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { error: mocks.error, dismiss: mocks.dismiss },
 }));
 vi.mock("~/stt/capture-result", () => ({

@@ -60,7 +60,7 @@ async fn empty_replica_placeholders_wait_for_ciphertext() {
     .fetch_one(target.pool())
     .await
     .unwrap();
-    assert_eq!(payload_hash, anlg_e2ee::payload_hash(&payload));
+    assert_eq!(payload_hash, syntheo_e2ee::payload_hash(&payload));
 }
 
 #[tokio::test]
@@ -128,7 +128,7 @@ async fn field_chunk_before_manifest_waits_then_applies_without_echo() {
     .fetch_one(target.pool())
     .await
     .unwrap();
-    assert_eq!(after_apply.0, anlg_e2ee::payload_hash(&title_payload));
+    assert_eq!(after_apply.0, syntheo_e2ee::payload_hash(&title_payload));
     assert_eq!(after_apply.1, before_apply.1);
     let before_manifest: i64 =
         sqlx::query_scalar("SELECT COUNT(*) FROM sessions WHERE id = 'session-1'")
@@ -224,7 +224,7 @@ async fn witness_repairs_missing_records_only_after_snapshot_completion() {
             sequence: u64::try_from(index + 1).unwrap(),
             record_id,
             workspace_id: "workspace-a".to_string(),
-            payload_hash: anlg_e2ee::payload_hash(&payload),
+            payload_hash: syntheo_e2ee::payload_hash(&payload),
             payload,
         })
         .collect::<Vec<_>>();
@@ -292,7 +292,7 @@ async fn witness_repairs_respect_record_and_byte_limits() {
             sequence: u64::try_from(index + 1).unwrap(),
             record_id: record_id.clone(),
             workspace_id: "workspace-a".to_string(),
-            payload_hash: anlg_e2ee::payload_hash(payload),
+            payload_hash: syntheo_e2ee::payload_hash(payload),
             payload: payload.clone(),
         })
         .collect::<Vec<_>>();
@@ -469,7 +469,7 @@ async fn cancelled_received_replica_preflight_is_bounded_and_releases_local_writ
                 json!(true),
             )
             .unwrap();
-        let payload_hash = anlg_e2ee::payload_hash(&sealed.payload);
+        let payload_hash = syntheo_e2ee::payload_hash(&sealed.payload);
         sqlx::query(
             "INSERT INTO e2ee_records (id, workspace_id, payload)
                  VALUES (?, 'workspace-a', ?)",
@@ -593,7 +593,7 @@ async fn bounded_received_preflight_skips_foreign_and_unwitnessed_prefixes() {
              )",
     )
     .bind(&sealed.record_id)
-    .bind(anlg_e2ee::payload_hash(&sealed.payload))
+    .bind(syntheo_e2ee::payload_hash(&sealed.payload))
     .bind(&sealed.payload)
     .execute(db.pool())
     .await
@@ -795,8 +795,8 @@ async fn failed_remote_apply_rolls_back_the_guard() {
 }
 
 async fn seeded_target_with_session() -> (
-    anlg_db_core::Db,
-    HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+    syntheo_db_core::Db,
+    HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
 ) {
     let workspace_keys = keys("workspace-a");
     let source = test_db().await;

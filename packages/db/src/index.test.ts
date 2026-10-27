@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDb, events, max, templates } from "./index";
 
-describe("@anlg/db createDb", () => {
+describe("@syntheo/db createDb", () => {
   const executeProxy = vi.fn();
   const db = createDb({ executeProxy });
 

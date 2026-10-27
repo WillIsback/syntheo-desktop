@@ -30,14 +30,14 @@ vi.mock("@tauri-apps/api/core", () => ({
   isTauri: () => true,
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   commands: {
     windowExpandWidth: mocks.windowExpandWidth,
     windowRestoreWidth: mocks.windowRestoreWidth,
   },
 }));
 
-vi.mock("@anlg/ui/components/ui/resizable", () => ({
+vi.mock("@syntheo/ui/components/ui/resizable", () => ({
   ResizablePanelGroup: ({
     autoSaveId,
     children,

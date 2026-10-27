@@ -8,17 +8,17 @@ import {
   MinusCircle,
   Plus,
   X,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { Input } from "@anlg/ui/components/ui/input";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { Input } from "@syntheo/ui/components/ui/input";
 import {
   AppFloatingPanel,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anlg/ui/components/ui/popover";
-import { Textarea } from "@anlg/ui/components/ui/textarea";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { Textarea } from "@syntheo/ui/components/ui/textarea";
+import { cn } from "@syntheo/utils";
 
 import {
   AvatarUploadButton,

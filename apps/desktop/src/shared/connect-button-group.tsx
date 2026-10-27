@@ -1,9 +1,9 @@
 import { motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
 
-import { ButtonGroup } from "@anlg/ui/components/ui/button-group";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { cn } from "@anlg/utils";
+import { ButtonGroup } from "@syntheo/ui/components/ui/button-group";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { cn } from "@syntheo/utils";
 
 export function ConnectButtonGroup({
   primary,

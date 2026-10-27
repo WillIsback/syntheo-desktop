@@ -5,7 +5,7 @@ import type {
   LiveTranscriptDelta,
   LiveTranscriptSegment,
   LiveTranscriptSegmentDelta,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import type { RuntimeSpeakerHint, WordLike } from "~/stt/segment";
 

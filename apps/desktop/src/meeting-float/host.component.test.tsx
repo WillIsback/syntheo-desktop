@@ -49,7 +49,7 @@ vi.mock("@tauri-apps/plugin-os", () => ({
   platform: () => "macos",
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   commands: {
     floatingBarShow: mocks.floatingBarShow,
     floatingBarHide: mocks.floatingBarHide,

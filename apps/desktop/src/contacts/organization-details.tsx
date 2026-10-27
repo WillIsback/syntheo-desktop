@@ -2,10 +2,10 @@ import { Icon } from "@iconify-icon/react";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { Buildings, Envelope } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { Input } from "@anlg/ui/components/ui/input";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import { Buildings, Envelope } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { Input } from "@syntheo/ui/components/ui/input";
 
 import {
   AvatarUploadButton,

@@ -1,5 +1,5 @@
-use anlg_db_core::Db;
 use sqlx::{Row, SqlitePool};
+use syntheo_db_core::Db;
 
 use crate::{
     conflicts::{resolve_session_conflict, resolve_session_conflicts},
@@ -24,7 +24,7 @@ use crate::{
 
 async fn test_db() -> Db {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     db
 }
 

@@ -7,7 +7,7 @@ const STOP_EVENT: &str = "Stop";
 const COMMAND: &str = "char claude notify";
 
 pub fn health(options: &HealthCheckOptions) -> ProviderHealth {
-    let health = anlg_claude::health_check_with_options(&anlg_claude::ClaudeOptions {
+    let health = syntheo_claude::health_check_with_options(&syntheo_claude::ClaudeOptions {
         claude_path_override: options.claude_path_override.clone(),
         ..Default::default()
     });
@@ -25,11 +25,11 @@ pub fn health(options: &HealthCheckOptions) -> ProviderHealth {
 }
 
 pub fn install_cli() -> Result<InstallCliResponse, String> {
-    let settings_path = anlg_claude::settings_path();
-    let mut settings = anlg_claude::read_settings(&settings_path)?;
+    let settings_path = syntheo_claude::settings_path();
+    let mut settings = syntheo_claude::read_settings(&settings_path)?;
 
-    anlg_claude::upsert_command_hook(&mut settings, STOP_EVENT, COMMAND)?;
-    anlg_claude::write_settings(&settings_path, &settings)?;
+    syntheo_claude::upsert_command_hook(&mut settings, STOP_EVENT, COMMAND)?;
+    syntheo_claude::write_settings(&settings_path, &settings)?;
 
     Ok(InstallCliResponse {
         provider: ProviderKind::Claude,
@@ -42,27 +42,27 @@ pub fn install_cli() -> Result<InstallCliResponse, String> {
 }
 
 pub fn upgrade() {
-    upgrade_at(&anlg_claude::settings_path());
+    upgrade_at(&syntheo_claude::settings_path());
 }
 
 fn upgrade_at(settings_path: &std::path::Path) {
-    let Ok(mut settings) = anlg_claude::read_settings(settings_path) else {
+    let Ok(mut settings) = syntheo_claude::read_settings(settings_path) else {
         return;
     };
-    if !anlg_claude::has_command_hook(&settings, STOP_EVENT, COMMAND) {
+    if !syntheo_claude::has_command_hook(&settings, STOP_EVENT, COMMAND) {
         return;
     }
-    let _ = anlg_claude::remove_command_hook(&mut settings, STOP_EVENT, COMMAND);
-    let _ = anlg_claude::upsert_command_hook(&mut settings, STOP_EVENT, COMMAND);
-    let _ = anlg_claude::write_settings(settings_path, &settings);
+    let _ = syntheo_claude::remove_command_hook(&mut settings, STOP_EVENT, COMMAND);
+    let _ = syntheo_claude::upsert_command_hook(&mut settings, STOP_EVENT, COMMAND);
+    let _ = syntheo_claude::write_settings(settings_path, &settings);
 }
 
 pub fn uninstall_cli() -> Result<UninstallCliResponse, String> {
-    let settings_path = anlg_claude::settings_path();
-    let mut settings = anlg_claude::read_settings(&settings_path)?;
+    let settings_path = syntheo_claude::settings_path();
+    let mut settings = syntheo_claude::read_settings(&settings_path)?;
 
-    anlg_claude::remove_command_hook(&mut settings, STOP_EVENT, COMMAND)?;
-    anlg_claude::write_settings(&settings_path, &settings)?;
+    syntheo_claude::remove_command_hook(&mut settings, STOP_EVENT, COMMAND)?;
+    syntheo_claude::write_settings(&settings_path, &settings)?;
 
     Ok(UninstallCliResponse {
         provider: ProviderKind::Claude,
@@ -75,29 +75,29 @@ pub fn uninstall_cli() -> Result<UninstallCliResponse, String> {
 }
 
 fn integration_installed() -> Result<bool, String> {
-    let settings_path = anlg_claude::settings_path();
-    let settings = anlg_claude::read_settings(&settings_path)?;
-    Ok(anlg_claude::has_command_hook(
+    let settings_path = syntheo_claude::settings_path();
+    let settings = syntheo_claude::read_settings(&settings_path)?;
+    Ok(syntheo_claude::has_command_hook(
         &settings, STOP_EVENT, COMMAND,
     ))
 }
 
-impl From<anlg_claude::HealthStatus> for ProviderHealthStatus {
-    fn from(value: anlg_claude::HealthStatus) -> Self {
+impl From<syntheo_claude::HealthStatus> for ProviderHealthStatus {
+    fn from(value: syntheo_claude::HealthStatus) -> Self {
         match value {
-            anlg_claude::HealthStatus::Ready => Self::Ready,
-            anlg_claude::HealthStatus::Warning => Self::Warning,
-            anlg_claude::HealthStatus::Error => Self::Error,
+            syntheo_claude::HealthStatus::Ready => Self::Ready,
+            syntheo_claude::HealthStatus::Warning => Self::Warning,
+            syntheo_claude::HealthStatus::Error => Self::Error,
         }
     }
 }
 
-impl From<anlg_claude::HealthAuthStatus> for ProviderAuthStatus {
-    fn from(value: anlg_claude::HealthAuthStatus) -> Self {
+impl From<syntheo_claude::HealthAuthStatus> for ProviderAuthStatus {
+    fn from(value: syntheo_claude::HealthAuthStatus) -> Self {
         match value {
-            anlg_claude::HealthAuthStatus::Authenticated => Self::Authenticated,
-            anlg_claude::HealthAuthStatus::Unauthenticated => Self::Unauthenticated,
-            anlg_claude::HealthAuthStatus::Unknown => Self::Unknown,
+            syntheo_claude::HealthAuthStatus::Authenticated => Self::Authenticated,
+            syntheo_claude::HealthAuthStatus::Unauthenticated => Self::Unauthenticated,
+            syntheo_claude::HealthAuthStatus::Unknown => Self::Unknown,
         }
     }
 }
@@ -117,8 +117,8 @@ mod tests {
 
         upgrade_at(&path);
 
-        let settings = anlg_claude::read_settings(&path).unwrap();
-        assert!(!anlg_claude::has_command_hook(
+        let settings = syntheo_claude::read_settings(&path).unwrap();
+        assert!(!syntheo_claude::has_command_hook(
             &settings, STOP_EVENT, COMMAND
         ));
     }
@@ -129,13 +129,13 @@ mod tests {
         let path = dir.path().join("settings.json");
 
         let mut settings = serde_json::json!({});
-        anlg_claude::upsert_command_hook(&mut settings, STOP_EVENT, COMMAND).unwrap();
-        anlg_claude::write_settings(&path, &settings).unwrap();
+        syntheo_claude::upsert_command_hook(&mut settings, STOP_EVENT, COMMAND).unwrap();
+        syntheo_claude::write_settings(&path, &settings).unwrap();
 
         upgrade_at(&path);
 
-        let settings = anlg_claude::read_settings(&path).unwrap();
-        assert!(anlg_claude::has_command_hook(
+        let settings = syntheo_claude::read_settings(&path).unwrap();
+        assert!(syntheo_claude::has_command_hook(
             &settings, STOP_EVENT, COMMAND
         ));
     }

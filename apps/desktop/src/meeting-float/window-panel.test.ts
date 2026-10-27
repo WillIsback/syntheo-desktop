@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   liveCaptionUpdate: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   commands: {
     floatingBarShow: mocks.show,
     floatingBarHide: mocks.hide,

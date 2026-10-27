@@ -1,8 +1,8 @@
 import { platform } from "@tauri-apps/plugin-os";
 
-import { commands as detectCommands } from "@anlg/plugin-detect";
-import { commands as permissionsCommands } from "@anlg/plugin-permissions";
-import { toast } from "@anlg/ui/components/ui/toast";
+import { commands as detectCommands } from "@syntheo/plugin-detect";
+import { commands as permissionsCommands } from "@syntheo/plugin-permissions";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import { getStoredSettingValues } from "~/settings/queries";
 import { resolveConfigValue } from "~/shared/config";

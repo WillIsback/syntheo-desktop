@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { attributeAIError } from "./error-source";
 
-const HOSTED_URL = "https://api.anarlog.so/llm/chat/completions";
+const HOSTED_URL = "https://api.example.com/llm/chat/completions";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 function apiError(url: string, statusCode: number, responseBody: string) {
@@ -54,16 +54,16 @@ describe("attributeAIError", () => {
       { kind: "openrouter" },
     ],
     [
-      "the Anarlog proxy failing to reach OpenRouter",
+      "the Syntheo proxy failing to reach OpenRouter",
       apiError(HOSTED_URL, 502, "Upstream request failed"),
       "openrouter",
       { kind: "openrouter" },
     ],
     [
-      "an Anarlog API rejection",
+      "an Syntheo API rejection",
       apiError(HOSTED_URL, 401, "invalid_token"),
       "openrouter",
-      { kind: "anarlog" },
+      { kind: "syntheo" },
     ],
     [
       "a mid-stream OpenRouter error naming the provider",

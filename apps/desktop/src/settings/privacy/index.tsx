@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { DEVICE_AUTH_REASON } from "~/lock/auth";
 import { useAppLock } from "~/lock/store";
@@ -40,8 +40,8 @@ export function SettingsPrivacy() {
   const lockAppDescription = !authAvailable
     ? t`Device authentication is not available on this computer.`
     : platform() === "windows"
-      ? t`Require Windows Hello face, PIN, or password when opening Anarlog.`
-      : t`Require Touch ID or your password when opening Anarlog.`;
+      ? t`Require Windows Hello face, PIN, or password when opening Syntheo.`
+      : t`Require Touch ID or your password when opening Syntheo.`;
 
   return (
     <div className="flex flex-col gap-8">

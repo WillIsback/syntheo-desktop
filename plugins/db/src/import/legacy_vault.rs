@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use anlg_db_app::{LegacyImportBatch, LegacyImportItem, LegacyImportRow};
 use sqlx::SqlitePool;
+use syntheo_db_app::{LegacyImportBatch, LegacyImportItem, LegacyImportRow};
 
 use self::discovery::{SourceFile, SourceKind, discover_sources};
 use self::documents::{DocumentVariants, promote_canonical_summary};
@@ -34,12 +34,12 @@ pub async fn import_legacy_vault(
     let _guard = IMPORT_LOCK.lock().await;
     let run_id = uuid::Uuid::new_v4().to_string();
     let source_root = vault_base.to_string_lossy();
-    anlg_db_app::begin_legacy_import_run(pool, &run_id, &source_root, dry_run).await?;
+    syntheo_db_app::begin_legacy_import_run(pool, &run_id, &source_root, dry_run).await?;
 
     let discovery = match discover_sources(vault_base) {
         Ok(discovery) => discovery,
         Err(error) => {
-            anlg_db_app::fail_legacy_import_run(pool, &run_id, &error.to_string()).await?;
+            syntheo_db_app::fail_legacy_import_run(pool, &run_id, &error.to_string()).await?;
             return Err(error.into());
         }
     };
@@ -50,7 +50,7 @@ pub async fn import_legacy_vault(
             Ok(bytes) => bytes,
             Err(error) => {
                 let item_id = stable_id(&format!("{run_id}:{}", source.relative_path));
-                anlg_db_app::record_legacy_import_error(
+                syntheo_db_app::record_legacy_import_error(
                     pool,
                     LegacyImportItem {
                         id: &item_id,
@@ -76,14 +76,14 @@ pub async fn import_legacy_vault(
         if !dry_run
             && !recheck_summary_pair
             && source.kind != SourceKind::SessionDocument
-            && anlg_db_app::legacy_source_already_imported(
+            && syntheo_db_app::legacy_source_already_imported(
                 pool,
                 &source.relative_path,
                 &source_sha256,
             )
             .await?
         {
-            anlg_db_app::record_legacy_import_unchanged(
+            syntheo_db_app::record_legacy_import_unchanged(
                 pool,
                 LegacyImportItem {
                     id: &item_id,
@@ -119,15 +119,15 @@ pub async fn import_legacy_vault(
                 if let Some(LegacyImportRow::Document(document)) = batch.rows.first_mut() {
                     document_variants.recover(document, &source.relative_path, &source_sha256);
                 }
-                anlg_db_app::apply_legacy_import_item(pool, item, &batch, dry_run).await?;
+                syntheo_db_app::apply_legacy_import_item(pool, item, &batch, dry_run).await?;
             }
             Err(error) => {
-                anlg_db_app::record_legacy_import_error(pool, item, &error).await?;
+                syntheo_db_app::record_legacy_import_error(pool, item, &error).await?;
             }
         }
     }
 
-    anlg_db_app::finish_legacy_import_run(pool, &run_id).await?;
+    syntheo_db_app::finish_legacy_import_run(pool, &run_id).await?;
     Ok(run_id)
 }
 

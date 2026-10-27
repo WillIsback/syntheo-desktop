@@ -1,14 +1,14 @@
 import { useCallback, useRef } from "react";
 
-import { beginCloudsyncActivity } from "@anlg/plugin-db";
-import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
+import { beginCloudsyncActivity } from "@syntheo/plugin-db";
+import { commands as fsSyncCommands } from "@syntheo/plugin-fs-sync";
 import {
   type RecoveryAudioChunk,
   commands as transcriptionCommands,
   events as transcriptionEvents,
   type LiveTranscriptTarget,
-} from "@anlg/plugin-transcription";
-import { toast } from "@anlg/ui/components/ui/toast";
+} from "@syntheo/plugin-transcription";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import {
   chunkInterval,
@@ -413,7 +413,7 @@ export function useCaptureLifecycle(sessionId: string) {
           toast.error("Your transcript could not be saved", {
             id: `transcript-storage-${sessionId}`,
             description:
-              "Free up disk space. Anarlog will try to recover the missing text while this meeting is still recording.",
+              "Free up disk space. Syntheo will try to recover the missing text while this meeting is still recording.",
           });
           console.error("[listener] failed to persist transcript", error);
         },
@@ -935,7 +935,7 @@ export function useCaptureLifecycle(sessionId: string) {
             });
             if (transcriptWriteError || !details.liveTranscriptionActive) {
               await notifyFailure(
-                "Anarlog could not finish saving the transcript. The recording was kept so you can try again.",
+                "Syntheo could not finish saving the transcript. The recording was kept so you can try again.",
                 "post-capture-transcript-incomplete",
               );
             } else {
@@ -969,8 +969,8 @@ export function useCaptureLifecycle(sessionId: string) {
         ) {
           await notifyFailure(
             details.audioPath
-              ? "Anarlog could not finish saving the transcript. The recording was kept so you can try again."
-              : "Anarlog could not save part of the live transcript.",
+              ? "Syntheo could not finish saving the transcript. The recording was kept so you can try again."
+              : "Syntheo could not save part of the live transcript.",
             details.audioPath
               ? "post-capture-transcript-incomplete"
               : "live-transcript-persist-failed",
@@ -1073,7 +1073,7 @@ export function useCaptureLifecycle(sessionId: string) {
                 error,
               );
               await notifyFailure(
-                "The transcript was saved, but Anarlog could not start the summary. Try generating it again.",
+                "The transcript was saved, but Syntheo could not start the summary. Try generating it again.",
                 "post-capture-summary-failed",
               );
               await requestRecovery();
@@ -1091,7 +1091,7 @@ export function useCaptureLifecycle(sessionId: string) {
             summaryScheduled = false;
             console.error("[listener] failed to schedule summary", error);
             await notifyFailure(
-              "The transcript was saved, but Anarlog could not start the summary. Try generating it again.",
+              "The transcript was saved, but Syntheo could not start the summary. Try generating it again.",
               "post-capture-summary-failed",
             );
           }
@@ -1224,7 +1224,7 @@ export function useCaptureLifecycle(sessionId: string) {
               id: `audio-deletion-${sessionId}`,
               duration: Infinity,
               description:
-                "Anarlog could not remove the temporary audio. Cleanup will be retried automatically.",
+                "Syntheo could not remove the temporary audio. Cleanup will be retried automatically.",
             });
           }
         } else {

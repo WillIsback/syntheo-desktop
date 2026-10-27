@@ -1,8 +1,8 @@
 import { t } from "@lingui/core/macro";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { ArrowSquareOut } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import { ArrowSquareOut } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 
 import { CliSettingsSections } from "./cli";
 import { WebhooksSection } from "./webhooks";

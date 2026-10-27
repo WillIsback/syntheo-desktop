@@ -17,7 +17,7 @@ tempfile = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
-anlg-language = { workspace = true, features = ["detect"] }
+syntheo-language = { workspace = true, features = ["detect"] }
 tantivy = "0.25"
 
 tauri = { workspace = true, features = ["test"] }

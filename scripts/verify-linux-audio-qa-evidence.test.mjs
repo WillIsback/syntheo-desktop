@@ -88,7 +88,7 @@ function wavFixture() {
 
 async function createFixture() {
   const directory = await mkdtemp(
-    path.join(os.tmpdir(), "anarlog-linux-audio-evidence-"),
+    path.join(os.tmpdir(), "syntheo-linux-audio-evidence-"),
   );
   const evidenceDir = path.join(directory, "evidence");
   const manifest = {
@@ -122,7 +122,7 @@ async function createFixture() {
     await writeFile(
       path.join(root, "provenance.json"),
       JSON.stringify({
-        application: "fastrepl/hyprnote2",
+        application: "WillIsback/syntheo-desktop2",
         version,
         candidate_sha: candidateSha,
         workflow_run_id: audioQaRunId,
@@ -137,7 +137,7 @@ async function createFixture() {
       path.join(root, "crabnebula-asset.json"),
       JSON.stringify({
         id: architecture.assetId,
-        filename: `anarlog-${artifactArch}.deb`,
+        filename: `syntheo-${artifactArch}.deb`,
         publicPlatform: architecture.publicPlatform,
         updatePlatform: architecture.updatePlatform,
         size: 1024,
@@ -153,7 +153,7 @@ async function createFixture() {
     );
     await writeFile(
       path.join(root, "debian-package.txt"),
-      `package=anarlog\nversion=${version}\narchitecture=${architecture.debianArch}\nsource=/candidate.deb\n`,
+      `package=syntheo\nversion=${version}\narchitecture=${architecture.debianArch}\nsource=/candidate.deb\n`,
     );
     await writeFile(
       path.join(root, "analysis.json"),

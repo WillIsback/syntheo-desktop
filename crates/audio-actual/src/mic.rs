@@ -265,7 +265,7 @@ impl<D, A> CaptureDevice<D, A> {
 }
 
 pub struct MicInput {
-    capture: CaptureDevice<CpalHandles, Arc<anlg_audio_device::BluetoothInputActivation>>,
+    capture: CaptureDevice<CpalHandles, Arc<syntheo_audio_device::BluetoothInputActivation>>,
     config: cpal::SupportedStreamConfig,
 }
 
@@ -365,8 +365,8 @@ impl MicInput {
             .as_deref()
             .filter(|name| !name.is_empty())
             .map(str::to_string)
-            .or_else(anlg_audio_device::default_input_device_name)
-            .and_then(|name| anlg_audio_device::prepare_bluetooth_input_for_capture(&name))
+            .or_else(syntheo_audio_device::default_input_device_name)
+            .and_then(|name| syntheo_audio_device::prepare_bluetooth_input_for_capture(&name))
             .map(Arc::new);
         let preferred = match bluetooth.as_ref() {
             Some(activation) => activation.name.clone(),
@@ -474,7 +474,7 @@ impl MicInput {
                     bluetooth.map(|activation| (activation.name.clone(), activation)),
                 );
                 tracing::info!(
-                    anarlog.audio.sample_rate_hz = ?config.sample_rate(),
+                    syntheo.audio.sample_rate_hz = ?config.sample_rate(),
                     device_name = name,
                     "mic_input_initialized"
                 );
@@ -691,7 +691,7 @@ impl MicInput {
 pub struct MicStream {
     drop_tx: std::sync::mpsc::Sender<()>,
     config: cpal::SupportedStreamConfig,
-    _bluetooth: Option<Arc<anlg_audio_device::BluetoothInputActivation>>,
+    _bluetooth: Option<Arc<syntheo_audio_device::BluetoothInputActivation>>,
     reader: RingbufAsyncReader<HeapCons<f32>>,
 }
 

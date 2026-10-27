@@ -1,10 +1,10 @@
-pub fn get_preferred_languages() -> Vec<anlg_language::Language> {
+pub fn get_preferred_languages() -> Vec<syntheo_language::Language> {
     sys_locale::get_locales()
         .filter_map(|locale| locale_to_language(&locale))
         .collect()
 }
 
-fn locale_to_language(locale: &str) -> Option<anlg_language::Language> {
+fn locale_to_language(locale: &str) -> Option<syntheo_language::Language> {
     locale.parse().ok()
 }
 
@@ -15,7 +15,7 @@ pub fn get_current_locale_identifier() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_language::ISO639;
+    use syntheo_language::ISO639;
 
     #[test]
     fn test_locale_to_language() {

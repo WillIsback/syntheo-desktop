@@ -1,7 +1,7 @@
 import type { ChatStatus } from "ai";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ArrowElbowDownRight, Trash } from "@anlg/ui/components/icons";
+import { ArrowElbowDownRight, Trash } from "@syntheo/ui/components/icons";
 
 import { ChatBody } from "./body";
 import { ChatMessageInput } from "./input";
@@ -12,13 +12,13 @@ import {
   hasSessionContextDragData,
   readSessionContextDragData,
 } from "~/chat/context/session-drag";
-import type { ChatMessageSender, AnlgUIMessage } from "~/chat/types";
+import type { ChatMessageSender, SyntheoUIMessage } from "~/chat/types";
 import { id } from "~/shared/utils";
 
 type QueuedChatMessage = {
   id: string;
   content: string;
-  parts: AnlgUIMessage["parts"];
+  parts: SyntheoUIMessage["parts"];
   contextRefs: ContextRef[];
 };
 
@@ -44,7 +44,7 @@ export function ChatContent({
 }: {
   layout?: "floating" | "right-panel";
   sessionId: string;
-  messages: AnlgUIMessage[];
+  messages: SyntheoUIMessage[];
   sendMessage: ChatMessageSender;
   regenerate: () => void;
   stop: () => void;
@@ -53,7 +53,7 @@ export function ChatContent({
   model: ReturnType<typeof useLanguageModel>;
   handleSendMessage: (
     content: string,
-    parts: AnlgUIMessage["parts"],
+    parts: SyntheoUIMessage["parts"],
     sendMessage: ChatMessageSender,
     contextRefs?: ContextRef[],
   ) => void;
@@ -102,7 +102,7 @@ export function ChatContent({
   const submitOrQueueMessage = useCallback(
     (
       content: string,
-      parts: AnlgUIMessage["parts"],
+      parts: SyntheoUIMessage["parts"],
       contextRefs?: ContextRef[],
     ) => {
       const mergedContextRefs = mergeContextRefs(contextRefs);

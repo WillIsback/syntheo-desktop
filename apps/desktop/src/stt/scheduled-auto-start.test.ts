@@ -31,12 +31,12 @@ const mocks = vi.hoisted(() => ({
   tabs: [] as Tab[],
 }));
 
-vi.mock("@anlg/plugin-detect", () => ({
+vi.mock("@syntheo/plugin-detect", () => ({
   commands: { listMicUsingApplications: mocks.listMicUsingApplications },
   events: { detectEvent: { listen: mocks.listenDetectEvent } },
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   getCurrentWebviewWindowLabel: () => "main",
 }));
 
@@ -54,7 +54,7 @@ vi.mock("~/shared/config", () => ({
   }),
 }));
 
-vi.mock("@anlg/plugin-opener2", () => ({
+vi.mock("@syntheo/plugin-opener2", () => ({
   commands: { openUrl: mocks.openUrl },
 }));
 

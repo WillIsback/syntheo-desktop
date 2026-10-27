@@ -195,12 +195,12 @@ pub fn delete_orphaned_expired(
 }
 
 pub fn source_metadata(source_path: &Path) -> std::io::Result<AudioSourceMetadata> {
-    use anlg_audio_utils::Source;
+    use syntheo_audio_utils::Source;
 
     let metadata = std::fs::metadata(source_path)?;
     let created_at = metadata.created().ok().map(system_time_to_iso);
     let modified_at = metadata.modified().ok().map(system_time_to_iso);
-    let duration_ms = anlg_audio_utils::source_from_path(source_path)
+    let duration_ms = syntheo_audio_utils::source_from_path(source_path)
         .ok()
         .and_then(|source| source.total_duration())
         .and_then(|duration| u64::try_from(duration.as_millis()).ok());

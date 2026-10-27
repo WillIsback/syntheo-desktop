@@ -20,8 +20,8 @@ use super::support::{setup_enabled_cloudsync_runtime, setup_runtime, unreachable
 async fn sign_out_suspend_command_defers_busy_pool_teardown() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("app.db");
-    let db = anlg_db_core::Db::open(anlg_db_core::DbOpenOptions {
-        storage: anlg_db_core::DbStorage::Local(&db_path),
+    let db = syntheo_db_core::Db::open(syntheo_db_core::DbOpenOptions {
+        storage: syntheo_db_core::DbStorage::Local(&db_path),
         cloudsync_enabled: true,
         journal_mode_wal: true,
         foreign_keys: true,
@@ -29,7 +29,7 @@ async fn sign_out_suspend_command_defers_busy_pool_teardown() {
     })
     .await
     .unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     db.cloudsync_init("sessions", None, None).await.unwrap();
     let runtime = Arc::new(runtime::PluginDbRuntime::new(Arc::new(db)));
     runtime
@@ -88,7 +88,7 @@ async fn cloudsync_transport_stays_inert_until_configured() {
             serde_json::json!({
                 "connection_string": "managed-database-id",
                 "auth": { "type": "token", "token": "test-token" },
-                "tables": anlg_db_app::cloudsync_table_registry(),
+                "tables": syntheo_db_app::cloudsync_table_registry(),
                 "sync_interval_ms": 30_000,
                 "wait_ms": 5_000,
                 "max_retries": 3
@@ -150,7 +150,7 @@ async fn cloudsync_waits_for_legacy_migration_verification() {
 #[tokio::test]
 async fn cloudsync_accepts_conflict_only_legacy_migration() {
     let (_dir, runtime) = setup_runtime().await;
-    anlg_db_app::begin_legacy_import_run(runtime.pool(), "conflict-run", "/vault", false)
+    syntheo_db_app::begin_legacy_import_run(runtime.pool(), "conflict-run", "/vault", false)
         .await
         .unwrap();
     sqlx::query(
@@ -164,7 +164,7 @@ async fn cloudsync_accepts_conflict_only_legacy_migration() {
     .await
     .unwrap();
     assert_eq!(
-        anlg_db_app::finish_legacy_import_run(runtime.pool(), "conflict-run")
+        syntheo_db_app::finish_legacy_import_run(runtime.pool(), "conflict-run")
             .await
             .unwrap(),
         "completed_with_conflicts"
@@ -175,7 +175,7 @@ async fn cloudsync_accepts_conflict_only_legacy_migration() {
             serde_json::json!({
                 "connection_string": "managed-database-id",
                 "auth": { "type": "token", "token": "test-token" },
-                "tables": anlg_db_app::cloudsync_table_registry(),
+                "tables": syntheo_db_app::cloudsync_table_registry(),
                 "sync_interval_ms": 30_000,
                 "wait_ms": 5_000,
                 "max_retries": 3

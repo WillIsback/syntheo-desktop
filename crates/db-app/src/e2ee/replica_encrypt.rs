@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use anlg_e2ee::{WorkspaceKey, WorkspaceKeyring};
 use serde_json::{Value, json};
 use sqlx::{Column, QueryBuilder, Row, Sqlite, SqlitePool, Transaction};
+use syntheo_e2ee::{WorkspaceKey, WorkspaceKeyring};
 
 use super::chunks::{
     ChunkPart, chunk_count_field, chunk_field, chunk_size_for, parse_array, parse_chunk_field,
@@ -718,7 +718,7 @@ fn prepare_encrypted_field(
         edited_at_ms.and_then(|ms| u64::try_from(ms).ok()),
         value,
     )?;
-    let payload_hash = anlg_e2ee::payload_hash(&sealed.payload);
+    let payload_hash = syntheo_e2ee::payload_hash(&sealed.payload);
     Ok(Some(PreparedEncryptedField {
         previous_payload_hash: previous.map(|state| state.payload_hash.clone()),
         expected_witness_version: witness_version.cloned(),

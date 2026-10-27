@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 
-import { Buildings, PushPin } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { Buildings, PushPin } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { ContactImage } from "~/contacts/contact-avatar";
 import { type OrganizationRecord, toggleContactPin } from "~/contacts/queries";

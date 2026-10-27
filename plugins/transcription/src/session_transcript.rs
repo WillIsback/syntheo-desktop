@@ -1,16 +1,16 @@
 use std::collections::HashSet;
 
-use anlg_db_app::{
+use serde_json::Value;
+use sqlx::SqlitePool;
+use syntheo_db_app::{
     load_render_humans, load_session_render_participant_ids, load_session_render_transcripts,
 };
-use anlg_transcript::{
+use syntheo_transcript::{
     RenderTranscriptHuman, RenderTranscriptRequest, RenderedTranscriptSegment,
     StoredLiveTranscriptDelta, StoredSpeakerHint, materialize_live_transcript,
     parse_stored_speaker_hints, parse_stored_transcript_words, render_input_from_stored,
     render_transcript_segments,
 };
-use serde_json::Value;
-use sqlx::SqlitePool;
 
 #[derive(Debug, Clone, serde::Deserialize, specta::Type)]
 pub struct RenderSessionTranscriptRequest {
@@ -142,8 +142,8 @@ fn insert_human_id(
 
 #[cfg(test)]
 mod tests {
-    use anlg_db_app::prepare_schema;
-    use anlg_db_core::Db;
+    use syntheo_db_app::prepare_schema;
+    use syntheo_db_core::Db;
 
     use super::*;
 

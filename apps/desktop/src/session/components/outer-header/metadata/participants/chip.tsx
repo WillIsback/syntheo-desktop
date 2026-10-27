@@ -1,15 +1,15 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useCallback, useState } from "react";
 
-import { CircleNotch, Sparkle, X } from "@anlg/ui/components/icons";
-import { Badge } from "@anlg/ui/components/ui/badge";
-import { Button } from "@anlg/ui/components/ui/button";
+import { CircleNotch, Sparkle, X } from "@syntheo/ui/components/icons";
+import { Badge } from "@syntheo/ui/components/ui/badge";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anlg/ui/components/ui/tooltip";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/tooltip";
+import { cn } from "@syntheo/utils";
 
 import {
   removeSessionParticipant,

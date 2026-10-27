@@ -33,7 +33,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
 };
 use windows::core::{PCWSTR, w};
 
-use anlg_notification_interface::{
+use syntheo_notification_interface::{
     DismissTimer, Notification, PrimaryAction, expanded_schedule_text, unix_now,
 };
 
@@ -43,7 +43,7 @@ use crate::layout::{
     HitTarget, MAX_NOTIFICATIONS, NotificationLayout, Rect, fit_stack, stacked_origin, try_expand,
 };
 
-const CLASS_NAME: windows::core::PCWSTR = w!("AnarlogNotification");
+const CLASS_NAME: windows::core::PCWSTR = w!("SyntheoNotification");
 const TIMER_ID: usize = 1;
 
 enum Command {

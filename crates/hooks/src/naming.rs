@@ -17,7 +17,7 @@ mod tests {
     fn cli_flag_prefixes_and_hyphenates() {
         for (input, expected) in [
             ("resource_dir", "--resource-dir"),
-            ("app_hyprnote", "--app-hyprnote"),
+            ("app_syntheo", "--app-syntheo"),
             ("app_meeting", "--app-meeting"),
             ("already-hyphenated", "--already-hyphenated"),
             ("", "--"),

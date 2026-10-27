@@ -1,10 +1,10 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { type ComponentProps } from "react";
 
-import { ChartLineUp } from "@anlg/ui/components/icons";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { panelSquircle } from "@anlg/ui/lib/squircle";
-import { cn } from "@anlg/utils";
+import { ChartLineUp } from "@syntheo/ui/components/icons";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { panelSquircle } from "@syntheo/ui/lib/squircle";
+import { cn } from "@syntheo/utils";
 
 import type { summarizeActivity } from "./activity";
 

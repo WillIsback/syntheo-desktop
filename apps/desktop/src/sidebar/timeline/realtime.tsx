@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useMemo, useState } from "react";
 
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { TZDate, format, safeParseDate } from "@anlg/utils";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { TZDate, format, safeParseDate } from "@syntheo/utils";
 
 import type { TimelineEventsTable, TimelineSessionsTable } from "./utils";
 

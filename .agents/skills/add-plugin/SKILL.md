@@ -27,7 +27,7 @@ If the user does not ask for different command behavior, keep the single `ping` 
 After the code changes are in place, generate bindings:
 
 ```bash
-pnpm -F @anlg/plugin-<NAME> codegen
+pnpm -F @syntheo/plugin-<NAME> codegen
 ```
 
 Finish by updating these integration points:

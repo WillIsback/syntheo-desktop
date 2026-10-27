@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use anlg_db_core::Db;
 use futures_util::StreamExt;
+use syntheo_db_core::Db;
 
 use super::e2ee_sync::E2eeSyncHook;
 use crate::witness::{E2eeWitnessCancellation, E2eeWitnessClient};
@@ -54,20 +54,20 @@ async fn watch_witness(db: Arc<Db>, hook: Arc<E2eeSyncHook>, witness: E2eeWitnes
     let mut last_triggered = 0_u64;
     loop {
         tokio::time::sleep(WATCH_POLL_PACING).await;
-        let cursor = match anlg_db_app::e2ee_witness_cursor(db.pool(), witness.workspace_id()).await
-        {
-            Ok(cursor) => cursor,
-            Err(error) => {
-                tracing::debug!(
-                    workspace_id = witness.workspace_id(),
-                    %error,
-                    "witness watch could not read the local cursor"
-                );
-                tokio::time::sleep(error_backoff).await;
-                error_backoff = (error_backoff * 2).min(WATCH_ERROR_BACKOFF_MAX);
-                continue;
-            }
-        };
+        let cursor =
+            match syntheo_db_app::e2ee_witness_cursor(db.pool(), witness.workspace_id()).await {
+                Ok(cursor) => cursor,
+                Err(error) => {
+                    tracing::debug!(
+                        workspace_id = witness.workspace_id(),
+                        %error,
+                        "witness watch could not read the local cursor"
+                    );
+                    tokio::time::sleep(error_backoff).await;
+                    error_backoff = (error_backoff * 2).min(WATCH_ERROR_BACKOFF_MAX);
+                    continue;
+                }
+            };
         let cancellation = E2eeWitnessCancellation::default();
         match witness
             .wait_for_remote_head(cursor.max(last_triggered), &cancellation)

@@ -10,9 +10,9 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import { CircleNotch } from "@anlg/ui/components/icons";
-import { Badge } from "@anlg/ui/components/ui/badge";
-import { toast } from "@anlg/ui/components/ui/toast";
+import { CircleNotch } from "@syntheo/ui/components/icons";
+import { Badge } from "@syntheo/ui/components/ui/badge";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import { ParticipantChip } from "./chip";
 import { ParticipantDropdown } from "./dropdown";

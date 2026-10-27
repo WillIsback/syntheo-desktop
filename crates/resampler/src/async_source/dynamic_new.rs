@@ -1,9 +1,9 @@
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use anlg_audio_interface::AsyncSource;
 use futures_util::{Stream, pin_mut};
 use pin_project::pin_project;
+use syntheo_audio_interface::AsyncSource;
 
 use crate::{Async, FixedAsync, PolynomialDegree, RubatoChunkResampler};
 

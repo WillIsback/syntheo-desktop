@@ -17,12 +17,12 @@ use crate::{
     actors::session::session_span,
     actors::{ChannelMode, ListenerMsg},
 };
-use anlg_audio::{AudioProvider, CaptureChannel, CaptureFrame};
+use syntheo_audio::{AudioProvider, CaptureChannel, CaptureFrame};
 
 use pipeline::Pipeline;
 use stream::start_source_loop;
 
-use anlg_device_monitor::{DeviceMonitorHandle, DeviceSwitch, DeviceSwitchMonitor};
+use syntheo_device_monitor::{DeviceMonitorHandle, DeviceSwitch, DeviceSwitchMonitor};
 
 pub enum SourceMsg {
     SetMicMute(bool),
@@ -149,7 +149,7 @@ impl DeviceChangeWatcher {
                 Ok(event)
                     if !device_switch_updates_capture(
                         &event,
-                        anlg_audio_device::bluetooth_input_owns_system_defaults(),
+                        syntheo_audio_device::bluetooth_input_owns_system_defaults(),
                     ) =>
                 {
                     tracing::info!(?event, "device_switch_ignored_bluetooth_handoff");
@@ -168,7 +168,7 @@ impl DeviceChangeWatcher {
                     };
                     let observed = headphone_only_output();
                     if routing.observe(observed) {
-                        if anlg_audio_device::bluetooth_input_owns_system_defaults() {
+                        if syntheo_audio_device::bluetooth_input_owns_system_defaults() {
                             tracing::info!(
                                 headphone_output = observed,
                                 "output_routing_ignored_bluetooth_handoff"
@@ -189,7 +189,7 @@ impl DeviceChangeWatcher {
 }
 
 fn headphone_only_output() -> bool {
-    anlg_audio_device::headphone_only_output().is_some()
+    syntheo_audio_device::headphone_only_output().is_some()
 }
 
 // The same mic-isolation verdict `start_source_loop` emits as `MicIsolated`, recomputed
@@ -595,19 +595,19 @@ mod tests {
         SessionDataEvent, SessionLifecycleEvent, SessionProgressEvent,
         actors::source::ListenerRouting,
     };
-    use anlg_audio::{CaptureConfig, CaptureEvent, CaptureFrame, CaptureStream, Error};
+    use syntheo_audio::{CaptureConfig, CaptureEvent, CaptureFrame, CaptureStream, Error};
 
     struct TestRuntime {
         progress_tx: mpsc::UnboundedSender<SessionProgressEvent>,
         error_tx: Option<mpsc::UnboundedSender<SessionErrorEvent>>,
     }
 
-    impl anlg_storage::StorageRuntime for TestRuntime {
-        fn global_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+    impl syntheo_storage::StorageRuntime for TestRuntime {
+        fn global_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(std::env::temp_dir())
         }
 
-        fn vault_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+        fn vault_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(std::env::temp_dir())
         }
     }
@@ -1048,7 +1048,7 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(
             live_speaker,
-            anlg_audio_utils::f32_to_i16_bytes(expected_speaker.into_iter())
+            syntheo_audio_utils::f32_to_i16_bytes(expected_speaker.into_iter())
         );
         let health = source
             .call(SourceMsg::GetCaptureHealth, Some(Duration::from_secs(1)))

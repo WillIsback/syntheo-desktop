@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/utils",
+  "name": "@syntheo/utils",
   "exports": {
     ".": "./src/index.ts",
     "./session": "./src/session.ts",

@@ -37,8 +37,8 @@ pub fn render_enhance_system(input: &EnhanceSystem) -> Result<String, Error> {
         }));
     }
 
-    let current_date = anlg_askama_utils::current_date_value();
-    let language = anlg_askama_utils::language_name(input.language.as_deref());
+    let current_date = syntheo_askama_utils::current_date_value();
+    let language = syntheo_askama_utils::language_name(input.language.as_deref());
     let format_requirements = format_template.render(context! {
         current_date => current_date,
         language => language,
@@ -47,8 +47,8 @@ pub fn render_enhance_system(input: &EnhanceSystem) -> Result<String, Error> {
         env.template_from_str(include_str!("../assets/enhance.system.md.jinja"))?;
 
     Ok(system_template.render(context! {
-        current_date => anlg_askama_utils::current_date_value(),
-        language => anlg_askama_utils::language_name(input.language.as_deref()),
+        current_date => syntheo_askama_utils::current_date_value(),
+        language => syntheo_askama_utils::language_name(input.language.as_deref()),
         format_requirements => format_requirements.trim(),
         default_format => normalized_override.is_empty(),
     })?)
@@ -111,7 +111,7 @@ common_derives! {
 mod tests {
     use super::*;
     use crate::{Segment, TemplateSection};
-    use anlg_askama_utils::tpl_snapshot;
+    use syntheo_askama_utils::tpl_snapshot;
 
     #[test]
     fn test_language_as_specified() {

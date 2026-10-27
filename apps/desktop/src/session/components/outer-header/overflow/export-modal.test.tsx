@@ -25,13 +25,13 @@ vi.mock("@tauri-apps/api/path", () => ({
   join: async (...parts: string[]) => parts.join("/"),
 }));
 vi.mock("@tauri-apps/plugin-dialog", () => ({ save: mocks.save }));
-vi.mock("@anlg/plugin-export", () => ({
+vi.mock("@syntheo/plugin-export", () => ({
   commands: { export: mocks.exportPdf },
 }));
-vi.mock("@anlg/plugin-fs2", () => ({
+vi.mock("@syntheo/plugin-fs2", () => ({
   commands: { writeTextFile: mocks.writeTextFile },
 }));
-vi.mock("@anlg/plugin-opener2", () => ({
+vi.mock("@syntheo/plugin-opener2", () => ({
   commands: { revealItemInDir: mocks.revealItemInDir },
 }));
 vi.mock("~/settings/queries", () => ({

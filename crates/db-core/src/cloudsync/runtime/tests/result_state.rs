@@ -5,7 +5,7 @@ fn network_result(
     receive: Option<(i64, bool, Option<&str>)>,
 ) -> CloudsyncNetworkResult {
     CloudsyncNetworkResult {
-        send: send_status.map(|status| anlg_cloudsync::NetworkSendResult {
+        send: send_status.map(|status| syntheo_cloudsync::NetworkSendResult {
             status: status.to_string(),
             local_version: 4,
             server_version: if status == "synced" { 4 } else { 3 },
@@ -14,7 +14,7 @@ fn network_result(
             last_failure: None,
         }),
         receive: receive.map(
-            |(rows, complete, error)| anlg_cloudsync::NetworkReceiveResult {
+            |(rows, complete, error)| syntheo_cloudsync::NetworkReceiveResult {
                 rows,
                 tables: if rows > 0 {
                     vec!["sessions".to_string()]
@@ -39,7 +39,7 @@ fn record_sync_result_tracks_settlement_and_failures() {
         result: CloudsyncNetworkResult,
         local_work_remaining: bool,
         expected_last_error: Option<&'static str>,
-        expected_error_kind: Option<anlg_cloudsync::ErrorKind>,
+        expected_error_kind: Option<syntheo_cloudsync::ErrorKind>,
         expected_consecutive_failures: u32,
         expected_last_sync_at_ms: Option<u64>,
         expected_last_sync_at_is_set: bool,
@@ -52,7 +52,7 @@ fn record_sync_result_tracks_settlement_and_failures() {
             result: network_result(Some("failed"), Some((0, true, Some("schema mismatch")))),
             local_work_remaining: false,
             expected_last_error: Some("send status: failed; receive error: schema mismatch"),
-            expected_error_kind: Some(anlg_cloudsync::ErrorKind::Fatal),
+            expected_error_kind: Some(syntheo_cloudsync::ErrorKind::Fatal),
             expected_consecutive_failures: 1,
             expected_last_sync_at_ms: Some(42),
             expected_last_sync_at_is_set: true,
@@ -63,7 +63,7 @@ fn record_sync_result_tracks_settlement_and_failures() {
             result: network_result(None, Some((0, false, Some("database is locked")))),
             local_work_remaining: false,
             expected_last_error: Some("receive error: database is locked"),
-            expected_error_kind: Some(anlg_cloudsync::ErrorKind::Transient),
+            expected_error_kind: Some(syntheo_cloudsync::ErrorKind::Transient),
             expected_consecutive_failures: 1,
             expected_last_sync_at_ms: None,
             expected_last_sync_at_is_set: false,
@@ -222,7 +222,7 @@ fn background_sync_uses_shared_receive_errors() {
         for complete in [false, true] {
             let result = CloudsyncNetworkResult {
                 send: None,
-                receive: Some(anlg_cloudsync::NetworkReceiveResult {
+                receive: Some(syntheo_cloudsync::NetworkReceiveResult {
                     rows: 0,
                     tables: Vec::new(),
                     chunks: 0,
@@ -251,7 +251,7 @@ fn background_sync_uses_shared_receive_errors() {
 #[test]
 fn bounded_sync_combines_send_and_receive_results() {
     let send = CloudsyncNetworkResult {
-        send: Some(anlg_cloudsync::NetworkSendResult {
+        send: Some(syntheo_cloudsync::NetworkSendResult {
             status: "synced".to_string(),
             local_version: 4,
             server_version: 4,
@@ -263,7 +263,7 @@ fn bounded_sync_combines_send_and_receive_results() {
     };
     let receive = CloudsyncNetworkResult {
         send: None,
-        receive: Some(anlg_cloudsync::NetworkReceiveResult {
+        receive: Some(syntheo_cloudsync::NetworkReceiveResult {
             rows: 3,
             tables: vec!["sessions".to_string()],
             chunks: 1,
@@ -324,14 +324,14 @@ async fn confirmed_prefix_retry_sends_the_tail_without_recording_a_sync_failure(
     )
     .await;
     let mut connection =
-        anlg_cloudsync::ReservedConnection::new(db.pool().acquire().await.unwrap());
+        syntheo_cloudsync::ReservedConnection::new(db.pool().acquire().await.unwrap());
     sqlx::query(
         "INSERT INTO items VALUES ('confirmed', 'uploaded before acknowledgement was lost')",
     )
     .execute(connection.connection().await.unwrap())
     .await
     .unwrap();
-    let original = anlg_cloudsync::pending_payload_batch(
+    let original = syntheo_cloudsync::pending_payload_batch(
         connection.connection().await.unwrap(),
         8,
         4096,
@@ -344,7 +344,7 @@ async fn confirmed_prefix_retry_sends_the_tail_without_recording_a_sync_failure(
         .execute(connection.connection().await.unwrap())
         .await
         .unwrap();
-    let pending = anlg_cloudsync::pending_payload_batch(
+    let pending = syntheo_cloudsync::pending_payload_batch(
         connection.connection().await.unwrap(),
         8,
         4096,

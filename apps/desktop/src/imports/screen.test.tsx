@@ -30,7 +30,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: mocks.selectFiles }));
-vi.mock("@anlg/plugin-importer", () => ({
+vi.mock("@syntheo/plugin-importer", () => ({
   commands: { readTextFiles: mocks.readTextFiles },
 }));
 

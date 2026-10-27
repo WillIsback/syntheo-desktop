@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anlg_e2ee::{
+use syntheo_e2ee::{
     AttachmentBlobContext, AttachmentBlobMetadata, AttachmentBlobPlaintextMetadata, WorkspaceKey,
 };
 

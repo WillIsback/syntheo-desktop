@@ -5,7 +5,7 @@ import {
 } from "@lisse/react";
 import { useCallback, useRef, type Ref } from "react";
 
-import { controlSquircle } from "@anlg/ui/lib/squircle";
+import { controlSquircle } from "@syntheo/ui/lib/squircle";
 
 export function useSquircleRef<T extends HTMLElement>(
   forwardedRef?: Ref<T>,

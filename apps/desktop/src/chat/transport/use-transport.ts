@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { LanguageModel, ToolSet } from "ai";
 import { useMemo } from "react";
 
-import { commands as templateCommands } from "@anlg/plugin-template";
+import { commands as templateCommands } from "@syntheo/plugin-template";
 
 import { CustomChatTransport } from "./index";
 import type { ResolvedChatContext } from "./index";

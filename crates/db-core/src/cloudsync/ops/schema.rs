@@ -1,6 +1,6 @@
 use sqlx::{Executor, Sqlite};
 
-use anlg_cloudsync::{OwnedSqliteConnection, ReservedConnection};
+use syntheo_cloudsync::{OwnedSqliteConnection, ReservedConnection};
 
 use super::super::{CloudsyncInterruptHandle, CloudsyncTableSpec};
 
@@ -8,9 +8,9 @@ pub(crate) async fn interruptible_cleanup<C: OwnedSqliteConnection>(
     connection: &mut ReservedConnection<C>,
     table_name: &str,
     interrupt: &CloudsyncInterruptHandle,
-) -> Result<(), anlg_cloudsync::Error> {
+) -> Result<(), syntheo_cloudsync::Error> {
     let was_enabled =
-        anlg_cloudsync::is_enabled(connection.connection().await?, table_name).await?;
+        syntheo_cloudsync::is_enabled(connection.connection().await?, table_name).await?;
     sqlx::query("SAVEPOINT cloudsync_cleanup")
         .execute(connection.connection().await?)
         .await?;
@@ -21,8 +21,8 @@ pub(crate) async fn interruptible_cleanup<C: OwnedSqliteConnection>(
             return Err(error.into());
         }
     };
-    let result = anlg_cloudsync::cleanup_on_connection(connection, table_name).await;
-    let finish_result: Result<(), anlg_cloudsync::Error> = match connection.connection().await {
+    let result = syntheo_cloudsync::cleanup_on_connection(connection, table_name).await;
+    let finish_result: Result<(), syntheo_cloudsync::Error> = match connection.connection().await {
         Ok(connection) => registration.finish(connection).await.map_err(Into::into),
         Err(error) => Err(error),
     };
@@ -53,7 +53,7 @@ async fn rollback_cleanup_savepoint<C: OwnedSqliteConnection>(
     connection: &mut ReservedConnection<C>,
     table_name: &str,
     was_enabled: bool,
-) -> Result<(), anlg_cloudsync::Error> {
+) -> Result<(), syntheo_cloudsync::Error> {
     sqlx::raw_sql("ROLLBACK TO cloudsync_cleanup; RELEASE cloudsync_cleanup")
         .execute(connection.connection().await?)
         .await?;
@@ -74,10 +74,10 @@ async fn rollback_cleanup_savepoint<C: OwnedSqliteConnection>(
             // SQL rollback does not restore sqlite-sync's removed in-memory table.
             // The persisted table already passed validation, possibly with integer-key,
             // nullable-key, or missing-default exemptions (flags 1 | 2 | 4).
-            anlg_cloudsync::init_on_connection(connection, table_name, Some(&algo), Some(7))
+            syntheo_cloudsync::init_on_connection(connection, table_name, Some(&algo), Some(7))
                 .await?;
             if !was_enabled {
-                anlg_cloudsync::disable(connection.connection().await?, table_name).await?;
+                syntheo_cloudsync::disable(connection.connection().await?, table_name).await?;
             }
         }
     }
@@ -90,10 +90,10 @@ pub(crate) async fn interruptible_init<C: OwnedSqliteConnection>(
     crdt_algo: Option<&str>,
     init_flags: Option<i64>,
     interrupt: &CloudsyncInterruptHandle,
-) -> Result<(), anlg_cloudsync::Error> {
+) -> Result<(), syntheo_cloudsync::Error> {
     let registration = interrupt.register(connection.connection().await?).await?;
     let result =
-        anlg_cloudsync::init_on_connection(connection, table_name, crdt_algo, init_flags).await;
+        syntheo_cloudsync::init_on_connection(connection, table_name, crdt_algo, init_flags).await;
     registration.finish(connection.connection().await?).await?;
     result
 }
@@ -102,7 +102,7 @@ pub(super) async fn init_enabled_tables<C: OwnedSqliteConnection>(
     connection: &mut ReservedConnection<C>,
     tables: &[CloudsyncTableSpec],
     interrupt: &CloudsyncInterruptHandle,
-) -> Result<(), anlg_cloudsync::Error> {
+) -> Result<(), syntheo_cloudsync::Error> {
     for table in tables.iter().filter(|table| table.enabled) {
         interruptible_init(
             connection,
@@ -120,26 +120,26 @@ pub(super) async fn init_enabled_tables<C: OwnedSqliteConnection>(
 pub async fn cloudsync_begin_alter_on<'e, E>(
     executor: E,
     table_name: &str,
-) -> Result<(), anlg_cloudsync::Error>
+) -> Result<(), syntheo_cloudsync::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
-    anlg_cloudsync::begin_alter(executor, table_name).await
+    syntheo_cloudsync::begin_alter(executor, table_name).await
 }
 
 pub async fn cloudsync_is_enabled_on<'e, E>(
     executor: E,
     table_name: &str,
-) -> Result<bool, anlg_cloudsync::Error>
+) -> Result<bool, syntheo_cloudsync::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
-    anlg_cloudsync::is_enabled(executor, table_name).await
+    syntheo_cloudsync::is_enabled(executor, table_name).await
 }
 
 pub(crate) async fn cloudsync_has_local_unsent_changes_on<'e, E>(
     executor: E,
-) -> Result<bool, anlg_cloudsync::Error>
+) -> Result<bool, syntheo_cloudsync::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
@@ -170,11 +170,11 @@ where
 pub async fn cloudsync_commit_alter_on<'e, E>(
     executor: E,
     table_name: &str,
-) -> Result<(), anlg_cloudsync::Error>
+) -> Result<(), syntheo_cloudsync::Error>
 where
     E: Executor<'e, Database = Sqlite>,
 {
-    anlg_cloudsync::commit_alter(executor, table_name).await
+    syntheo_cloudsync::commit_alter(executor, table_name).await
 }
 
 #[cfg(test)]
@@ -196,7 +196,7 @@ mod tests {
             .execute(connection.connection().await.unwrap())
             .await
             .unwrap();
-        let site_id = anlg_cloudsync::siteid(connection.connection().await.unwrap())
+        let site_id = syntheo_cloudsync::siteid(connection.connection().await.unwrap())
             .await
             .unwrap();
         sqlx::query("SELECT cloudsync_set('send_dbversion', '123')")
@@ -207,7 +207,7 @@ mod tests {
             .execute(connection.connection().await.unwrap())
             .await
             .unwrap();
-        anlg_cloudsync::cleanup_on_connection(&mut connection, "items")
+        syntheo_cloudsync::cleanup_on_connection(&mut connection, "items")
             .await
             .unwrap();
         rollback_cleanup_savepoint(&mut connection, "items", true)
@@ -218,7 +218,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(
-            anlg_cloudsync::siteid(connection.connection().await.unwrap())
+            syntheo_cloudsync::siteid(connection.connection().await.unwrap())
                 .await
                 .unwrap(),
             site_id
@@ -230,25 +230,25 @@ mod tests {
                 .unwrap();
         assert_eq!(cursor, "123");
         assert!(
-            anlg_cloudsync::is_enabled(connection.connection().await.unwrap(), "items")
+            syntheo_cloudsync::is_enabled(connection.connection().await.unwrap(), "items")
                 .await
                 .unwrap()
         );
-        anlg_cloudsync::disable(connection.connection().await.unwrap(), "items")
+        syntheo_cloudsync::disable(connection.connection().await.unwrap(), "items")
             .await
             .unwrap();
         sqlx::query("SAVEPOINT cloudsync_cleanup")
             .execute(connection.connection().await.unwrap())
             .await
             .unwrap();
-        anlg_cloudsync::cleanup_on_connection(&mut connection, "items")
+        syntheo_cloudsync::cleanup_on_connection(&mut connection, "items")
             .await
             .unwrap();
         rollback_cleanup_savepoint(&mut connection, "items", false)
             .await
             .unwrap();
         assert!(
-            !anlg_cloudsync::is_enabled(connection.connection().await.unwrap(), "items")
+            !syntheo_cloudsync::is_enabled(connection.connection().await.unwrap(), "items")
                 .await
                 .unwrap()
         );

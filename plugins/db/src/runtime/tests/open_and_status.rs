@@ -150,7 +150,7 @@ async fn cloudsync_open_fallback_propagates_schema_errors() {
     let db = Db::open(app_db_open_options(DbStorage::Local(&db_path), false))
         .await
         .unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     sqlx::query(
         "UPDATE app_settings
              SET value_json = 'not-json'
@@ -173,8 +173,8 @@ async fn cloudsync_open_fallback_propagates_schema_errors() {
 
     assert!(matches!(
         error,
-        crate::Error::AppSchema(anlg_db_app::AppSchemaError::CloudsyncWorkspace(
-            anlg_db_app::CloudsyncWorkspaceError::InvalidBinding
+        crate::Error::AppSchema(syntheo_db_app::AppSchemaError::CloudsyncWorkspace(
+            syntheo_db_app::CloudsyncWorkspaceError::InvalidBinding
         ))
     ));
 }
@@ -192,18 +192,18 @@ async fn failed_cloudsync_preflight_clears_new_credentials() {
     })
     .await
     .unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::new(db));
     let cancellation = crate::e2ee_witness::E2eeWitnessCancellation::default();
 
     runtime
         .prepare_cloudsync_config_fail_closed(
-            anlg_db_core::CloudsyncRuntimeConfig {
+            syntheo_db_core::CloudsyncRuntimeConfig {
                 connection_string: "managed-database-id".to_string(),
-                auth: anlg_db_core::CloudsyncAuth::Token {
+                auth: syntheo_db_core::CloudsyncAuth::Token {
                     token: "secret-token".to_string(),
                 },
-                tables: vec![anlg_db_core::CloudsyncTableSpec {
+                tables: vec![syntheo_db_core::CloudsyncTableSpec {
                     table_name: "missing_table".to_string(),
                     crdt_algo: None,
                     init_flags: None,
@@ -227,8 +227,8 @@ async fn failed_cloudsync_preflight_clears_new_credentials() {
 #[tokio::test]
 async fn pending_status_uses_the_same_compatible_write_policy_as_encryption() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -260,9 +260,9 @@ async fn pending_status_uses_the_same_compatible_write_policy_as_encryption() {
 #[tokio::test]
 async fn cloudsync_status_does_not_treat_inbound_reconciliation_as_unsent() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -294,9 +294,9 @@ async fn cloudsync_status_does_not_treat_inbound_reconciliation_as_unsent() {
 #[tokio::test]
 async fn cloudsync_status_ignores_only_the_active_transcript() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -350,7 +350,7 @@ async fn cloudsync_status_ignores_only_the_active_transcript() {
 #[tokio::test]
 async fn repeated_cloudsync_status_polling_returns_base_status_on_a_busy_pool() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
     let mut held_connection = db.pool().acquire().await.unwrap();
     let started = std::time::Instant::now();

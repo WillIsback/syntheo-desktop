@@ -1,5 +1,5 @@
-use anlg_apple_todo::types::{Reminder, ReminderList};
-use anlg_ticket_interface::{CollectionPage, TicketPage};
+use syntheo_apple_todo::types::{Reminder, ReminderList};
+use syntheo_ticket_interface::{CollectionPage, TicketPage};
 
 use crate::error::Error;
 

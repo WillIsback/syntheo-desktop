@@ -64,7 +64,7 @@ vi.mock("@tauri-apps/api/path", () => ({
   sep: vi.fn().mockReturnValue("/"),
 }));
 
-vi.mock("@anlg/plugin-db", () => ({
+vi.mock("@syntheo/plugin-db", () => ({
   CLOUDSYNC_ACTIVITY_DEFERRED_ERROR: "cloudsync_activity_deferred",
   beginCloudsyncActivity: vi.fn().mockResolvedValue(undefined),
   endCloudsyncActivity: vi.fn().mockResolvedValue(undefined),
@@ -125,7 +125,7 @@ vi.mock("@anlg/plugin-db", () => ({
   suspendCloudsyncForSignOut: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@anlg/plugin-session", () => ({
+vi.mock("@syntheo/plugin-session", () => ({
   commands: new Proxy({} as Record<string, () => Promise<unknown>>, {
     get: (target, prop) => {
       if (typeof prop !== "string") {

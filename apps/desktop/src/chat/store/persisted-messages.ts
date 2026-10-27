@@ -1,7 +1,7 @@
-import type { ChatMessageStatus } from "@anlg/store";
+import type { ChatMessageStatus } from "@syntheo/store";
 
 import { hasRenderableContent } from "~/chat/message-content";
-import type { AnlgUIMessage } from "~/chat/types";
+import type { SyntheoUIMessage } from "~/chat/types";
 
 export type ChatMessageRecord = {
   id: string;
@@ -31,7 +31,7 @@ export type PersistedChatMessage = {
   id: string;
   record: ChatMessageRecord;
   status: ChatMessageStatus;
-  message: AnlgUIMessage;
+  message: SyntheoUIMessage;
 };
 
 function parseJson<T>(value: string | undefined, fallback: T): T {
@@ -59,7 +59,7 @@ export function normalizeChatMessageStatus(status: unknown): ChatMessageStatus {
   return "ready";
 }
 
-function extractTextContent(parts: AnlgUIMessage["parts"]) {
+function extractTextContent(parts: SyntheoUIMessage["parts"]) {
   return parts
     .filter((part): part is Extract<typeof part, { type: "text" }> => {
       return part.type === "text";
@@ -69,7 +69,7 @@ function extractTextContent(parts: AnlgUIMessage["parts"]) {
 }
 
 function getCreatedAt(
-  message: AnlgUIMessage,
+  message: SyntheoUIMessage,
   existingRecord?: Partial<ChatMessageRecord>,
 ) {
   if (existingRecord?.createdAt) {
@@ -92,7 +92,7 @@ export function buildPersistedChatMessage({
   content,
   existingRecord,
 }: {
-  message: AnlgUIMessage;
+  message: SyntheoUIMessage;
   chatGroupId: string;
   ownerUserId: string;
   status: ChatMessageStatus;
@@ -116,7 +116,7 @@ export function rowToPersistedChatMessage(
   row: ChatMessageSqlRow,
 ): PersistedChatMessage {
   const status = normalizeChatMessageStatus(row.status);
-  const message: AnlgUIMessage = {
+  const message: SyntheoUIMessage = {
     id: row.id,
     role: row.role as "user" | "assistant",
     parts: parseJson(row.parts_json, []),
@@ -152,13 +152,15 @@ export function shouldHidePersistedMessage(message: PersistedChatMessage) {
   );
 }
 
-export function shouldPersistFinishedMessage(message: AnlgUIMessage): boolean {
+export function shouldPersistFinishedMessage(
+  message: SyntheoUIMessage,
+): boolean {
   return message.role !== "assistant" || hasRenderableContent(message);
 }
 
 export function getVisibleChatMessages(
   messages: PersistedChatMessage[],
-): AnlgUIMessage[] {
+): SyntheoUIMessage[] {
   return messages
     .filter((message) => !shouldHidePersistedMessage(message))
     .map((message) => message.message);

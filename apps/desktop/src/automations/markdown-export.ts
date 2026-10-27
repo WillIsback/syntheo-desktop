@@ -1,4 +1,4 @@
-import type { MarkdownExportOptions } from "@anlg/plugin-local-api";
+import type { MarkdownExportOptions } from "@syntheo/plugin-local-api";
 
 export const DEFAULT_MARKDOWN_EXPORT_OPTIONS: MarkdownExportOptions = {
   include_memo: true,

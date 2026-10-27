@@ -1,4 +1,4 @@
-import { commands as templateCommands } from "@anlg/plugin-template";
+import { commands as templateCommands } from "@syntheo/plugin-template";
 
 import { getAdditionalSpokenLanguages } from "~/settings/general/language";
 import type { SettingValues } from "~/settings/schema";

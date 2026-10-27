@@ -130,16 +130,16 @@ vi.mock("@lingui/react", () => ({
   }),
 }));
 
-vi.mock("@anlg/editor/markdown", () => ({
+vi.mock("@syntheo/editor/markdown", () => ({
   json2md: () => "",
   parseJsonContent: () => ({}),
 }));
 
-vi.mock("@anlg/ui/components/ui/spinner", () => ({
+vi.mock("@syntheo/ui/components/ui/spinner", () => ({
   Spinner: () => <span data-testid="view-spinner" />,
 }));
 
-vi.mock("@anlg/ui/components/ui/dancing-sticks", () => ({
+vi.mock("@syntheo/ui/components/ui/dancing-sticks", () => ({
   DancingSticks: () => <span data-testid="dancing-sticks" />,
 }));
 

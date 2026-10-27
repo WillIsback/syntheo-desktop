@@ -48,7 +48,7 @@ async fn restart_after_fatal_exit_cleans_native_state() {
         let mut runtime = db.cloudsync_runtime.lock().unwrap();
         runtime.running = false;
         runtime.last_error = Some("fatal sync failure".to_string());
-        runtime.last_error_kind = Some(anlg_cloudsync::ErrorKind::Fatal);
+        runtime.last_error_kind = Some(syntheo_cloudsync::ErrorKind::Fatal);
         runtime.task = Some(CloudsyncBackgroundTask {
             shutdown_tx: Some(stale_shutdown_tx),
             join_handle,

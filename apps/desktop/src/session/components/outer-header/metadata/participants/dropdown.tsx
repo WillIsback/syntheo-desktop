@@ -1,7 +1,7 @@
 import { type CSSProperties, useEffect, useRef } from "react";
 
-import { ArrowElbowDownLeft } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { ArrowElbowDownLeft } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 type DropdownOption = {
   id: string;

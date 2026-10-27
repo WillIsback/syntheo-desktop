@@ -1,5 +1,5 @@
 [package]
-name = "anlg-http-utils"
+name = "syntheo-http-utils"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"

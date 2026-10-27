@@ -1,4 +1,4 @@
-import { commands as templateCommands } from "@anlg/plugin-template";
+import { commands as templateCommands } from "@syntheo/plugin-template";
 
 import { enqueueDatabaseWrite } from "~/db/write-queue";
 

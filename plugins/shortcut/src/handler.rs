@@ -13,7 +13,7 @@ pub use self::stub::Handler;
 mod macos {
     use std::{sync::Mutex, time::Duration};
 
-    use anlg_shortcut_macos as sm;
+    use syntheo_shortcut_macos as sm;
     use tauri::{AppHandle, Runtime};
     use tauri_specta::Event;
 

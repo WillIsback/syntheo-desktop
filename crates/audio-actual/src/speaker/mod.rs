@@ -150,7 +150,7 @@ impl Stream for SpeakerStream {
 }
 
 #[cfg(any(test, not(target_os = "macos")))]
-impl anlg_audio_interface::AsyncSource for SpeakerStream {
+impl syntheo_audio_interface::AsyncSource for SpeakerStream {
     fn as_stream(&mut self) -> impl Stream<Item = f32> + '_ {
         self
     }
@@ -163,9 +163,9 @@ impl anlg_audio_interface::AsyncSource for SpeakerStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_audio_interface::AsyncSource;
     use futures_util::StreamExt;
     use std::sync::atomic::Ordering;
+    use syntheo_audio_interface::AsyncSource;
 
     #[tokio::test]
     async fn test_buffer_rate_preserved_after_rate_change() {

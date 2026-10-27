@@ -2,7 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 import { useEffect, useRef } from "react";
 
-import type { NoteEditorRef } from "@anlg/editor/note";
+import type { NoteEditorRef } from "@syntheo/editor/note";
 import {
   CaretDown,
   CaretUp,
@@ -11,15 +11,15 @@ import {
   TextAa,
   Textbox,
   X,
-} from "@anlg/ui/components/icons";
-import { Kbd } from "@anlg/ui/components/ui/kbd";
+} from "@syntheo/ui/components/icons";
+import { Kbd } from "@syntheo/ui/components/ui/kbd";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anlg/ui/components/ui/tooltip";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/tooltip";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import { useSearch } from "./context";
 

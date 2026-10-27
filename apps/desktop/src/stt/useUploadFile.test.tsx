@@ -3,7 +3,10 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { beginCloudsyncActivity, endCloudsyncActivity } from "@anlg/plugin-db";
+import {
+  beginCloudsyncActivity,
+  endCloudsyncActivity,
+} from "@syntheo/plugin-db";
 
 import { isAudioUploadFile, useUploadFile } from "./useUploadFile";
 
@@ -59,7 +62,7 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({
   open: selectFileMock,
 }));
 
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     audioImport: audioImportMock,
     audioSourceMetadata: audioSourceMetadataMock,
@@ -71,7 +74,7 @@ vi.mock("@anlg/plugin-fs-sync", () => ({
   },
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: { parseSubtitle: parseSubtitleMock },
 }));
 

@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { create } from "zustand";
 
-import { commands as calendarCommands } from "@anlg/plugin-calendar";
+import { commands as calendarCommands } from "@syntheo/plugin-calendar";
 
 import { liveQueryClient, useLiveQuery } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";

@@ -1,10 +1,10 @@
 {
   "ignorePatterns": ["**/*.gen.ts"],
   "plugins": ["promise"],
-  "jsPlugins": ["./eslint-plugin-anlg.mjs"],
+  "jsPlugins": ["./eslint-plugin-syntheo.mjs"],
   "rules": {
-    "anlg/await-tauri-commands": "warn",
-    "anlg/no-raw-tinybase": "off"
+    "syntheo/await-tauri-commands": "warn",
+    "syntheo/no-raw-tinybase": "off"
   },
   "overrides": [
     {
@@ -18,7 +18,7 @@
     {
       "files": ["apps/desktop/src/**/*.{ts,tsx}"],
       "rules": {
-        "anlg/no-raw-tinybase": "error"
+        "syntheo/no-raw-tinybase": "error"
       }
     }
   ]

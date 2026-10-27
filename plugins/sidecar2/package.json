@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-sidecar2",
+  "name": "@syntheo/plugin-sidecar2",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

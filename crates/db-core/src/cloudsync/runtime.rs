@@ -668,7 +668,7 @@ impl Db {
 
     async fn try_cloudsync_has_local_unsent_changes(
         &self,
-    ) -> Result<Option<bool>, anlg_cloudsync::Error> {
+    ) -> Result<Option<bool>, syntheo_cloudsync::Error> {
         let Some(mut connection) = self.pool.try_acquire() else {
             return Ok(None);
         };
@@ -683,12 +683,12 @@ impl Db {
 async fn authenticate_cloudsync_network<A, AF, C, CF>(
     authenticate: A,
     cleanup: C,
-) -> Result<(), anlg_cloudsync::Error>
+) -> Result<(), syntheo_cloudsync::Error>
 where
     A: FnOnce() -> AF,
-    AF: Future<Output = Result<(), anlg_cloudsync::Error>>,
+    AF: Future<Output = Result<(), syntheo_cloudsync::Error>>,
     C: FnOnce() -> CF,
-    CF: Future<Output = Result<(), anlg_cloudsync::Error>>,
+    CF: Future<Output = Result<(), syntheo_cloudsync::Error>>,
 {
     if let Err(auth_error) = authenticate().await {
         if let Err(cleanup_error) = cleanup().await {

@@ -8,7 +8,7 @@ import {
 } from "./entities";
 import { extractContextRefsFromMessages } from "./refs";
 
-import type { AnlgUIMessage } from "~/chat/types";
+import type { SyntheoUIMessage } from "~/chat/types";
 import {
   useHumanDisplayRecordsByIds,
   useOrganizationDisplayRecordsByIds,
@@ -98,7 +98,7 @@ function toDisplayEntity(
 }
 
 type UseChatContextPipelineParams = {
-  messages: AnlgUIMessage[];
+  messages: SyntheoUIMessage[];
   currentSessionId?: string;
   folderId?: string;
   pendingManualRefs: ContextRef[];

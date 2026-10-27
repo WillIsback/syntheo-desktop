@@ -31,7 +31,7 @@ use crate::menu_items::{
 };
 use tauri_plugin_store2::Store2PluginExt;
 
-const TRAY_ID: &str = "anlg-tray";
+const TRAY_ID: &str = "syntheo-tray";
 
 static IS_RECORDING: AtomicBool = AtomicBool::new(false);
 static IS_DEGRADED: AtomicBool = AtomicBool::new(false);
@@ -46,7 +46,7 @@ static RECORDING_TITLE: Mutex<Option<String>> = Mutex::new(None);
 static AGENDA_SECTIONS: Mutex<Vec<TrayAgendaSection>> = Mutex::new(Vec::new());
 // muda 0.17 stores a raw MenuChild pointer on each NSMenuItem. Replacing the
 // tray menu while it is still visible frees those items and crashes on click
-// (HYPRNOTE2-2MTS). Defer set_menu until the next tray mouse-down instead.
+// (SYNTHEO2-2MTS). Defer set_menu until the next tray mouse-down instead.
 #[cfg(target_os = "macos")]
 static MENU_DIRTY: AtomicBool = AtomicBool::new(false);
 
@@ -387,7 +387,7 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         for (section_index, section) in agenda.iter().enumerate() {
             let heading = MenuItem::with_id(
                 app,
-                format!("anlg_tray_agenda_section_{section_index}"),
+                format!("syntheo_tray_agenda_section_{section_index}"),
                 &section.label,
                 false,
                 None::<&str>,

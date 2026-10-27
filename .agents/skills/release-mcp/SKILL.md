@@ -1,6 +1,6 @@
 ---
 name: release-mcp
-description: Review and verify Anarlog local and hosted MCP protocols, contracts, authentication, access boundaries, and shipped runtime behavior during releases.
+description: Review and verify Syntheo local and hosted MCP protocols, contracts, authentication, access boundaries, and shipped runtime behavior during releases.
 metadata:
   internal: true
 ---

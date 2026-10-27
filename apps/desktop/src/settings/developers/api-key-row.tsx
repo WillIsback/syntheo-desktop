@@ -1,6 +1,6 @@
 import { t } from "@lingui/core/macro";
 
-import { Button } from "@anlg/ui/components/ui/button";
+import { Button } from "@syntheo/ui/components/ui/button";
 
 export function ApiKeyRow({
   apiKey,

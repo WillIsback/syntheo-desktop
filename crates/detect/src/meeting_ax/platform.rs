@@ -39,7 +39,7 @@ impl MeetingAppBundle {
 
 // Recognition list. Live-acceptance grouping is native, then tier-1 browsers
 // (Chrome, Edge, Firefox, Safari, Aside), then secondary. Close gates live on
-// ANLG-297 (chat and disclosure share one host matrix).
+// SYNTHEO-297 (chat and disclosure share one host matrix).
 pub(super) const MEETING_APP_BUNDLES: &[MeetingAppBundle] = &[
     MeetingAppBundle::native("us.zoom.xos"),
     MeetingAppBundle::native("com.microsoft.teams2"),

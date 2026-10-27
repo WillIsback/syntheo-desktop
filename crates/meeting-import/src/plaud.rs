@@ -1,6 +1,6 @@
 use crate::json::{ImportedMeeting, nonempty};
 use crate::time::hhmmss_to_ms;
-use anlg_zoom::TranscriptSegment;
+use syntheo_zoom::TranscriptSegment;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ListedFile {

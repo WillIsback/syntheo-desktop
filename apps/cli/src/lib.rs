@@ -104,10 +104,10 @@ mod tests {
     async fn import_wait_timeout_keeps_the_durable_job_for_status_polling() {
         let dir = tempfile::tempdir().unwrap();
         let db_path = dir.path().join("app.db");
-        let db = anlg_db_core::Db::connect_local_plain(&db_path)
+        let db = syntheo_db_core::Db::connect_local_plain(&db_path)
             .await
             .unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query("INSERT INTO local_recording_import_worker (id, vault_path, updated_at) VALUES ('desktop', ?, unixepoch())")
             .bind(dir.path().to_string_lossy().as_ref())
             .execute(db.pool())
@@ -176,10 +176,10 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let db_path = dir.path().join("app.db");
         let output_path = dir.path().join("meeting.md");
-        let db = anlg_db_core::Db::connect_local_plain(&db_path)
+        let db = syntheo_db_core::Db::connect_local_plain(&db_path)
             .await
             .unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO sessions (id, title, started_at) VALUES ('meeting-1', 'Planning', '2026-07-13')",
         )
@@ -221,10 +221,10 @@ mod tests {
     async fn proposal_create_lists_and_declines_without_changing_the_note() {
         let dir = tempfile::tempdir().unwrap();
         let db_path = dir.path().join("app.db");
-        let db = anlg_db_core::Db::connect_local_plain(&db_path)
+        let db = syntheo_db_core::Db::connect_local_plain(&db_path)
             .await
             .unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO sessions (id, title, started_at) VALUES ('meeting-1', 'Planning', '2026-07-13')",
         )
@@ -259,7 +259,7 @@ mod tests {
         .await
         .unwrap();
 
-        let read = anlg_db_core::Db::connect_local_read_only(&db_path)
+        let read = syntheo_db_core::Db::connect_local_read_only(&db_path)
             .await
             .unwrap();
         let pending: Vec<(String, String)> =

@@ -1,22 +1,22 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
-import { type PermissionStatus } from "@anlg/plugin-permissions";
+import { type PermissionStatus } from "@syntheo/plugin-permissions";
 import {
   ArrowLeft,
   ArrowRight,
   Check,
   WarningCircle,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Dialog,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@anlg/ui/components/ui/dialog";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dialog";
+import { cn } from "@syntheo/utils";
 
 import {
   GlassDialogCancelButton,
@@ -41,7 +41,7 @@ export function AppleCalendarPermissionDialog({
           </DialogTitle>
           <DialogDescription className="text-foreground w-full text-center text-[13px] leading-[1.36]">
             <Trans>
-              Turn on Anarlog in System Settings → Privacy &amp; Security →
+              Turn on Syntheo in System Settings → Privacy &amp; Security →
               Calendars, then return here.
             </Trans>
           </DialogDescription>

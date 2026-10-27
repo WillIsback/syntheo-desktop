@@ -11,8 +11,8 @@ import {
 import { flushSync } from "react-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { ArrowDown, ArrowUp } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { ArrowDown, ArrowUp } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import {
   focusTranscriptSelection,

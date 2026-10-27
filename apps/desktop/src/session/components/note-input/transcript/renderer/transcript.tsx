@@ -7,8 +7,8 @@ import {
   useRef,
 } from "react";
 
-import type { RenderTranscriptRequest } from "@anlg/plugin-transcription";
-import { cn } from "@anlg/utils";
+import type { RenderTranscriptRequest } from "@syntheo/plugin-transcription";
+import { cn } from "@syntheo/utils";
 
 import { useSearch } from "../../search/context";
 import {

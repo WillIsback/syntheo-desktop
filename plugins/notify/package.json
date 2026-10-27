@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-notify",
+  "name": "@syntheo/plugin-notify",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

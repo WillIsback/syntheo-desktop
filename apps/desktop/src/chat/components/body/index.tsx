@@ -1,9 +1,9 @@
 import { Trans } from "@lingui/react/macro";
 import type { ChatStatus } from "ai";
 
-import { CaretDown } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { cn } from "@anlg/utils";
+import { CaretDown } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { cn } from "@syntheo/utils";
 
 import { ChatBodyEmpty } from "./empty";
 import { ChatBodyNonEmpty } from "./non-empty";
@@ -11,7 +11,7 @@ import { useChatAutoScroll } from "./use-chat-auto-scroll";
 
 import type { ContextRef } from "~/chat/context/entities";
 import { chatFloatingControlClassNames } from "~/chat/surface";
-import type { AnlgUIMessage } from "~/chat/types";
+import type { SyntheoUIMessage } from "~/chat/types";
 import { useShell } from "~/contexts/shell";
 
 export function ChatBody({
@@ -25,7 +25,7 @@ export function ChatBody({
   hasSummary = false,
   onSendMessage,
 }: {
-  messages: AnlgUIMessage[];
+  messages: SyntheoUIMessage[];
   status: ChatStatus;
   error?: Error;
   onReload?: () => void;

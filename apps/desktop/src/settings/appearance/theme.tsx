@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 
-import { Check } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { Check } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
@@ -38,7 +38,7 @@ export function ThemeSelector() {
           <Trans>Theme</Trans>
         </h3>
         <p className="text-muted-foreground mt-1 text-sm">
-          <Trans>Choose how Anarlog looks on this device.</Trans>
+          <Trans>Choose how Syntheo looks on this device.</Trans>
         </p>
       </div>
       <div

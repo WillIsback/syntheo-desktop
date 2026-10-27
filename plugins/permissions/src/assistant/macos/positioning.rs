@@ -2,10 +2,10 @@ use objc2::Message;
 use objc2_app_kit::{NSAnimatablePropertyContainer, NSPanel};
 use objc2_foundation::NSRect;
 
-use anlg_overlay_kit::layout::{Alignment, Insets, LayoutRect, LayoutSize};
-use anlg_overlay_kit::macos::panel::{OverlayPanelPresentation, reconcile_panel_presentation};
-use anlg_overlay_kit::macos::support::rect;
-use anlg_overlay_kit::placement::{PlacementExtent, PlacementSpec};
+use syntheo_overlay_kit::layout::{Alignment, Insets, LayoutRect, LayoutSize};
+use syntheo_overlay_kit::macos::panel::{OverlayPanelPresentation, reconcile_panel_presentation};
+use syntheo_overlay_kit::macos::support::rect;
+use syntheo_overlay_kit::placement::{PlacementExtent, PlacementSpec};
 
 use super::animation::{self, REPOSITION_DURATION, REPOSITION_THRESHOLD};
 use super::layout::{

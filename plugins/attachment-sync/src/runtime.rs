@@ -4,14 +4,14 @@ use std::path::{Component, Path, PathBuf};
 #[cfg(test)]
 use std::time::{Duration, SystemTime};
 
-use anlg_attachment_sync_core::seal_attachment_to_cache;
-use anlg_e2ee::{
-    AttachmentBlobCiphertextMetadata, AttachmentBlobContext, AttachmentBlobMetadata,
-    AttachmentBlobPlaintextMetadata, WorkspaceKey,
-};
 #[cfg(test)]
 use sha2::{Digest, Sha256};
 use sqlx::FromRow;
+use syntheo_attachment_sync_core::seal_attachment_to_cache;
+use syntheo_e2ee::{
+    AttachmentBlobCiphertextMetadata, AttachmentBlobContext, AttachmentBlobMetadata,
+    AttachmentBlobPlaintextMetadata, WorkspaceKey,
+};
 use tauri::Runtime;
 use tauri_plugin_settings::SettingsPluginExt;
 use uuid::{Uuid, Version};
@@ -55,10 +55,10 @@ use download::{
 };
 
 const FORMAT_VERSION: i16 = 1;
-const MAX_PLAINTEXT_BYTES: u64 = anlg_e2ee::ATTACHMENT_BLOB_MAX_PLAINTEXT_BYTES;
+const MAX_PLAINTEXT_BYTES: u64 = syntheo_e2ee::ATTACHMENT_BLOB_MAX_PLAINTEXT_BYTES;
 const MAX_CIPHERTEXT_BYTES: u64 = 545_259_520;
 pub(crate) const SHARED_PREVIEW_SCOPE_PREFIX: &str =
-    anlg_attachment_sync_core::SHARED_PREVIEW_SCOPE_PREFIX;
+    syntheo_attachment_sync_core::SHARED_PREVIEW_SCOPE_PREFIX;
 
 #[derive(Debug, Clone, FromRow)]
 struct TransferAttachment {
@@ -118,7 +118,7 @@ pub async fn describe_upload(
     validate_upload_transfer_version(&record)?;
     let plaintext = plaintext_metadata(&record.expected_sha256, record.expected_size_bytes)?;
     let remote_workspace_id =
-        anlg_db_app::local_library_remote_workspace(state.pool(), &record.workspace_id).await?;
+        syntheo_db_app::local_library_remote_workspace(state.pool(), &record.workspace_id).await?;
     let key = workspace_key(state, &remote_workspace_id)?;
 
     let (attachment_ref, version_ref) = attachment_backup_refs(
@@ -154,7 +154,7 @@ pub async fn prepare_upload<R: Runtime>(
     validate_upload_transfer_version(&record)?;
     let expected = plaintext_metadata(&record.expected_sha256, record.expected_size_bytes)?;
     let remote_workspace_id =
-        anlg_db_app::local_library_remote_workspace(state.pool(), &record.workspace_id).await?;
+        syntheo_db_app::local_library_remote_workspace(state.pool(), &record.workspace_id).await?;
     let key = workspace_key(state, &remote_workspace_id)?;
     let expected_ciphertext_size = key.attachment_blob_ciphertext_size(
         &remote_workspace_id,
@@ -506,7 +506,7 @@ pub async fn download_and_restore<R: Runtime>(
     let expected_plaintext =
         plaintext_metadata(&record.expected_sha256, record.expected_size_bytes)?;
     let remote_workspace_id =
-        anlg_db_app::local_library_remote_workspace(state.pool(), &record.workspace_id).await?;
+        syntheo_db_app::local_library_remote_workspace(state.pool(), &record.workspace_id).await?;
     let key = workspace_key(state, &remote_workspace_id)?;
     let predicted_size = key.attachment_blob_ciphertext_size(
         &remote_workspace_id,
@@ -1205,12 +1205,13 @@ fn attachment_paths<R: Runtime>(
         .vault_base()
         .map_err(|_| Error::Vault)?
         .into_std_path_buf();
-    let session_candidate = anlg_fs_sync_core::FsSyncCore::new(vault_base.clone())
+    let session_candidate = syntheo_fs_sync_core::FsSyncCore::new(vault_base.clone())
         .resolve_session_dir(&attachment.session_id)
         .map_err(|_| Error::LocalAttachmentUnavailable)?;
-    let session_dir = anlg_fs_sync_core::resolve_path_inside_base(&vault_base, &session_candidate)
-        .map_err(|_| Error::LocalAttachmentUnavailable)?;
-    let path = anlg_fs_sync_core::resolve_path_inside_base(
+    let session_dir =
+        syntheo_fs_sync_core::resolve_path_inside_base(&vault_base, &session_candidate)
+            .map_err(|_| Error::LocalAttachmentUnavailable)?;
+    let path = syntheo_fs_sync_core::resolve_path_inside_base(
         &session_dir,
         Path::new(&attachment.relative_path),
     )

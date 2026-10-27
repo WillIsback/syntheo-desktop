@@ -8,8 +8,8 @@ import {
   Plus,
   Trash,
   UploadSimple,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -17,9 +17,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@anlg/ui/components/ui/dialog";
-import { Textarea } from "@anlg/ui/components/ui/textarea";
-import { toast } from "@anlg/ui/components/ui/toast";
+} from "@syntheo/ui/components/ui/dialog";
+import { Textarea } from "@syntheo/ui/components/ui/textarea";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import {
   inferSummaryFormat,
@@ -125,7 +125,7 @@ export function AutoFormatExamplesDialog({
           </DialogTitle>
           <DialogDescription>
             <Trans>
-              Attach up to three past summaries you like. Anarlog will learn how
+              Attach up to three past summaries you like. Syntheo will learn how
               you prefer meeting notes to be structured and written.
             </Trans>
           </DialogDescription>

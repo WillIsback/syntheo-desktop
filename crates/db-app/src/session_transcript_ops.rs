@@ -104,7 +104,7 @@ pub async fn load_render_humans(
 
 #[cfg(test)]
 mod tests {
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     use super::*;
     use crate::prepare_schema;

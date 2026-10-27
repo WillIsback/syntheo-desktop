@@ -417,7 +417,7 @@ mod cross_platform {
             WINDOW_LABEL,
             WebviewUrl::App("app/floating-bar".into()),
         )
-        .title(anlg_brand::PRODUCT_NAME)
+        .title(syntheo_brand::PRODUCT_NAME)
         .inner_size(width, height)
         .visible(false)
         .focused(false)

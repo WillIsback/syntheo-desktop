@@ -1,6 +1,6 @@
 use super::*;
 
-async fn binding_workspace(db: &anlg_db_core::Db) -> String {
+async fn binding_workspace(db: &syntheo_db_core::Db) -> String {
     sqlx::query_scalar(
         "SELECT json_extract(value_json, '$.workspace_id')
          FROM app_settings WHERE id = 'cloudsync_workspace_binding'",

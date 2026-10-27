@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn test_normalize_languages_deduplicates_same_base() {
-    use anlg_language::{ISO639, Language};
+    use syntheo_language::{ISO639, Language};
 
     let en: Language = ISO639::En.into();
     let en_gb = Language::with_region(ISO639::En, "GB");
@@ -17,7 +17,7 @@ fn test_normalize_languages_deduplicates_same_base() {
 
 #[test]
 fn test_normalize_languages_prefers_base_over_regional() {
-    use anlg_language::{ISO639, Language};
+    use syntheo_language::{ISO639, Language};
 
     let en_gb = Language::with_region(ISO639::En, "GB");
     let en: Language = ISO639::En.into();
@@ -30,7 +30,7 @@ fn test_normalize_languages_prefers_base_over_regional() {
 
 #[test]
 fn test_normalize_languages_keeps_regional_if_no_base() {
-    use anlg_language::{ISO639, Language};
+    use syntheo_language::{ISO639, Language};
 
     let en_gb = Language::with_region(ISO639::En, "GB");
     let es: Language = ISO639::Es.into();
@@ -44,7 +44,7 @@ fn test_normalize_languages_keeps_regional_if_no_base() {
 
 #[test]
 fn test_normalize_languages_multiple_variants() {
-    use anlg_language::{ISO639, Language};
+    use syntheo_language::{ISO639, Language};
 
     let en_us = Language::with_region(ISO639::En, "US");
     let en_gb = Language::with_region(ISO639::En, "GB");
@@ -75,9 +75,9 @@ fn test_has_live_mode() {
 
 #[test]
 fn test_append_provider_param_replaces_existing() {
-    let url = append_provider_param("https://api.anarlog.so/stt?provider=deepgram", "anarlog");
+    let url = append_provider_param("https://api.example.com/stt?provider=deepgram", "syntheo");
     assert!(
-        url.contains("provider=anarlog"),
+        url.contains("provider=syntheo"),
         "new provider value should be present: {url}"
     );
     assert!(
@@ -94,8 +94,8 @@ fn test_append_provider_param_replaces_existing() {
 #[test]
 fn test_append_provider_param_preserves_other_params() {
     let url = append_provider_param(
-        "https://api.anarlog.so/stt?model=cloud&provider=soniox&language=en",
-        "anarlog",
+        "https://api.example.com/stt?model=cloud&provider=soniox&language=en",
+        "syntheo",
     );
     assert!(
         url.contains("model=cloud"),
@@ -105,14 +105,14 @@ fn test_append_provider_param_preserves_other_params() {
         url.contains("language=en"),
         "language should be preserved: {url}"
     );
-    assert!(url.contains("provider=anarlog"));
+    assert!(url.contains("provider=syntheo"));
     assert!(!url.contains("provider=soniox"));
 }
 
 #[test]
 fn test_append_provider_param_no_existing_provider() {
-    let url = append_provider_param("https://api.anarlog.so/stt", "anarlog");
-    assert!(url.contains("provider=anarlog"));
+    let url = append_provider_param("https://api.example.com/stt", "syntheo");
+    assert!(url.contains("provider=syntheo"));
     assert_eq!(url.matches("provider=").count(), 1);
 }
 

@@ -1,7 +1,7 @@
 import { type ChangeEvent, type ReactNode, useRef } from "react";
 
-import { Camera } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { Camera } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { updateContactAvatar } from "./queries";
 

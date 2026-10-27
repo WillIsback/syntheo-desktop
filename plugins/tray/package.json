@@ -1,9 +1,9 @@
 {
-  "name": "@anlg/plugin-tray",
+  "name": "@syntheo/plugin-tray",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {
-    "codegen": "cargo test -p tauri-plugin-anlg-tray",
+    "codegen": "cargo test -p tauri-plugin-syntheo-tray",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

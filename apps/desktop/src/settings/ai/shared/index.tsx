@@ -9,31 +9,31 @@ import {
   providerCredentialIdentity,
   verifyProviderCredentials,
   usesDeferredProviderAuthentication,
-} from "@anlg/provider-validation";
-import type { AIProvider } from "@anlg/store";
-import { aiProviderSchema } from "@anlg/store";
+} from "@syntheo/provider-validation";
+import type { AIProvider } from "@syntheo/store";
+import { aiProviderSchema } from "@syntheo/store";
 import {
   ArrowSquareOut,
   CircleNotch,
   WarningCircle,
-} from "@anlg/ui/components/icons";
-import { streamdownIcons } from "@anlg/ui/components/streamdown-icons";
+} from "@syntheo/ui/components/icons";
+import { streamdownIcons } from "@syntheo/ui/components/streamdown-icons";
 import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@anlg/ui/components/ui/accordion";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/ui/components/ui/accordion";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   InputGroup,
   InputGroupInput,
-} from "@anlg/ui/components/ui/input-group";
+} from "@syntheo/ui/components/ui/input-group";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anlg/ui/components/ui/tooltip";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/tooltip";
+import { cn } from "@syntheo/utils";
 
 import {
   getProviderSelectionBlockers,
@@ -80,14 +80,14 @@ type ProviderConfig = {
   };
 };
 
-const ANARLOG_ICON_SRC = "/assets/anarlog-icon.png";
+const SYNTHEO_ICON_SRC = "/assets/syntheo-icon.png";
 
-export function AnarlogProviderIcon() {
+export function SyntheoProviderIcon() {
   return (
     <img
-      src={staticAssetUrl(ANARLOG_ICON_SRC)}
-      onError={fallbackToLocalAsset(ANARLOG_ICON_SRC)}
-      alt="Anarlog"
+      src={staticAssetUrl(SYNTHEO_ICON_SRC)}
+      onError={fallbackToLocalAsset(SYNTHEO_ICON_SRC)}
+      alt="Syntheo"
       data-slot="provider-logo"
       className="size-full object-contain object-center"
     />
@@ -324,7 +324,7 @@ function useIsProviderReady(
   );
 }
 
-export function NonAnarlogProviderCard({
+export function NonSyntheoProviderCard({
   config,
   providerType,
   providers,
@@ -431,9 +431,9 @@ export function NonAnarlogProviderCard({
     },
   });
   const keychainToastDescription = isKeychainRecoveryInProgress
-    ? t`Unlock your login Keychain in the macOS prompt. Anarlog will retry saving this API key automatically.`
+    ? t`Unlock your login Keychain in the macOS prompt. Syntheo will retry saving this API key automatically.`
     : (repairMutation.error?.message ??
-      t`macOS cannot access your login Keychain. Repairing briefly locks it and asks for your Mac password before Anarlog retries this API key.`);
+      t`macOS cannot access your login Keychain. Repairing briefly locks it and asks for your Mac password before Syntheo retries this API key.`);
   const hasStoredConfig =
     Boolean(provider?.api_key?.trim()) ||
     Boolean(

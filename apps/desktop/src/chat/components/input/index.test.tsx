@@ -43,7 +43,7 @@ const {
   toastError: vi.fn(),
 }));
 
-vi.mock("@anlg/editor/chat", async () => {
+vi.mock("@syntheo/editor/chat", async () => {
   const React = await vi.importActual<typeof import("react")>("react");
 
   return {
@@ -98,7 +98,7 @@ vi.mock("@anlg/editor/chat", async () => {
   };
 });
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { error: toastError },
 }));
 

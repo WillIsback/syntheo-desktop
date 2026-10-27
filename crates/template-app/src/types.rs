@@ -57,8 +57,8 @@ common_derives! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_askama_utils::tpl_snapshot;
     use askama::Template;
+    use syntheo_askama_utils::tpl_snapshot;
 
     #[derive(Template)]
     #[template(

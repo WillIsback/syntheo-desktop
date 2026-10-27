@@ -1,7 +1,7 @@
-import { md2json } from "@anlg/editor/markdown";
-import { beginCloudsyncActivity } from "@anlg/plugin-db";
-import { commands as localApiCommands } from "@anlg/plugin-local-api";
-import { commands as templateCommands } from "@anlg/plugin-template";
+import { md2json } from "@syntheo/editor/markdown";
+import { beginCloudsyncActivity } from "@syntheo/plugin-db";
+import { commands as localApiCommands } from "@syntheo/plugin-local-api";
+import { commands as templateCommands } from "@syntheo/plugin-template";
 
 import { createTaskId, type TaskConfig } from ".";
 import {

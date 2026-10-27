@@ -74,8 +74,8 @@ export async function dismissInstruction() {
 }
 
 const DROP_PREVENTION_CLEANUP_KEY =
-  "__ANARLOG_WINDOWS_DROP_PREVENTION_CLEANUP__";
-const HEALTH_CHECK_CLEANUP_KEY = "__ANARLOG_WINDOWS_HEALTH_CHECK_CLEANUP__";
+  "__SYNTHEO_WINDOWS_DROP_PREVENTION_CLEANUP__";
+const HEALTH_CHECK_CLEANUP_KEY = "__SYNTHEO_WINDOWS_HEALTH_CHECK_CLEANUP__";
 
 export const init = () => {
   const host = window as typeof window & {

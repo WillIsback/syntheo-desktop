@@ -21,7 +21,7 @@ import {
   useRef,
 } from "react";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 import { EditorErrorBoundary } from "../editor-error-boundary";
 import { docChangeListenerPlugin, placeholderPlugin } from "../plugins";

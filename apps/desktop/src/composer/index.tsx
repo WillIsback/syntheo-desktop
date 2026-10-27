@@ -3,18 +3,18 @@ import { platform } from "@tauri-apps/plugin-os";
 import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { ChatEditor, type ChatEditorHandle } from "@anlg/editor/chat";
-import type { PlaceholderFunction } from "@anlg/editor/plugins";
-import { commands as windowsCommands } from "@anlg/plugin-windows";
+import { ChatEditor, type ChatEditorHandle } from "@syntheo/editor/chat";
+import type { PlaceholderFunction } from "@syntheo/editor/plugins";
+import { commands as windowsCommands } from "@syntheo/plugin-windows";
 import {
   ArrowUp,
   ArrowUpRight,
   GearSix,
   Sparkle,
   X,
-} from "@anlg/ui/components/icons";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { cn } from "@syntheo/utils";
 
 import { useLanguageModel } from "~/ai/hooks";
 import {
@@ -100,7 +100,7 @@ export function ComposerScreen() {
               }
               onStop={sessionProps.stop}
               onSendMessage={sendMessage}
-              title={currentChatGroup?.title || t`Ask Anarlog AI anything`}
+              title={currentChatGroup?.title || t`Ask Syntheo AI anything`}
             />
           ) : (
             <ComposerSettingsCard />
@@ -226,7 +226,7 @@ function ComposerInput({
             ])}
           >
             <ArrowUpRight className="size-3.5" />
-            {t`Open Anarlog`}
+            {t`Open Syntheo`}
           </button>
           <button
             type="button"
@@ -307,7 +307,7 @@ function ComposerInput({
 
 const composerPlaceholder: PlaceholderFunction = ({ node, pos }) => {
   if (node.type.name === "paragraph" && pos === 0) {
-    return t`Message Anarlog AI`;
+    return t`Message Syntheo AI`;
   }
 
   return "";

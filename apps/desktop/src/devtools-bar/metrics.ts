@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { commands as miscCommands } from "@anlg/plugin-misc";
+import { commands as miscCommands } from "@syntheo/plugin-misc";
 
 import { startRenderTracker, tickRenderTracker } from "./render-tracker";
 

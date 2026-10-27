@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/user-error",
+  "name": "@syntheo/user-error",
   "private": true,
   "type": "module",
   "exports": {

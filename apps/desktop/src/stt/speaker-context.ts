@@ -1,7 +1,7 @@
 import type {
   SpeakerContext,
   SpeakerContextInterval,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 export const EMPTY_SPEAKER_CONTEXT: SpeakerContext = { intervals: [] };
 

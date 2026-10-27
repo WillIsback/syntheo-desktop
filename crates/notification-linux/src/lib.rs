@@ -1,4 +1,4 @@
-pub use anlg_notification_interface::*;
+pub use syntheo_notification_interface::*;
 
 #[cfg(any(target_os = "linux", test))]
 mod callbacks;

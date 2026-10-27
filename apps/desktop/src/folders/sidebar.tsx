@@ -6,10 +6,10 @@ import {
   MagnifyingGlass,
   Plus,
   X,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { cn } from "@syntheo/utils";
 
 import { useActiveFolderPath, useFolderSelection } from "./selection";
 

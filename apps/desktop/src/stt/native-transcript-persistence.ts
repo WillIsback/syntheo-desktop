@@ -2,7 +2,7 @@ import {
   commands as transcriptionCommands,
   events as transcriptionEvents,
   type LiveTranscriptPersistence,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 const FLUSH_TIMEOUT_MS = 20_000;
 

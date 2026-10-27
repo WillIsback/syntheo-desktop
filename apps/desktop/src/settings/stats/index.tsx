@@ -1,9 +1,9 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { panelSquircle } from "@anlg/ui/lib/squircle";
-import { cn } from "@anlg/utils";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { panelSquircle } from "@syntheo/ui/lib/squircle";
+import { cn } from "@syntheo/utils";
 
 import { summarizeActivity } from "./activity";
 import { BadgeCollection } from "./badge-collection";

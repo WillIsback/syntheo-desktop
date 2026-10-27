@@ -5,9 +5,9 @@ use crate::{
     CaptureConfigUpdate, CaptureParams, CaptureSnapshot, CaptureState, LiveTranscriptPersistence,
     StoppedCapture,
 };
-use anlg_transcript::{RenderTranscriptRequest, RenderedTranscriptSegment};
-use anlg_transcription_core::listener::actors::audio_sweep::{self, RecoveryAudioChunk};
-use anlg_transcription_core::listener2 as listener2_core;
+use syntheo_transcript::{RenderTranscriptRequest, RenderedTranscriptSegment};
+use syntheo_transcription_core::listener::actors::audio_sweep::{self, RecoveryAudioChunk};
+use syntheo_transcription_core::listener2 as listener2_core;
 use tauri_plugin_fs_sync::FsSyncPluginExt;
 
 fn session_audio_dir<R: tauri::Runtime>(
@@ -438,7 +438,7 @@ pub async fn is_supported_languages_live<R: tauri::Runtime>(
 
     let languages_parsed = languages
         .iter()
-        .map(|s| anlg_language::Language::from_str(s))
+        .map(|s| syntheo_language::Language::from_str(s))
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| format!("unknown_language: {}", e))?;
 
@@ -453,7 +453,7 @@ pub async fn suggest_providers_for_languages_live<R: tauri::Runtime>(
 ) -> Result<Vec<String>, String> {
     let languages_parsed = languages
         .iter()
-        .map(|s| anlg_language::Language::from_str(s))
+        .map(|s| syntheo_language::Language::from_str(s))
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| format!("unknown_language: {}", e))?;
 
@@ -475,7 +475,7 @@ pub async fn list_documented_language_codes_live<R: tauri::Runtime>(
 pub async fn render_transcript_segments(
     params: RenderTranscriptRequest,
 ) -> Result<Vec<RenderedTranscriptSegment>, String> {
-    Ok(anlg_transcript::render_transcript_segments(params))
+    Ok(syntheo_transcript::render_transcript_segments(params))
 }
 
 #[tauri::command]
@@ -485,7 +485,7 @@ pub async fn update_capture_credentials<R: tauri::Runtime>(
     session_id: String,
     api_key: String,
 ) -> Result<(), String> {
-    use anlg_transcription_core::listener::actors::{SessionMsg, session_supervisor_name};
+    use syntheo_transcription_core::listener::actors::{SessionMsg, session_supervisor_name};
     let cell = ractor::registry::where_is(session_supervisor_name(&session_id))
         .ok_or("Capture is not active")?;
     let actor: ractor::ActorRef<SessionMsg> = cell.into();

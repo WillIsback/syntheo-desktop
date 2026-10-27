@@ -1,4 +1,4 @@
-import type { ImportTextFile } from "@anlg/plugin-importer";
+import type { ImportTextFile } from "@syntheo/plugin-importer";
 
 export type ImportedMeeting = {
   externalId: string;

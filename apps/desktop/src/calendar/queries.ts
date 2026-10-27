@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
-import { commands as calendarCommands } from "@anlg/plugin-calendar";
-import { eventParticipantSchema, type EventParticipant } from "@anlg/store";
+import { commands as calendarCommands } from "@syntheo/plugin-calendar";
+import { eventParticipantSchema, type EventParticipant } from "@syntheo/store";
 
 import {
   SESSION_EVENT_MATCH,

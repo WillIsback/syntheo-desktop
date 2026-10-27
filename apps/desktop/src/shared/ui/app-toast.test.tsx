@@ -18,7 +18,7 @@ import {
   showAppToast,
   showErrorToast,
   showSuccessToast,
-} from "@anlg/ui/components/ui/app-toast";
+} from "@syntheo/ui/components/ui/app-toast";
 
 afterEach(() => {
   dismissAppToasts();

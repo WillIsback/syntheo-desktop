@@ -1,5 +1,5 @@
 use crate::common_derives;
-use anlg_askama_utils::filters;
+use syntheo_askama_utils::filters;
 
 common_derives! {
     #[derive(askama::Template)]

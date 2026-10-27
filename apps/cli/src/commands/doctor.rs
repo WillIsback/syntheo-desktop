@@ -47,7 +47,7 @@ async fn inspect(args: &Args) -> Result<DoctorReport> {
     } else if !path.is_file() {
         database.error = Some("database path is not a file".to_string());
     } else {
-        match anlg_db_core::Db::connect_local_read_only(&path).await {
+        match syntheo_db_core::Db::connect_local_read_only(&path).await {
             Ok(connection) => {
                 database.opened_read_only = true;
                 match schema_check(&connection).await {
@@ -66,14 +66,14 @@ async fn inspect(args: &Args) -> Result<DoctorReport> {
     })
 }
 
-async fn schema_check(db: &anlg_db_core::Db) -> std::result::Result<(), String> {
+async fn schema_check(db: &syntheo_db_core::Db) -> std::result::Result<(), String> {
     tokio::try_join!(
-        anlg_db_app::get_session(db.pool(), "__anarlog_doctor__"),
-        anlg_db_app::list_session_documents(db.pool(), "__anarlog_doctor__"),
-        anlg_db_app::list_session_transcripts(db.pool(), "__anarlog_doctor__"),
-        anlg_db_app::list_session_participants(db.pool(), "__anarlog_doctor__"),
-        anlg_db_app::list_session_action_items(db.pool(), "__anarlog_doctor__"),
-        anlg_db_app::list_session_proposals(db.pool(), None, None, 1, 0),
+        syntheo_db_app::get_session(db.pool(), "__syntheo_doctor__"),
+        syntheo_db_app::list_session_documents(db.pool(), "__syntheo_doctor__"),
+        syntheo_db_app::list_session_transcripts(db.pool(), "__syntheo_doctor__"),
+        syntheo_db_app::list_session_participants(db.pool(), "__syntheo_doctor__"),
+        syntheo_db_app::list_session_action_items(db.pool(), "__syntheo_doctor__"),
+        syntheo_db_app::list_session_proposals(db.pool(), None, None, 1, 0),
     )
     .map(|_| ())
     .map_err(|error| format!("schema check failed: {error}"))
@@ -82,7 +82,7 @@ async fn schema_check(db: &anlg_db_core::Db) -> std::result::Result<(), String> 
 fn render(report: &DoctorReport) -> String {
     let status = |value| if value { "yes" } else { "no" };
     let mut lines = vec![
-        format!("Anarlog CLI {}", report.cli_version),
+        format!("Syntheo CLI {}", report.cli_version),
         format!("Ready: {}", status(report.ready)),
         format!("Database: {}", report.database.path.display()),
         format!("Exists: {}", status(report.database.exists)),
@@ -130,8 +130,10 @@ mod tests {
     async fn reports_current_schema_as_ready_over_read_only_connection() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("app.db");
-        let db = anlg_db_core::Db::connect_local_plain(&path).await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_local_plain(&path)
+            .await
+            .unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db.pool().close().await;
 
         let report = inspect(&args(path)).await.unwrap();

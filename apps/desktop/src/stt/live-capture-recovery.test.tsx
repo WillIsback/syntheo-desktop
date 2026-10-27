@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   resumeBySession: new Map<string, ReturnType<typeof vi.fn>>(),
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     getCaptureSnapshot: mocks.getCaptureSnapshot,
     listCaptureRecoveries: mocks.listCaptureRecoveries,

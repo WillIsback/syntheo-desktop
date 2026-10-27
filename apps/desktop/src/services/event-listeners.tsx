@@ -1,17 +1,17 @@
 import { type UnlistenFn } from "@tauri-apps/api/event";
 
-import { events as notificationEvents } from "@anlg/plugin-notification";
-import { commands as openerCommands } from "@anlg/plugin-opener2";
+import { events as notificationEvents } from "@syntheo/plugin-notification";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
 import type {
   CaptureConfigUpdate,
   IdentityAssignment,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 import {
   commands as updaterCommands,
   events as updaterEvents,
-} from "@anlg/plugin-updater2";
-import { getCurrentWebviewWindowLabel } from "@anlg/plugin-windows";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+} from "@syntheo/plugin-updater2";
+import { getCurrentWebviewWindowLabel } from "@syntheo/plugin-windows";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import {
   getCalendarEventMeetingLink,

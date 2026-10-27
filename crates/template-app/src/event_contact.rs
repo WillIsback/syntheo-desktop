@@ -28,7 +28,7 @@ common_derives! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_askama_utils::tpl_snapshot;
+    use syntheo_askama_utils::tpl_snapshot;
 
     tpl_snapshot!(
         test_event_contact_user,

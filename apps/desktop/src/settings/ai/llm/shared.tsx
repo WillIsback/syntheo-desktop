@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Shuffle } from "@anlg/ui/components/icons";
+import { Shuffle } from "@syntheo/ui/components/icons";
 
 import { type ProviderRequirement } from "~/settings/ai/shared/eligibility";
 

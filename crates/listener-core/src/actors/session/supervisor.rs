@@ -31,7 +31,7 @@ pub struct SessionState {
     ctx: SessionContext,
     source_cell: Option<ActorCell>,
     listener_cell: Option<ActorCell>,
-    source_restarts: anlg_supervisor::RestartTracker,
+    source_restarts: syntheo_supervisor::RestartTracker,
     mode: SessionModeState,
     listener_retry_attempt: usize,
     listener_mic_isolated: bool,
@@ -79,7 +79,7 @@ impl Actor for SessionActor {
                 ctx,
                 source_cell: Some(source_ref.get_cell()),
                 listener_cell: None,
-                source_restarts: anlg_supervisor::RestartTracker::new(),
+                source_restarts: syntheo_supervisor::RestartTracker::new(),
                 mode,
                 listener_retry_attempt: 0,
                 listener_mic_isolated: false,
@@ -528,9 +528,9 @@ mod tests {
     use std::sync::Arc;
     use std::time::{Instant, SystemTime};
 
-    use anlg_audio::{AudioProvider, CaptureConfig, CaptureStream};
-    use anlg_supervisor::RestartTracker;
     use ractor::ActorStatus;
+    use syntheo_audio::{AudioProvider, CaptureConfig, CaptureStream};
+    use syntheo_supervisor::RestartTracker;
 
     use super::*;
     use crate::{
@@ -540,12 +540,12 @@ mod tests {
 
     struct TestRuntime;
 
-    impl anlg_storage::StorageRuntime for TestRuntime {
-        fn global_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+    impl syntheo_storage::StorageRuntime for TestRuntime {
+        fn global_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(std::env::temp_dir())
         }
 
-        fn vault_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+        fn vault_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(std::env::temp_dir())
         }
     }
@@ -561,14 +561,17 @@ mod tests {
     }
 
     impl AudioProvider for TestRuntime {
-        fn open_capture(&self, _config: CaptureConfig) -> Result<CaptureStream, anlg_audio::Error> {
+        fn open_capture(
+            &self,
+            _config: CaptureConfig,
+        ) -> Result<CaptureStream, syntheo_audio::Error> {
             Ok(CaptureStream::new(futures_util::stream::pending()))
         }
         fn open_speaker_capture(
             &self,
             _sample_rate: u32,
             _chunk_size: usize,
-        ) -> Result<CaptureStream, anlg_audio::Error> {
+        ) -> Result<CaptureStream, syntheo_audio::Error> {
             Ok(CaptureStream::new(futures_util::stream::pending()))
         }
         fn open_mic_capture(
@@ -576,7 +579,7 @@ mod tests {
             _device: Option<String>,
             _sample_rate: u32,
             _chunk_size: usize,
-        ) -> Result<CaptureStream, anlg_audio::Error> {
+        ) -> Result<CaptureStream, syntheo_audio::Error> {
             unimplemented!()
         }
         fn default_device_name(&self) -> String {
@@ -593,10 +596,10 @@ mod tests {
             let (tx, _rx) = std::sync::mpsc::channel();
             tx
         }
-        fn probe_mic(&self, _device: Option<String>) -> Result<(), anlg_audio::Error> {
+        fn probe_mic(&self, _device: Option<String>) -> Result<(), syntheo_audio::Error> {
             Ok(())
         }
-        fn probe_speaker(&self) -> Result<(), anlg_audio::Error> {
+        fn probe_speaker(&self) -> Result<(), syntheo_audio::Error> {
             Ok(())
         }
     }
@@ -663,12 +666,12 @@ mod tests {
         lifecycle_events: std::sync::Mutex<Vec<crate::SessionLifecycleEvent>>,
     }
 
-    impl anlg_storage::StorageRuntime for RecordingRuntime {
-        fn global_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+    impl syntheo_storage::StorageRuntime for RecordingRuntime {
+        fn global_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(std::env::temp_dir())
         }
 
-        fn vault_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+        fn vault_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(std::env::temp_dir())
         }
     }
@@ -726,7 +729,7 @@ mod tests {
     }
 
     fn test_update(
-        languages: Vec<anlg_language::Language>,
+        languages: Vec<syntheo_language::Language>,
         participant_human_ids: Vec<&str>,
         self_human_id: Option<&str>,
     ) -> SessionConfigUpdate {
@@ -749,10 +752,10 @@ mod tests {
         ctx.params.self_human_id = Some("self".to_string());
         let state = test_state(ctx);
         let mut update = test_update(vec![], vec!["self", "remote-a"], Some("self"));
-        update.speaker_assignments = vec![anlg_transcript::IdentityAssignment {
+        update.speaker_assignments = vec![syntheo_transcript::IdentityAssignment {
             human_id: "remote-a".to_string(),
-            scope: anlg_transcript::IdentityScope::ChannelSpeaker {
-                channel: anlg_transcript::ChannelProfile::RemoteParty,
+            scope: syntheo_transcript::IdentityScope::ChannelSpeaker {
+                channel: syntheo_transcript::ChannelProfile::RemoteParty,
                 speaker_index: 0,
             },
         }];
@@ -785,12 +788,12 @@ mod tests {
     #[test]
     fn config_update_refreshes_when_languages_change() {
         let mut ctx = test_ctx();
-        ctx.params.languages = vec![anlg_language::ISO639::En.into()];
+        ctx.params.languages = vec![syntheo_language::ISO639::En.into()];
         let state = test_state(ctx);
         let update = test_update(
             vec![
-                anlg_language::ISO639::En.into(),
-                anlg_language::ISO639::Ko.into(),
+                syntheo_language::ISO639::En.into(),
+                syntheo_language::ISO639::Ko.into(),
             ],
             vec![],
             None,
@@ -847,7 +850,7 @@ mod tests {
 
     #[tokio::test]
     async fn stalled_remote_listeners_schedule_reconnection_without_stopping_recording() {
-        for base_url in ["https://api.anarlog.so/stt", "http://192.168.1.87:8000/v1"] {
+        for base_url in ["https://api.example.com/stt", "http://192.168.1.87:8000/v1"] {
             let runtime = Arc::new(RecordingRuntime {
                 lifecycle_events: std::sync::Mutex::new(vec![]),
             });

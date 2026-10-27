@@ -5,4 +5,4 @@ export {
   folderDisplayName,
   folderPathMatchesFilter,
   normalizeFolderPath,
-} from "@anlg/utils/folders";
+} from "@syntheo/utils/folders";

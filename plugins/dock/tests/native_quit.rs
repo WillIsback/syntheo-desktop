@@ -43,10 +43,10 @@ fn main() {
                 requested = true;
             } else if !window.is_visible().unwrap() {
                 observed.store(true, Ordering::SeqCst);
-                anlg_intercept::set_force_quit();
+                syntheo_intercept::set_force_quit();
                 app.exit(0);
             } else if started.elapsed() > std::time::Duration::from_secs(10) {
-                anlg_intercept::set_force_quit();
+                syntheo_intercept::set_force_quit();
                 app.exit(1);
             }
         }

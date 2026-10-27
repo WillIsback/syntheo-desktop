@@ -1,4 +1,4 @@
-import { Wrench } from "@anlg/ui/components/icons";
+import { Wrench } from "@syntheo/ui/components/icons";
 
 import { useToolState } from "./shared";
 

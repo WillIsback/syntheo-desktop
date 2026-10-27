@@ -17,7 +17,7 @@ vi.mock("@lingui/react/macro", () => ({
   }),
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { success: mocks.toastSuccess },
 }));
 
@@ -72,7 +72,7 @@ describe("useProviderSelectionPrompt", () => {
         providerType: "stt",
         providerId: "deepgram",
         providerName: "Deepgram",
-        currentProvider: "anarlog",
+        currentProvider: "syntheo",
         providerStateReady: true,
         storedApiKey: "",
       }),
@@ -104,7 +104,7 @@ describe("useProviderSelectionPrompt", () => {
         providerType: "stt",
         providerId: "deepgram",
         providerName: "Deepgram",
-        currentProvider: "anarlog",
+        currentProvider: "syntheo",
         providerStateReady: true,
         storedApiKey: "dg-existing",
       }),

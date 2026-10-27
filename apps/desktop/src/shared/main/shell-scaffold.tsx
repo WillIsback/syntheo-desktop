@@ -1,6 +1,6 @@
 import { platform } from "@tauri-apps/plugin-os";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 import { SyncProvider } from "~/calendar/components/context";
 import { usesWindowsStyleTitleBar } from "~/shared/hooks/useWindowControlsGutter";

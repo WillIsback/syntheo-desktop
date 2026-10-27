@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   resetPermission: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-permissions", () => ({
+vi.mock("@syntheo/plugin-permissions", () => ({
   commands: mocks,
 }));
 

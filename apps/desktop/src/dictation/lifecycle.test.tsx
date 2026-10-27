@@ -58,7 +58,7 @@ vi.mock("~/stt/contexts", () => ({
     select({ live: mocks.meeting, stopTranscription: mocks.stopTranscription }),
 }));
 vi.mock("~/stt/useRunBatch", () => ({ useRunBatch: () => mocks.runBatch }));
-vi.mock("@anlg/plugin-shortcut", () => ({
+vi.mock("@syntheo/plugin-shortcut", () => ({
   commands: { configure: mocks.configure, setActive: mocks.setActive },
   events: {
     shortcutEvent: {
@@ -69,7 +69,7 @@ vi.mock("@anlg/plugin-shortcut", () => ({
     },
   },
 }));
-vi.mock("@anlg/plugin-dictation", () => ({
+vi.mock("@syntheo/plugin-dictation", () => ({
   commands: {
     show: mocks.show,
     hide: mocks.hide,
@@ -81,13 +81,13 @@ vi.mock("@anlg/plugin-dictation", () => ({
     insertText: mocks.insertText,
   },
 }));
-vi.mock("@anlg/plugin-permissions", () => ({
+vi.mock("@syntheo/plugin-permissions", () => ({
   commands: { checkPermission: mocks.checkPermission },
 }));
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: { getCaptureState: mocks.getCaptureState },
 }));
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { error: vi.fn() },
 }));
 

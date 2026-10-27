@@ -14,5 +14,5 @@ pub(crate) fn dismiss_current() {
     // The overlay is tracked in a main-thread-local, so dismissing from a
     // command thread would look at an empty slot and leave the panel up.
     #[cfg(target_os = "macos")]
-    anlg_overlay_kit::macos::main_thread::run_on_main_thread(macos::dismiss_current);
+    syntheo_overlay_kit::macos::main_thread::run_on_main_thread(macos::dismiss_current);
 }

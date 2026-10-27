@@ -1,8 +1,8 @@
 use std::collections::BTreeSet;
 
-use anlg_agent_access::{GetMeetingInput, get_meeting, get_meeting_export};
-use anlg_db_core::Db;
 use serde_json::{Map, json};
+use syntheo_agent_access::{GetMeetingInput, get_meeting, get_meeting_export};
+use syntheo_db_core::Db;
 
 use crate::{
     ApplyOutcome, DocumentFormat, DocumentKind, Error, IngestAttachment, IngestDocument,
@@ -12,7 +12,7 @@ use crate::{
 
 async fn test_db() -> Db {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     db
 }
 
@@ -333,7 +333,7 @@ async fn attaches_explicitly_without_overwriting_user_title() {
             .unwrap();
     assert_eq!(metadata["pinned"], true);
     assert_eq!(
-        metadata["anarlog_capture_ingest"]["source_id"],
+        metadata["syntheo_capture_ingest"]["source_id"],
         "capture-job-1"
     );
 }

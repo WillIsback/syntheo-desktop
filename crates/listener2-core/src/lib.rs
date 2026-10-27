@@ -20,7 +20,7 @@ use owhisper_client::AdapterKind;
 pub fn is_supported_languages_live(
     provider: &str,
     model: Option<&str>,
-    languages: &[anlg_language::Language],
+    languages: &[syntheo_language::Language],
 ) -> std::result::Result<bool, String> {
     let adapter_kind =
         AdapterKind::from_str(provider).map_err(|_| format!("unknown_provider: {}", provider))?;
@@ -31,7 +31,7 @@ pub fn is_supported_languages_live(
 pub fn is_supported_languages_batch(
     provider: &str,
     model: Option<&str>,
-    languages: &[anlg_language::Language],
+    languages: &[syntheo_language::Language],
 ) -> std::result::Result<bool, String> {
     let adapter_kind =
         AdapterKind::from_str(provider).map_err(|_| format!("unknown_provider: {}", provider))?;
@@ -39,7 +39,9 @@ pub fn is_supported_languages_batch(
     Ok(adapter_kind.is_supported_languages_batch(languages, model))
 }
 
-pub fn suggest_providers_for_languages_live(languages: &[anlg_language::Language]) -> Vec<String> {
+pub fn suggest_providers_for_languages_live(
+    languages: &[syntheo_language::Language],
+) -> Vec<String> {
     let all_providers = [AdapterKind::OpenAI, AdapterKind::Nvidia];
 
     let mut with_support: Vec<_> = all_providers
@@ -59,7 +61,9 @@ pub fn suggest_providers_for_languages_live(languages: &[anlg_language::Language
         .collect()
 }
 
-pub fn suggest_providers_for_languages_batch(languages: &[anlg_language::Language]) -> Vec<String> {
+pub fn suggest_providers_for_languages_batch(
+    languages: &[syntheo_language::Language],
+) -> Vec<String> {
     let all_providers = [AdapterKind::OpenAI];
 
     let mut with_support: Vec<_> = all_providers

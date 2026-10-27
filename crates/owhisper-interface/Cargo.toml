@@ -11,7 +11,7 @@ openapi = ["dep:utoipa"]
 deepgram = { workspace = true, default-features = false, features = ["listen"] }
 
 [dependencies]
-anlg-language = { workspace = true }
+syntheo-language = { workspace = true }
 
 schemars = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

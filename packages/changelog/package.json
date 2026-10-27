@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/changelog",
+  "name": "@syntheo/changelog",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "./process": "./src/process.ts"
   },
   "dependencies": {
-    "@anlg/utils": "workspace:^",
+    "@syntheo/utils": "workspace:^",
     "streamdown": "^2.5.0"
   },
   "devDependencies": {

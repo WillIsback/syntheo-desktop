@@ -2,8 +2,8 @@ import { resolveIsDarkMode, type ThemePreference } from "./resolve";
 
 import { getStoredSettingValues } from "~/settings/queries";
 
-const THEME_STORAGE_KEY = "anarlog-theme";
-const LEGACY_THEME_STORAGE_KEY = "hypr-theme";
+const THEME_STORAGE_KEY = "syntheo-theme";
+const LEGACY_THEME_STORAGE_KEYS = ["anarlog-theme", "hypr-theme"] as const;
 const THEME_BOOTSTRAP_TIMEOUT_MS = 150;
 
 /** Keep `public/theme-boot.js` aligned with normalizeThemePreference + resolveIsDarkMode. */
@@ -11,7 +11,10 @@ const THEME_BOOTSTRAP_TIMEOUT_MS = 150;
 export function readStoredThemePreference(): ThemePreference {
   const stored =
     localStorage.getItem(THEME_STORAGE_KEY) ??
-    localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+    LEGACY_THEME_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(
+      (value) => value !== null,
+    ) ??
+    null;
   return normalizeThemePreference(stored);
 }
 

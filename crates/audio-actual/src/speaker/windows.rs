@@ -1,4 +1,3 @@
-use anlg_audio_utils::{pcm_i16_to_f32, pcm_i32_to_f32};
 use anyhow::{Context, Result};
 use futures_util::Stream;
 use futures_util::task::AtomicWaker;
@@ -12,6 +11,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicUsize, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
+use syntheo_audio_utils::{pcm_i16_to_f32, pcm_i32_to_f32};
 use tracing::error;
 use wasapi::{
     AudioCaptureClient, AudioClient, Device, DeviceEnumerator, Direction, Handle, SampleType,
@@ -212,7 +212,7 @@ fn capture_audio_loop(
     // rate never changes across endpoint switches.
     current_sample_rate.store(capture.format.sample_rate, Ordering::Release);
     tracing::info!(
-        anarlog.audio.sample_rate_hz = capture.format.sample_rate,
+        syntheo.audio.sample_rate_hz = capture.format.sample_rate,
         device = ?capture.device_name,
         "wasapi_loopback_initialized"
     );
@@ -233,7 +233,7 @@ fn capture_audio_loop(
                         capture = next;
                         follower = EndpointFollower::new(capture.device_id.clone());
                         tracing::info!(
-                            anarlog.audio.sample_rate_hz = capture.format.sample_rate,
+                            syntheo.audio.sample_rate_hz = capture.format.sample_rate,
                             device = ?capture.device_name,
                             "wasapi_loopback_endpoint_switched"
                         );

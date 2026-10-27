@@ -4,7 +4,7 @@ use std::sync::Mutex;
 
 use swift_rs::{Bool, SRString, swift};
 
-pub use anlg_notification_interface::*;
+pub use syntheo_notification_interface::*;
 
 swift!(fn _show_notification(json_payload: &SRString) -> Bool);
 
@@ -81,17 +81,17 @@ struct NotificationPayload<'a> {
     participants: Option<&'a [Participant]>,
     event_details: Option<&'a EventDetails>,
     action_label: Option<&'a str>,
-    action_variant: Option<&'a anlg_notification_interface::NotificationActionVariant>,
-    action: Option<&'a anlg_notification_interface::NotificationAction>,
-    action_menu: Option<&'a anlg_notification_interface::NotificationActionMenu>,
+    action_variant: Option<&'a syntheo_notification_interface::NotificationActionVariant>,
+    action: Option<&'a syntheo_notification_interface::NotificationAction>,
+    action_menu: Option<&'a syntheo_notification_interface::NotificationActionMenu>,
     options: Option<&'a [String]>,
     footer: Option<&'a NotificationFooter>,
     icon: Option<&'a NotificationIcon>,
 }
 
 fn resolve_default_icon(
-    notification: &anlg_notification_interface::Notification,
-) -> anlg_notification_interface::Notification {
+    notification: &syntheo_notification_interface::Notification,
+) -> syntheo_notification_interface::Notification {
     let mut resolved = notification.clone();
 
     if resolved.icon.is_none() {
@@ -104,7 +104,7 @@ fn resolve_default_icon(
     resolved
 }
 
-pub fn show(notification: &anlg_notification_interface::Notification) {
+pub fn show(notification: &syntheo_notification_interface::Notification) {
     let notification = resolve_default_icon(notification);
 
     let key = notification

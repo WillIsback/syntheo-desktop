@@ -1,8 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 
-import { events as appleCalendarEvents } from "@anlg/plugin-calendar";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { events as appleCalendarEvents } from "@syntheo/plugin-calendar";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { listenForCaptureCleanup } from "./audio-cleanup";
 import { subscribeToSessionAudioRetention } from "./audio-retention";

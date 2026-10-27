@@ -56,7 +56,7 @@ it("reuses an existing onboarding welcome note", async () => {
   await expect(getOrCreateWelcomeSession()).resolves.toBe("welcome-session");
   expect(mocks.createSession).not.toHaveBeenCalled();
   expect(mocks.execute).toHaveBeenCalledWith(expect.any(String), [
-    "anarlog-onboarding-demo-v1",
+    "syntheo-onboarding-demo-v1",
   ]);
 });
 
@@ -68,10 +68,10 @@ it("creates a prerecorded demo note with normal meeting metadata", async () => {
 
   const [title, , initial] = mocks.createSession.mock.calls[0];
   const event = JSON.parse(initial.event_json);
-  expect(title).toBe("Welcome to Anarlog");
+  expect(title).toBe("Welcome to Syntheo");
   // Démo distante retirée : la note de bienvenue n'a pas de lien de réunion.
   expect(event.meeting_link).toBe("");
-  expect(event.tracking_id).toBe("anarlog-onboarding-demo-v1");
+  expect(event.tracking_id).toBe("syntheo-onboarding-demo-v1");
   expect(() => JSON.parse(initial.raw_md)).not.toThrow();
 });
 
@@ -94,7 +94,7 @@ it("stops an active welcome demo after its browser callback", async () => {
 
   expect(mocks.execute).toHaveBeenCalledWith(expect.any(String), [
     "welcome-session",
-    "anarlog-onboarding-demo-v1",
+    "syntheo-onboarding-demo-v1",
   ]);
   expect(mocks.listenerState.stop).toHaveBeenCalledOnce();
 });
@@ -151,12 +151,19 @@ it("ignores a demo callback when listening already stopped", async () => {
 });
 
 it("auto-joins the hosted demo and optionally attaches a completion callback", () => {
-  expect(buildWelcomeNoteDemoUrl("https://anarlog.so/onboarding-demo/")).toBe(
-    "https://anarlog.so/onboarding-demo/?autojoin=1",
+  expect(
+    buildWelcomeNoteDemoUrl(
+      "https://github.com/WillIsback/syntheo-desktop/onboarding-demo/",
+    ),
+  ).toBe(
+    "https://github.com/WillIsback/syntheo-desktop/onboarding-demo/?autojoin=1",
   );
   expect(
-    buildWelcomeNoteDemoUrl("https://anarlog.so/onboarding-demo/", 43210),
+    buildWelcomeNoteDemoUrl(
+      "https://github.com/WillIsback/syntheo-desktop/onboarding-demo/",
+      43210,
+    ),
   ).toBe(
-    "https://anarlog.so/onboarding-demo/?autojoin=1&completion_url=http%3A%2F%2F127.0.0.1%3A43210%2Fonboarding-demo%2Fcomplete",
+    "https://github.com/WillIsback/syntheo-desktop/onboarding-demo/?autojoin=1&completion_url=http%3A%2F%2F127.0.0.1%3A43210%2Fonboarding-demo%2Fcomplete",
   );
 });

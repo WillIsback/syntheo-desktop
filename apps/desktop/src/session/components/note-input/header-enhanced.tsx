@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from "react";
 
-import { CaretDown, Sparkle } from "@anlg/ui/components/icons";
-import { Spinner } from "@anlg/ui/components/ui/spinner";
-import { cn } from "@anlg/utils";
+import { CaretDown, Sparkle } from "@syntheo/ui/components/icons";
+import { Spinner } from "@syntheo/ui/components/ui/spinner";
+import { cn } from "@syntheo/utils";
 
 import {
   copyTextToClipboard,

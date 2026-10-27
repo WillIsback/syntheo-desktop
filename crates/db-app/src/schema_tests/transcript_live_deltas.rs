@@ -8,7 +8,7 @@ async fn transcript_content_revision_is_cloudsync_safe() {
         .unwrap();
     assert_eq!(
         migration.scope,
-        anlg_db_migrate::MigrationScope::CloudsyncAlter {
+        syntheo_db_migrate::MigrationScope::CloudsyncAlter {
             table_name: "transcripts",
         }
     );

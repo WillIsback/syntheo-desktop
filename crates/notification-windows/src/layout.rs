@@ -1,6 +1,6 @@
 #![cfg_attr(not(target_os = "windows"), allow(dead_code))]
 
-use anlg_notification_interface::{Notification, PrimaryAction};
+use syntheo_notification_interface::{Notification, PrimaryAction};
 
 pub const NOTIFICATION_WIDTH: i32 = 360;
 pub const COMPACT_HEIGHT: i32 = 64;
@@ -72,7 +72,7 @@ impl NotificationLayout {
         };
         let has_icon = !matches!(
             notification.icon,
-            Some(anlg_notification_interface::NotificationIcon::Hidden)
+            Some(syntheo_notification_interface::NotificationIcon::Hidden)
         );
         let icon = has_icon.then_some(Rect {
             x: 12,
@@ -333,8 +333,8 @@ pub fn stacked_origin(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_notification_interface::{EventDetails, NotificationAction, NotificationSource};
     use std::time::Duration;
+    use syntheo_notification_interface::{EventDetails, NotificationAction, NotificationSource};
 
     fn compact_notification() -> Notification {
         Notification::builder()

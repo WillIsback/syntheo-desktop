@@ -8,10 +8,10 @@ import {
   Check,
   CircleNotch,
   Copy,
-} from "@anlg/ui/components/icons";
-import { streamdownIcons } from "@anlg/ui/components/streamdown-icons";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { streamdownIcons } from "@syntheo/ui/components/streamdown-icons";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import {
   Disclosure,
@@ -25,9 +25,9 @@ import { Tool } from "./tool";
 import type { Part } from "./types";
 
 import { hasRenderableContent } from "~/chat/message-content";
-import type { AnlgUIMessage } from "~/chat/types";
+import type { SyntheoUIMessage } from "~/chat/types";
 
-function getMessageText(message: AnlgUIMessage): string {
+function getMessageText(message: SyntheoUIMessage): string {
   return message.parts
     .filter(
       (part): part is Extract<Part, { type: "text" }> => part.type === "text",
@@ -40,7 +40,7 @@ export function NormalMessage({
   message,
   handleReload,
 }: {
-  message: AnlgUIMessage;
+  message: SyntheoUIMessage;
   handleReload?: () => void;
 }) {
   const { t } = useLingui();
@@ -146,7 +146,7 @@ export function NormalMessage({
   );
 }
 
-function isActivityPart(part: AnlgUIMessage["parts"][number]) {
+function isActivityPart(part: SyntheoUIMessage["parts"][number]) {
   if (part.type === "reasoning") {
     return part.text.trim().length > 0;
   }

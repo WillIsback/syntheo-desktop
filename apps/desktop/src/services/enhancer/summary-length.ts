@@ -1,4 +1,4 @@
-import type { SummaryLengthPolicy as RustSummaryLengthPolicy } from "@anlg/plugin-template";
+import type { SummaryLengthPolicy as RustSummaryLengthPolicy } from "@syntheo/plugin-template";
 
 export type SummaryLengthPolicy = RustSummaryLengthPolicy;
 

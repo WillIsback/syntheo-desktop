@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, HashSet};
 
-use anlg_notification_interface::NotificationKey;
+use syntheo_notification_interface::NotificationKey;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MicEventType {
@@ -18,7 +18,7 @@ pub enum SkipReason {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AppCategory {
-    Anarlog,
+    Syntheo,
     Dictation,
     IDE,
     ScreenRecording,
@@ -29,13 +29,13 @@ pub enum AppCategory {
 impl AppCategory {
     pub fn bundle_ids(&self) -> &'static [&'static str] {
         match self {
-            Self::Anarlog => &[
+            Self::Syntheo => &[
                 "fr.willisback.syntheo",
                 "fr.willisback.syntheo.dev",
-                "com.hyprnote.dev",
-                "com.hyprnote.stable",
-                "com.hyprnote.nightly",
-                "com.hyprnote.staging",
+                "com.syntheo.dev",
+                "com.syntheo.stable",
+                "com.syntheo.nightly",
+                "com.syntheo.staging",
             ],
             Self::Dictation => &[
                 "com.electron.wispr-flow",
@@ -86,7 +86,7 @@ impl AppCategory {
 
     pub fn all() -> &'static [AppCategory] {
         &[
-            Self::Anarlog,
+            Self::Syntheo,
             Self::Dictation,
             Self::IDE,
             Self::ScreenRecording,
@@ -113,14 +113,14 @@ pub fn default_ignored_bundle_ids() -> Vec<String> {
 }
 
 pub struct PolicyContext<'a> {
-    pub apps: &'a [anlg_detect::InstalledApp],
+    pub apps: &'a [syntheo_detect::InstalledApp],
     pub is_dnd: bool,
     pub event_type: MicEventType,
 }
 
 #[derive(Debug)]
 pub struct PolicyResult {
-    pub filtered_apps: Vec<anlg_detect::InstalledApp>,
+    pub filtered_apps: Vec<syntheo_detect::InstalledApp>,
     pub dedup_key: String,
 }
 
@@ -143,9 +143,9 @@ impl MicNotificationPolicy {
 
     fn filter_apps(
         &self,
-        apps: &[anlg_detect::InstalledApp],
+        apps: &[syntheo_detect::InstalledApp],
         is_dnd: bool,
-    ) -> Result<Vec<anlg_detect::InstalledApp>, SkipReason> {
+    ) -> Result<Vec<syntheo_detect::InstalledApp>, SkipReason> {
         if self.respect_dnd && is_dnd {
             return Err(SkipReason::DoNotDisturb);
         }
@@ -210,8 +210,8 @@ impl Default for MicNotificationPolicy {
 mod tests {
     use super::*;
 
-    fn app(id: &str) -> anlg_detect::InstalledApp {
-        anlg_detect::InstalledApp {
+    fn app(id: &str) -> syntheo_detect::InstalledApp {
+        syntheo_detect::InstalledApp {
             id: id.to_string(),
             name: id.to_string(),
         }
@@ -254,7 +254,7 @@ mod tests {
                 HashSet::new(),
                 HashSet::new(),
                 &[
-                    "com.hyprnote.dev",
+                    "com.syntheo.dev",
                     "com.electron.aqua-voice",
                     "com.microsoft.VSCode",
                 ],
@@ -324,7 +324,7 @@ mod tests {
     fn test_evaluate_rejects_when_no_trackable_apps_remain() {
         let policy = MicNotificationPolicy::default();
         for apps in [
-            vec![app("com.hyprnote.dev"), app("com.electron.aqua-voice")],
+            vec![app("com.syntheo.dev"), app("com.electron.aqua-voice")],
             Vec::new(),
         ] {
             let ctx = PolicyContext {
@@ -447,7 +447,7 @@ mod tests {
     fn test_ignored_categories_control_category_filtering() {
         let apps = vec![
             app("com.electron.aqua-voice"),
-            app("com.hyprnote.dev"),
+            app("com.syntheo.dev"),
             app("us.zoom.xos"),
         ];
 
@@ -468,6 +468,6 @@ mod tests {
         };
         let result = policy.evaluate(&ctx).unwrap();
         let ids: Vec<_> = result.filtered_apps.iter().map(|a| a.id.as_str()).collect();
-        assert_eq!(ids, vec!["com.hyprnote.dev", "us.zoom.xos"]);
+        assert_eq!(ids, vec!["com.syntheo.dev", "us.zoom.xos"]);
     }
 }

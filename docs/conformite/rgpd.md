@@ -76,7 +76,7 @@ une suppression, l'effacement est retenté au lancement suivant.
   téléchargées par l'utilisateur).
 - Intégrations restantes : Apple Calendar et Rappels (EventKit, **locaux** à
   macOS, sans réseau). Les intégrations hébergées héritées (calendriers Google
-  et Outlook, Linear, GitHub via le service Anarlog) sont désactivées :
+  et Outlook, Linear, GitHub via le service Syntheo) sont désactivées :
   sans compte, elles ne peuvent plus s'authentifier.
 
 ## Garanties techniques

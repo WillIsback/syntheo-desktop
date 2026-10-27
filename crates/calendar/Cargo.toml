@@ -8,11 +8,11 @@ license = "MIT"
 specta = ["dep:specta"]
 
 [dependencies]
-anlg-api-client = { workspace = true }
-anlg-apple-calendar = { workspace = true, features = ["specta"] }
-anlg-calendar-interface = { workspace = true }
-anlg-google-calendar = { workspace = true, features = ["specta"] }
-anlg-outlook-calendar = { workspace = true, features = ["specta"] }
+syntheo-api-client = { workspace = true }
+syntheo-apple-calendar = { workspace = true, features = ["specta"] }
+syntheo-calendar-interface = { workspace = true }
+syntheo-google-calendar = { workspace = true, features = ["specta"] }
+syntheo-outlook-calendar = { workspace = true, features = ["specta"] }
 
 chrono = { workspace = true, features = ["serde"] }
 chrono-tz = { workspace = true }

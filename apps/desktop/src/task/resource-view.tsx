@@ -2,8 +2,8 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { defaultRehypePlugins, Streamdown } from "streamdown";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { commands as todoCommands } from "@anlg/plugin-todo";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import { commands as todoCommands } from "@syntheo/plugin-todo";
 import {
   ArrowSquareOut,
   Chat,
@@ -11,9 +11,9 @@ import {
   GitPullRequest,
   RadioButton,
   XCircle,
-} from "@anlg/ui/components/icons";
-import { streamdownIcons } from "@anlg/ui/components/streamdown-icons";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { streamdownIcons } from "@syntheo/ui/components/streamdown-icons";
+import { cn } from "@syntheo/utils";
 
 import { streamdownComponents } from "~/session/components/streamdown";
 import { type TaskResource } from "~/store/zustand/tabs";

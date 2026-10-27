@@ -12,7 +12,7 @@ vi.mock("~/billing/billing-context", () => ({
   useBillingAccess: () => mocks.billing,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { warning: mocks.toastWarning },
 }));
 

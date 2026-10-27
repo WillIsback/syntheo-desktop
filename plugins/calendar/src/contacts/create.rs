@@ -1,7 +1,7 @@
-use anlg_db_app::AvatarChange;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use sqlx::SqlitePool;
+use syntheo_db_app::AvatarChange;
 
 use crate::contacts::run_write;
 use crate::storage::transaction_utils::js_iso8601_timestamp;
@@ -18,7 +18,7 @@ pub async fn create_human(pool: &SqlitePool, request: CreateHumanRequest) -> Res
     let now = js_iso8601_timestamp();
     run_write(pool, |conn| {
         Box::pin(async move {
-            anlg_db_app::create_human(
+            syntheo_db_app::create_human(
                 conn,
                 &request.id,
                 &request.owner_user_id,
@@ -48,7 +48,7 @@ pub async fn create_organization(
     let now = js_iso8601_timestamp();
     run_write(pool, |conn| {
         Box::pin(async move {
-            anlg_db_app::create_organization(
+            syntheo_db_app::create_organization(
                 conn,
                 &request.id,
                 &request.owner_user_id,
@@ -89,7 +89,7 @@ pub async fn save_personal_contact(
     };
     run_write(pool, |conn| {
         Box::pin(async move {
-            anlg_db_app::upsert_personal_contact(
+            syntheo_db_app::upsert_personal_contact(
                 conn,
                 &request.human_id,
                 &request.name,
@@ -113,11 +113,11 @@ pub async fn save_personal_contact(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 
@@ -175,7 +175,7 @@ mod tests {
             db.pool(),
             CreateOrganizationRequest {
                 id: "org-1".to_string(),
-                owner_user_id: anlg_db_app::DEFAULT_USER_ID.to_string(),
+                owner_user_id: syntheo_db_app::DEFAULT_USER_ID.to_string(),
                 name: "Acme".to_string(),
             },
         )

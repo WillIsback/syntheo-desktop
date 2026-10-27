@@ -2,12 +2,12 @@ use crate::types::{
     ConnectedImportAuthorization, ConnectedImportCredentials, ConnectedImportSyncResult,
     ImportTextFile,
 };
-use anlg_meeting_import::plaud::{parse_login_url, parse_me};
-use anlg_meeting_import::plaud_cli;
 use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use syntheo_meeting_import::plaud::{parse_login_url, parse_me};
+use syntheo_meeting_import::plaud_cli;
 use tokio::io::AsyncReadExt;
 use tokio::process::Child;
 use tokio::sync::Mutex;

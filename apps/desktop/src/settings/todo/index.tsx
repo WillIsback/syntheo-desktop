@@ -1,15 +1,15 @@
 import { Trans } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
-import { CaretDown } from "@anlg/ui/components/icons";
+import { CaretDown } from "@syntheo/ui/components/icons";
 import {
   Accordion,
   AccordionContent,
   AccordionHeader,
   AccordionItem,
   AccordionTriggerPrimitive,
-} from "@anlg/ui/components/ui/accordion";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/accordion";
+import { cn } from "@syntheo/utils";
 
 import { TodoProviderContent } from "./provider-content";
 import { TODO_PROVIDERS } from "./shared";

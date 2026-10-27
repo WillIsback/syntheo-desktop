@@ -1,6 +1,6 @@
 ---
 name: release-cli
-description: Review Anarlog CLI and agent-access coverage, validate shared agent packages, and verify the CLI shipped in each desktop artifact and install path.
+description: Review Syntheo CLI and agent-access coverage, validate shared agent packages, and verify the CLI shipped in each desktop artifact and install path.
 metadata:
   internal: true
 ---
@@ -31,7 +31,7 @@ Review every release. Inherit scope and session authorization from
    a staging package, or unit tests alone cannot verify the final stable package.
 5. Check help, loading/runtime dependencies, output/exit codes and shutdown. After
    upgrade, verify the supported CLI installer resolves the new bundled binary;
-   consult `skills/anarlog/references/setup.md` and the current installer. Never
+   consult `skills/syntheo/references/setup.md` and the current installer. Never
    use user data as a disposable fixture or copy/reset databases and sync identity.
 
 Return parity decisions, source and artifact versions/hashes, checks, supported

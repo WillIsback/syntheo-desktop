@@ -1,4 +1,3 @@
-use anlg_ws_client::client::Message;
 use openai_transcription::realtime::{
     AudioConfig, AudioFormat, AudioFormatType, AudioInputConfig, ClientEvent, ServerEvent,
     SessionConfig, SessionInclude, SessionType, TranscriptionConfig, TurnDetectionConfig,
@@ -6,6 +5,7 @@ use openai_transcription::realtime::{
 };
 use owhisper_interface::ListenParams;
 use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
+use syntheo_ws_client::client::Message;
 
 use super::{OpenAIAdapter, OpenAILiveItem, OpenAILiveState};
 use crate::adapter::RealtimeSttAdapter;
@@ -43,7 +43,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
 
     fn is_supported_languages(
         &self,
-        languages: &[anlg_language::Language],
+        languages: &[syntheo_language::Language],
         _model: Option<&str>,
     ) -> bool {
         OpenAIAdapter::is_supported_languages_live(languages)
@@ -159,7 +159,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
 
         let json = serde_json::to_string(&event).ok()?;
         tracing::debug!(
-            anarlog.payload.size_bytes = json.len() as u64,
+            syntheo.payload.size_bytes = json.len() as u64,
             "openai_session_update_payload"
         );
         Some(Message::Text(json.into()))
@@ -176,7 +176,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
             Err(_error) => {
                 tracing::warn!(
                     error.type = "invalid_provider_payload",
-                    anarlog.payload.size_bytes = raw.len() as u64,
+                    syntheo.payload.size_bytes = raw.len() as u64,
                     "openai_json_parse_failed"
                 );
                 return vec![];
@@ -206,7 +206,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
                 ..
             } => {
                 tracing::debug!(
-                    anarlog.stt.audio_start_ms = audio_start_ms,
+                    syntheo.stt.audio_start_ms = audio_start_ms,
                     "openai_speech_started"
                 );
                 Self::finish_state_update(self.record_item_start(&item_id, audio_start_ms))
@@ -217,7 +217,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
                 ..
             } => {
                 tracing::debug!(
-                    anarlog.stt.audio_end_ms = audio_end_ms,
+                    syntheo.stt.audio_end_ms = audio_end_ms,
                     "openai_speech_stopped"
                 );
                 Self::finish_state_update(self.record_item_end(&item_id, audio_end_ms))
@@ -229,8 +229,8 @@ impl RealtimeSttAdapter for OpenAIAdapter {
                 ..
             } => {
                 tracing::debug!(
-                    anarlog.stt.audio_start_ms = audio_start_ms,
-                    anarlog.stt.audio_end_ms = audio_end_ms,
+                    syntheo.stt.audio_start_ms = audio_start_ms,
+                    syntheo.stt.audio_end_ms = audio_end_ms,
                     "openai_audio_buffer_timeout_triggered"
                 );
                 Self::finish_state_update(self.record_item_span(
@@ -246,8 +246,8 @@ impl RealtimeSttAdapter for OpenAIAdapter {
                 ..
             } => {
                 tracing::debug!(
-                    anarlog.stt.content_index = content_index,
-                    anarlog.transcript.char_count = transcript.chars().count() as u64,
+                    syntheo.stt.content_index = content_index,
+                    syntheo.transcript.char_count = transcript.chars().count() as u64,
                     "openai_transcription_completed"
                 );
                 match self.complete_items(&item_id, &transcript) {
@@ -263,8 +263,8 @@ impl RealtimeSttAdapter for OpenAIAdapter {
                 ..
             } => {
                 tracing::debug!(
-                    anarlog.stt.content_index = content_index.unwrap_or_default(),
-                    anarlog.transcript.char_count = delta.chars().count() as u64,
+                    syntheo.stt.content_index = content_index.unwrap_or_default(),
+                    syntheo.transcript.char_count = delta.chars().count() as u64,
                     "openai_transcription_delta"
                 );
                 match self.append_item_delta(&item_id, &delta) {
@@ -303,7 +303,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
             }
             ServerEvent::Unknown => {
                 tracing::debug!(
-                    anarlog.payload.size_bytes = raw.len() as u64,
+                    syntheo.payload.size_bytes = raw.len() as u64,
                     "openai_unknown_event"
                 );
                 vec![]
@@ -703,8 +703,8 @@ fn resample_pcm16(audio: &[u8], input_rate: u32, output_rate: u32) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use anlg_ws_client::client::Message;
     use base64::Engine;
+    use syntheo_ws_client::client::Message;
 
     use super::*;
 
@@ -722,8 +722,8 @@ mod tests {
     fn live_model_uses_plural_language_and_keyword_hints() {
         let json = initial_message_json(&ListenParams {
             languages: vec![
-                anlg_language::ISO639::En.into(),
-                anlg_language::ISO639::Ko.into(),
+                syntheo_language::ISO639::En.into(),
+                syntheo_language::ISO639::Ko.into(),
             ],
             keywords: vec!["technical term".to_string()],
             ..Default::default()
@@ -779,8 +779,8 @@ mod tests {
         let json = initial_message_json(&ListenParams {
             model: Some("gpt-4o-transcribe".to_string()),
             languages: vec![
-                anlg_language::ISO639::En.into(),
-                anlg_language::ISO639::Ko.into(),
+                syntheo_language::ISO639::En.into(),
+                syntheo_language::ISO639::Ko.into(),
             ],
             ..Default::default()
         });

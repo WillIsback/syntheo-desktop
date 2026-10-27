@@ -1,5 +1,5 @@
-import { md2json } from "@anlg/editor/markdown";
-import type { JSONContent, PlaceholderFunction } from "@anlg/editor/note";
+import { md2json } from "@syntheo/editor/markdown";
+import type { JSONContent, PlaceholderFunction } from "@syntheo/editor/note";
 
 export const documentTitlePlaceholder: PlaceholderFunction = ({ node, pos }) =>
   pos === 0 && node.type.name === "heading" && node.attrs.level === 1

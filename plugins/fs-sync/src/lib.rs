@@ -3,9 +3,9 @@ mod commands;
 mod ext;
 pub mod runtime;
 
-pub use anlg_fs_sync_core::*;
 pub use audio_locks::SessionAudioLocks;
 pub use ext::*;
+pub use syntheo_fs_sync_core::*;
 
 const PLUGIN_NAME: &str = "fs-sync";
 

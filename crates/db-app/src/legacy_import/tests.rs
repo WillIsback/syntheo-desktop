@@ -1,5 +1,5 @@
 use super::*;
-use anlg_db_core::Db;
+use syntheo_db_core::Db;
 
 async fn test_db() -> Db {
     let db = Db::connect_memory_plain().await.unwrap();

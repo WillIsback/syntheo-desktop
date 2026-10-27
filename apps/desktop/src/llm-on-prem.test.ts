@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { aiProviderSchema } from "@anlg/store";
+import { aiProviderSchema } from "@syntheo/store";
 
 import { normalizeStoredLlmSelection } from "~/settings/ai/llm/selection";
 import { LLM_VLLM_PRESET_URL, PROVIDERS } from "~/settings/ai/llm/shared";
@@ -10,7 +10,7 @@ import { processCustomModels } from "~/settings/ai/shared/list-openai";
 
 // Garde-fou : le résumé, le chat et le générateur ne parlent qu'à un serveur
 // OpenAI-compatible on-premise (vLLM, Ollama, llama.cpp…). Les providers LLM
-// cloud hérités d'Anarlog sont supprimés.
+// cloud hérités d'Syntheo sont supprimés.
 // Vitest s'exécute depuis apps/desktop (environnement jsdom, pas d'URL file:).
 const REPO_ROOT = join(process.cwd(), "../..");
 
@@ -53,7 +53,7 @@ describe("llm on-prem", () => {
   });
 
   it("normalizes_a_legacy_llm_selection", () => {
-    expect(normalizeStoredLlmSelection("anarlog", "auto")).toEqual({
+    expect(normalizeStoredLlmSelection("syntheo", "auto")).toEqual({
       provider: "",
       model: "",
     });

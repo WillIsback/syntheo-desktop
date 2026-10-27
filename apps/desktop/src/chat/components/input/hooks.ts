@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { ChatEditorHandle, JSONContent } from "@anlg/editor/chat";
-import { EMPTY_DOC } from "@anlg/editor/markdown";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import type { ChatEditorHandle, JSONContent } from "@syntheo/editor/chat";
+import { EMPTY_DOC } from "@syntheo/editor/markdown";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { DraftCache, type DraftRetentionFailure } from "./draft-cache";
 import { pushSentMessage, sentMessageAt, sentMessageCount } from "./history";

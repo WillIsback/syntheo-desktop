@@ -2,7 +2,7 @@ import {
   commands as localApiCommands,
   type MarkdownExportFile,
   type MarkdownExportOptions,
-} from "@anlg/plugin-local-api";
+} from "@syntheo/plugin-local-api";
 
 import { hasMarkdownExportContent } from "./markdown-export";
 import {

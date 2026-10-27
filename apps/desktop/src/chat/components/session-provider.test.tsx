@@ -31,7 +31,7 @@ const mocks = vi.hoisted(() => ({
   upsertChatMessage: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@anlg/plugin-db", () => ({
+vi.mock("@syntheo/plugin-db", () => ({
   beginCloudsyncActivity: mocks.beginCloudsyncActivity,
   endCloudsyncActivity: mocks.endCloudsyncActivity,
 }));
@@ -98,10 +98,10 @@ import {
   buildPersistedChatMessage,
   type ChatMessageRecord,
 } from "~/chat/store/persisted-messages";
-import type { AnlgUIMessage } from "~/chat/types";
+import type { SyntheoUIMessage } from "~/chat/types";
 
 function persistedMessage(
-  message: AnlgUIMessage,
+  message: SyntheoUIMessage,
   chatGroupId = "group-1",
 ): PersistedChatMessage {
   const record: ChatMessageRecord = buildPersistedChatMessage({
@@ -136,14 +136,14 @@ function connectChatSendToTransport(
     sendMessages,
     reconnectToStream: vi.fn().mockResolvedValue(null),
   };
-  mocks.chatSendMessage.mockImplementation((message: AnlgUIMessage) => {
+  mocks.chatSendMessage.mockImplementation((message: SyntheoUIMessage) => {
     const init = mocks.chatInits[mocks.chatInits.length - 1] as {
       transport: {
         sendMessages: (options: {
           trigger: "submit-message";
           chatId: string;
           messageId: undefined;
-          messages: AnlgUIMessage[];
+          messages: SyntheoUIMessage[];
           abortSignal: AbortSignal;
         }) => Promise<ReadableStream>;
       };
@@ -177,7 +177,7 @@ function connectChatRegenerateToTransport(
           trigger: "regenerate-message";
           chatId: string;
           messageId: string | undefined;
-          messages: AnlgUIMessage[];
+          messages: SyntheoUIMessage[];
           abortSignal: AbortSignal;
         }) => Promise<ReadableStream>;
       };
@@ -186,7 +186,7 @@ function connectChatRegenerateToTransport(
       trigger: "regenerate-message",
       chatId: "session-1",
       messageId: undefined,
-      messages: mocks.messages as AnlgUIMessage[],
+      messages: mocks.messages as SyntheoUIMessage[],
       abortSignal: new AbortController().signal,
     });
   });
@@ -236,7 +236,7 @@ describe("ChatSession", () => {
       </ChatSession>,
     );
     const userCreatedAt = Date.now() + 60_000;
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-message",
       role: "user",
       parts: [{ type: "text", text: "What did they say?" }],
@@ -259,7 +259,7 @@ describe("ChatSession", () => {
     await waitFor(() => expect(beforeSend).toHaveBeenCalledOnce());
     const setMessages = mocks.chatSetMessages.mock.calls.find(
       ([next]) => typeof next === "function",
-    )?.[0] as ((current: AnlgUIMessage[]) => AnlgUIMessage[]) | undefined;
+    )?.[0] as ((current: SyntheoUIMessage[]) => SyntheoUIMessage[]) | undefined;
     expect(setMessages?.([])).toEqual([
       userMessage,
       expect.objectContaining({ role: "assistant" }),
@@ -294,7 +294,7 @@ describe("ChatSession", () => {
         }}
       </ChatSession>,
     );
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-message",
       role: "user",
       parts: [{ type: "text", text: "What did they say?" }],
@@ -324,7 +324,7 @@ describe("ChatSession", () => {
         }}
       </ChatSession>,
     );
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "failed-user-message",
       role: "user",
       parts: [{ type: "text", text: "What did they say?" }],
@@ -339,7 +339,7 @@ describe("ChatSession", () => {
     const updates = mocks.chatSetMessages.mock.calls
       .map(([next]) => next)
       .filter(
-        (next): next is (current: AnlgUIMessage[]) => AnlgUIMessage[] =>
+        (next): next is (current: SyntheoUIMessage[]) => SyntheoUIMessage[] =>
           typeof next === "function",
       );
     const optimisticMessages = updates[0]?.([]) ?? [];
@@ -453,7 +453,7 @@ describe("ChatSession", () => {
     {
       name: "empty",
       id: "assistant-new",
-      parts: [] as AnlgUIMessage["parts"],
+      parts: [] as SyntheoUIMessage["parts"],
       isAbort: false,
       isError: false,
       shouldReplace: false,
@@ -463,7 +463,7 @@ describe("ChatSession", () => {
       id: "assistant-new",
       parts: [
         { type: "text", text: "Partial answer" },
-      ] as AnlgUIMessage["parts"],
+      ] as SyntheoUIMessage["parts"],
       isAbort: true,
       isError: false,
       shouldReplace: false,
@@ -473,7 +473,7 @@ describe("ChatSession", () => {
       id: "assistant-new",
       parts: [
         { type: "text", text: "Partial answer" },
-      ] as AnlgUIMessage["parts"],
+      ] as SyntheoUIMessage["parts"],
       isAbort: false,
       isError: true,
       shouldReplace: false,
@@ -483,7 +483,7 @@ describe("ChatSession", () => {
       id: "assistant-old",
       parts: [
         { type: "text", text: "Partial answer" },
-      ] as AnlgUIMessage["parts"],
+      ] as SyntheoUIMessage["parts"],
       isAbort: false,
       isError: true,
       shouldReplace: false,
@@ -493,7 +493,7 @@ describe("ChatSession", () => {
       id: "assistant-old",
       parts: [
         { type: "text", text: "Replacement answer" },
-      ] as AnlgUIMessage["parts"],
+      ] as SyntheoUIMessage["parts"],
       isAbort: false,
       isError: false,
       shouldReplace: true,
@@ -501,17 +501,17 @@ describe("ChatSession", () => {
   ])(
     "keeps the prior assistant for a $name replacement",
     async ({ id, parts, isAbort, isError, shouldReplace }) => {
-      const userMessage: AnlgUIMessage = {
+      const userMessage: SyntheoUIMessage = {
         id: "user-1",
         role: "user",
         parts: [{ type: "text", text: "Question" }],
       };
-      const oldAssistant: AnlgUIMessage = {
+      const oldAssistant: SyntheoUIMessage = {
         id: "assistant-old",
         role: "assistant",
         parts: [{ type: "text", text: "Old answer" }],
       };
-      const replacement: AnlgUIMessage = {
+      const replacement: SyntheoUIMessage = {
         id,
         role: "assistant",
         parts,
@@ -525,8 +525,8 @@ describe("ChatSession", () => {
       await waitFor(() => expect(sendTransport).toHaveBeenCalledOnce());
       const chat = mocks.chatInits[0] as {
         onFinish: (params: {
-          message: AnlgUIMessage;
-          messages: AnlgUIMessage[];
+          message: SyntheoUIMessage;
+          messages: SyntheoUIMessage[];
           isAbort: boolean;
           isError: boolean;
         }) => void;
@@ -557,12 +557,12 @@ describe("ChatSession", () => {
   );
 
   it("keeps persisting partial failures for normal sends", async () => {
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
     };
-    const partialAssistant: AnlgUIMessage = {
+    const partialAssistant: SyntheoUIMessage = {
       id: "assistant-partial",
       role: "assistant",
       parts: [{ type: "text", text: "Partial answer" }],
@@ -573,8 +573,8 @@ describe("ChatSession", () => {
     renderSession();
     const chat = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
         isError: boolean;
       }) => void;
@@ -595,22 +595,22 @@ describe("ChatSession", () => {
   });
 
   it("does not replace an assistant from before the latest user", async () => {
-    const firstUser: AnlgUIMessage = {
+    const firstUser: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "First question" }],
     };
-    const firstAssistant: AnlgUIMessage = {
+    const firstAssistant: SyntheoUIMessage = {
       id: "assistant-1",
       role: "assistant",
       parts: [{ type: "text", text: "First answer" }],
     };
-    const latestUser: AnlgUIMessage = {
+    const latestUser: SyntheoUIMessage = {
       id: "user-2",
       role: "user",
       parts: [{ type: "text", text: "Second question" }],
     };
-    const latestAssistant: AnlgUIMessage = {
+    const latestAssistant: SyntheoUIMessage = {
       id: "assistant-2",
       role: "assistant",
       parts: [{ type: "text", text: "Second answer" }],
@@ -625,8 +625,8 @@ describe("ChatSession", () => {
     await waitFor(() => expect(sendTransport).toHaveBeenCalledOnce());
     const chat = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
         isError: boolean;
       }) => void;
@@ -684,17 +684,17 @@ describe("ChatSession", () => {
   ])(
     "keeps the original durable target across a $name retry",
     async ({ failedMessage, isAbort, isError }) => {
-      const userMessage: AnlgUIMessage = {
+      const userMessage: SyntheoUIMessage = {
         id: "user-1",
         role: "user",
         parts: [{ type: "text", text: "Question" }],
       };
-      const oldAssistant: AnlgUIMessage = {
+      const oldAssistant: SyntheoUIMessage = {
         id: "assistant-old",
         role: "assistant",
         parts: [{ type: "text", text: "Old answer" }],
       };
-      const replacement: AnlgUIMessage = {
+      const replacement: SyntheoUIMessage = {
         id: "assistant-new",
         role: "assistant",
         parts: [{ type: "text", text: "Replacement answer" }],
@@ -708,8 +708,8 @@ describe("ChatSession", () => {
       await waitFor(() => expect(sendTransport).toHaveBeenCalledOnce());
       const chat = mocks.chatInits[0] as {
         onFinish: (params: {
-          message: AnlgUIMessage;
-          messages: AnlgUIMessage[];
+          message: SyntheoUIMessage;
+          messages: SyntheoUIMessage[];
           isAbort: boolean;
           isError: boolean;
         }) => void;
@@ -762,22 +762,22 @@ describe("ChatSession", () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
     };
-    const oldAssistant: AnlgUIMessage = {
+    const oldAssistant: SyntheoUIMessage = {
       id: "assistant-old",
       role: "assistant",
       parts: [{ type: "text", text: "Old answer" }],
     };
-    const failedReplacement: AnlgUIMessage = {
+    const failedReplacement: SyntheoUIMessage = {
       id: "assistant-failed",
       role: "assistant",
       parts: [{ type: "text", text: "Failed replacement" }],
     };
-    const successfulReplacement: AnlgUIMessage = {
+    const successfulReplacement: SyntheoUIMessage = {
       id: "assistant-success",
       role: "assistant",
       parts: [{ type: "text", text: "Successful replacement" }],
@@ -794,8 +794,8 @@ describe("ChatSession", () => {
     await waitFor(() => expect(sendTransport).toHaveBeenCalledOnce());
     const chat = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
         isError: boolean;
       }) => void;
@@ -847,17 +847,17 @@ describe("ChatSession", () => {
     const replacement = new Promise<void>((resolve) => {
       finishReplacement = resolve;
     });
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
     };
-    const oldAssistant: AnlgUIMessage = {
+    const oldAssistant: SyntheoUIMessage = {
       id: "assistant-old",
       role: "assistant",
       parts: [{ type: "text", text: "Old answer" }],
     };
-    const replacementMessage: AnlgUIMessage = {
+    const replacementMessage: SyntheoUIMessage = {
       id: "assistant-new",
       role: "assistant",
       parts: [{ type: "text", text: "Replacement answer" }],
@@ -873,8 +873,8 @@ describe("ChatSession", () => {
     const nativeKey = startedNativeKey();
     const chat = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
         isError: boolean;
       }) => void;
@@ -914,17 +914,17 @@ describe("ChatSession", () => {
     const firstPersist = new Promise<void>((resolve) => {
       finishFirstPersist = resolve;
     });
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
     };
-    const oldAssistant: AnlgUIMessage = {
+    const oldAssistant: SyntheoUIMessage = {
       id: "assistant-old",
       role: "assistant",
       parts: [{ type: "text", text: "Old answer" }],
     };
-    const firstReplacement: AnlgUIMessage = {
+    const firstReplacement: SyntheoUIMessage = {
       id: "assistant-first",
       role: "assistant",
       parts: [{ type: "text", text: "First replacement" }],
@@ -949,13 +949,13 @@ describe("ChatSession", () => {
             trigger: "regenerate-message";
             chatId: string;
             messageId: string | undefined;
-            messages: AnlgUIMessage[];
+            messages: SyntheoUIMessage[];
             abortSignal: AbortSignal;
           }) => Promise<ReadableStream>;
         };
         onFinish: (params: {
-          message: AnlgUIMessage;
-          messages: AnlgUIMessage[];
+          message: SyntheoUIMessage;
+          messages: SyntheoUIMessage[];
           isAbort: boolean;
           isError: boolean;
         }) => void;
@@ -964,7 +964,7 @@ describe("ChatSession", () => {
         trigger: "regenerate-message",
         chatId: "session-1",
         messageId: undefined,
-        messages: mocks.messages as AnlgUIMessage[],
+        messages: mocks.messages as SyntheoUIMessage[],
         abortSignal: new AbortController().signal,
       });
       if (requestCount++ === 0) {
@@ -1060,17 +1060,17 @@ describe("ChatSession", () => {
     const assistantPersist = new Promise<void>((resolve) => {
       finishAssistantPersist = resolve;
     });
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
     };
-    const oldAssistant: AnlgUIMessage = {
+    const oldAssistant: SyntheoUIMessage = {
       id: "assistant-old",
       role: "assistant",
       parts: [{ type: "text", text: "Old answer" }],
     };
-    const regeneratedAssistant: AnlgUIMessage = {
+    const regeneratedAssistant: SyntheoUIMessage = {
       id: "assistant-regenerated",
       role: "assistant",
       parts: [{ type: "text", text: "Regenerated answer" }],
@@ -1095,13 +1095,13 @@ describe("ChatSession", () => {
             trigger: "regenerate-message";
             chatId: string;
             messageId: string | undefined;
-            messages: AnlgUIMessage[];
+            messages: SyntheoUIMessage[];
             abortSignal: AbortSignal;
           }) => Promise<ReadableStream>;
         };
         onFinish: (params: {
-          message: AnlgUIMessage;
-          messages: AnlgUIMessage[];
+          message: SyntheoUIMessage;
+          messages: SyntheoUIMessage[];
           isAbort: boolean;
         }) => void;
       };
@@ -1109,7 +1109,7 @@ describe("ChatSession", () => {
         trigger: "regenerate-message",
         chatId: "session-1",
         messageId: undefined,
-        messages: mocks.messages as AnlgUIMessage[],
+        messages: mocks.messages as SyntheoUIMessage[],
         abortSignal: new AbortController().signal,
       });
       const assistant =
@@ -1218,7 +1218,7 @@ describe("ChatSession", () => {
           trigger: "submit-message";
           chatId: string;
           messageId: undefined;
-          messages: AnlgUIMessage[];
+          messages: SyntheoUIMessage[];
           abortSignal: AbortSignal;
         }) => Promise<ReadableStream>;
       };
@@ -1238,7 +1238,7 @@ describe("ChatSession", () => {
   });
 
   it("syncs SDK messages when SQLite rows load later", async () => {
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
@@ -1280,7 +1280,7 @@ describe("ChatSession", () => {
   it("stops and drains the active lease when switching chat sessions", async () => {
     connectChatSendToTransport();
     const captured: { send?: ChatSessionRenderProps["sendMessage"] } = {};
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
@@ -1301,8 +1301,8 @@ describe("ChatSession", () => {
     const nativeKey = startedNativeKey();
     const oldChat = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };
@@ -1334,7 +1334,7 @@ describe("ChatSession", () => {
   });
 
   it("does not replace streaming SDK messages with stale SQLite rows", () => {
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
@@ -1367,12 +1367,12 @@ describe("ChatSession", () => {
         finishAssistantPersist = resolve;
       }),
     );
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
     };
-    const assistantMessage: AnlgUIMessage = {
+    const assistantMessage: SyntheoUIMessage = {
       id: "assistant-1",
       role: "assistant",
       parts: [{ type: "text", text: "Finished answer" }],
@@ -1388,8 +1388,8 @@ describe("ChatSession", () => {
     );
     const chat = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };
@@ -1428,21 +1428,21 @@ describe("ChatSession", () => {
       </ChatSession>,
     );
 
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
     };
     captured.send!(userMessage, { chatGroupId: "new-group" });
-    const assistant: AnlgUIMessage = {
+    const assistant: SyntheoUIMessage = {
       id: "assistant-1",
       role: "assistant",
       parts: [{ type: "text", text: "Answer" }],
     };
     const onFinish = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };
@@ -1478,12 +1478,12 @@ describe("ChatSession", () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
     };
-    const assistant: AnlgUIMessage = {
+    const assistant: SyntheoUIMessage = {
       id: "assistant-1",
       role: "assistant",
       parts: [{ type: "text", text: "Answer" }],
@@ -1495,8 +1495,8 @@ describe("ChatSession", () => {
     );
     const onFinish = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };
@@ -1530,12 +1530,12 @@ describe("ChatSession", () => {
       </ChatSession>,
     );
 
-    const userOne: AnlgUIMessage = {
+    const userOne: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "First question" }],
     };
-    const userTwo: AnlgUIMessage = {
+    const userTwo: SyntheoUIMessage = {
       id: "user-2",
       role: "user",
       parts: [{ type: "text", text: "Second question" }],
@@ -1545,17 +1545,17 @@ describe("ChatSession", () => {
 
     const onFinish = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };
-    const assistantOne: AnlgUIMessage = {
+    const assistantOne: SyntheoUIMessage = {
       id: "assistant-1",
       role: "assistant",
       parts: [{ type: "text", text: "First answer" }],
     };
-    const assistantTwo: AnlgUIMessage = {
+    const assistantTwo: SyntheoUIMessage = {
       id: "assistant-2",
       role: "assistant",
       parts: [{ type: "text", text: "Second answer" }],
@@ -1606,12 +1606,12 @@ describe("ChatSession", () => {
         }}
       </ChatSession>,
     );
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
     };
-    const assistant: AnlgUIMessage = {
+    const assistant: SyntheoUIMessage = {
       id: "assistant-1",
       role: "assistant",
       parts: [{ type: "text", text: "Answer" }],
@@ -1622,8 +1622,8 @@ describe("ChatSession", () => {
     mocks.endCloudsyncActivity.mockClear();
     const onFinish = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };
@@ -1676,7 +1676,7 @@ describe("ChatSession", () => {
         }}
       </ChatSession>,
     );
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
@@ -1785,7 +1785,7 @@ describe("ChatSession", () => {
         }}
       </ChatSession>,
     );
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
@@ -1797,15 +1797,15 @@ describe("ChatSession", () => {
     captured.stop!();
     expect(mocks.chatStop).toHaveBeenCalledOnce();
 
-    const assistant: AnlgUIMessage = {
+    const assistant: SyntheoUIMessage = {
       id: "assistant-1",
       role: "assistant",
       parts: [],
     };
     const onFinish = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };
@@ -1841,7 +1841,7 @@ describe("ChatSession", () => {
       </ChatSession>,
     );
 
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
@@ -1853,8 +1853,8 @@ describe("ChatSession", () => {
     const nativeKey = startedNativeKey();
     const onFinish = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };
@@ -1931,7 +1931,7 @@ describe("ChatSession", () => {
         </ChatSession>
       </StrictMode>,
     );
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
@@ -1942,15 +1942,15 @@ describe("ChatSession", () => {
     await waitFor(() => expect(sendTransport).toHaveBeenCalledOnce());
     expect(mocks.beginCloudsyncActivity).toHaveBeenCalledOnce();
 
-    const assistant: AnlgUIMessage = {
+    const assistant: SyntheoUIMessage = {
       id: "assistant-1",
       role: "assistant",
       parts: [],
     };
     const onFinish = mocks.chatInits[mocks.chatInits.length - 1] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };
@@ -1988,7 +1988,7 @@ describe("ChatSession", () => {
         }}
       </ChatSession>,
     );
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
@@ -2013,15 +2013,15 @@ describe("ChatSession", () => {
     finishPreflight?.();
     await waitFor(() => expect(sendTransport).toHaveBeenCalledOnce());
 
-    const assistant: AnlgUIMessage = {
+    const assistant: SyntheoUIMessage = {
       id: "assistant-1",
       role: "assistant",
       parts: [],
     };
     const onFinish = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };
@@ -2057,7 +2057,7 @@ describe("ChatSession", () => {
         }}
       </ChatSession>,
     );
-    const userMessage: AnlgUIMessage = {
+    const userMessage: SyntheoUIMessage = {
       id: "user-1",
       role: "user",
       parts: [{ type: "text", text: "Question" }],
@@ -2085,15 +2085,15 @@ describe("ChatSession", () => {
     expect(failedPreflight).toHaveBeenCalledOnce();
     expect(sendTransport).toHaveBeenCalledOnce();
 
-    const assistant: AnlgUIMessage = {
+    const assistant: SyntheoUIMessage = {
       id: "assistant-1",
       role: "assistant",
       parts: [],
     };
     const onFinish = mocks.chatInits[0] as {
       onFinish: (params: {
-        message: AnlgUIMessage;
-        messages: AnlgUIMessage[];
+        message: SyntheoUIMessage;
+        messages: SyntheoUIMessage[];
         isAbort: boolean;
       }) => void;
     };

@@ -1,5 +1,5 @@
-import { Waveform } from "@anlg/ui/components/icons";
-import { Spinner } from "@anlg/ui/components/ui/spinner";
+import { Waveform } from "@syntheo/ui/components/icons";
+import { Spinner } from "@syntheo/ui/components/ui/spinner";
 
 export function TranscriptListeningState({
   status,

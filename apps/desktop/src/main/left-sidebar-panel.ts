@@ -1,4 +1,4 @@
-import type { ImperativePanelHandle } from "@anlg/ui/components/ui/resizable";
+import type { ImperativePanelHandle } from "@syntheo/ui/components/ui/resizable";
 
 export const LEFT_SIDEBAR_DEFAULT_WIDTH_PX = 200;
 export const LEFT_SIDEBAR_MIN_WIDTH_PX = 200;

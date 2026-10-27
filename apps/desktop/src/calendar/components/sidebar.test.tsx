@@ -8,7 +8,7 @@ import {
 import { createElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { PermissionStatus } from "@anlg/plugin-permissions";
+import type { PermissionStatus } from "@syntheo/plugin-permissions";
 
 // The real iconify-icon web component renders asynchronously via timers that
 // can fire after the test environment is torn down ("document is not
