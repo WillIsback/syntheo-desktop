@@ -22,8 +22,8 @@ if ! command -v process-compose &> /dev/null; then
   TEMP_DIR=$(mktemp -d)
   PROCESS_COMPOSE_ARCHIVE="process-compose_linux_${RELEASE_ARCH}.tar.gz"
   PROCESS_COMPOSE_URL="https://github.com/F1bonacc1/process-compose/releases/download/v${PROCESS_COMPOSE_VERSION}"
-  curl -fsSL "$PROCESS_COMPOSE_URL/$PROCESS_COMPOSE_ARCHIVE" -o "$TEMP_DIR/$PROCESS_COMPOSE_ARCHIVE"
-  curl -fsSL "$PROCESS_COMPOSE_URL/process-compose_checksums.txt" -o "$TEMP_DIR/checksums.txt"
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL "$PROCESS_COMPOSE_URL/$PROCESS_COMPOSE_ARCHIVE" -o "$TEMP_DIR/$PROCESS_COMPOSE_ARCHIVE"
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL "$PROCESS_COMPOSE_URL/process-compose_checksums.txt" -o "$TEMP_DIR/checksums.txt"
   (
     cd "$TEMP_DIR"
     awk -v archive="$PROCESS_COMPOSE_ARCHIVE" '$2 == archive' checksums.txt | sha256sum --check --strict -
@@ -36,7 +36,7 @@ fi
 if [[ -x "$HOME/.dprint/bin/dprint" ]]; then
   export PATH="$HOME/.dprint/bin:$PATH"
 elif ! command -v dprint &> /dev/null; then
-  curl -fsSL https://dprint.dev/install.sh | sh
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL https://dprint.dev/install.sh | sh
   export PATH="$HOME/.dprint/bin:$PATH"
 fi
 if [[ -x "$HOME/.dprint/bin/dprint" ]]; then
@@ -44,13 +44,13 @@ if [[ -x "$HOME/.dprint/bin/dprint" ]]; then
 fi
 
 if ! command -v task &> /dev/null; then
-  curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
   sudo apt-get install -y task
 fi
 
 if ! command -v dasel &> /dev/null; then
   TEMP_DIR=$(mktemp -d)
-  curl -fsSL "https://github.com/TomWright/dasel/releases/latest/download/dasel_linux_${RELEASE_ARCH}" \
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL "https://github.com/TomWright/dasel/releases/latest/download/dasel_linux_${RELEASE_ARCH}" \
     -o "$TEMP_DIR/dasel"
   sudo install -m 0755 "$TEMP_DIR/dasel" /usr/local/bin/dasel
   rm -rf "$TEMP_DIR"

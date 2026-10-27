@@ -2,6 +2,8 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
+import { resolveExecutable } from "./lib/resolve-executable.mjs";
+
 const versionPattern = /^\d+\.\d+\.\d+$/;
 const compare = (left, right) => {
   const a = left.split(".").map(Number);
@@ -27,7 +29,7 @@ export function changelogBaseline(
   if (source && !/^[a-f0-9]{40}$/.test(source))
     throw new Error("Changelog source must be a full commit SHA");
   const git = (...args) =>
-    execFileSync("git", args, {
+    execFileSync(resolveExecutable("git"), args, {
       cwd,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],

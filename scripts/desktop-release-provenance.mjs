@@ -22,6 +22,12 @@ function invariant(condition, message) {
   }
 }
 
+function compareStrings(left, right) {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 function parseArgs(argv) {
   const [command, ...rest] = argv;
   const args = {};
@@ -146,7 +152,7 @@ function plannedPlatforms(kind, { includeLinux, includeWindows }) {
     ...releasePlatformPlan.macos[kind],
     ...(includeLinux ? releasePlatformPlan.linux[kind] : []),
     ...(includeWindows ? releasePlatformPlan.windows[kind] : []),
-  ].sort();
+  ].sort(compareStrings);
 }
 
 export function verifyDesktopPlatformSets(
@@ -181,7 +187,7 @@ export function verifyDesktopPlatformSets(
   const publicPlatforms = assets
     .map((asset) => asset.publicPlatform)
     .filter((platform) => platform !== null)
-    .sort();
+    .sort(compareStrings);
   invariant(
     JSON.stringify(publicPlatforms) === JSON.stringify(expectedPublicPlatforms),
     `Release public platforms do not match the release plan (expected [${expectedPublicPlatforms}], got [${publicPlatforms}])`,
@@ -190,7 +196,7 @@ export function verifyDesktopPlatformSets(
   const updatePlatforms = assets
     .map((asset) => asset.updatePlatform)
     .filter((platform) => platform !== null)
-    .sort();
+    .sort(compareStrings);
   invariant(
     JSON.stringify(updatePlatforms) === JSON.stringify(expectedUpdatePlatforms),
     `Release update platforms do not match the release plan (expected [${expectedUpdatePlatforms}], got [${updatePlatforms}])`,
@@ -209,7 +215,7 @@ export function verifyWorkflowPlatformCoverage({
   const plannedPublic = Object.values(plan)
     .filter((group) => typeof group === "object" && group.publicPlatforms)
     .flatMap((group) => group.publicPlatforms)
-    .sort();
+    .sort(compareStrings);
   // A platform may be downloaded by more than one job (e.g. the Windows
   // signature check), so compare unique platform names.
   const downloadPlatforms = [
@@ -218,7 +224,7 @@ export function verifyWorkflowPlatformCoverage({
         ...publishWorkflow.matchAll(/^\s*platform:\s*([A-Za-z0-9._-]+)\s*$/gm),
       ].map((match) => match[1]),
     ),
-  ].sort();
+  ].sort(compareStrings);
   invariant(
     JSON.stringify(downloadPlatforms) === JSON.stringify(plannedPublic),
     `Publish workflow downloads [${downloadPlatforms}] do not match the release plan [${plannedPublic}]`,
@@ -434,12 +440,13 @@ export async function verifyLocalAssets({
   );
   const expectedPlatforms = mirroredAssets
     .map((asset) => asset.publicPlatform)
-    .sort();
+    .sort(compareStrings);
   invariant(
     new Set(expectedPlatforms).size === expectedPlatforms.length,
     "Provenance contains duplicate public platforms",
   );
-  const downloadedPlatforms = Object.keys(platformAssetIds).sort();
+  const downloadedPlatforms =
+    Object.keys(platformAssetIds).sort(compareStrings);
   invariant(
     JSON.stringify(downloadedPlatforms) === JSON.stringify(expectedPlatforms),
     "Downloaded public platforms do not match the provenance manifest",
@@ -456,8 +463,10 @@ export async function verifyLocalAssets({
 
   const expectedAssetIds = mirroredAssets
     .map((asset) => normalizeCnAssetId(asset?.id))
-    .sort();
-  const actualAssetIds = entries.map((entry) => entry.name).sort();
+    .sort(compareStrings);
+  const actualAssetIds = entries
+    .map((entry) => entry.name)
+    .sort(compareStrings);
   invariant(
     JSON.stringify(actualAssetIds) === JSON.stringify(expectedAssetIds),
     "Local asset IDs do not match the provenance manifest",

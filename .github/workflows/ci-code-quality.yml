@@ -180,9 +180,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Script et binaire épinglés à la même version (v1.7.12).
-          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
-          ./actionlint -color -shellcheck=-
+          # Binaire épinglé (v1.7.12) et vérifié par empreinte SHA-256.
+          ACTIONLINT_VERSION=1.7.12
+          ACTIONLINT_SHA256=8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+          TEMP_DIR=$(mktemp -d)
+          curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" \
+            -o "$TEMP_DIR/actionlint.tar.gz"
+          echo "${ACTIONLINT_SHA256}  $TEMP_DIR/actionlint.tar.gz" | sha256sum --check --strict -
+          tar -xzf "$TEMP_DIR/actionlint.tar.gz" -C "$TEMP_DIR"
+          "$TEMP_DIR/actionlint" -color -shellcheck=-
+          rm -rf "$TEMP_DIR"
 
       - name: Installer uv (pour zizmor)
         uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
@@ -197,7 +205,7 @@ jobs:
           set -euo pipefail
           # Bloquant à partir de la sévérité « high » ; les constats justifiés
           # sont listés dans .github/zizmor.yml.
-          uvx zizmor@1.31.0 --min-severity high --format sarif .github/workflows .github/actions > zizmor.sarif
+          uvx --no-build zizmor@1.31.0 --min-severity high --format sarif .github/workflows .github/actions > zizmor.sarif
 
       - name: Upload SARIF zizmor
         if: ${{ always() && hashFiles('zizmor.sarif') != '' }}

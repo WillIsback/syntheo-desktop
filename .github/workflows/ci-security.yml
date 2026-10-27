@@ -65,9 +65,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Script et binaire épinglés à la même version (v0.76.0).
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/v0.76.0/contrib/install.sh | sh -s -- -b "$RUNNER_TEMP/bin" v0.76.0
-          "$RUNNER_TEMP/bin/trivy" fs "${GITHUB_WORKSPACE}" \
+          # Binaire épinglé (v0.76.0) et vérifié par empreinte SHA-256.
+          TRIVY_SHA256=e24b1c51293c1b15e4ba8d45bbc7891ba053f90278ec2698f3562c993e145fe7
+          TEMP_DIR=$(mktemp -d)
+          curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL \
+            "https://github.com/aquasecurity/trivy/releases/download/v0.76.0/trivy_0.76.0_Linux-64bit.tar.gz" \
+            -o "$TEMP_DIR/trivy.tar.gz"
+          echo "${TRIVY_SHA256}  $TEMP_DIR/trivy.tar.gz" | sha256sum --check --strict -
+          tar -xzf "$TEMP_DIR/trivy.tar.gz" -C "$TEMP_DIR"
+          "$TEMP_DIR/trivy" fs "${GITHUB_WORKSPACE}" \
             --scanners vuln \
             --severity HIGH,CRITICAL \
             --ignorefile "${GITHUB_WORKSPACE}/.trivyignore" \
@@ -104,9 +110,15 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          # Binaire officiel Gitleaks épinglé.
-          go install github.com/zricethezav/gitleaks/v8@v8.30.1
-          GITLEAKS="$(go env GOPATH)/bin/gitleaks"
+          # Binaire officiel Gitleaks épinglé (v8.30.1) et vérifié par empreinte SHA-256.
+          GITLEAKS_SHA256=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          TEMP_DIR=$(mktemp -d)
+          curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL \
+            "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz" \
+            -o "$TEMP_DIR/gitleaks.tar.gz"
+          echo "${GITLEAKS_SHA256}  $TEMP_DIR/gitleaks.tar.gz" | sha256sum --check --strict -
+          tar -xzf "$TEMP_DIR/gitleaks.tar.gz" -C "$TEMP_DIR"
+          GITLEAKS="$TEMP_DIR/gitleaks"
           # Plage de commits de la PR (un secret ajouté puis supprimé reste
           # détecté) ; hors PR, tout l'historique.
           LOG_OPTS=()

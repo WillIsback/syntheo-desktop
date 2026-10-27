@@ -38,28 +38,59 @@ function patchGtkHook(source) {
   return source.replace(forcedX11, gdkBackendDefault);
 }
 
-async function findSingleBundleEntry(bundleDirectory, suffix, isExpectedType) {
-  const entries = await readdir(bundleDirectory, { withFileTypes: true });
+function resolveBundleRoot(input) {
+  if (
+    typeof input !== "string" ||
+    input.length === 0 ||
+    input.split(path.sep).includes("..")
+  ) {
+    throw new Error("Invalid bundle directory");
+  }
+  return path.resolve(input);
+}
+
+function assertWithinBase(baseDirectory, candidate) {
+  const base = path.resolve(baseDirectory);
+  const target = path.resolve(candidate);
+  if (target !== base && !target.startsWith(`${base}${path.sep}`)) {
+    throw new Error(`Path escapes the bundle directory: ${candidate}`);
+  }
+  return target;
+}
+
+async function findSingleBundleEntry(baseDirectory, suffix, isExpectedType) {
+  const entries = await readdir(baseDirectory, { withFileTypes: true });
   const matches = entries.filter(
     (entry) => entry.name.endsWith(suffix) && isExpectedType(entry),
   );
 
   if (matches.length !== 1) {
     throw new Error(
-      `Expected exactly one ${suffix} in ${bundleDirectory}, found ${matches.length}`,
+      `Expected exactly one ${suffix} in ${baseDirectory}, found ${matches.length}`,
     );
   }
 
-  return path.join(bundleDirectory, matches[0].name);
+  return assertWithinBase(
+    baseDirectory,
+    path.join(baseDirectory, matches[0].name),
+  );
 }
 
-export async function findBundledHostLibraries(directory) {
+export async function findBundledHostLibraries(
+  directory,
+  baseDirectory = path.resolve(directory),
+) {
+  const base = path.resolve(baseDirectory);
   const matches = [];
 
   async function walk(currentDirectory) {
+    assertWithinBase(base, currentDirectory);
     const entries = await readdir(currentDirectory, { withFileTypes: true });
     for (const entry of entries) {
-      const entryPath = path.join(currentDirectory, entry.name);
+      const entryPath = assertWithinBase(
+        base,
+        path.join(currentDirectory, entry.name),
+      );
       if (entry.isDirectory()) {
         await walk(entryPath);
       } else if (
@@ -71,7 +102,7 @@ export async function findBundledHostLibraries(directory) {
   }
 
   await walk(directory);
-  return matches.sort();
+  return matches.sort((left, right) => left.localeCompare(right));
 }
 
 function defaultPluginPath() {
@@ -84,9 +115,22 @@ function defaultPluginPath() {
   );
 }
 
+function resolveExecutable(command) {
+  if (command === "pnpm") return command;
+  if (
+    typeof command !== "string" ||
+    !path.isAbsolute(command) ||
+    command.split(path.sep).includes("..")
+  ) {
+    throw new Error(`Refusing to execute unsafe command: ${command}`);
+  }
+  return command;
+}
+
 function runCommand(command, args, options = {}) {
+  const executable = resolveExecutable(command);
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const child = spawn(executable, args, {
       env: options.env ?? process.env,
       stdio: "inherit",
     });
@@ -113,23 +157,25 @@ export async function repackLinuxAppImage({
   pluginPath = process.env.TAURI_APPIMAGE_PLUGIN ?? defaultPluginPath(),
   run = runCommand,
 }) {
+  const baseDirectory = resolveBundleRoot(bundleDirectory);
+  const resolvedPlugin = resolveExecutable(pluginPath);
   const appDirectory = await findSingleBundleEntry(
-    bundleDirectory,
+    baseDirectory,
     ".AppDir",
     (entry) => entry.isDirectory(),
   );
   const appImage = await findSingleBundleEntry(
-    bundleDirectory,
+    baseDirectory,
     ".AppImage",
     (entry) => entry.isFile(),
   );
   const hostLibraries = await findBundledHostLibraries(
     path.join(appDirectory, "usr"),
+    baseDirectory,
   );
-  const gtkHook = path.join(
-    appDirectory,
-    "apprun-hooks",
-    "linuxdeploy-plugin-gtk.sh",
+  const gtkHook = assertWithinBase(
+    baseDirectory,
+    path.join(appDirectory, "apprun-hooks", "linuxdeploy-plugin-gtk.sh"),
   );
   const originalGtkHook = await readFile(gtkHook, "utf8");
   const patchedGtkHook = patchGtkHook(originalGtkHook);
@@ -147,9 +193,11 @@ export async function repackLinuxAppImage({
   }
 
   try {
-    await access(pluginPath, constants.X_OK);
+    await access(resolvedPlugin, constants.X_OK);
   } catch {
-    throw new Error(`AppImage output plugin is not executable: ${pluginPath}`);
+    throw new Error(
+      `AppImage output plugin is not executable: ${resolvedPlugin}`,
+    );
   }
 
   if (updatedGtkHook) {
@@ -159,6 +207,7 @@ export async function repackLinuxAppImage({
 
   const remainingLibraries = await findBundledHostLibraries(
     path.join(appDirectory, "usr"),
+    baseDirectory,
   );
   if (remainingLibraries.length > 0) {
     throw new Error(
@@ -170,7 +219,7 @@ export async function repackLinuxAppImage({
 
   await rm(appImage);
   await run(
-    pluginPath,
+    resolvedPlugin,
     ["--appimage-extract-and-run", "--appdir", appDirectory],
     {
       env: {

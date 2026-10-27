@@ -45,7 +45,21 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def read_wav(path: Path) -> WavTrack:
+def validate_path(path: Path, base_dir: Path) -> Path:
+    """Resolve path and reject any file outside the expected base directory."""
+    resolved_base = base_dir.resolve()
+    resolved_path = path.resolve()
+    try:
+        resolved_path.relative_to(resolved_base)
+    except ValueError as error:
+        raise ValueError(
+            f"{path} is outside the expected base directory {base_dir}"
+        ) from error
+    return resolved_path
+
+
+def read_wav(path: Path, base_dir: Path) -> WavTrack:
+    path = validate_path(path, base_dir)
     data = path.read_bytes()
     if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WAVE":
         raise ValueError(f"{path} is not a RIFF/WAVE file")
@@ -132,7 +146,10 @@ def decode_samples(data: bytes, audio_format: int, bits_per_sample: int) -> list
     raise ValueError(f"unsupported PCM bit depth {bits_per_sample}")
 
 
-def load_phases(path: Path) -> tuple[dict[str, dict[str, float]], float]:
+def load_phases(
+    path: Path, base_dir: Path
+) -> tuple[dict[str, dict[str, float]], float]:
+    path = validate_path(path, base_dir)
     payload = json.loads(path.read_text())
     if payload.get("schema_version") != PHASE_SCHEMA_VERSION:
         raise ValueError("unsupported phase schema")
@@ -466,18 +483,20 @@ def require_at_most(
         failures.append(f"{name} was {actual:.8g}, expected at most {maximum:.8g}")
 
 
-def write_result(path: Path, result: dict[str, Any]) -> None:
+def write_result(path: Path, base_dir: Path, result: dict[str, Any]) -> None:
+    path = validate_path(path, base_dir)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
 
 
 def main() -> int:
     args = parse_args()
+    base_dir = args.output.resolve().parent
     try:
-        phases, recording_stop_seconds = load_phases(args.phases)
+        phases, recording_stop_seconds = load_phases(args.phases, base_dir)
         result = analyze(
-            read_wav(args.mic),
-            read_wav(args.speaker),
+            read_wav(args.mic, base_dir),
+            read_wav(args.speaker, base_dir),
             phases,
             recording_stop_seconds,
         )
@@ -491,7 +510,7 @@ def main() -> int:
             "failures": [str(error)],
         }
 
-    write_result(args.output, result)
+    write_result(args.output, base_dir, result)
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result["status"] == "pass" else 1
 

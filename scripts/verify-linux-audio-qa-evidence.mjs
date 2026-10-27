@@ -70,6 +70,12 @@ function invariant(condition, message) {
   }
 }
 
+function compareStrings(left, right) {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 function parseArgs(argv) {
   const args = {};
   for (let index = 0; index < argv.length; index += 2) {
@@ -295,21 +301,22 @@ async function verifyArchitecture({
   );
 
   const analysis = await readJson(await required("analysis.json"));
-  const thresholdNames = Object.keys(ANALYSIS_THRESHOLDS).sort();
-  const metricNames = Object.keys(analysis.metrics ?? {}).sort();
+  const thresholdNames = Object.keys(ANALYSIS_THRESHOLDS).sort(compareStrings);
+  const metricNames = Object.keys(analysis.metrics ?? {}).sort(compareStrings);
   invariant(
     analysis.status === "pass" &&
       analysis.scope === ANALYSIS_SCOPE &&
       Array.isArray(analysis.failures) &&
       analysis.failures.length === 0 &&
-      JSON.stringify(Object.keys(analysis.thresholds ?? {}).sort()) ===
-        JSON.stringify(thresholdNames) &&
+      JSON.stringify(
+        Object.keys(analysis.thresholds ?? {}).sort(compareStrings),
+      ) === JSON.stringify(thresholdNames) &&
       thresholdNames.every(
         (threshold) =>
           analysis.thresholds[threshold] === ANALYSIS_THRESHOLDS[threshold],
       ) &&
       JSON.stringify(metricNames) ===
-        JSON.stringify([...ANALYSIS_METRICS].sort()) &&
+        JSON.stringify([...ANALYSIS_METRICS].sort(compareStrings)) &&
       ANALYSIS_METRICS.every(
         (metric) =>
           typeof analysis.metrics?.[metric] === "number" &&
@@ -320,7 +327,7 @@ async function verifyArchitecture({
 
   const phases = await readJson(await required("phases.json"));
   const phaseList = Array.isArray(phases.phases) ? phases.phases : [];
-  const phaseNames = phaseList.map((phase) => phase?.name).sort();
+  const phaseNames = phaseList.map((phase) => phase?.name).sort(compareStrings);
   const validIntervals = phaseList.every(
     (phase) =>
       typeof phase?.start_seconds === "number" &&
@@ -341,7 +348,9 @@ async function verifyArchitecture({
       validIntervals &&
       phases.recording_stop_seconds > latestPhaseEnd &&
       JSON.stringify(phaseNames) ===
-        JSON.stringify([...linuxAudioQaPolicy.requiredPhases].sort()),
+        JSON.stringify(
+          [...linuxAudioQaPolicy.requiredPhases].sort(compareStrings),
+        ),
     `Linux ${architecture.artifactArch} phase evidence is invalid`,
   );
 

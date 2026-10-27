@@ -37,7 +37,7 @@ function signBinary(binary) {
     "../src-tauri/Entitlements.plist",
   );
   const signing = spawnSync(
-    "codesign",
+    "/usr/bin/codesign",
     [
       "--force",
       "--sign",
