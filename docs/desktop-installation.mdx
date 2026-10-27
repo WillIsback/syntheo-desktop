@@ -1,132 +1,73 @@
 ---
 title: "Install the desktop app"
-description: "Choose the right Syntheo build for macOS, Windows, or Linux."
+description: "Install Syntheo Desktop on Linux, or build it from source."
 ---
 
-[Download Syntheo](https://github.com/WillIsback/syntheo-desktop/download) to get the latest stable desktop release. The download page offers every supported platform from the same release.
+Syntheo Desktop is currently distributed for **Linux** (AppImage and DEB). Windows and macOS packages are not published yet.
 
 ## Choose the right build
 
 | Platform | Build | Notes |
 | --- | --- | --- |
-| macOS | Apple Silicon DMG | For Macs with an M-series chip. Requires macOS 15 or later. |
-| macOS | Intel DMG | For Intel-based Macs. Requires macOS 15 or later. |
-| Windows | Windows x64 EXE | For 64-bit Windows PCs. Windows support is in beta. |
-| Windows | Microsoft Store | For Windows 10 and 11. Windows support is in beta. |
-| Linux | x64 or ARM64 AppImage | Portable build. Linux support is in beta. |
-| Linux | x64 or ARM64 DEB | For Debian, Ubuntu, and compatible distributions. Linux support is in beta. |
-| Linux | Arch Linux PKGBUILD | For x64 or ARM64 Arch-based distributions. Linux support is in beta. |
-
-On a Mac, open **Apple menu → About This Mac** if you do not know whether it uses an Apple or Intel chip.
-
-## macOS
-
-1. Download the DMG that matches your Mac.
-2. Open the DMG and move Syntheo to **Applications**.
-3. Open Syntheo and follow the setup screen.
-4. Allow microphone, system audio, and calendar access when you want to use those features.
-
-## Windows
-
-1. Download the **Windows x64** installer or [get Syntheo from Microsoft Store](https://apps.microsoft.com/detail/XPDLN196NKSW10).
-2. For the direct download, run the EXE and follow the installer. Microsoft Store handles installation and updates automatically.
-3. Open Syntheo and complete setup.
-4. Allow microphone and system-audio access when prompted.
+| Linux | AppImage (x64) | Portable build. Needs FUSE 2. |
+| Linux | DEB (x64) | For Debian, Ubuntu, and compatible distributions. |
 
 ## Linux
 
-### APT repository
-
-On Debian, Ubuntu, or a compatible distribution, add Syntheo's signed repository to get updates through APT:
+### One-line installer (AppImage)
 
 ```bash
-sudo install -d -m 0755 /etc/apt/keyrings
-curl -fsSL https://github.com/WillIsback/syntheo-desktop/apt/syntheo-archive-keyring.asc \
-  | sudo tee /etc/apt/keyrings/syntheo.asc > /dev/null
-sudo chmod a+r /etc/apt/keyrings/syntheo.asc
-
-sudo tee /etc/apt/sources.list.d/github.com/WillIsback/syntheo-desktopurces > /dev/null <<'EOF'
-Types: deb
-URIs: https://github.com/WillIsback/syntheo-desktop/apt
-Suites: stable
-Components: main
-Signed-By: /etc/apt/keyrings/syntheo.asc
-EOF
-
-sudo apt update
-sudo apt install syntheo
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.sh | bash
 ```
 
-APT verifies the repository metadata with the dedicated Syntheo archive key. New stable releases become available through the normal `apt upgrade` flow.
-
-### Downloaded DEB
-
-To install a downloaded package directly:
+The script downloads the latest release's AppImage to `~/.local/bin`, verifies its SHA256, saves it as `Syntheo-<version>.AppImage`, and creates a `syntheo` command. To install a specific published version:
 
 ```bash
-sudo apt install ./syntheo-*.deb
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.sh | bash -s -- --version v0.1.1
+```
+
+On Arch-based distributions (Omarchy, EndeavourOS, Manjaro), the AppImage requires FUSE 2:
+
+```bash
+sudo pacman -S fuse2
+```
+
+### Debian and Ubuntu
+
+The same script can download the `.deb` instead:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.sh | bash -s -- --deb
+sudo apt install ~/.local/bin/Syntheo_*_amd64.deb
 ```
 
 ### AppImage
 
-For an AppImage, make it executable and open it:
+Download an AppImage from the [releases page](https://github.com/WillIsback/syntheo-desktop/releases), make it executable, and open it:
 
 ```bash
-chmod +x ./syntheo-*.AppImage
-./syntheo-*.AppImage
+chmod +x ./Syntheo-*.AppImage
+./Syntheo-*.AppImage
 ```
 
 On Wayland with an NVIDIA GPU, if the window is black or only audio plays, launch with:
 
 ```bash
-WEBKIT_DISABLE_DMABUF_RENDERER=1 ./syntheo-*.AppImage
+WEBKIT_DISABLE_DMABUF_RENDERER=1 ./Syntheo-*.AppImage
 ```
 
 If the window is still black, also disable compositing:
 
 ```bash
-WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 ./syntheo-*.AppImage
+WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 ./Syntheo-*.AppImage
 ```
 
-Current builds apply the DMA-BUF workaround automatically. Set the variables yourself only if a black window remains.
+## macOS and Windows
 
-### Arch Linux
+Packages are not published yet. To build the app on any platform, follow [Construire depuis les sources](https://github.com/WillIsback/syntheo-desktop/blob/main/CONTRIBUTING.md#construire-depuis-les-sources) in `CONTRIBUTING.md`.
 
-Build the maintained `syntheo-bin` package with `makepkg`:
+## Data and privacy
 
-```bash
-git clone https://github.com/WillIsback/syntheo-desktop.git
-cd syntheo/packaging/aur/syntheo-bin
-makepkg -si
-```
-
-The PKGBUILD downloads the stable DEB for your architecture, verifies its checksum, and installs it through pacman.
-
-## Platform differences
-
-- Apple Calendar integration is available on macOS. Google Calendar works through your Syntheo account on every supported platform.
-- Soniqo, Apple Speech, and On-device file transcription require Apple Silicon. Apple Speech also appears only when a compatible Mac running macOS 26 reports the required system assets. On other systems, choose Syntheo Cloud or configure a supported transcription provider. See [how to use on-device models](/help#use-on-device-models) and [local models for hour-long calls](/help#local-model-hour-long-calls).
-- Windows and Linux support are in beta. Include your operating system and Syntheo version when you report a platform-specific problem.
-- Mobile beta testing is available through [TestFlight](https://testflight.apple.com/join/y7WJCXvG) on iOS and [Google Play beta](https://play.google.com/apps/testing/so.syntheo.mobile) on Android.
+Syntheo runs transcription and summaries only against the on-premise endpoints you configure, and never keeps audio. See [Data and privacy](/data-and-privacy).
 
 When installation is complete, continue to [Your first meeting](/quickstart). If the app does not open or cannot capture audio, see [Troubleshooting](/troubleshooting).
-
-## Nightly
-
-Syntheo Nightly is no longer published and does not receive updates. Install
-the [stable app](https://github.com/WillIsback/syntheo-desktop/download/) and quit Nightly before opening
-it: both apps use the same local notes database, and Syntheo does not open while
-the other app is running. Sign-in and app settings stay separate per app.
-
-If stable shows an update prompt instead of opening your notes, Nightly already
-updated the database format. Keep using Nightly until a stable release includes
-that change. Your data is not modified by the older app.
-
-<Warning>
-  Use matching stable versions on all devices connected to cloud sync. Older
-  builds may not read records written by a newer Nightly. Do not reset your notes
-  or recovery key to resolve a version mismatch; see [Cloud sync troubleshooting](/sync).
-</Warning>
-
-If you installed the bundled CLI from Nightly, its command is `syntheo-nightly`;
-`syntheo` uses stable.
