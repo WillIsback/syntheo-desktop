@@ -193,11 +193,7 @@ function WorkflowStepConfig({
   }
   // Étapes cloud (Slack, Linear, Notion, Google Drive) retirées : une étape
   // héritée d'un ancien workflow s'affiche comme non prise en charge.
-  return (
-    <p className="text-muted-foreground text-xs">
-      Unsupported step.
-    </p>
-  );
+  return <p className="text-muted-foreground text-xs">Unsupported step.</p>;
 }
 
 function AddWorkflowStep({

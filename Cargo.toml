@@ -42,7 +42,6 @@ syntheo-calendar = { path = "crates/calendar", package = "calendar" }
 syntheo-calendar-interface = { path = "crates/calendar-interface", package = "calendar-interface" }
 syntheo-claude = { path = "crates/claude", package = "claude" }
 syntheo-cli-process = { path = "crates/cli-process", package = "cli-process" }
-syntheo-cloudsync = { path = "crates/cloudsync", package = "cloudsync" }
 syntheo-codex = { path = "crates/codex", package = "codex" }
 syntheo-data = { path = "crates/data", package = "data" }
 syntheo-db-app = { path = "crates/db-app", package = "db-app" }
@@ -51,11 +50,9 @@ syntheo-db-core = { path = "crates/db-core", package = "db-core" }
 syntheo-db-execute = { path = "crates/db-execute", package = "db-execute" }
 syntheo-db-migrate = { path = "crates/db-migrate", package = "db-migrate" }
 syntheo-db-reactive = { path = "crates/db-reactive", package = "db-reactive" }
-syntheo-db-sync = { path = "crates/db-sync", package = "db-sync" }
 syntheo-detect = { path = "crates/detect", package = "detect" }
 syntheo-device-monitor = { path = "crates/device-monitor", package = "device-monitor" }
 syntheo-dictation-ui-macos = { path = "crates/dictation-ui-macos", package = "dictation-ui-macos" }
-syntheo-e2ee = { path = "crates/e2ee", package = "e2ee" }
 syntheo-export-core = { path = "crates/export-core", package = "export-core" }
 syntheo-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
 syntheo-fs-format = { path = "crates/fs-format", package = "fs-format" }

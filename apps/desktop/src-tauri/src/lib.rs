@@ -9,7 +9,7 @@ mod search_index;
 mod startup;
 mod store;
 
-use db::{cloudsync_runtime_config_from_env, open_desktop_db};
+use db::open_desktop_db;
 use ext::*;
 use store::*;
 
@@ -75,7 +75,6 @@ pub fn main() {
         .build()
         .expect("tokio runtime");
     tauri::async_runtime::set(runtime.handle().clone());
-    syntheo_db_sync::set_runtime_handle(runtime.handle().clone());
 
     let context = tauri::generate_context!();
     let identifier = context.config().identifier.clone();
@@ -121,14 +120,6 @@ pub fn main() {
 
     let audio: std::sync::Arc<dyn syntheo_audio_actual::AudioProvider> =
         create_audio_provider(&context.config().identifier);
-    let cloudsync_config = match cloudsync_runtime_config_from_env() {
-        Ok(config) => config,
-        Err(error) => {
-            tracing::warn!(%error, "invalid CloudSync environment configuration; CloudSync disabled");
-            None
-        }
-    };
-
     let mut builder = tauri_plugin_windows::extend_builder(tauri::Builder::default())
         .manage(audio)
         .manage(db.clone());
@@ -163,18 +154,14 @@ pub fn main() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_opener2::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_tracing::init())
-
+        .plugin(tauri_plugin_tracing::init());
 
     #[cfg(not(feature = "app-store"))]
     {
         builder = builder.plugin(tauri_plugin_agent::init());
     }
 
-    builder = builder.plugin(tauri_plugin_db::init_with_cloudsync(
-        db.clone(),
-        cloudsync_config,
-    ));
+    builder = builder.plugin(tauri_plugin_db::init(db.clone()));
 
     builder = builder
         .plugin(tauri_plugin_importer::init())
@@ -569,24 +556,6 @@ mod test {
         assert!(!should_allow_immediate_exit());
         syntheo_intercept::set_force_quit();
         assert!(should_allow_immediate_exit());
-    }
-
-    #[test]
-    fn main_capability_allows_cloudsync_lifecycle_commands() {
-        let capability: serde_json::Value =
-            serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
-        let permissions = capability["permissions"].as_array().unwrap();
-
-        for expected in [
-            "db:allow-begin-cloudsync-activity",
-            "db:allow-end-cloudsync-activity",
-            "db:allow-sync-cloudsync-now",
-        ] {
-            assert!(
-                permissions.iter().any(|permission| permission == expected),
-                "missing permission: {expected}"
-            );
-        }
     }
 
     #[test]
