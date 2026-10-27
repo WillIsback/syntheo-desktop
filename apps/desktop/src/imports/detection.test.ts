@@ -20,29 +20,25 @@ describe("import source detection", () => {
       status: "ok",
       data: [
         {
-          id: "com.granola.app",
-          dataUrl: "data:image/png;base64,granola",
+          id: "ai.plaud.desktop.plaud",
+          dataUrl: "data:image/png;base64,plaud",
         },
       ],
     });
     listInstalledApplications.mockResolvedValue({
       status: "ok",
-      data: [{ id: "com.granola.app", name: "Granola" }],
+      data: [{ id: "ai.plaud.desktop.plaud", name: "Plaud Desktop" }],
     });
   });
 
-  it("detects installed import sources without terminating them", async () => {
+  it("détecte les sources d'import locales installées et récupère leurs icônes", async () => {
     const result = await detectImportSources();
 
     expect(listInstalledApplications).toHaveBeenCalledOnce();
     expect(getInstalledApplicationIcons).toHaveBeenCalledWith([
-      "com.granola.app",
-      "google-meet",
+      "ai.plaud.desktop.plaud",
     ]);
-    expect(result.map((provider) => provider.id)).toEqual([
-      "granola",
-      "google-meet",
-    ]);
-    expect(result[0]?.iconUrl).toBe("data:image/png;base64,granola");
+    expect(result.map((provider) => provider.id)).toEqual(["plaud"]);
+    expect(result[0]?.iconUrl).toBe("data:image/png;base64,plaud");
   });
 });
