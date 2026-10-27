@@ -54,7 +54,10 @@ import {
 import {
   getDefaultSttModel,
   getPreferredProviderModel,
+  getSttModelSuggestions,
 } from "~/stt/model-selection";
+
+const STT_MODEL_SUGGESTIONS_ID = "stt-model-suggestions";
 
 export function SelectProviderAndModel() {
   const { t } = useLingui();
@@ -114,6 +117,7 @@ export function SelectProviderAndModel() {
         ? health.message
         : undefined;
   const displayedSttModel = effectiveSelection.model;
+  const modelSuggestions = getSttModelSuggestions(visibleProvider);
   const providerOptions = getConfiguredProviders(
     selectableProviders,
     configuredProviders,
@@ -260,7 +264,15 @@ export function SelectProviderAndModel() {
         <span className="text-muted-foreground">/</span>
 
         <div className="flex min-w-0 flex-3 items-center gap-2">
+          <datalist id={STT_MODEL_SUGGESTIONS_ID}>
+            {modelSuggestions.map((model) => (
+              <option key={model} value={model} />
+            ))}
+          </datalist>
           <Input
+            list={
+              modelSuggestions.length > 0 ? STT_MODEL_SUGGESTIONS_ID : undefined
+            }
             value={displayedSttModel || ""}
             onChange={(event) => handleModelChange(event.target.value)}
             className="text-xs"

@@ -61,7 +61,7 @@ export function ConfigureProviders() {
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
   const content =
     providerId === "nvidia"
-      ? "Connect to your [NVIDIA Speech NIM](https://docs.nvidia.com/nim/speech/latest/get-started/tutorials/asr.html) WebSocket server, for example `http://localhost:9000`. Choose the model served by your deployment. The API key is optional for servers without authentication. This requires a deployed NIM server; NVIDIA's hosted gRPC endpoint is not supported here."
+      ? "Connect to your [NVIDIA Speech NIM](https://docs.nvidia.com/nim/speech/latest/get-started/tutorials/asr.html) WebSocket server, for example `http://localhost:9000`. NIM does not list its models, so enter the model served by your deployment — usually `nemotron-asr-streaming` (Nemotron ASR Streaming, English), `parakeet-tdt-0.6b-v3` (multilingual) or `parakeet-tdt-0.6b-v2` (English). The API key is optional for servers without authentication. This requires a deployed NIM server; NVIDIA's hosted gRPC endpoint is not supported here."
       : providerId === "openai"
         ? "Connect to a server that speaks the OpenAI speech protocol, such as [vLLM](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html), speaches or faster-whisper-server, for example `http://localhost:8000/v1`. Live transcription uses `/v1/realtime`; imported files use `/v1/audio/transcriptions`. Enter the model name served by your deployment. The API key is optional for servers without authentication."
         : "";

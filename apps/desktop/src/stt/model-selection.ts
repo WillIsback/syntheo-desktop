@@ -8,8 +8,18 @@ type PreferredProviderModelOptions = {
   keepUnavailableSavedModel?: boolean;
 };
 
+// NVIDIA Speech NIM exposes no model catalogue (no `/v1/models`), so the
+// realtime WebSocket server validates the model against the deployed container
+// instead. List the ids the streaming ASR deployments accept as suggestions;
+// any other id can still be typed by hand.
+export const NVIDIA_NIM_ASR_MODELS = [
+  "nemotron-asr-streaming",
+  "parakeet-tdt-0.6b-v3",
+  "parakeet-tdt-0.6b-v2",
+] as const;
+
 const DEFAULT_EXTERNAL_STT_MODELS: Record<string, string> = {
-  nvidia: "nemotron-asr-streaming",
+  nvidia: NVIDIA_NIM_ASR_MODELS[0],
 };
 
 // Providers that still exist. A selection saved with a removed cloud provider
@@ -18,6 +28,14 @@ const KNOWN_STT_PROVIDERS = new Set(["openai", "nvidia"]);
 
 export function getDefaultSttModel(provider?: string | null) {
   return provider ? DEFAULT_EXTERNAL_STT_MODELS[provider] : undefined;
+}
+
+// Native `<datalist>` suggestions for on-prem providers that cannot be
+// discovered from the server. Empty means free text only.
+export function getSttModelSuggestions(
+  provider?: string | null,
+): readonly string[] {
+  return provider === "nvidia" ? NVIDIA_NIM_ASR_MODELS : [];
 }
 
 export function normalizeStoredSttSelection(
