@@ -2,8 +2,9 @@
 
 Dernière mise à jour : 2026-10-28 — **v0.1.2 publiée** (deb + AppImage + SBOM +
 SHA256SUMS), E2E **vérifié localement**, installateur **en une ligne** ajouté, CI **allégée**
-(Rust hors PR). ⚠️ **Régression SonarCloud** : la PR #138 (outillage) fait échouer la gate
-`new_security_rating` (14 vulns S8707/S8705 dans les scripts de build) — voir « Ordre suggéré ».
+(Rust hors PR). ⚠️ **Régression SonarCloud** : la 1ʳᵉ tentative (PR #140,
+`sonar.issue.ignore.multicriteria`) est **inefficace** en analyse automatique — le correctif
+passe par `sonar.exclusions` (PR de suivi en cours).
 Dépôt : `/home/will/work/syntheo-desktop` (GitHub `WillIsback/syntheo-desktop`, miroir
 Forgejo `wderue/syntheo-desktop`). Fork d'Anarlog (MIT), historique neuf, jamais fusionné
 vers l'amont.
@@ -31,7 +32,7 @@ vers l'amont.
 | Installeur une ligne | **AJOUTÉ** (PR #120) — `scripts/install.sh`, AppImage/deb, `--version` |
 | CI | **ALLÉGÉE** (PR #118) — clippy + tests Rust hors PR (push main + hebdo) |
 | Linters/qualité | **VERTS** : cargo-deny / trivy / zizmor / actionlint / ESLint. CodeQL Rust = gate release ; TS sur PR. |
-| SonarCloud | ⚠️ **RÉGRESSION** (PR #138) : gate `new_security_rating` = C (14 vulns S8707/S8705 dans les scripts de build). La gate fiabilité/duplication était verte avant #138. Backlog hérité : ~1665 issues (surtout maintenabilité). |
+| SonarCloud | ⚠️ **EN COURS** : PR #140 (`sonar.issue.ignore.multicriteria`) **inefficace** en analyse automatique (propriété multi-valeur non supportée) ; PR de suivi exclut les 3 scripts via `sonar.exclusions`. Backlog hérité : ~1665 issues (surtout maintenabilité). |
 
 ### Lot 04d — « aux chiottes le cloud » (app 100 % locale)
 
@@ -136,9 +137,10 @@ Vert :
   ⚠️ **Régression #138** : la gate échoue sur `new_security_rating` = C — 14 vulns
   `jssecurity:S8707` (path traversal) et `jssecurity:S8705` (argument injection) détectées
   dans `scripts/repack-linux-appimage.mjs`, `scripts/notarize-dmg.mjs` et
-  `scripts/update-aur-pkgbuild.mjs`, malgré les validations ajoutées par la PR. Options :
-  corriger le flux de taint (dur), ou exclure ces scripts d'outillage via
-  `sonar.issue.ignore.multicriteria` (piste privilégiée par le handoff).
+  `scripts/update-aur-pkgbuild.mjs`, malgré les validations ajoutées par la PR. **PR #140**
+  (`sonar.issue.ignore.multicriteria`) est **inefficace** : l'analyse automatique ne supporte
+  pas cette propriété multi-valeur. Correctif retenu : exclure les 3 scripts via
+  `sonar.exclusions` (supporté), sans toucher au code applicatif.
 
 Pièges qualité connus :
 - Clippy `--all-targets -p tauri-plugin-db` remonte un `dead_code` **pré-existant** sur des
@@ -286,9 +288,10 @@ Secrets : `bws` (Bitwarden EU). Jetons Forgejo/GitHub via `bws secret list`.
    n'est pas implémentée.
 2. **Implémenter la signature macOS/Windows** (section 4) une fois les secrets fournis —
    plan : `docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md`.
-3. **⚠️ Priorité : restaurer la gate SonarCloud** (régression #138) — soit exclure les scripts
-   d'outillage via `sonar.issue.ignore.multicriteria` dans `.sonarcloud.properties`, soit
-   corriger le flux de taint S8707/S8705. Ensuite seulement, traiter le backlog hérité
+3. **⚠️ Priorité : restaurer la gate SonarCloud** (régression #138) — la PR #140
+   (`sonar.issue.ignore.multicriteria`) est **inefficace** (propriété multi-valeur non supportée
+   par l'analyse automatique). Correctif en cours : exclure les 3 scripts d'outillage via
+   `sonar.exclusions` dans `.sonarcloud.properties`. Ensuite seulement, traiter le backlog hérité
    (~1665 issues : S6759, S3358, S3776, S2871, SQL `plsql:*`…), chantier dédié ou exclusions
    ciblées.
 4. Optionnel : reprendre/supprimer le PKGBUILD AUR cassé (`packaging/aur/syntheo-bin`) ; durcir
