@@ -28,16 +28,37 @@ DOWNLOAD_DIR="${TMPDIR:-/tmp}"
 die() { printf 'erreur: %s\n' "$1" >&2; exit 1; }
 
 usage() {
-  sed -n '2,17p' "$0" 2>/dev/null || true
+  cat <<'EOF'
+Installe Syntheo Desktop depuis les GitHub Releases.
+
+  --version <tag>   Release à installer (défaut : latest), par ex. v0.1.1
+  --deb             Installe le paquet .deb (Debian/Ubuntu) au lieu de l'AppImage
+  --appimage        Force l'AppImage (défaut)
+  --to <dir>        Répertoire d'installation (défaut : ~/.local/bin)
+  --dir <dir>       Répertoire de téléchargement (défaut : /tmp)
+  -h, --help        Affiche cette aide
+EOF
 }
 
-while [ "$#" -gt 0 ]; do
+while [[ "$#" -gt 0 ]]; do
   case "$1" in
-    --version) [ "$#" -ge 2 ] || die "--version attend une valeur"; VERSION="$2"; shift 2 ;;
+    --version)
+      [[ "$#" -ge 2 ]] || die "--version attend une valeur"
+      VERSION="$2"
+      shift 2
+      ;;
     --deb) FORMAT="deb"; shift ;;
     --appimage) FORMAT="appimage"; shift ;;
-    --to) [ "$#" -ge 2 ] || die "--to attend une valeur"; INSTALL_DIR="$2"; shift 2 ;;
-    --dir) [ "$#" -ge 2 ] || die "--dir attend une valeur"; DOWNLOAD_DIR="$2"; shift 2 ;;
+    --to)
+      [[ "$#" -ge 2 ]] || die "--to attend une valeur"
+      INSTALL_DIR="$2"
+      shift 2
+      ;;
+    --dir)
+      [[ "$#" -ge 2 ]] || die "--dir attend une valeur"
+      DOWNLOAD_DIR="$2"
+      shift 2
+      ;;
     -h|--help) usage; exit 0 ;;
     *) die "option inconnue: $1" ;;
   esac
@@ -56,11 +77,14 @@ case "$(uname -m)" in
   *) die "architecture non prise en charge: $(uname -m)" ;;
 esac
 
-EXT="AppImage"
-[ "$FORMAT" = "deb" ] && EXT="deb"
+if [[ "$FORMAT" = "deb" ]]; then
+  EXT="deb"
+else
+  EXT="AppImage"
+fi
 
-if [ "$VERSION" = "latest" ]; then
-  resolved="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "https://github.com/${REPO}/releases/latest" || true)"
+if [[ "$VERSION" = "latest" ]]; then
+  resolved="$(curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSLI -o /dev/null -w '%{url_effective}' "https://github.com/${REPO}/releases/latest" || true)"
   case "$resolved" in
     */tag/*) TAG="${resolved##*/tag/}" ;;
     *) die "aucune release publiée (ou accès GitHub impossible)" ;;
@@ -81,28 +105,28 @@ printf 'Syntheo Desktop %s (%s, %s)\n' "$TAG" "$EXT" "$ARCH"
 mkdir -p "$DOWNLOAD_DIR" "$INSTALL_DIR"
 target="$DOWNLOAD_DIR/$ASSET"
 
-printf 'Téléchargement de %s…\n' "$ASSET"
-if ! curl -fL --retry 3 --progress-bar "$ASSET_URL" -o "$target"; then
+printf 'Téléchargement de %s...\n' "$ASSET"
+if ! curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fL --retry 3 --progress-bar "$ASSET_URL" -o "$target"; then
   die "téléchargement impossible: $ASSET_URL (cette release publie-t-elle bien un ${EXT} pour ${ARCH} ?)"
 fi
 
 # Vérifie la somme si le manifeste de la release est disponible.
-if sums="$(curl -fsSL "$SUMS_URL" 2>/dev/null)"; then
+if sums="$(curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL "$SUMS_URL" 2>/dev/null)"; then
   expected="$(printf '%s\n' "$sums" | awk -v a="$ASSET" '$2 == a || $2 == "./"a { print $1 }')"
-  if [ -n "$expected" ]; then
+  if [[ -n "$expected" ]]; then
     if command -v sha256sum >/dev/null 2>&1; then
       actual="$(sha256sum "$target" | awk '{ print $1 }')"
     elif command -v shasum >/dev/null 2>&1; then
       actual="$(shasum -a 256 "$target" | awk '{ print $1 }')"
     fi
-    if [ -n "${actual:-}" ]; then
-      [ "$actual" = "$expected" ] || die "somme SHA256 invalide pour $ASSET"
+    if [[ -n "${actual:-}" ]]; then
+      [[ "$actual" = "$expected" ]] || die "somme SHA256 invalide pour $ASSET"
       printf 'SHA256 vérifié.\n'
     fi
   fi
 fi
 
-if [ "$FORMAT" = "deb" ]; then
+if [[ "$FORMAT" = "deb" ]]; then
   installed="$INSTALL_DIR/$ASSET"
   mv "$target" "$installed"
   printf 'Paquet téléchargé : %s\n' "$installed"
@@ -124,4 +148,4 @@ case ":${PATH}:" in
 esac
 
 printf '\nLancez : syntheo\n'
-printf 'Sur Arch/Omarchy, l’AppImage a besoin de FUSE 2 : sudo pacman -S fuse2\n'
+printf "Sur Arch/Omarchy, l'AppImage a besoin de FUSE 2 : sudo pacman -S fuse2\n"
