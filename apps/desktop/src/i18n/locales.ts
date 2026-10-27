@@ -11,24 +11,30 @@ const supportedDisplayLocaleByLanguage = new Map(
   ),
 );
 
+// Français d'abord : la locale d'affichage est le français, sauf si la langue
+// choisie est explicitement l'anglais. Les autres langues de transcription
+// (allemand, espagnol…) n'ont pas de catalogue et retombent sur le français.
 export function resolveDisplayLocale(
   language: string | null | undefined,
 ): DisplayLocale {
-  if (!language) {
-    return SOURCE_LOCALE;
+  if (language) {
+    try {
+      const locale = new Intl.Locale(language);
+      const exactLocale = locale.toString();
+      if (supportedDisplayLocales.has(exactLocale)) {
+        return exactLocale as DisplayLocale;
+      }
+      const byLanguage = supportedDisplayLocaleByLanguage.get(locale.language);
+      if (byLanguage) {
+        return byLanguage;
+      }
+      if (locale.language === "en") {
+        return "en";
+      }
+    } catch {
+      // langue invalide : on retombe sur le français
+    }
   }
 
-  let locale: Intl.Locale;
-  try {
-    locale = new Intl.Locale(language);
-  } catch {
-    return SOURCE_LOCALE;
-  }
-
-  const exactLocale = locale.toString();
-  if (supportedDisplayLocales.has(exactLocale)) {
-    return exactLocale as DisplayLocale;
-  }
-
-  return supportedDisplayLocaleByLanguage.get(locale.language) ?? SOURCE_LOCALE;
+  return "fr";
 }

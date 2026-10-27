@@ -123,7 +123,8 @@ export async function initializeApplicationSettings(): Promise<void> {
 
   if (languageResult?.status === "ok" && languageResult.data.length > 0) {
     if (!stored.hasValues.has("ai_language")) {
-      updates.ai_language = languageResult.data[0];
+      // Français d'abord : la transcription par défaut est le français.
+      updates.ai_language = "fr";
     }
 
     const storedSpokenLanguages = parseStringArray(
