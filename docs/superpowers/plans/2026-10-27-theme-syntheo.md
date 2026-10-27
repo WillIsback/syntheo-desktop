@@ -206,7 +206,7 @@ git commit -m "feat(theme): palette Syntheo claire et sombre"
 
 - Modify: `apps/desktop/package.json` (dépendance `@fontsource-variable/inter`)
 - Modify: `apps/desktop/src/styles/globals.css:1-6,42-45`
-- Modify: `apps/desktop/index.html` (pile de police de l'écran de démarrage)
+- Modify: `apps/desktop/index.html` (palette « stone » codée en dur de l'écran de démarrage → palette Syntheo, et pile de police Inter)
 - Delete: `apps/desktop/public/fonts/SF-Pro-Text-{Regular,Medium,Semibold,Bold}.otf` (assets morts, aucun `@font-face`, aucune référence)
 - Test: `apps/desktop/src/styles/font-tokens.test.ts` (nouveau)
 
@@ -276,6 +276,8 @@ Remplacer la déclaration `--font-sans` (l. 43-44) par :
 ```
 
 Dans `apps/desktop/index.html`, remplacer la pile `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` de l'écran de démarrage par la même pile Inter (garder les mêmes replis ; l'écran de démarrage s'affiche avant le bundle, Inter est fourni par le CSS de l'app et n'est pas critique à cet instant).
+
+Dans le même fichier, `index.html` code en dur l'ancienne palette « stone » du splash (elle s'affiche avant le CSS de l'app) : la remplacer par la palette Syntheo — `hsl(60 9% 98%)` → `hsl(210 17% 98%)`, `hsl(24 10% 11%)` → `hsl(220 6% 10%)`, `hsl(24 10% 10% / 0.2)` → `hsl(225 6% 13% / 0.2)`, `hsl(60 9% 98% / 0.2)` → `hsl(216 12% 92% / 0.2)`, `hsl(24 10% 10% / 0.75)` → `hsl(225 6% 13% / 0.75)`, `hsl(60 9% 98% / 0.5)` → `hsl(216 12% 92% / 0.5)`, `hsl(25 5% 45%)` → `hsl(213 5% 39%)`, `hsl(25 5% 55%)` → `hsl(210 6% 63%)`.
 
 Supprimer les assets morts :
 
