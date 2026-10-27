@@ -608,10 +608,10 @@ impl AppWindow {
         Ok(())
     }
 
-    fn prepare_show(&self, app: &AppHandle<tauri::Wry>) {
+    fn prepare_show(&self, _app: &AppHandle<tauri::Wry>) {
         #[cfg(target_os = "macos")]
         if matches!(self, Self::Main) {
-            let show_app_in_dock = app
+            let show_app_in_dock = _app
                 .try_state::<crate::DockVisibilityState>()
                 .map(|state| state.show_app_in_dock())
                 .unwrap_or(true);
@@ -620,14 +620,7 @@ impl AppWindow {
             } else {
                 tauri::ActivationPolicy::Accessory
             };
-            let _ = app.set_activation_policy(policy);
-        }
-
-        if matches!(self, Self::Main) {
-            use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
-
-            let e = AnalyticsPayload::builder("show_main_window").build();
-            app.analytics().event_fire_and_forget(e);
+            let _ = _app.set_activation_policy(policy);
         }
     }
 

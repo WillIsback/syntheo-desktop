@@ -228,28 +228,6 @@ describe("SQLite settings", () => {
     expect(mocks.setAutomaticUpdatesEnabled).toHaveBeenCalledWith(false);
   });
 
-  it("preserves the legacy telemetry choice when splitting crash reporting", async () => {
-    mocks.execute.mockResolvedValue([
-      {
-        id: "telemetry_consent",
-        value_json: JSON.stringify(false),
-      },
-    ]);
-
-    await initializeApplicationSettings();
-
-    const statements = mocks.executeTransaction.mock.calls[0][0];
-    expect(statements).toContainEqual(
-      expect.objectContaining({
-        params: [
-          "crash_reporting_consent",
-          JSON.stringify(false),
-          expect.any(String),
-        ],
-      }),
-    );
-  });
-
   it("initializes languages from OS preferences", async () => {
     let rows: Array<{ id: string; value_json: string }> = [];
     mocks.execute.mockImplementation(async () => rows);

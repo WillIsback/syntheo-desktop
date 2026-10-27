@@ -108,13 +108,6 @@ export async function initializeApplicationSettings(): Promise<void> {
     stored.values.current_llm_model,
   );
 
-  if (
-    !stored.hasValues.has("crash_reporting_consent") &&
-    stored.hasValues.has("telemetry_consent")
-  ) {
-    updates.crash_reporting_consent = stored.values.telemetry_consent ?? true;
-  }
-
   if (normalizedSttSelection.provider !== stored.values.current_stt_provider) {
     updates.current_stt_provider = normalizedSttSelection.provider;
   }

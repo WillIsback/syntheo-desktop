@@ -9,10 +9,6 @@ const mocks = vi.hoisted(() => ({
   updateSession: vi.fn(() => Promise.resolve()),
 }));
 
-vi.mock("@anlg/plugin-analytics", () => ({
-  commands: { eventFireAndForget: mocks.eventFireAndForget },
-}));
-
 vi.mock("@anlg/plugin-session", () => ({
   commands: {
     createSession: mocks.createSession,

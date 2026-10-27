@@ -24,10 +24,7 @@ fn validate(bytes: &[u8]) -> Result<ManagedSettings, sqlx::Error> {
     }
     for (key, value) in &doc.settings {
         let valid = match key.as_str() {
-            "telemetry_consent"
-            | "crash_reporting_consent"
-            | "cloud_sync_enabled"
-            | "automatic_updates" => value == &Value::Bool(false),
+            "cloud_sync_enabled" | "automatic_updates" => value == &Value::Bool(false),
             "intelligence_disabled" => value == &Value::Bool(true),
             "auto_start_scheduled_meetings" | "save_recordings" => value.is_boolean(),
             "current_llm_provider" | "current_llm_model" => value.as_str() == Some(""),
@@ -113,9 +110,9 @@ mod tests {
     }
     #[test]
     fn secrets_and_unsafe_values_are_rejected() {
-        assert!(validate(br#"{"schema_version":1,"settings":{"intelligence_disabled":true,"telemetry_consent":false}}"#).is_ok());
+        assert!(validate(br#"{"schema_version":1,"settings":{"intelligence_disabled":true,"cloud_sync_enabled":false}}"#).is_ok());
         for text in [
-            r#"{"schema_version":1,"settings":{"telemetry_consent":true}}"#,
+            r#"{"schema_version":1,"settings":{"cloud_sync_enabled":true}}"#,
             r#"{"schema_version":1,"settings":{"api_key":"secret"}}"#,
             r#"{"schema_version":2,"settings":{}}"#,
         ] {
@@ -142,11 +139,11 @@ mod tests {
     async fn startup_policy_locks_settings_and_survives_reopen() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("app.db");
-        std::fs::write(dir.path().join("managed_settings.json"),br#"{"schema_version":1,"settings":{"intelligence_disabled":true,"telemetry_consent":false,"cloud_sync_enabled":false}}"#).unwrap();
+        std::fs::write(dir.path().join("managed_settings.json"),br#"{"schema_version":1,"settings":{"intelligence_disabled":true,"cloud_sync_enabled":false}}"#).unwrap();
         let db = anlg_db_core::Db::connect_local_plain(&path).await.unwrap();
         crate::prepare_schema(&db).await.unwrap();
         assert!(
-            sqlx::query("UPDATE app_settings SET value_json='true' WHERE id='telemetry_consent'")
+            sqlx::query("UPDATE app_settings SET value_json='true' WHERE id='cloud_sync_enabled'")
                 .execute(db.pool())
                 .await
                 .is_err()
@@ -183,7 +180,7 @@ mod tests {
         )
         .unwrap();
         apply_managed_settings(db.pool()).await.unwrap();
-        sqlx::query("UPDATE app_settings SET value_json='true' WHERE id='telemetry_consent'")
+        sqlx::query("UPDATE app_settings SET value_json='true' WHERE id='cloud_sync_enabled'")
             .execute(db.pool())
             .await
             .unwrap();

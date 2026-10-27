@@ -44,7 +44,6 @@
     "windows:allow-live-caption-current-state",
     "tracing:default",
     "anlg-tray:default",
-    "analytics:default",
     "attachment-sync:default",
     "agent:default",
     "updater:default",
