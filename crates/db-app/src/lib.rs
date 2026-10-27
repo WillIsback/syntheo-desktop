@@ -612,6 +612,11 @@ pub const APP_MIGRATION_STEPS: &[syntheo_db_migrate::MigrationStep] = &[
         scope: syntheo_db_migrate::MigrationScope::Plain,
         sql: include_str!("../migrations/20261013090000_recording_import_jobs.sql"),
     },
+    syntheo_db_migrate::MigrationStep {
+        id: "20261024120000_syntheo_templates_fr",
+        scope: syntheo_db_migrate::MigrationScope::Plain,
+        sql: include_str!("../migrations/20261024120000_syntheo_templates_fr.sql"),
+    },
 ];
 
 pub fn schema() -> syntheo_db_migrate::DbSchema {

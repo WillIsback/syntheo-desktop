@@ -178,4 +178,5 @@ mod migrations;
 mod search_index;
 mod session_audio;
 mod shared_session_cache;
+mod templates_fr;
 mod transcript_live_deltas;
