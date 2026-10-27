@@ -145,10 +145,10 @@ Artefacts produits (non suivis par git) :
 apps/desktop/src-tauri/target/release/bundle/deb/Syntheo_0.1.0-preprod_amd64.deb
 apps/desktop/src-tauri/target/release/bundle/appimage/Syntheo_0.1.0-preprod_amd64.AppImage
 ```
-SHA256 :
+SHA256 (**reconstruits après #106**, 2026-10-27) :
 ```
-54998929ff8690e0571329ba70ffb58ff00f7fd2f49f079f9f36e5cddaf74fe9  deb/Syntheo_0.1.0-preprod_amd64.deb
-5e28f61c52bb405efed4e8e5e9f4b939489bc304c8832244b68a6504b4acef43  appimage/Syntheo_0.1.0-preprod_amd64.AppImage
+3d075c61be12ea6240b31d311384e19f23e2ebff4d0b453355c725889ab12e25  deb/Syntheo_0.1.0-preprod_amd64.deb
+6168cb778a7b81d8f322f2b3fb1bc836be5b67adbaa030fb4538e6a40259445b  appimage/Syntheo_0.1.0-preprod_amd64.AppImage
 ```
 Recette (identique `release.yml` build job, `VITE_API_URL` factice) :
 ```bash
@@ -167,16 +167,26 @@ docker run --rm -v /home/will/work/syntheo-desktop:/work -w /work syntheo-dev:1 
 ```
 Note : `--ci` désactive le mode interactif. ~7 min (release) + bundling.
 
-⚠️ Les SHA256 ci-dessus datent **d'avant #106** (binaire qui paniquait au démarrage) :
-**reconstruire les bundles** avant toute distribution. Le binaire release `target/release/syntheo`
-a lui été reconstruit après #106 (recette `--no-bundle`, `VITE_API_URL` factice) et sert à l'E2E.
+Les bundles ci-dessus ont été **reconstruits après #106** (correctif de démarrage) ; le binaire
+release `target/release/syntheo` sert aussi à l'E2E. **Attention** : ceci est une recette locale
+non signée, indépendante des releases GitHub (voir section 4).
 
-### 4. Signature pour distribution
+### 4. Signature pour distribution — **DÉCIDÉ : signature de code macOS/Windows**
 
-`release.yml` publie deb+AppImage + SBOM sans étape de signature (l'updater a été retiré en
-#92 → plus de minisign). Décider avec Will si une signature (cosign/GPG des artefacts, ou
-signature de code macOS/Windows) est requise pour la distribution préprod ; sinon la section
-« signature » est sans objet.
+`release.yml` publie deb+AppImage + SBOM sans signature (l'updater a été retiré en #92 → plus de
+minisign). Décision de Will (2026-10-27) : **la distribution doit avoir une signature de code
+macOS/Windows**. Plan d'implémentation : `docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md`.
+
+- macOS : **Developer ID Application** + **notarisation** (Apple ID/app-password ou clé API).
+- Windows : **certificat de code signing** (OV/EV `.pfx`) ou **Azure Trusted Signing**.
+
+⚠️ **Prérequis bloquant** : les secrets (certificats Apple `.p12`, mot de passe, identifiants de
+notarisation, certificat Windows) sont à fournir par Will et à stocker dans GitHub Secrets (via
+`bws`). Aucun certificat ne doit être committé. Le workflow est aujourd'hui **Linux-only** :
+ajouter les jobs `build-macos` / `build-windows` est le cœur du plan.
+
+En attendant, une **signature detachée des artefacts Linux** (cosign/GPG + attestation de
+provenance) reste possible et sans certificat — non décidée.
 
 ## Pièges déjà rencontrés (à ne pas revivre)
 
@@ -205,6 +215,11 @@ signature de code macOS/Windows) est requise pour la distribution préprod ; sin
   spawne) y **panic** (`there is no reactor running`). Utiliser `tauri::async_runtime::spawn`
   ou envelopper la construction dans `tauri::async_runtime::block_on`. Symptôme trompeur :
   l'E2E échoue en **timeout WebDriver** parce que l'app meurt avant d'ouvrir une fenêtre.
+- **Config de bundle macOS/Windows jamais exercée en CI** : le retrait cloud avait laissé
+  `bundle.macOS.frameworks` pointant un dylib `crates/cloudsync` supprimé, et
+  `bundle.macOS.files` un `resources/mlx.metallib` introuvable (MLX retiré). Corrigé (retirés).
+  Avant d'ajouter mac/win au release, vérifier que **toutes** les sources de `bundle.resources`,
+  `bundle.macOS.files` et `frameworks` existent (un petit script Node le fait en un coup).
 
 ## Commandes utiles
 
@@ -223,10 +238,16 @@ Secrets : `bws` (Bitwarden EU). Jetons Forgejo/GitHub via `bws secret list`.
 
 ## Ordre suggéré pour la prochaine session
 
-1. **Reconstruire les bundles préprod** (deb + AppImage) depuis `main` post-#106 — les SHA256 de
-   la section 3 datent du binaire qui paniquait au démarrage.
-2. **Décider de la signature** pour la distribution (section 4) : cosign/GPG des artefacts, ou
-   signature de code macOS/Windows, ou rien pour la préprod.
+1. **Implémenter la signature macOS/Windows** (section 4) une fois les secrets fournis —
+   plan : `docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md`.
+2. Vérifier que la release GitHub **inclut bien #106** : `v0.1.1` (2026-10-27) a été construit
+   **avant** le correctif de démarrage → il contient le panic. La prochaine release (v0.1.2) le
+   corrigera ; sinon relancer un `workflow_dispatch`.
 3. Optionnel : durcir l'E2E audio virtuel (`E2E_VIRTUAL_AUDIO=1`, kill du groupe de processus)
    et nettoyer les entrées `deny.toml` devenues inutiles (`advisory-not-detected`).
-4. Le seul blocage fonctionnel connu (démarrage) est corrigé ; la qualité et l'E2E sont verts.
+4. Le blocage fonctionnel (démarrage) est corrigé ; la qualité et l'E2E sont verts.
+
+> Note release : le marqueur `[skip release]` **exige** d'être dans le **sujet du commit** (le
+> réglage de squash du dépôt était `COMMIT_OR_PR_TITLE`, ce qui le perdait sur les PR à 1 commit).
+> Corrigé le 2026-10-27 : `squash_merge_commit_title` = **`PR_TITLE`** (le titre de PR, avec le
+> marqueur, devient le sujet du commit squash).
