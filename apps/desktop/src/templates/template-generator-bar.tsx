@@ -44,7 +44,7 @@ export function TemplateGeneratorBar({
         <Input
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder={t`Décris le type de réunion…`}
+          placeholder={t`Describe the meeting type…`}
           disabled={!connected || busy}
           className="text-sm"
         />
@@ -57,12 +57,12 @@ export function TemplateGeneratorBar({
           onClick={run}
         >
           <Sparkle className="size-3.5" />
-          <Trans>Générer avec IA</Trans>
+          <Trans>Generate with AI</Trans>
         </Button>
       </div>
       {!connected ? (
         <p className="text-muted-foreground text-xs">
-          <Trans>Connectez un modèle de langage pour générer un modèle.</Trans>
+          <Trans>Connect a language model to generate a template.</Trans>
         </p>
       ) : null}
       {error ? <p className="text-xs text-red-600">{error}</p> : null}
