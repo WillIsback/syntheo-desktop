@@ -265,10 +265,12 @@ Secrets : `bws` (Bitwarden EU). Jetons Forgejo/GitHub via `bws secret list`.
 
 ## Ordre suggéré pour la prochaine session
 
-1. **Publier une release** — `main` est prêt (correctifs #106/#112/#114/#116 + installeur #120).
-   Le prochain calcul donne **v0.2.0** (un `feat` depuis `v0.1.1`) :
-   `gh workflow run release.yml -f bump=auto -f dry_run=false` (environnement `production`, à
+1. **Prochaine release = correctif (`v0.1.2`)**, **pas** `v0.2.0`. Attention : les commits `feat`
+   (#112, #120) feraient calculer un **minor** (`v0.2.0`) par la détection auto → **forcer le
+   patch** au déclenchement :
+   `gh workflow run release.yml -f bump=patch -f dry_run=false` (environnement `production`, à
    approuver), puis vérifier l'asset, `SHA256SUMS` et l'attestation.
+   **Will indiquera le moment de passer à `v0.2.0`** (fonctionnalité majeure).
    ⚠️ Release **Linux-only** (deb + AppImage) tant que la signature macOS/Windows (section 4)
    n'est pas implémentée. `v0.1.1` contient encore le panic de démarrage (#106).
 2. **Implémenter la signature macOS/Windows** (section 4) une fois les secrets fournis —
