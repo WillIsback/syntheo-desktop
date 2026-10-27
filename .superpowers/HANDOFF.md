@@ -1,6 +1,6 @@
 # Passation — Syntheo Desktop
 
-Dernière mise à jour : 2026-10-27 (soir).
+Dernière mise à jour : 2026-10-27 (nuit) — E2E blackbox **résolu**, qualité **verte**.
 Dépôt : `/home/will/work/syntheo-desktop` (GitHub `WillIsback/syntheo-desktop`, miroir
 Forgejo `wderue/syntheo-desktop`). Fork d'Anarlog (MIT), historique neuf, jamais fusionné
 vers l'amont.
@@ -19,13 +19,13 @@ vers l'amont.
 
 | Élément | État |
 |---|---|
-| `main` | **`d630ec6`** — arbre **propre** (aucun fichier modifié suivi, aucun untracked hors `target/`) |
+| `main` | **`145eee2`** — arbre **propre** (aucun fichier modifié suivi, aucun untracked hors `target/`) |
 | Lots 04 / 04b / 04c / 10 | terminés et fusionnés (sessions précédentes) |
 | Lots 06-09 | terminés et fusionnés (sessions précédentes) |
 | **Lot 04d — retrait cloud** | **TERMINÉ** (voir ci-dessous) |
-| Build préprod | **RÉUSSI** (deb + AppImage `0.1.0-preprod`) |
-| E2E blackbox | **NON RÉSOLU** — à finir (voir « Tâche en cours ») |
-| Linters/qualité | quasi tous verts (voir « Vérifications ») ; reste cargo-deny / trivy / CodeQL / Sonar |
+| Build préprod | **RÉUSSI** (deb + AppImage `0.1.0-preprod`) ; binaire release reconstruit après #106 |
+| E2E blackbox | **RÉSOLU** (PR #106) — `pnpm e2e` → `1 passing`, exit 0 |
+| Linters/qualité | **VERTS** : cargo-deny / trivy / zizmor / CodeQL / Sonar / actionlint / ESLint |
 
 ### Lot 04d — « aux chiottes le cloud » (app 100 % locale)
 
@@ -41,6 +41,8 @@ Retrait complet de toutes les intégrations cloud non-inference. PR fusionnées 
 | #98 | **04d-b 2/2** : runtime de sync + réplique E2EE (`crates/cloudsync|db-sync|e2ee`, substrat `db-core`, runtime `plugins/db`, config `src-tauri`) |
 | #100 | sync des catalogues i18n (rend `i18n:check` vert) |
 | #102 | clippy : code mort (`session_deletion.rs`) + lints `desktop` |
+| #104 | passation (docs) |
+| #106 | **fix démarrage** : runtime de live-queries construit dans le réacteur Tokio (voir ci-dessous) + E2E blackbox vert |
 
 Points clés du retrait :
 
@@ -60,31 +62,27 @@ Points clés du retrait :
 
 ## Tâche en cours : E2E blackbox + finalisation qualité
 
-### 1. E2E blackbox (webdriverio + tauri-driver) — BLOQUÉ
+### 1. E2E blackbox (webdriverio + tauri-driver) — **RÉSOLU** (#106)
 
 Cible : `e2e/blackbox` (`pnpm e2e`), config `wdio.blackbox.conf.ts`, test `tests/app.spec.ts`
 (vérifie `[data-testid="main-app-shell"]`). `tests/linux-virtual-audio.spec.ts` est **skippé**
 sauf `E2E_VIRTUAL_AUDIO=1` (exige audio virtuel PipeWire + `NO_AEC=1`).
 
-Prérequis Linux : `webkit2gtk-driver` (WebKitWebDriver), `desktop-file-utils`, `xvfb`,
-`dbus-x11`, un binaire app, et `tauri-driver`.
+**Cause réelle du « timeout WebDriver »** : l'app **panic au démarrage** —
+`crates/db-reactive/src/runtime.rs:45` (`tokio::spawn` sans réacteur) via
+`PluginDbRuntime::new` → `tauri::plugin::PluginStore::initialize_all` → `Builder::build`.
+Le `setup` des plugins Tauri s'exécute synchroniquement sur le thread principal, **hors
+réacteur Tokio** ; `LiveQueryRuntime::new` fait un `tokio::spawn` eager. Bug **latent depuis
+l'import initial** (`f3a017e`), identique avant/après 04d (#98). **Correctif #106** : construire
+le runtime dans `tauri::async_runtime::block_on` (helper `build_runtime` dans `plugins/db`),
++ test de régression `runtime_constructs_outside_async_context`.
 
-Ce qui a été tenté (2 essais, échoués) :
+**Second obstacle** : `linux-virtual-audio.spec.ts` ouvrait une 2ᵉ session WebDriver même
+skippée ; le 2ᵉ `tauri-driver` ne pouvait pas rebinder 4444/4445 pendant la fermeture du 1ᵉʳ
+→ exit 1 malgré le test vert. **Correctif #106** : `exclude` la suite tant que
+`E2E_VIRTUAL_AUDIO != 1`.
 
-1. `cargo install tauri-driver` + `xvfb-run` sur le binaire préprod
-   (`APP_BINARY_PATH=target/release/syntheo`) → **session WebDriver timeout**
-   (`http://127.0.0.1:4444/session`). Cause probable : l'app WebKitGTK ne démarre pas dans
-   Docker (sandbox WebKit / pas de D-Bus / pas d'affichage). A aussi vu
-   `FATAL: Unable to listen … port 4445` au retry (port 4444 non libéré entre les retries).
-2. Avec `WEBKIT_FORCE_SANDBOX=0` + `WEBKIT_DISABLE_COMPOSITING_MODE=1` +
-   `WEBKIT_DISABLE_DMABUF_RENDERER=1` + `dbus-run-session` + symlink `tauri-driver` de
-   `node_modules` → **nouvelle erreur** : `@crabnebula/tauri-driver/cli.js` introuvable car le
-   symlink `$CARGO_HOME/bin/tauri-driver -> node_modules/.bin/tauri-driver` résout un import
-   relatif depuis `$CARGO_HOME` (mauvais cwd). → **installer `tauri-driver` par cargo** (pas le
-   wrapper node) OU copier un script launcher qui `cd` dans le bon dossier.
-
-**À faire pour débloquer l'E2E :**
-
+Commande qui passe (**exit 0**) :
 ```bash
 docker run --rm -v /home/will/work/syntheo-desktop:/work -w /work syntheo-dev:1 bash -lc '
   set -e
@@ -94,22 +92,15 @@ docker run --rm -v /home/will/work/syntheo-desktop:/work -w /work syntheo-dev:1 
   cd /work/e2e/blackbox
   export CI=1 ONBOARDING=0 APP_BINARY_PATH=/work/apps/desktop/src-tauri/target/release/syntheo
   export WEBKIT_FORCE_SANDBOX=0 WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1
-  dbus-run-session -- xvfb-run -a pnpm e2e
+  dbus-run-session -- xvfb-run -a pnpm e2e    # → 1 passing ; E2E_EXIT_CODE=0
 '
 ```
+Résultat : `[wry 0.55 linux #0-0] ✓ launches and renders the main app shell` / `1 passing` /
+`Spec Files: 1 passed, 1 total`.
 
-Pistes si la session timeout persiste :
-- Lancer l'app seule sous `xvfb-run` et lire sa stderr (libs manquantes ? `libwebkit2gtk-4.1-0`,
-  plugins GStreamer, `bwrap`).
-- `docker run` avec `--security-opt seccomp=unconfined --cap-add SYS_ADMIN` (sandbox WebKit) ou
-  `--ipc=host`.
-- Ne pas sur-wraper `xvfb-run` : `wdio.blackbox.conf.ts` lance **déjà** `xvfb-run -a tauri-driver`
-  quand `CI` est défini.
-- Vérifier que `/usr/bin/WebKitWebDriver` est bien appelé par `tauri-driver` (webdriver port).
-- Alternative : binaire construit avec la config **dev** (`tauri.conf.json`, binaire
-  `target/release/syntheo-dev`) est le chemin par défaut du conf ; ici on pointe
-  `APP_BINARY_PATH` vers le binaire préprod `syntheo` (config `tauri.conf.syntheo.json`), ce qui
-  doit convenir.
+Note : la suite audio virtuelle (`E2E_VIRTUAL_AUDIO=1`) reste **non validée** (exige PipeWire +
+`NO_AEC=1`) ; elle relance 2 sessions et pourrait re-manifester le conflit de ports — à durcir
+(kill du groupe de processus) si on l'active un jour.
 
 ### 2. Vérifications qualité — état
 
@@ -122,17 +113,22 @@ Vert :
 - `pnpm -F desktop i18n:check` ✅ (après #100)
 - Vitest complet : **397 fichiers / 3174 tests** ✅
 - `python3 scripts/check_security_exceptions.py` ✅ · `actionlint` ✅
+- **`cargo deny check advisories licenses bans sources`** ✅ (avec **cargo-deny 0.20.2** ;
+  0.18.5 ne parse pas les avis CVSS 4.0). `advisories ok, bans ok, licenses ok, sources ok`
+  (warnings `advisory-not-detected` sur des ignores devenus inutiles après 04b/04d : non bloquants).
+- **`trivy fs --scanners vuln --severity HIGH,CRITICAL --ignorefile .trivyignore`** ✅ (v0.76.0) → 0 finding.
+- **`uvx zizmor@1.31.0 --min-severity high`** ✅ → 0 finding.
+- ESLint (CI = diff de PR) : la config **ignore** `e2e/**` → aucun souci introduit.
+- **CodeQL** (`ci-codeql.yml`) : PR Rust-only → CodeQL Rust `skipping` ; PR avec `.ts` →
+  CodeQL TS **pass**. Rust reste gate **release** (`workflow_call`) + hebdo + manuel.
+- **SonarCloud** : `.sonarcloud.properties` existe → analyse **automatique via l'app GitHub**
+  (`SonarCloud Code Analysis` **pass** sur #106). Pas de `sonar-project.properties` requis.
 
-À lancer (non encore fait dans cette session) :
-- `cargo deny check advisories licenses bans sources` (installer `cargo-deny`)
-- `trivy fs --scanners vuln --severity HIGH,CRITICAL --ignorefile .trivyignore` (installer trivy)
-- `uvx zizmor@1.31.0 --min-severity high --format sarif .github/workflows .github/actions`
-  (installer `uv` ; config `.github/zizmor.yml`, `continue-on-error: true` en CI)
-- ESLint sur fichiers modifiés (la CI ne le lance que sur la diff d'une PR)
-- **CodeQL** (`ci-codeql.yml`) et **Sonar** : services CI. `ci-codeql` est un gate **release**
-  (Rust > 25 min) + hebdo ; PR = TypeScript seul. **Aucune config Sonar (`sonar-project.properties`)
-  trouvée dans le dépôt** — vérifier si SonarCloud est branché via l'app GitHub (analyse
-  automatique) ou si c'est un reste d'Anarlog.
+Pièges qualité connus :
+- Clippy `--all-targets -p tauri-plugin-db` remonte un `dead_code` **pré-existant** sur des
+  helpers `#[cfg(test)]` de `plugins/db/src/runtime.rs` (`pause_next_transaction_after_begin`,
+  `wait_for_transaction_after_begin`) — jamais appelés. `plugins/*` n'étant pas linté en CI,
+  non bloquant (à nettoyer si on veut `-D warnings` local sur ce crate).
 
 Limpitations d'environnement :
 - `dprint check` **échoue uniquement sur les fichiers Swift** (`crates/intercept/swift-lib`,
@@ -171,6 +167,10 @@ docker run --rm -v /home/will/work/syntheo-desktop:/work -w /work syntheo-dev:1 
 ```
 Note : `--ci` désactive le mode interactif. ~7 min (release) + bundling.
 
+⚠️ Les SHA256 ci-dessus datent **d'avant #106** (binaire qui paniquait au démarrage) :
+**reconstruire les bundles** avant toute distribution. Le binaire release `target/release/syntheo`
+a lui été reconstruit après #106 (recette `--no-bundle`, `VITE_API_URL` factice) et sert à l'E2E.
+
 ### 4. Signature pour distribution
 
 `release.yml` publie deb+AppImage + SBOM sans étape de signature (l'updater a été retiré en
@@ -195,11 +195,16 @@ signature de code macOS/Windows) est requise pour la distribution préprod ; sin
   `permissions/{autogenerated,schemas}` pour forcer une regénération propre.
 - La CI `ci-code-quality (Rust)` ne teste que `template-app, db-app, owhisper-client,
   listener-core, storage`. `plugins/*` n'est **pas** testé en CI (les tests `plugins/db`
-  passent localement : 35 tests).
+  passent localement : **36 tests**, dont le garde-fou de démarrage ajouté en #106).
 - `pnpm exec dprint fmt` global + `cargo fmt -p <crate>` avant de pousser.
 - `gh pr create --body-file` (jamais `--body` avec backticks → zsh exécute).
 - PR : `gh pr merge <n> --squash --admin` (contourne le job Rust CI lent quand vérifié localement).
 - Vérifier que `main` est bien la branche courante avant de committer (ne pas committer sur `main`).
+- **Réacteur Tokio dans le `setup` d'un plugin Tauri** (#106) : le `setup` s'exécute sur le
+  thread principal, **hors réacteur**. Tout `tokio::spawn` (direct, ou via un constructeur qui
+  spawne) y **panic** (`there is no reactor running`). Utiliser `tauri::async_runtime::spawn`
+  ou envelopper la construction dans `tauri::async_runtime::block_on`. Symptôme trompeur :
+  l'E2E échoue en **timeout WebDriver** parce que l'app meurt avant d'ouvrir une fenêtre.
 
 ## Commandes utiles
 
@@ -218,9 +223,10 @@ Secrets : `bws` (Bitwarden EU). Jetons Forgejo/GitHub via `bws secret list`.
 
 ## Ordre suggéré pour la prochaine session
 
-1. **Finir l'E2E blackbox** (section 1) — c'est le seul blocage fonctionnel connu.
-2. Lancer `cargo deny`, `trivy`, `zizmor`, ESLint sur la diff (section 2).
-3. Confirmer CodeQL (TS sur la prochaine PR ; Rust = gate release) et clarifier SonarCloud.
-4. Décider de la signature pour distribution (section 4).
-5. Mettre à jour `.superpowers/HANDOFF.md` + le plan `docs/superpowers/plans/2026-10-27-cloud-integrations.md`
-   (marquer 04d-a et 04d-b comme terminés).
+1. **Reconstruire les bundles préprod** (deb + AppImage) depuis `main` post-#106 — les SHA256 de
+   la section 3 datent du binaire qui paniquait au démarrage.
+2. **Décider de la signature** pour la distribution (section 4) : cosign/GPG des artefacts, ou
+   signature de code macOS/Windows, ou rien pour la préprod.
+3. Optionnel : durcir l'E2E audio virtuel (`E2E_VIRTUAL_AUDIO=1`, kill du groupe de processus)
+   et nettoyer les entrées `deny.toml` devenues inutiles (`advisory-not-detected`).
+4. Le seul blocage fonctionnel connu (démarrage) est corrigé ; la qualité et l'E2E sont verts.
