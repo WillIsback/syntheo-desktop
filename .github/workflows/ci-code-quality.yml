@@ -1,11 +1,21 @@
 # Workflow : Qualité du code
 # Formatage, lint TS/Rust, typage, cohérence des commits, des workflows et des lockfiles
+#
+# Le job Rust (clippy + tests, ~20 min à froid) ne tourne PAS sur les PR : il
+# est déplacé sur `push` vers main (+ hebdo + manuel), comme le Rust de CodeQL.
+# Les PR gardent un contrôle Rust quasi gratuit (`cargo metadata --locked`,
+# dans le job TypeScript) et le reste de la qualité. Objectif : PR < ~5 min.
 name: ci-code-quality
 
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  schedule:
+    # Hebdomadaire : rattrape une régression Rust non détectée en PR.
+    - cron: "0 6 * * 1"
   workflow_dispatch:
 
 concurrency:
@@ -18,6 +28,9 @@ permissions:
 jobs:
   js:
     name: ci-code-quality (TypeScript)
+    # PR uniquement : sur `push` main, seul le Rust (job ci-dessous) tourne.
+    # (Le dprint global du dépôt ne passe pas sans formateur Swift.)
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -71,11 +84,19 @@ jobs:
           pnpm -F ui build
           pnpm -F desktop typecheck
 
+      # Contrôle Rust quasi gratuit gardé sur la PR : détecte un Cargo.lock
+      # désynchronisé. Le clippy et les tests Rust complets tournent hors PR.
+      - name: Intégrité du lockfile Cargo
+        run: cargo metadata --locked --format-version 1 > /dev/null
+
   # Job Rust unique : métadonnées, clippy et tests partagent le même target/
   # compilé une seule fois (l'ancien découpage recompilait tout le workspace
   # deux fois, clippy et test étant deux jobs distincts).
+  # Hors PR (voir l'en-tête) : c'est le seul job lourd, on le garde sur main,
+  # l'hebdo et le déclenchement manuel pour ne pas allonger les PR.
   rust:
     name: ci-code-quality (Rust)
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
@@ -126,6 +147,8 @@ jobs:
 
   meta:
     name: ci-code-quality (PR et workflows)
+    # PR uniquement : titre de PR, actionlint, zizmor.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
