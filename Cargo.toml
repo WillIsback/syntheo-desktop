@@ -19,11 +19,9 @@ members = [
 
 [workspace.dependencies]
 keyring = "4.1.4"
-progenitor-client = "0.13"
 syntheo-aec = { path = "crates/aec", package = "aec" }
 syntheo-agent-access = { path = "crates/agent-access", package = "agent-access" }
 syntheo-agent-core = { path = "crates/agent-core", package = "agent-core" }
-syntheo-api-client = { path = "crates/api-client", package = "api-client" }
 syntheo-apple-calendar = { path = "crates/apple-calendar", package = "apple-calendar" }
 syntheo-apple-todo = { path = "crates/apple-todo", package = "apple-todo" }
 syntheo-askama-utils = { path = "crates/askama-utils", package = "askama-utils" }
@@ -64,8 +62,6 @@ syntheo-frontmatter = { path = "crates/frontmatter", package = "frontmatter" }
 syntheo-fs-format = { path = "crates/fs-format", package = "fs-format" }
 syntheo-fs-sync-core = { path = "crates/fs-sync-core", package = "fs-sync-core" }
 syntheo-gbnf = { path = "crates/gbnf", package = "gbnf" }
-syntheo-github-issues = { path = "crates/github-issues", package = "github-issues" }
-syntheo-google-calendar = { path = "crates/google-calendar", package = "google-calendar" }
 syntheo-hooks = { path = "crates/hooks", package = "hooks" }
 syntheo-host = { path = "crates/host", package = "host" }
 syntheo-http = { path = "crates/http", package = "syntheo-http-utils" }
@@ -79,7 +75,6 @@ syntheo-notification = { path = "crates/notification", package = "notification" 
 syntheo-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }
 syntheo-onnx = { path = "crates/onnx", package = "onnx" }
 syntheo-opencode = { path = "crates/opencode", package = "opencode" }
-syntheo-outlook-calendar = { path = "crates/outlook-calendar", package = "outlook-calendar" }
 syntheo-overlay-kit = { path = "crates/overlay-kit", package = "overlay-kit" }
 syntheo-resampler = { path = "crates/resampler", package = "resampler" }
 syntheo-session-ingest = { path = "crates/session-ingest", package = "session-ingest" }
@@ -89,7 +84,6 @@ syntheo-summary = { path = "crates/summary", package = "summary" }
 syntheo-tcc = { path = "crates/tcc", package = "tcc" }
 syntheo-template-app = { path = "crates/template-app", package = "template-app" }
 syntheo-template-app-legacy = { path = "crates/template-app-legacy", package = "template-app-legacy" }
-syntheo-ticket-interface = { path = "crates/ticket-interface", package = "ticket-interface" }
 syntheo-tiptap = { path = "crates/tiptap", package = "tiptap" }
 syntheo-transcript = { path = "crates/transcript", package = "transcript" }
 syntheo-transcription-core = { path = "crates/transcription-core", package = "transcription-core" }
