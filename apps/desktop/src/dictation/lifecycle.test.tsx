@@ -238,7 +238,11 @@ describe("dictation access and lifecycle", () => {
     };
     mocks.stopRecording.mockResolvedValue({
       status: "ok",
-      data: { audioBase64: "AAAA", durationMs: 1000, transcript: "Finished live." },
+      data: {
+        audioBase64: "AAAA",
+        durationMs: 1000,
+        transcript: "Finished live.",
+      },
     });
     render(<DictationLifecycle />);
     await waitFor(() => expect(useDictationStatus.getState().ready).toBe(true));

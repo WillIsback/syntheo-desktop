@@ -273,5 +273,3 @@ async function cancelActiveRecording(transcriptionSessionId: string) {
     console.error("[chat-dictation] failed to cancel recording", error);
   }
 }
-
-
