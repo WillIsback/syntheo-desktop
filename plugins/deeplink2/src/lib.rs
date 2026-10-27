@@ -8,7 +8,7 @@ mod types;
 pub use error::{Error, Result};
 pub use types::{
     AuthCallbackSearch, BillingRefreshSearch, DeepLink, DeepLinkEvent, IntegrationCallbackSearch,
-    OnboardingDemoCompleteSearch, ShareOpenPendingEvent, ShareOpenRequest,
+    ShareOpenPendingEvent, ShareOpenRequest,
 };
 
 use std::str::FromStr;
