@@ -28,7 +28,8 @@ vers l'amont.
 | E2E blackbox | **RÉSOLU** (PR #106) — `pnpm e2e` → `1 passing`, exit 0 |
 | Installeur une ligne | **AJOUTÉ** (PR #120) — `scripts/install.sh`, AppImage/deb, `--version` |
 | CI | **ALLÉGÉE** (PR #118) — clippy + tests Rust hors PR (push main + hebdo) |
-| Linters/qualité | **VERTS** : cargo-deny / trivy / zizmor / CodeQL / Sonar / actionlint / ESLint |
+| Linters/qualité | **VERTS** : cargo-deny / trivy / zizmor / CodeQL / actionlint / ESLint |
+| SonarCloud | **gate VERTE** (PR #126) — fiabilité + duplication du code neuf. Backlog hérité : ~1665 issues (surtout maintenabilité) |
 
 ### Lot 04d — « aux chiottes le cloud » (app 100 % locale)
 
@@ -277,6 +278,9 @@ Secrets : `bws` (Bitwarden EU). Jetons Forgejo/GitHub via `bws secret list`.
    plan : `docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md`.
 3. Optionnel : reprendre/supprimer le PKGBUILD AUR cassé (`packaging/aur/syntheo-bin`) ; durcir
    l'E2E audio virtuel ; nettoyer les entrées `deny.toml` obsolètes (`advisory-not-detected`).
+   **SonarCloud** : la gate est verte, mais ~1665 issues héritées demeurent (S6759 props
+   read-only, S3358 ternaires imbriqués, S3776 complexité, S2871 tri, SQL `plsql:*` faux
+   positifs…). Chantier dédié à prévoir, ou exclusions ciblées (outillage dev, migrations).
 4. Réécrire le reste du site Mintlify (hérité d'Anarlog : cloud, Zoom/Teams, api-cloud, Nightly…).
 
 > Note release : le marqueur `[skip release]` **exige** d'être dans le **sujet du commit** (le
