@@ -2,6 +2,10 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Statut (2026-10-27) :** lot **04d-a TERMINÉ** (PRs #80, #82, #84, #86, #88, #90, #92, #94) et
+> lot **04d-b TERMINÉ** (pièces jointes #96 ; runtime de sync + réplique E2EE #98). Le correctif de
+> démarrage #106 a suivi (voir `2026-10-27-e2e-blackbox.md`).
+
 **Goal:** Retirer du dépôt toutes les intégrations cloud **hors inférence** : calendriers distants, import de réunions cloud, messagerie, tickets, CRM, updater, facturation — en ne conservant que le local (SQLite, recherche, dossiers, dictée, Apple Calendar/Reminders, MCP local, export).
 
 **Architecture:** Le code cloud restant est **mort à l'exécution** (les gardes 04b/04d partielles le neutralisent déjà : `no-cloud-imports.test.ts`, `automations/engine.ts` `CLOUD_STEP_REMOVED_MESSAGE`, `plugins/todo` `require_access_token` en erreur). On le supprime donc franchement (crates, plugins, code desktop, dépendances), en gardant les migrations SQLite (règle append-only) et les intégrations **locales** (Apple Calendar/Reminders, `crates/summary`, `crates/host`, `agent-access`, `plugins/{fs-sync,local-auth,mcp,local-api,session,template,agent}`).

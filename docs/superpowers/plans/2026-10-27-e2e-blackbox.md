@@ -60,13 +60,13 @@ Ajouter dans `plugins/db/src/lib.rs` : `runtime_constructs_outside_async_context
 Run: `cargo test --locked -p tauri-plugin-db`
 Expected: 36 passed (35 + 1).
 
-- [ ] **Step 4: Rebuild release + E2E blackbox vert**
+- [x] **Step 4: Rebuild release + E2E blackbox vert**
 
 Run (conteneur) :
 `WEBKIT_FORCE_SANDBOX=0 WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 dbus-run-session -- xvfb-run -a pnpm e2e`
 Expected: `1 passing` (app.spec.ts).
 
-- [ ] **Step 5: Commit et PR** — `fix(db): démarre le runtime de live-queries dans le réacteur Tokio` (`Closes #N`, `[skip release]`).
+- [x] **Step 5: Commit et PR** — `fix(db): démarre le runtime de live-queries dans le réacteur Tokio` (PR #106, `Closes #105`, `[skip release]`).
 
 ---
 
