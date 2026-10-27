@@ -14,6 +14,7 @@ import {
 import { saveIncompleteCapture } from "./capture-result";
 import {
   BATCH_ONLY_CAPTURE_MESSAGE,
+  CAPTURE_REMINDER_MESSAGE,
   NO_TRANSCRIPTION_PROVIDER_MESSAGE,
   CLOUDSYNC_CAPTURE_LEASE_ATTEMPTS,
   getPostCaptureAction,
@@ -80,6 +81,7 @@ const {
   toastWarningMock,
   deleteTranscribedCaptureAudioMock,
   toastErrorMock,
+  toastInfoMock,
   toastDismissMock,
   startMeetingChatCaptureMock,
   stopMeetingChatCaptureMock,
@@ -144,6 +146,7 @@ const {
   toastWarningMock: vi.fn(),
   deleteTranscribedCaptureAudioMock: vi.fn(),
   toastErrorMock: vi.fn(),
+  toastInfoMock: vi.fn(),
   toastDismissMock: vi.fn(),
   startMeetingChatCaptureMock: vi.fn(),
   stopMeetingChatCaptureMock: vi.fn(),
@@ -240,7 +243,7 @@ vi.mock("@syntheo/ui/components/ui/toast", () => ({
     warning: toastWarningMock,
     error: toastErrorMock,
     dismiss: toastDismissMock,
-    info: vi.fn(),
+    info: toastInfoMock,
   },
 }));
 
@@ -649,6 +652,29 @@ describe("useStartListening", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  test("shows the participant reminder on start when enabled", async () => {
+    useConfigValueMock.mockImplementation((key: string) =>
+      key === "capture_reminder_enabled" ? true : undefined,
+    );
+    const { result } = renderHook(() => useStartListening("session-1"));
+    await act(async () => {
+      await result.current();
+    });
+    expect(toastInfoMock).toHaveBeenCalledWith(
+      CAPTURE_REMINDER_MESSAGE,
+      expect.objectContaining({ id: "capture-reminder" }),
+    );
+  });
+
+  test("does not show the participant reminder when disabled", async () => {
+    useConfigValueMock.mockImplementation(() => undefined);
+    const { result } = renderHook(() => useStartListening("session-1"));
+    await act(async () => {
+      await result.current();
+    });
+    expect(toastInfoMock).not.toHaveBeenCalled();
   });
 
   test("zero retention finalizes the native stop clock before deleting successfully transcribed audio", async () => {

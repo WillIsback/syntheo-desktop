@@ -10,31 +10,25 @@ import {
 import type { SegmentKey, SegmentWord } from "~/stt/live-segment";
 
 describe("transcript renderer utils", () => {
-  it.each(["light", "dark"] as const)(
-    "distinguishes people sharing a channel and speaker index in %s mode",
-    (mode) => {
-      const key: SegmentKey = {
-        channel: "MixedCapture",
-        speaker_index: null,
-        speaker_human_id: "person-1",
-      };
-      const first = getSegmentColor(key, mode);
-      const second = getSegmentColor(
-        { ...key, speaker_human_id: "person-2" },
-        mode,
-      );
+  it("distingue les personnes partageant un canal et un index", () => {
+    const key: SegmentKey = {
+      channel: "MixedCapture",
+      speaker_index: null,
+      speaker_human_id: "person-1",
+    };
+    const first = getSegmentColor(key);
+    const second = getSegmentColor({
+      ...key,
+      speaker_human_id: "person-2",
+    });
 
-      expect(chroma.deltaE(first, second)).toBeGreaterThan(20);
-      expect(
-        getSegmentColor(
-          { ...key, channel: "RemoteParty", speaker_index: 3 },
-          mode,
-        ),
-      ).toBe(first);
-    },
-  );
+    expect(chroma.deltaE(first, second)).toBeGreaterThan(20);
+    expect(
+      getSegmentColor({ ...key, channel: "RemoteParty", speaker_index: 3 }),
+    ).toBe(first);
+  });
 
-  it("spaces unidentified speakers across distinct hues", () => {
+  it("cycle dans la palette s1–s4 pour les locuteurs non identifiés", () => {
     const colors = Array.from({ length: 6 }, (_, speaker_index) =>
       getSegmentColor({
         channel: "MixedCapture",
@@ -43,27 +37,12 @@ describe("transcript renderer utils", () => {
       }),
     );
 
-    for (let index = 1; index < colors.length; index += 1) {
-      expect(chroma.deltaE(colors[index - 1], colors[index])).toBeGreaterThan(
-        20,
-      );
-    }
-    expect(new Set(colors).size).toBe(6);
+    expect(new Set(colors).size).toBe(4);
+    expect(colors[0]).toBe(colors[4]);
+    expect(colors[1]).toBe(colors[5]);
   });
 
-  it("uses a brighter speaker color for dark mode", () => {
-    const key: SegmentKey = {
-      channel: "RemoteParty",
-      speaker_index: 1,
-      speaker_human_id: null,
-    };
-
-    expect(chroma(getSegmentColor(key, "dark")).luminance()).toBeGreaterThan(
-      chroma(getSegmentColor(key)).luminance(),
-    );
-  });
-
-  it("exposes light and dark speaker color variables", () => {
+  it("expose la même couleur en clair et en sombre", () => {
     const key: SegmentKey = {
       channel: "DirectMic",
       speaker_index: 0,
@@ -72,7 +51,7 @@ describe("transcript renderer utils", () => {
 
     expect(getSegmentColorVars(key)).toEqual({
       "--segment-color-light": getSegmentColor(key),
-      "--segment-color-dark": getSegmentColor(key, "dark"),
+      "--segment-color-dark": getSegmentColor(key),
     });
   });
 

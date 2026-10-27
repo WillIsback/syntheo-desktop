@@ -37,6 +37,9 @@ import {
   useSessionParticipantHumanIds,
 } from "~/stt/queries";
 
+export const CAPTURE_REMINDER_MESSAGE =
+  "Remind participants that the meeting is being transcribed.";
+
 export const NO_TRANSCRIPTION_PROVIDER_MESSAGE =
   "Aucun fournisseur de transcription n'est configuré. Syntheo ne conserve pas l'audio : configurez un endpoint de transcription avant d'enregistrer.";
 
@@ -81,6 +84,7 @@ export function useStartListeningState(
   const meetingDisclosureAutoSendChat = useConfigValue(
     "consent_auto_send_chat",
   );
+  const captureReminderEnabled = useConfigValue("capture_reminder_enabled");
 
   const start = useListener((state) => state.start);
   const stop = useListener((state) => state.stop);
@@ -124,6 +128,12 @@ export function useStartListeningState(
     ) {
       toast.error(BATCH_ONLY_CAPTURE_MESSAGE, { id: "batch-only-capture" });
       return;
+    }
+    if (captureReminderEnabled) {
+      toast.info(CAPTURE_REMINDER_MESSAGE, {
+        id: "capture-reminder",
+        duration: 8000,
+      });
     }
     await stopMeetingChatTasks();
     const previousMarker = await loadCaptureLifecycleMarker(sessionId).catch(
