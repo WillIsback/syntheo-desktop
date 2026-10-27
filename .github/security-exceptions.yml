@@ -55,3 +55,15 @@ exceptions:
     expires: "2027-01-31"
     author: "WillIsback"
     path: "pnpm-lock.yaml"
+  - cve: "RUSTSEC-2026-0391, RUSTSEC-2026-0398, RUSTSEC-2026-0403, RUSTSEC-2026-0410"
+    reason: >-
+      Compression de l'index de recherche local : zstd 0.13 / zstd-safe 7 /
+      zstd-sys 2.0, tirés par tantivy 0.6 (tantivy-sstable). Les correctifs
+      exigent un saut majeur (zstd 0.14.3, zstd-safe 8.2.0, zstd-sys 2.1.2)
+      incompatible avec tantivy 0.6. RUSTSEC-2026-0410 ne concerne que wasm32,
+      non livré ; les scénarios décrits (archive non fiable, contexte partagé
+      entre utilisateurs) ne s'appliquent pas à un index local. À réévaluer au
+      prochain saut de version de tantivy.
+    expires: "2027-01-31"
+    author: "WillIsback"
+    path: "Cargo.lock"
