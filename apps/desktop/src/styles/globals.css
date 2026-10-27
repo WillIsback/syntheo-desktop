@@ -104,7 +104,7 @@ html[data-rounded-window] #root {
     60% {
       transform: rotate(2deg);
     }
-    70%, 100% {
+    70% {
       transform: rotate(0deg);
     }
   }
@@ -178,10 +178,9 @@ html[data-rounded-window] #root {
   }
 }
 
-@utility select-text-deep {
-  user-select: text !important;
-
-  & * {
+@layer utilities {
+  .select-text-deep,
+  .select-text-deep * {
     user-select: text !important;
   }
 }

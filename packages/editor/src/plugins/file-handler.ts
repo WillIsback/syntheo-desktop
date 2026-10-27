@@ -130,12 +130,18 @@ export function fileHandlerPlugin(config: FileHandlerConfig) {
           if (isFileDropRemainder(result)) {
             if (result.remainingFiles.length === 0) return true;
 
-            handleFiles(view, result.remainingFiles, pos);
+            void handleFiles(view, result.remainingFiles, pos).catch(
+              (error) => {
+                console.error("Failed to handle dropped files:", error);
+              },
+            );
             return true;
           }
         }
 
-        handleFiles(view, files, pos);
+        void handleFiles(view, files, pos).catch((error) => {
+          console.error("Failed to handle dropped files:", error);
+        });
         return true;
       },
 
@@ -150,12 +156,16 @@ export function fileHandlerPlugin(config: FileHandlerConfig) {
           if (isFileDropRemainder(result)) {
             if (result.remainingFiles.length === 0) return true;
 
-            handleFiles(view, result.remainingFiles);
+            void handleFiles(view, result.remainingFiles).catch((error) => {
+              console.error("Failed to handle pasted files:", error);
+            });
             return true;
           }
         }
 
-        handleFiles(view, files);
+        void handleFiles(view, files).catch((error) => {
+          console.error("Failed to handle pasted files:", error);
+        });
         return true;
       },
     },

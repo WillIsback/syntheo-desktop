@@ -96,6 +96,18 @@ function rememberSentMeetingDisclosure(sessionId: string) {
   }
 }
 
+function createDisclosureAttemptId(): string {
+  const cryptoApi = globalThis.crypto;
+  const uuid = cryptoApi?.randomUUID?.();
+  if (uuid) {
+    return uuid;
+  }
+
+  const random = new Uint32Array(1);
+  cryptoApi?.getRandomValues?.(random);
+  return `disclosure-${Date.now()}-${random[0].toString(36)}`;
+}
+
 async function recordDisclosureAttempt(input: {
   sessionId?: string;
   delivery: DisclosureAttempt["delivery"];
@@ -117,9 +129,7 @@ async function recordDisclosureAttempt(input: {
 
   try {
     await persistDisclosureAttempt({
-      id:
-        globalThis.crypto?.randomUUID?.() ??
-        `disclosure-${Date.now()}-${Math.random()}`,
+      id: createDisclosureAttemptId(),
       sessionId: input.sessionId,
       attemptedAt: new Date().toISOString(),
       platform,

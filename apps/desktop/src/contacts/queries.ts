@@ -216,7 +216,9 @@ export function useOrganizations(): OrganizationRecord[] {
 export function useHumanDisplayRecordsByIds(
   humanIds: readonly string[],
 ): HumanDisplayRecord[] {
-  const uniqueIds = [...new Set(humanIds.filter(Boolean))].sort();
+  const uniqueIds = [...new Set(humanIds.filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "fr"),
+  );
   const placeholders = uniqueIds.map(() => "?").join(", ");
   const enabled = uniqueIds.length > 0;
   const { data } = useLiveQuery<HumanDisplaySqlRow, HumanDisplayRecord[]>({
@@ -243,7 +245,9 @@ export function useHumanDisplayRecordsByIds(
 export function useOrganizationDisplayRecordsByIds(
   organizationIds: readonly string[],
 ): OrganizationDisplayRecord[] {
-  const uniqueIds = [...new Set(organizationIds.filter(Boolean))].sort();
+  const uniqueIds = [...new Set(organizationIds.filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "fr"),
+  );
   const placeholders = uniqueIds.map(() => "?").join(", ");
   const enabled = uniqueIds.length > 0;
   const { data } = useLiveQuery<
@@ -276,7 +280,9 @@ export async function loadHuman(humanId: string): Promise<HumanRecord | null> {
 export async function loadHumansByIds(
   humanIds: readonly string[],
 ): Promise<HumanRecord[]> {
-  const uniqueIds = [...new Set(humanIds.filter(Boolean))].sort();
+  const uniqueIds = [...new Set(humanIds.filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "fr"),
+  );
   if (uniqueIds.length === 0) return [];
 
   const rows = await liveQueryClient.execute<HumanSqlRow>(

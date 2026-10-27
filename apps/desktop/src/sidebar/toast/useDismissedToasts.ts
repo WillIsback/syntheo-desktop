@@ -33,9 +33,10 @@ export function useDismissedToasts(): {
       }
 
       const updated = [...dismissedToasts, id];
-      commands.setDismissedToasts(updated).then(() => {
-        queryClient.invalidateQueries({ queryKey: ["dismissed_toasts"] });
-      });
+      void (async () => {
+        await commands.setDismissedToasts(updated);
+        await queryClient.invalidateQueries({ queryKey: ["dismissed_toasts"] });
+      })();
     },
     [dismissedToasts, dismissedSet, queryClient],
   );

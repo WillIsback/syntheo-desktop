@@ -1,19 +1,22 @@
-@utility scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-}
 
-@utility scrollbar-soft {
-  scrollbar-color: hsl(var(--muted-foreground) / 0.18) transparent;
+  .scrollbar-soft {
+    scrollbar-color: hsl(var(--muted-foreground) / 0.18) transparent;
+  }
 
-  &::-webkit-scrollbar-thumb {
+  .scrollbar-soft::-webkit-scrollbar-thumb {
     background: hsl(var(--muted-foreground) / 0.18);
   }
 
-  &::-webkit-scrollbar-thumb:hover {
+  .scrollbar-soft::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.28);
   }
 }

@@ -208,12 +208,16 @@ export function clipPastePlugin() {
 
         const clipId = parseYouTubeClipId(text);
         if (clipId) {
-          resolveYouTubeClipUrl(clipId).then((resolved) => {
-            if (!resolved) return;
-            const node = nodeType.create({ src: resolved.embedUrl });
-            const tr = view.state.tr.replaceSelectionWith(node);
-            view.dispatch(tr);
-          });
+          void resolveYouTubeClipUrl(clipId)
+            .then((resolved) => {
+              if (!resolved) return;
+              const node = nodeType.create({ src: resolved.embedUrl });
+              const tr = view.state.tr.replaceSelectionWith(node);
+              view.dispatch(tr);
+            })
+            .catch((error) => {
+              console.error("Failed to resolve YouTube clip:", error);
+            });
           return true;
         }
 

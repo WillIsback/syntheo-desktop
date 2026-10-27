@@ -74,7 +74,9 @@ function withOrderedLocks<T>(
   sessionIds: string[],
   operation: () => Promise<T>,
 ): Promise<T> {
-  const unique = [...new Set(sessionIds)].sort();
+  const unique = [...new Set(sessionIds)].sort((a, b) =>
+    a.localeCompare(b, "fr"),
+  );
   let run = operation;
   for (let index = unique.length - 1; index >= 0; index--) {
     const sessionId = unique[index];

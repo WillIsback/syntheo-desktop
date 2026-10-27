@@ -35,7 +35,12 @@
     if (window.location.port !== String(port)) {
       throw new Error("Open the desktop relay URL to connect to Syntheo");
     }
-    var wsUrl = "ws://" + window.location.host + "/ws";
+    // Reuse the page protocol so the relay uses wss:// when served over HTTPS.
+    var wsUrl =
+      window.location.protocol.replace(/^http/, "ws") +
+      "//" +
+      window.location.host +
+      "/ws";
     var ws = null;
     var nextId = 0;
     var pending = {};

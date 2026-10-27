@@ -168,6 +168,7 @@ export function PersistentChatPanel({
       >
         <div
           data-chat-floating-frame
+          role="presentation"
           className={cn([
             "pointer-events-auto relative flex h-full min-h-0",
             "items-end justify-center px-[11px]",

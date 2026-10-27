@@ -122,6 +122,7 @@ export function SpokenLanguagesView({
       </p>
       <div className="relative">
         <div
+          role="presentation"
           className={cn([
             "border-border bg-card focus-within:border-border flex min-h-[38px] w-full flex-wrap items-center gap-1.5 rounded-2xl border px-2 py-1.5",
             languageInputFocused && "border-border",
