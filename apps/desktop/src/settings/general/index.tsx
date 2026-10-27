@@ -45,6 +45,7 @@ const SETTINGS_FORM_KEYS = [
   "consent_auto_send_chat",
   "capture_meeting_chat",
   "capture_shared_screens",
+  "capture_reminder_enabled",
   "ai_language",
   "spoken_languages",
   "summary_use_main_language",
@@ -71,6 +72,7 @@ function useSettingsForm(storedSettings: StoredSettingValues) {
       consent_auto_send_chat: settingsValue.consent_auto_send_chat,
       capture_meeting_chat: settingsValue.capture_meeting_chat,
       capture_shared_screens: settingsValue.capture_shared_screens,
+      capture_reminder_enabled: settingsValue.capture_reminder_enabled,
       ai_language: settingsValue.ai_language,
       summary_use_main_language: settingsValue.summary_use_main_language,
       spoken_languages: getAdditionalSpokenLanguages(
@@ -113,6 +115,7 @@ function useSettingsForm(storedSettings: StoredSettingValues) {
         consent_auto_send_chat: normalizedValue.consent_auto_send_chat,
         capture_meeting_chat: normalizedValue.capture_meeting_chat,
         capture_shared_screens: normalizedValue.capture_shared_screens,
+        capture_reminder_enabled: normalizedValue.capture_reminder_enabled,
         ai_language: normalizedValue.ai_language,
         summary_use_main_language: normalizedValue.summary_use_main_language,
         spoken_languages: JSON.stringify(normalizedValue.spoken_languages),
@@ -331,6 +334,11 @@ function SettingsSectionContent({
                   value: values.capture_shared_screens,
                   onChange: (value) =>
                     submitFieldValue("capture_shared_screens", value),
+                }}
+                captureReminder={{
+                  value: values.capture_reminder_enabled,
+                  onChange: (value) =>
+                    submitFieldValue("capture_reminder_enabled", value),
                 }}
               />
             )}

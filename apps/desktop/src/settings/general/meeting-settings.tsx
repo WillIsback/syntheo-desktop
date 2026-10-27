@@ -16,6 +16,7 @@ export function MeetingSettingsView({
   meetingDisclosureAutoPost,
   captureMeetingChat,
   captureSharedScreens,
+  captureReminder,
 }: {
   autoJoinScheduledMeetings: SettingItem;
   autoStartScheduledMeetings: SettingItem;
@@ -24,6 +25,7 @@ export function MeetingSettingsView({
   meetingDisclosureAutoPost: SettingItem;
   captureMeetingChat: SettingItem;
   captureSharedScreens: SettingItem;
+  captureReminder: SettingItem;
 }) {
   const currentPlatform = platform();
   const supportsMeetingAx =
@@ -97,6 +99,12 @@ export function MeetingSettingsView({
           onChange={captureSharedScreens.onChange}
         />
       )}
+      <SettingSwitchRow
+        title={<Trans>Remind participants about recording</Trans>}
+        description={<Trans>Show a reminder when a recording starts.</Trans>}
+        checked={captureReminder.value}
+        onChange={captureReminder.onChange}
+      />
       <SettingSwitchRow
         title={<Trans>Show floating bar</Trans>}
         description={

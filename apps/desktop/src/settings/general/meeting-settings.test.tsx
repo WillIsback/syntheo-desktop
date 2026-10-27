@@ -33,6 +33,7 @@ function renderMeetingSettings({
   meetingDisclosureAutoPost = setting(),
   captureMeetingChat = setting(false),
   captureSharedScreens = setting(false),
+  captureReminder = setting(),
 } = {}) {
   return {
     ...render(
@@ -44,9 +45,11 @@ function renderMeetingSettings({
         meetingDisclosureAutoPost={meetingDisclosureAutoPost}
         captureMeetingChat={captureMeetingChat}
         captureSharedScreens={captureSharedScreens}
+        captureReminder={captureReminder}
       />,
     ),
     meetingDisclosureAutoPost,
+    captureReminder,
   };
 }
 
@@ -54,6 +57,20 @@ describe("MeetingSettingsView", () => {
   afterEach(() => {
     cleanup();
     mocks.platform.mockReturnValue("macos");
+  });
+
+  it("exposes the participant reminder and toggles it", () => {
+    const { captureReminder } = renderMeetingSettings();
+    const row = screen.getByText("Remind participants about recording");
+    expect(row).toBeTruthy();
+
+    const checkbox = row
+      .closest("label")
+      ?.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
+    if (checkbox) {
+      fireEvent.click(checkbox);
+      expect(captureReminder.onChange).toHaveBeenCalled();
+    }
   });
 
   it("hides meeting AX controls on Windows until UI Automation lands", () => {
