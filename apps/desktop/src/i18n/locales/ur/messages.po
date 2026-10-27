@@ -183,11 +183,6 @@ msgstr ""
 msgid "Add \"{0}\""
 msgstr ""
 
-#. placeholder {0}: formatLanguageList(needsSystemSettings)
-#: src/settings/ai/stt/select.tsx
-msgid "Add {0} in System Settings > General > Language & Region to transcribe with {model}, or choose another model."
-msgstr ""
-
 #: src/sidebar/folder-materials.tsx
 msgid "Add a syllabus or PDF for this folder"
 msgstr ""
@@ -285,11 +280,6 @@ msgstr "اضافی بولی جانے والی زبانیں"
 msgid "Advanced"
 msgstr ""
 
-#: src/settings/ai/stt/local-file-model.tsx
-#: src/settings/ai/stt/select.tsx
-msgid "After recording"
-msgstr ""
-
 #: src/settings/automations/workflow-builder.tsx
 msgid "After the meeting ends"
 msgstr ""
@@ -342,58 +332,6 @@ msgstr ""
 msgid "Analyzing structure..."
 msgstr ""
 
-#. placeholder {0}: update.version
-#: src/sidebar/toast/registry.tsx
-msgid "Anarlog {0} is available"
-msgstr ""
-
-#. placeholder {0}: update.version
-#: src/sidebar/toast/registry.tsx
-msgid "Anarlog {0} is ready to install"
-msgstr ""
-
-#: src/onboarding/permissions.tsx
-msgid "Anarlog can hear others"
-msgstr ""
-
-#: src/onboarding/permissions.tsx
-msgid "Anarlog can hear your voice"
-msgstr ""
-
-#: src/onboarding/permissions.tsx
-msgid "Anarlog can read meeting details"
-msgstr ""
-
-#: src/settings/developers/cli.tsx
-msgid "Anarlog CLI"
-msgstr ""
-
-#: src/lock/gate.tsx
-msgid "Anarlog is Locked"
-msgstr ""
-
-#: src/onboarding/index.tsx
-msgid "Anarlog needs access to your microphone and system audio to record and transcribe your meetings"
-msgstr ""
-
-#: src/onboarding/index.tsx
-msgid "Anarlog needs microphone and system audio to transcribe your meetings, plus Accessibility to read meeting controls, visible chat."
-msgstr ""
-
-#. placeholder {0}: statuses[0].displayName
-#: src/settings/developers/skills.tsx
-msgid "Anarlog skill added to {0}"
-msgstr ""
-
-#. placeholder {0}: statuses.length
-#: src/settings/developers/skills.tsx
-msgid "Anarlog skill added to {0} agents"
-msgstr ""
-
-#: src/settings/general/storage/legacy-cleanup.tsx
-msgid "Anarlog will retry automatically. This does not affect your notes."
-msgstr ""
-
 #: src/templates/template-icon-picker.tsx
 msgid "Animals & Nature"
 msgstr ""
@@ -439,21 +377,21 @@ msgstr ""
 msgid "Apply to summary"
 msgstr ""
 
-#: src/composer/index.tsx
-msgid "Ask Anarlog AI anything"
-msgstr ""
-
-#: src/shared/chat-cta.tsx
-msgid "Ask Anarlog anything"
-msgstr ""
-
 #: src/chat/components/input/index.tsx
 #: src/shared/chat-cta.tsx
 msgid "Ask anything"
 msgstr ""
 
 #: src/settings/general/notification.tsx
-msgid "Ask before stopping when a meeting may have ended. When alerts are off, Anarlog keeps listening."
+msgid "Ask before stopping when a meeting may have ended. When alerts are off, Syntheo keeps listening."
+msgstr ""
+
+#: src/composer/index.tsx
+msgid "Ask Syntheo AI anything"
+msgstr ""
+
+#: src/shared/chat-cta.tsx
+msgid "Ask Syntheo anything"
 msgstr ""
 
 #: src/task/resource-view.tsx
@@ -465,7 +403,7 @@ msgid "Attach Markdown or text"
 msgstr ""
 
 #: src/templates/auto-format-examples-dialog.tsx
-msgid "Attach up to three past summaries you like. Anarlog will learn how you prefer meeting notes to be structured and written."
+msgid "Attach up to three past summaries you like. Syntheo will learn how you prefer meeting notes to be structured and written."
 msgstr ""
 
 #: src/settings/general/index.tsx
@@ -482,7 +420,7 @@ msgid "Authenticating…"
 msgstr ""
 
 #: src/instruction/index.tsx
-msgid "Authorize access in your browser, then return to Anarlog."
+msgid "Authorize access in your browser, then return to Syntheo."
 msgstr ""
 
 #: src/templates/auto-form.tsx
@@ -561,10 +499,6 @@ msgstr ""
 msgid "Based on the conversation so far, suggest a few questions I could ask next."
 msgstr ""
 
-#: src/settings/ai/stt/select.tsx
-msgid "Best for this Mac"
-msgstr ""
-
 #: src/chat/components/body/empty.tsx
 msgid "Beta"
 msgstr ""
@@ -606,12 +540,7 @@ msgstr ""
 msgid "Calendar connected"
 msgstr ""
 
-#: src/settings/ai/stt/select.tsx
-msgid "Can transcribe while the meeting is happening."
-msgstr ""
-
 #: src/calendar/components/apple/permission.tsx
-#: src/settings/ai/llm/subscriptions/connect.tsx
 #: src/settings/dictionary/index.tsx
 #: src/settings/general/storage/legacy-cleanup.tsx
 #: src/shared/ui/destructive-confirmation-dialog.tsx
@@ -715,10 +644,6 @@ msgstr ""
 msgid "Choose {0} export files"
 msgstr ""
 
-#: src/settings/ai/stt/local-file-model.tsx
-msgid "Choose a .bin model"
-msgstr ""
-
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Choose a file format and what to include."
 msgstr ""
@@ -745,10 +670,6 @@ msgstr ""
 
 #: src/settings/automations/index.tsx
 msgid "Choose a starter from the sidebar, or create a workflow and add steps like Zapier."
-msgstr ""
-
-#: src/settings/ai/stt/local-file-model.tsx
-msgid "Choose a transcription model"
 msgstr ""
 
 #: src/settings/ai/stt/select.tsx
@@ -797,16 +718,16 @@ msgstr ""
 msgid "Choose from five completion sounds."
 msgstr ""
 
+#: src/templates/auto-form.tsx
+msgid "Choose how Auto structures and styles your summaries."
+msgstr ""
+
 #: src/settings/appearance/app-icon.tsx
-msgid "Choose how Anarlog appears in the Dock."
+msgid "Choose how Syntheo appears in the Dock."
 msgstr ""
 
 #: src/settings/appearance/theme.tsx
-msgid "Choose how Anarlog looks on this device."
-msgstr ""
-
-#: src/templates/auto-form.tsx
-msgid "Choose how Auto structures and styles your summaries."
+msgid "Choose how Syntheo looks on this device."
 msgstr ""
 
 #: src/templates/template-icon-picker.tsx
@@ -843,10 +764,6 @@ msgstr ""
 #: src/templates/template-icon-picker.tsx
 #: src/templates/template-sidebar.tsx
 msgid "Clear search"
-msgstr ""
-
-#: src/settings/ai/stt/local-file-model.tsx
-msgid "Clear selected model"
 msgstr ""
 
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
@@ -976,16 +893,11 @@ msgstr ""
 msgid "Confirm"
 msgstr ""
 
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Connect"
-msgstr ""
-
 #. placeholder {0}: config.displayName
 #. placeholder {0}: integration.displayName
 #. placeholder {0}: provider.displayName
 #: src/calendar/components/sidebar.tsx
 #: src/instruction/index.tsx
-#: src/settings/ai/llm/subscriptions/connect.tsx
 #: src/settings/ai/shared/index.tsx
 msgid "Connect {0}"
 msgstr ""
@@ -1026,7 +938,7 @@ msgid "Continue"
 msgstr ""
 
 #: src/settings/general/meeting-settings.tsx
-msgid "Control listening without reopening Anarlog."
+msgid "Control listening without reopening Syntheo."
 msgstr ""
 
 #: src/settings/stats/index.tsx
@@ -1051,7 +963,6 @@ msgstr ""
 
 #: src/main/windows-title-bar.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
-#: src/settings/ai/llm/subscriptions/connect.tsx
 #: src/settings/developers/webhooks.tsx
 msgid "Copy"
 msgstr ""
@@ -1075,10 +986,6 @@ msgstr ""
 #. placeholder {0}: error.message
 #: src/settings/developers/cli.tsx
 msgid "Could not check the CLI: {0}"
-msgstr ""
-
-#: src/settings/ai/stt/local-file-model.tsx
-msgid "Could not clear the selected model"
 msgstr ""
 
 #: src/settings/developers/cli.tsx
@@ -1151,10 +1058,6 @@ msgstr ""
 msgid "Could not update the note date."
 msgstr ""
 
-#: src/settings/ai/stt/local-file-model.tsx
-msgid "Could not use the selected model"
-msgstr ""
-
 #: src/settings/stats/badge-collection.tsx
 msgid "Couldn't load your badges. Reopen this page to try again."
 msgstr ""
@@ -1201,7 +1104,7 @@ msgid "Create your account"
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Create your Anarlog account. A place for your conversations to call home."
+msgid "Create your Syntheo account. A place for your conversations to call home."
 msgstr ""
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -1308,10 +1211,6 @@ msgstr ""
 msgid "Delete folder"
 msgstr ""
 
-#: src/settings/ai/stt/select.tsx
-msgid "Delete model"
-msgstr ""
-
 #: src/sidebar/timeline/item.tsx
 msgid "Delete Note"
 msgstr ""
@@ -1325,7 +1224,6 @@ msgid "Delete This Event"
 msgstr ""
 
 #: src/settings/ai/shared/model-combobox.tsx
-#: src/settings/ai/stt/select.tsx
 msgid "Deprecated"
 msgstr ""
 
@@ -1360,7 +1258,7 @@ msgid "Dictation shortcut"
 msgstr ""
 
 #: src/settings/dictation.tsx
-msgid "Dictation uses your microphone, transcription provider, languages, and dictionary. Temporary audio is deleted after transcription. Your last transcript stays in memory until dictation is disabled or Anarlog closes."
+msgid "Dictation uses your microphone, transcription provider, languages, and dictionary. Temporary audio is deleted after transcription. Your last transcript stays in memory until dictation is disabled or Syntheo closes."
 msgstr ""
 
 #: src/settings/dictation.tsx
@@ -1386,27 +1284,13 @@ msgstr ""
 msgid "Documentation"
 msgstr ""
 
-#: src/settings/ai/stt/select.tsx
 #: src/sidebar/toast/registry.tsx
 msgid "Download"
 msgstr ""
 
-#. placeholder {0}: activeDownloads.length
-#: src/sidebar/toast/registry.tsx
-msgid "Downloading {0} models"
-msgstr ""
-
-#: src/sidebar/toast/registry.tsx
-msgid "Downloading {downloadingModel}"
-msgstr ""
-
 #. placeholder {0}: update.version
 #: src/sidebar/toast/registry.tsx
-msgid "Downloading Anarlog {0}{progress}"
-msgstr ""
-
-#: src/sidebar/toast/registry.tsx
-msgid "Downloading model"
+msgid "Downloading Syntheo {0}{progress}"
 msgstr ""
 
 #: src/settings/automations/index.tsx
@@ -1520,10 +1404,6 @@ msgstr ""
 msgid "Enter your API key (optional)"
 msgstr ""
 
-#: src/settings/privacy/index.tsx
-msgid "Error"
-msgstr ""
-
 #: src/composer/index.tsx
 msgid "Esc to dismiss"
 msgstr ""
@@ -1619,10 +1499,6 @@ msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
 msgid "Finding Your Rhythm"
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Finishing connection…"
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
@@ -1767,19 +1643,15 @@ msgid "Hands-free dictation"
 msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Have Anarlog ready when you sign in."
+msgid "Have Syntheo ready when you sign in."
 msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
 msgid "Having trouble?"
 msgstr ""
 
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Having trouble? Paste the redirect URL"
-msgstr ""
-
 #: src/settings/stats/badge-collection.tsx
-msgid "Hello, Anarlog"
+msgid "Hello, Syntheo"
 msgstr ""
 
 #: src/main/windows-title-bar.tsx
@@ -1787,23 +1659,19 @@ msgid "Help"
 msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Help Anarlog listen to others"
+msgid "Help Syntheo listen to others"
 msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Help Anarlog listen to you"
+msgid "Help Syntheo listen to you"
 msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Help Anarlog read meeting activity"
-msgstr ""
-
-#: src/settings/general/app-settings.tsx
-msgid "Help improve Anarlog with anonymous usage data."
+msgid "Help Syntheo read meeting activity"
 msgstr ""
 
 #: src/chat/components/body/empty.tsx
-msgid "Hi, I'm Anarlog AI. Set up a language model and I'll be ready to help."
+msgid "Hi, I'm Syntheo AI. Set up a language model and I'll be ready to help."
 msgstr ""
 
 #: src/settings/general/notification.tsx
@@ -1850,10 +1718,6 @@ msgstr ""
 
 #: src/settings/ai/llm/select.tsx
 msgid "How much the model thinks before answering. Default leaves it to the provider."
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "How to get a Kimi Code key"
 msgstr ""
 
 #: src/contacts/humans.tsx
@@ -1982,15 +1846,11 @@ msgid "Join scheduled meetings"
 msgstr ""
 
 #: src/settings/dictation.tsx
-msgid "Keep Anarlog running to use your shortcut in other apps."
+msgid "Keep Syntheo running to use your shortcut in other apps."
 msgstr ""
 
 #: src/session/components/note-conflict-banner.tsx
 msgid "Keep this version"
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Kimi Code API key"
 msgstr ""
 
 #: src/settings/general/index.tsx
@@ -2074,10 +1934,6 @@ msgstr ""
 msgid "Little steps worth keeping. Collect them at your own pace."
 msgstr ""
 
-#: src/settings/ai/stt/select.tsx
-msgid "Live"
-msgstr ""
-
 #: src/settings/dictation.tsx
 msgid "Live transcript preview"
 msgstr ""
@@ -2144,7 +2000,7 @@ msgid "Low-light canvas"
 msgstr ""
 
 #: src/settings/ai/shared/index.tsx
-msgid "macOS cannot access your login Keychain. Repairing briefly locks it and asks for your Mac password before Anarlog retries this API key."
+msgid "macOS cannot access your login Keychain. Repairing briefly locks it and asks for your Mac password before Syntheo retries this API key."
 msgstr ""
 
 #: src/settings/general/main-language.tsx
@@ -2273,7 +2129,7 @@ msgid "Merged"
 msgstr ""
 
 #: src/composer/index.tsx
-msgid "Message Anarlog AI"
+msgid "Message Syntheo AI"
 msgstr ""
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -2314,14 +2170,6 @@ msgstr ""
 #: src/settings/ai/llm/select.tsx
 #: src/settings/ai/stt/select.tsx
 msgid "Model being used"
-msgstr ""
-
-#: src/settings/ai/stt/context.tsx
-msgid "Model download couldn’t start"
-msgstr ""
-
-#: src/contexts/notifications.tsx
-msgid "Model downloaded"
 msgstr ""
 
 #: src/session/components/note-input/enhanced/streaming.tsx
@@ -2658,16 +2506,6 @@ msgstr ""
 msgid "Open AI Settings"
 msgstr ""
 
-#: src/composer/index.tsx
-#: src/onboarding/final.tsx
-#: src/services/enhancer/summary-notification.ts
-msgid "Open Anarlog"
-msgstr ""
-
-#: src/settings/general/app-settings.tsx
-msgid "Open Anarlog from the menu bar."
-msgstr ""
-
 #: src/sidebar/timeline/index.tsx
 msgid "Open calendar"
 msgstr ""
@@ -2702,22 +2540,28 @@ msgstr ""
 msgid "Open Settings"
 msgstr ""
 
+#: src/composer/index.tsx
+#: src/onboarding/final.tsx
+#: src/services/enhancer/summary-notification.ts
+msgid "Open Syntheo"
+msgstr ""
+
+#: src/settings/general/app-settings.tsx
+msgid "Open Syntheo from the menu bar."
+msgstr ""
+
 #: src/settings/general/meeting-settings.tsx
 msgid "Open the meeting link when a scheduled meeting begins."
 msgstr ""
 
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Opening sign-in…"
-msgstr ""
-
 #. placeholder {0}: accessibilityGuidance.paneTitle ?? "Privacy"
 #: src/onboarding/permissions.tsx
-msgid "Opens System Settings and guides you to add Anarlog to the {0} list"
+msgid "Opens System Settings and guides you to add Syntheo to the {0} list"
 msgstr ""
 
 #. placeholder {0}: accessibilityGuidance.paneTitle ?? "Privacy"
 #: src/settings/general/permissions.tsx
-msgid "Opens System Settings and guides you to add Anarlog to the {0} list."
+msgid "Opens System Settings and guides you to add Syntheo to the {0} list."
 msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
@@ -2768,18 +2612,6 @@ msgstr ""
 
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Paste a past summary you like..."
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Paste an API key from your Kimi Code membership."
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Paste the authorization code"
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Paste the localhost redirect URL"
 msgstr ""
 
 #: src/settings/developers/webhooks.tsx
@@ -2847,7 +2679,7 @@ msgid "Preparing…"
 msgstr ""
 
 #: src/settings/dictation.tsx
-msgid "Press Escape to cancel. Dictation stops after five minutes and pauses while Anarlog records a meeting."
+msgid "Press Escape to cancel. Dictation stops after five minutes and pauses while Syntheo records a meeting."
 msgstr ""
 
 #: src/settings/dictation-shortcut.tsx
@@ -3058,16 +2890,16 @@ msgid "Request {0} permission"
 msgstr ""
 
 #: src/settings/privacy/index.tsx
-msgid "Require Touch ID or your password when opening Anarlog."
+msgid "Require Touch ID or your password when opening Syntheo."
 msgstr ""
 
 #: src/settings/privacy/index.tsx
-msgid "Require Windows Hello face, PIN, or password when opening Anarlog."
+msgid "Require Windows Hello face, PIN, or password when opening Syntheo."
 msgstr ""
 
 #: src/shared/open-note-dialog.tsx
 #: src/sidebar/settings.tsx
-msgid "Requires Anarlog Pro"
+msgid "Requires Syntheo Pro"
 msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
@@ -3130,7 +2962,6 @@ msgid "Right Command"
 msgstr ""
 
 #: src/settings/ai/shared/index.tsx
-#: src/settings/ai/stt/select.tsx
 msgid "Runs after the recording finishes, not during the meeting."
 msgstr ""
 
@@ -3269,7 +3100,6 @@ msgid "See all templates"
 msgstr ""
 
 #: src/settings/ai/shared/model-combobox.tsx
-#: src/settings/ai/stt/select.tsx
 msgid "Select a model"
 msgstr ""
 
@@ -3322,10 +3152,6 @@ msgstr ""
 msgid "Send message"
 msgstr ""
 
-#: src/settings/privacy/index.tsx
-msgid "Send sanitized crash and error reports to help improve Anarlog."
-msgstr ""
-
 #: src/session/components/note-input/meeting-chat-highlights.tsx
 msgid "sent"
 msgstr ""
@@ -3367,10 +3193,6 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/settings/general/app-settings.tsx
-msgid "Share usage data"
-msgstr "استعمال کا ڈیٹا شیئر کریں"
-
 #: src/sidebar/timeline/item.tsx
 msgid "Shared note"
 msgstr ""
@@ -3392,15 +3214,11 @@ msgid "Show All Recurring Events"
 msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Show Anarlog in the Dock and app switcher."
-msgstr ""
-
-#: src/settings/general/app-settings.tsx
 msgid "Show app in Dock"
 msgstr ""
 
 #: src/settings/general/permissions.tsx
-msgid "Show Apple Calendar events in Anarlog."
+msgid "Show Apple Calendar events in Syntheo."
 msgstr ""
 
 #: src/sidebar/timeline/index.tsx
@@ -3416,7 +3234,6 @@ msgid "Show floating bar"
 msgstr ""
 
 #: src/calendar/components/session-chip.tsx
-#: src/settings/ai/stt/select.tsx
 #: src/sidebar/timeline/item.tsx
 msgid "Show in Finder"
 msgstr ""
@@ -3440,6 +3257,10 @@ msgstr ""
 
 #: src/main/windows-title-bar.tsx
 msgid "Show Sidebar"
+msgstr ""
+
+#: src/settings/general/app-settings.tsx
+msgid "Show Syntheo in the Dock and app switcher."
 msgstr ""
 
 #: src/settings/appearance/sidebar-item-fields.tsx
@@ -3472,26 +3293,6 @@ msgstr ""
 
 #: src/settings/dictation.tsx
 msgid "Show words in the floating panel as you speak. Uses a live connection to your selected transcription provider when supported. Text is inserted when you finish."
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Sign in with ChatGPT Plus or Pro, then paste the redirect URL from your browser."
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Sign in with ChatGPT Plus or Pro. We'll open Anarlog and finish connecting."
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Sign in with GitHub Copilot and enter the code below."
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Sign in with SuperGrok or X Premium+ and enter the code below."
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Sign in with your Claude account. After you authorize, copy the code and we'll finish connecting."
 msgstr ""
 
 #: src/settings/developers/webhooks.tsx
@@ -3553,15 +3354,15 @@ msgid "Source: AI model provider"
 msgstr ""
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
-msgid "Source: Anarlog"
-msgstr ""
-
-#: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "Source: OpenRouter (AI routing service)"
 msgstr ""
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "Source: OpenRouter or the AI model provider"
+msgstr ""
+
+#: src/session/components/note-input/enhanced/enhance-error.tsx
+msgid "Source: Syntheo"
 msgstr ""
 
 #: src/settings/general/notification.tsx
@@ -3580,10 +3381,6 @@ msgstr ""
 msgid "Stack another destination. Steps run top to bottom."
 msgstr ""
 
-#: src/settings/general/app-settings.tsx
-msgid "Start Anarlog at login"
-msgstr "لاگ ان پر Anarlog شروع کریں"
-
 #: src/settings/general/meeting-settings.tsx
 msgid "Start listening when a scheduled meeting begins."
 msgstr ""
@@ -3594,6 +3391,10 @@ msgstr ""
 
 #: src/main/empty.tsx
 msgid "Start Recording"
+msgstr ""
+
+#: src/settings/general/app-settings.tsx
+msgid "Start Syntheo at login"
 msgstr ""
 
 #: src/chat/components/input/index.tsx
@@ -3616,11 +3417,6 @@ msgstr ""
 msgid "Start writing..."
 msgstr ""
 
-#: src/settings/ai/stt/select.tsx
-#: src/sidebar/toast/registry.tsx
-msgid "Starting"
-msgstr ""
-
 #: src/services/event-notification/index.ts
 msgid "Starting in {minutesUntil} minutes"
 msgstr ""
@@ -3633,10 +3429,6 @@ msgstr ""
 msgid "Starting microphone…"
 msgstr ""
 
-#: src/sidebar/toast/registry.tsx
-msgid "Starting transcription..."
-msgstr ""
-
 #: src/chat/components/input/index.tsx
 msgid "Starting voice input"
 msgstr ""
@@ -3646,7 +3438,7 @@ msgid "Starting…"
 msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Stay current with updates installed the next time Anarlog opens."
+msgid "Stay current with updates installed the next time Syntheo opens."
 msgstr ""
 
 #: src/settings/automations/index.tsx
@@ -3755,8 +3547,60 @@ msgstr ""
 msgid "Synced"
 msgstr ""
 
+#. placeholder {0}: update.version
+#: src/sidebar/toast/registry.tsx
+msgid "Syntheo {0} is available"
+msgstr ""
+
+#. placeholder {0}: update.version
+#: src/sidebar/toast/registry.tsx
+msgid "Syntheo {0} is ready to install"
+msgstr ""
+
+#: src/onboarding/permissions.tsx
+msgid "Syntheo can hear others"
+msgstr ""
+
+#: src/onboarding/permissions.tsx
+msgid "Syntheo can hear your voice"
+msgstr ""
+
+#: src/onboarding/permissions.tsx
+msgid "Syntheo can read meeting details"
+msgstr ""
+
+#: src/settings/developers/cli.tsx
+msgid "Syntheo CLI"
+msgstr ""
+
+#: src/lock/gate.tsx
+msgid "Syntheo is Locked"
+msgstr ""
+
 #: src/onboarding/index.tsx
 msgid "Syntheo lit votre calendrier local pour vous rappeler vos réunions"
+msgstr ""
+
+#: src/onboarding/index.tsx
+msgid "Syntheo needs access to your microphone and system audio to record and transcribe your meetings"
+msgstr ""
+
+#: src/onboarding/index.tsx
+msgid "Syntheo needs microphone and system audio to transcribe your meetings, plus Accessibility to read meeting controls, visible chat."
+msgstr ""
+
+#. placeholder {0}: statuses[0].displayName
+#: src/settings/developers/skills.tsx
+msgid "Syntheo skill added to {0}"
+msgstr ""
+
+#. placeholder {0}: statuses.length
+#: src/settings/developers/skills.tsx
+msgid "Syntheo skill added to {0} agents"
+msgstr ""
+
+#: src/settings/general/storage/legacy-cleanup.tsx
+msgid "Syntheo will retry automatically. This does not affect your notes."
 msgstr ""
 
 #: src/settings/appearance/theme.tsx
@@ -3777,7 +3621,7 @@ msgid "Tags"
 msgstr ""
 
 #: src/settings/developers/skills.tsx
-msgid "Teach coding agents when and how to use the Anarlog CLI and MCP"
+msgid "Teach coding agents when and how to use the Syntheo CLI and MCP"
 msgstr ""
 
 #: src/settings/general/meeting-settings.tsx
@@ -3846,7 +3690,7 @@ msgid "This edit is no longer pending."
 msgstr ""
 
 #: src/session/components/outer-header/index.tsx
-msgid "This is a prerecorded demo, so your camera stays off. Click Join & record to see Anarlog in action."
+msgid "This is a prerecorded demo, so your camera stays off. Click Join & record to see Syntheo in action."
 msgstr ""
 
 #: src/calendar/components/event-chip.tsx
@@ -3862,11 +3706,11 @@ msgid "This recording is using batch transcription, so the transcript isn't avai
 msgstr ""
 
 #: src/settings/plan-gate.tsx
-msgid "This requires Anarlog Enterprise"
+msgid "This requires Syntheo Enterprise"
 msgstr ""
 
 #: src/settings/plan-gate.tsx
-msgid "This requires Anarlog Pro"
+msgid "This requires Syntheo Pro"
 msgstr ""
 
 #. placeholder {0}: status.fileCount
@@ -3888,7 +3732,7 @@ msgid "Tip: Add teammate names, acronyms, company jargon, and product terms."
 msgstr ""
 
 #: src/session/components/note-input/enhanced/streaming.tsx
-msgid "Tip: The Anarlog team loves our users!"
+msgid "Tip: The Syntheo team loves our users!"
 msgstr ""
 
 #: src/sidebar/timeline/utils/index.ts
@@ -3920,7 +3764,6 @@ msgid "Transcription"
 msgstr ""
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
-#: src/stt/useRunBatch.ts
 msgid "Transcription failed"
 msgstr ""
 
@@ -3961,7 +3804,7 @@ msgid "Try the demo"
 msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
-msgid "Turn on Anarlog in System Settings → Privacy & Security → Calendars, then return here."
+msgid "Turn on Syntheo in System Settings → Privacy & Security → Calendars, then return here."
 msgstr ""
 
 #: src/settings/appearance/app-icon.tsx
@@ -4003,7 +3846,7 @@ msgid "Unlock Note"
 msgstr ""
 
 #: src/settings/ai/shared/index.tsx
-msgid "Unlock your login Keychain in the macOS prompt. Anarlog will retry saving this API key automatically."
+msgid "Unlock your login Keychain in the macOS prompt. Syntheo will retry saving this API key automatically."
 msgstr ""
 
 #: src/contacts/details.tsx
@@ -4052,13 +3895,8 @@ msgstr ""
 msgid "Upgrade"
 msgstr ""
 
-#: src/settings/ai/llm/select.tsx
 #: src/settings/ai/stt/select.tsx
 msgid "Upgrade to Pro to use this provider."
-msgstr ""
-
-#: src/settings/ai/stt/select.tsx
-msgid "Upgrade to use"
 msgstr ""
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
@@ -4124,10 +3962,6 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: src/lock/gate.tsx
-msgid "View Anarlog"
-msgstr ""
-
 #: src/contacts/organization-details.tsx
 msgid "View LinkedIn profile"
 msgstr ""
@@ -4136,8 +3970,12 @@ msgstr ""
 msgid "View Note"
 msgstr ""
 
+#: src/lock/gate.tsx
+msgid "View Syntheo"
+msgstr ""
+
 #: src/chat/components/input/use-dictation.ts
-msgid "Voice input is unavailable while Anarlog is recording a meeting."
+msgid "Voice input is unavailable while Syntheo is recording a meeting."
 msgstr ""
 
 #: src/settings/general/notification.tsx
@@ -4146,10 +3984,6 @@ msgstr ""
 
 #: src/automations/starters.tsx
 msgid "Wait until the transcript and note are complete."
-msgstr ""
-
-#: src/settings/ai/llm/subscriptions/connect.tsx
-msgid "Waiting for authorization in your browser…"
 msgstr ""
 
 #: src/settings/appearance/app-icon.tsx
@@ -4170,7 +4004,7 @@ msgid "Weekly streak: {0}"
 msgstr ""
 
 #: src/onboarding/index.tsx
-msgid "Welcome to Anarlog"
+msgid "Welcome to Syntheo"
 msgstr ""
 
 #: src/chat/components/body/empty.tsx
@@ -4207,10 +4041,6 @@ msgstr ""
 
 #: src/settings/automations/workflow-builder.tsx
 msgid "When this happens"
-msgstr ""
-
-#: src/settings/ai/stt/local-file-model.tsx
-msgid "whisper.cpp models"
 msgstr ""
 
 #: src/task/tab-content.tsx
