@@ -1,17 +1,5 @@
-// Démo distante (site Syntheo) retirée : la note de bienvenue n'a pas de lien.
-export const WELCOME_NOTE_DEMO_URL = "";
+// Identifiant de la note de bienvenue créée à la fin de l'onboarding. Il permet
+// de la reconnaître (par exemple pour l'exclure des statistiques) sans la
+// marquer comme une réunion. Conservé tel quel : il est déjà stocké dans des
+// sessions existantes.
 export const WELCOME_NOTE_TRACKING_ID = "syntheo-onboarding-demo-v1";
-const WELCOME_NOTE_COMPLETE_PATH = "/onboarding-demo/complete";
-const WELCOME_NOTE_DEMO_AUTOJOIN_PARAM = "autojoin";
-
-export function buildWelcomeNoteDemoUrl(meetingLink: string, port?: number) {
-  const url = new URL(meetingLink);
-  url.searchParams.set(WELCOME_NOTE_DEMO_AUTOJOIN_PARAM, "1");
-  if (port != null) {
-    url.searchParams.set(
-      "completion_url",
-      `http://127.0.0.1:${port}${WELCOME_NOTE_COMPLETE_PATH}`,
-    );
-  }
-  return url.toString();
-}
