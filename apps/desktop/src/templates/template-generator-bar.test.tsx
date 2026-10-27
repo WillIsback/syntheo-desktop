@@ -26,7 +26,7 @@ afterEach(cleanup);
 
 function generateButton() {
   return screen.getByRole("button", {
-    name: /Générer avec IA/,
+    name: /Generate with AI/,
   }) as HTMLButtonElement;
 }
 
@@ -55,7 +55,7 @@ describe("TemplateGeneratorBar", () => {
     });
 
     render(<TemplateGeneratorBar onGenerated={onGenerated} />);
-    fireEvent.change(screen.getByPlaceholderText(/Décris le type/), {
+    fireEvent.change(screen.getByPlaceholderText(/Describe the meeting type/), {
       target: { value: "point projet" },
     });
     fireEvent.click(generateButton());

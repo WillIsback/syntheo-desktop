@@ -902,6 +902,10 @@ msgstr "Confirmer"
 msgid "Connect {0}"
 msgstr "Connecter {0}"
 
+#: src/templates/template-generator-bar.tsx
+msgid "Connect a language model to generate a template."
+msgstr "Connectez un modèle de langage pour générer un modèle."
+
 #: src/onboarding/calendar.tsx
 #: src/onboarding/index.tsx
 msgid "Connect calendar"
@@ -1226,6 +1230,10 @@ msgstr "Supprimer cet événement"
 #: src/settings/ai/shared/model-combobox.tsx
 msgid "Deprecated"
 msgstr "Obsolète"
+
+#: src/templates/template-generator-bar.tsx
+msgid "Describe the meeting type…"
+msgstr "Décrivez le type de réunion…"
 
 #: src/templates/template-form.tsx
 msgid "Describe the template purpose..."
@@ -1571,6 +1579,10 @@ msgstr "Général"
 #: src/session/components/note-input/enhanced/index.tsx
 msgid "Generate summary"
 msgstr "Générer un résumé"
+
+#: src/templates/template-generator-bar.tsx
+msgid "Generate with AI"
+msgstr "Générer avec l'IA"
 
 #: src/session/components/note-input/enhanced/streaming.tsx
 #: src/session/components/title-input.tsx
