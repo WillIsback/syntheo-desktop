@@ -11,9 +11,6 @@ const mocks = vi.hoisted(() => ({
   transcribe: vi.fn(),
   summarize: vi.fn(),
 }));
-vi.mock("@anlg/plugin-db", () => ({
-  cleanupRecordingImports: async () => {},
-}));
 vi.mock("@anlg/plugin-settings", () => ({
   commands: { vaultBase: async () => ({ status: "ok", data: "/vault" }) },
 }));
@@ -28,15 +25,9 @@ vi.mock("~/db", () => ({
 vi.mock("@anlg/plugin-fs-sync", () => ({
   commands: { audioImport: async () => ({ status: "ok", data: "/audio.wav" }) },
 }));
-vi.mock("@anlg/plugin-fs2", () => ({
-  commands: { remove: async () => ({ status: "ok" }) },
-}));
 vi.mock("~/db/cloudsync-activity", () => ({
   withCloudsyncActivity: (_kind: string, _id: string, run: () => unknown) =>
     run(),
-}));
-vi.mock("~/session/attachments", () => ({
-  catalogLocalSessionAudio: async () => {},
 }));
 vi.mock("~/session/queries", () => ({ useSession: () => ({ id: "meeting" }) }));
 vi.mock("~/stt/useRunBatch", () => ({ useRunBatch: () => mocks.transcribe }));

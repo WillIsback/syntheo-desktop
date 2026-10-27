@@ -13,7 +13,6 @@ const COMMANDS: &[&str] = &[
     "audio_metadata",
     "audio_delete_orphaned_expired",
     "audio_import",
-    "audio_import_data",
     "audio_source_metadata",
     "audio_has_speech",
     "audio_path",

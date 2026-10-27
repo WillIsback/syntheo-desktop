@@ -15,7 +15,7 @@ use tracing::Instrument;
 use crate::{
     ListenerRuntime, SessionErrorEvent, SessionProgressEvent,
     actors::session::session_span,
-    actors::{ChannelMode, ListenerMsg, RecMsg},
+    actors::{ChannelMode, ListenerMsg},
 };
 use anlg_audio::{AudioProvider, CaptureChannel, CaptureFrame};
 
@@ -32,7 +32,6 @@ pub enum SourceMsg {
     GetCaptureHealth(RpcReplyPort<CaptureHealth>),
     PrepareListenerRefresh(RpcReplyPort<ListenerRefreshReplay>),
     SetListenerRouting(ListenerRouting),
-    SetRecorder(Option<ActorRef<RecMsg>>),
     CaptureFramesReady,
     CaptureReady,
     CaptureUnavailable,
@@ -77,7 +76,6 @@ pub struct SourceArgs {
     pub audio: Arc<dyn AudioProvider>,
     pub session_id: String,
     pub listener_routing: ListenerRouting,
-    pub recorder: Option<ActorRef<RecMsg>>,
 }
 
 pub struct SourceState {
@@ -104,7 +102,6 @@ pub struct SourceState {
     pub(super) current_mode: ChannelMode,
     pub(super) pipeline: Pipeline,
     pub(super) listener_routing: ListenerRouting,
-    pub(super) recorder: Option<ActorRef<RecMsg>>,
     _device_watcher: Option<DeviceChangeWatcher>,
     _silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
 }
@@ -333,7 +330,6 @@ impl Actor for SourceActor {
                 current_mode: ChannelMode::MicAndSpeaker,
                 pipeline,
                 listener_routing: args.listener_routing,
-                recorder: args.recorder,
             };
 
             // The watcher's baseline is the verdict the streams opened with, sampled after the
@@ -388,9 +384,6 @@ impl Actor for SourceActor {
                     st.listener_routing = routing;
                     st.pipeline
                         .on_listener_routing_changed(&st.listener_routing);
-                }
-                SourceMsg::SetRecorder(recorder) => {
-                    st.recorder = recorder;
                 }
                 SourceMsg::OutputChanged => {
                     if st.current_mode == ChannelMode::SpeakerOnly {
@@ -524,12 +517,7 @@ impl Actor for SourceActor {
                             }
                         }
                         st.pipeline
-                            .dispatch_frame(
-                                frame,
-                                st.current_mode,
-                                &st.listener_routing,
-                                st.recorder.as_ref(),
-                            )
+                            .dispatch_frame(frame, st.current_mode, &st.listener_routing)
                             .await
                             .map_err(std::io::Error::other)?;
                     }
@@ -580,7 +568,6 @@ impl Actor for SourceActor {
         st.capture_frames.take();
         st.capture_retry.take();
         st.capture_output.take();
-        st.pipeline.flush_recorder().await;
         if let Some(task) = st.run_task.take() {
             task.abort();
         }
@@ -601,13 +588,12 @@ mod tests {
 
     use futures_util::{StreamExt, stream};
     use ractor::Actor;
-    use tokio::sync::{mpsc, oneshot};
+    use tokio::sync::mpsc;
 
     use super::*;
     use crate::{
         SessionDataEvent, SessionLifecycleEvent, SessionProgressEvent,
         actors::source::ListenerRouting,
-        actors::{RecMsg, RecorderEnqueueResult},
     };
     use anlg_audio::{CaptureConfig, CaptureEvent, CaptureFrame, CaptureStream, Error};
 
@@ -783,7 +769,6 @@ mod tests {
                 audio: audio.clone(),
                 session_id: "test-session".to_string(),
                 listener_routing: ListenerRouting::Dropped,
-                recorder: None,
             },
         )
         .await
@@ -837,7 +822,6 @@ mod tests {
                 }),
                 session_id: "no-frames".into(),
                 listener_routing: ListenerRouting::Dropped,
-                recorder: None,
             },
         )
         .await
@@ -929,7 +913,6 @@ mod tests {
                 }),
                 session_id: "output-change".into(),
                 listener_routing: ListenerRouting::Dropped,
-                recorder: None,
             },
         )
         .await
@@ -989,7 +972,6 @@ mod tests {
                 audio,
                 session_id: "finite-stream".to_string(),
                 listener_routing: ListenerRouting::Dropped,
-                recorder: None,
             },
         )
         .await
@@ -1015,40 +997,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn microphone_failure_still_saves_and_transcribes_system_audio() {
-        let dir = tempfile::tempdir().unwrap();
+    async fn microphone_failure_still_transcribes_system_audio() {
         let (progress_tx, mut progress_rx) = mpsc::unbounded_channel();
         let runtime: Arc<dyn ListenerRuntime> = Arc::new(TestRuntime {
             progress_tx,
             error_tx: None,
         });
-        // Recording tests share the production writer limit; wait for a fixture slot.
-        let (recorder, recorder_handle) = tokio::time::timeout(Duration::from_secs(10), async {
-            loop {
-                match Actor::spawn(
-                    None,
-                    crate::actors::RecorderActor,
-                    crate::actors::RecArgs {
-                        runtime: runtime.clone(),
-                        app_dir: dir.path().into(),
-                        retain_audio: true,
-                        capture_started_at: 1,
-                        offset_ms: 0,
-                        session_id: "partial-audio".into(),
-                    },
-                )
-                .await
-                {
-                    Ok(recorder) => break recorder,
-                    Err(error) if error.to_string().contains("too many recorder writer jobs") => {
-                        tokio::time::sleep(Duration::from_millis(25)).await;
-                    }
-                    Err(error) => panic!("{error}"),
-                }
-            }
-        })
-        .await
-        .unwrap();
         let (live_tx, mut live_rx) = mpsc::unbounded_channel();
         let (listener, listener_handle) = Actor::spawn(None, AudioListenerProbe(live_tx), ())
             .await
@@ -1072,7 +1026,6 @@ mod tests {
                 }),
                 session_id: "partial-audio".into(),
                 listener_routing: ListenerRouting::Attached(listener.clone()),
-                recorder: Some(recorder.clone()),
             },
         )
         .await
@@ -1116,33 +1069,6 @@ mod tests {
             .unwrap();
         listener.stop(None);
         listener_handle.await.unwrap();
-        recorder.stop(None);
-        tokio::time::timeout(Duration::from_secs(3), recorder_handle)
-            .await
-            .unwrap()
-            .unwrap();
-        let wav = dir.path().join("decoded.wav");
-        anlg_mp3::decode_to_wav(&dir.path().join("partial-audio/audio.mp3"), &wav).unwrap();
-        let mut reader = hound::WavReader::open(wav).unwrap();
-        assert_eq!(reader.spec().channels, 2);
-        assert!(reader.duration() >= 16_000);
-        let samples = reader
-            .samples::<f32>()
-            .map(Result::unwrap)
-            .collect::<Vec<_>>();
-        let mic_energy = samples
-            .iter()
-            .step_by(2)
-            .map(|sample| (*sample as f64).powi(2))
-            .sum::<f64>();
-        let speaker_energy = samples
-            .iter()
-            .skip(1)
-            .step_by(2)
-            .map(|sample| (*sample as f64).powi(2))
-            .sum::<f64>();
-        assert!(speaker_energy > 100.0);
-        assert!(mic_energy < speaker_energy * 0.01);
     }
 
     struct AudioListenerProbe(mpsc::UnboundedSender<(bytes::Bytes, bytes::Bytes)>);
@@ -1173,116 +1099,5 @@ mod tests {
             }
             Ok(())
         }
-    }
-
-    struct BlockingRecorder;
-
-    struct BlockingRecorderState {
-        started_tx: Option<oneshot::Sender<()>>,
-        release_rx: Option<oneshot::Receiver<()>>,
-    }
-
-    #[ractor::async_trait]
-    impl Actor for BlockingRecorder {
-        type Msg = RecMsg;
-        type State = BlockingRecorderState;
-        type Arguments = (oneshot::Sender<()>, oneshot::Receiver<()>);
-
-        async fn pre_start(
-            &self,
-            _myself: ActorRef<Self::Msg>,
-            (started_tx, release_rx): Self::Arguments,
-        ) -> Result<Self::State, ActorProcessingErr> {
-            Ok(BlockingRecorderState {
-                started_tx: Some(started_tx),
-                release_rx: Some(release_rx),
-            })
-        }
-
-        async fn handle(
-            &self,
-            _myself: ActorRef<Self::Msg>,
-            message: Self::Msg,
-            state: &mut Self::State,
-        ) -> Result<(), ActorProcessingErr> {
-            let reply = match message {
-                RecMsg::AudioSingle(_, reply) | RecMsg::AudioDual(_, _, reply) => reply,
-                RecMsg::WriterFailed(_) => return Ok(()),
-            };
-
-            if let Some(started_tx) = state.started_tx.take() {
-                let _ = started_tx.send(());
-            }
-            if let Some(release_rx) = state.release_rx.take() {
-                let _ = release_rx.await;
-            }
-            let _ = reply.send(RecorderEnqueueResult::Accepted);
-            Ok(())
-        }
-    }
-
-    #[test]
-    fn source_dispatch_exits_session_span_while_awaiting_recorder() {
-        tracing::subscriber::with_default(tracing_subscriber::registry(), || {
-            tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .unwrap()
-                .block_on(async {
-                    let (started_tx, started_rx) = oneshot::channel();
-                    let (release_tx, release_rx) = oneshot::channel();
-                    let (recorder, recorder_handle) =
-                        Actor::spawn(None, BlockingRecorder, (started_tx, release_rx))
-                            .await
-                            .unwrap();
-                    let (progress_tx, _progress_rx) = mpsc::unbounded_channel();
-                    let (capture_tx, _capture_rx) = mpsc::unbounded_channel();
-                    let audio = Arc::new(TestAudio {
-                        capture_tx,
-                        default_device_name_calls: AtomicUsize::new(0),
-                        end_immediately: false,
-                        emit_frame: true,
-                        partial_audio: false,
-                        gap_only: false,
-                        output_tx: None,
-                    });
-                    let (source, source_handle) = Actor::spawn(
-                        None,
-                        SourceActor,
-                        SourceArgs {
-                            mic_device: None,
-                            onboarding: false,
-                            runtime: Arc::new(TestRuntime {
-                                progress_tx,
-                                error_tx: None,
-                            }),
-                            audio,
-                            session_id: "span-test".to_string(),
-                            listener_routing: ListenerRouting::Dropped,
-                            recorder: Some(recorder.clone()),
-                        },
-                    )
-                    .await
-                    .unwrap();
-
-                    tokio::time::timeout(std::time::Duration::from_secs(1), started_rx)
-                        .await
-                        .unwrap()
-                        .unwrap();
-                    assert!(tracing::Span::current().is_none());
-
-                    let _ = release_tx.send(());
-                    source.stop(None);
-                    recorder.stop(None);
-                    tokio::time::timeout(std::time::Duration::from_secs(1), source_handle)
-                        .await
-                        .unwrap()
-                        .unwrap();
-                    tokio::time::timeout(std::time::Duration::from_secs(1), recorder_handle)
-                        .await
-                        .unwrap()
-                        .unwrap();
-                });
-        });
     }
 }

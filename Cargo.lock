@@ -212,13 +212,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "afconvert"
-version = "0.1.0"
-dependencies = [
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "agent-access"
 version = "0.1.0"
 dependencies = [
@@ -227,7 +220,6 @@ dependencies = [
  "schemars 1.2.1",
  "serde",
  "serde_json",
- "sha2 0.11.0",
  "specta",
  "sqlx",
  "tempfile",
@@ -454,16 +446,6 @@ name = "anyhow"
 version = "1.0.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
-
-[[package]]
-name = "aotuv_lancer_vorbis_sys"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c22da1eae146e1ac2956da45bd1856b2f9ad788e6f7af535b861df497d726a1"
-dependencies = [
- "cc",
- "ogg_next_sys",
-]
 
 [[package]]
 name = "api-client"
@@ -1083,21 +1065,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "audio-norm"
-version = "0.1.0"
-dependencies = [
- "afconvert",
- "assert_fs",
- "audio-utils",
- "audioadapter-buffers",
- "data",
- "mp3",
- "resampler",
- "rodio",
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "audio-snapshot"
 version = "0.1.0"
 dependencies = [
@@ -1136,7 +1103,6 @@ dependencies = [
  "rubato",
  "thiserror 2.0.18",
  "tracing",
- "vorbis_rs",
 ]
 
 [[package]]
@@ -4423,7 +4389,6 @@ name = "fs-sync-core"
 version = "0.1.0"
 dependencies = [
  "assert_fs",
- "audio-norm",
  "audio-utils",
  "chrono",
  "criterion",
@@ -7659,6 +7624,7 @@ dependencies = [
  "async-stream",
  "audio-utils",
  "axum",
+ "base64 0.22.1",
  "futures-util",
  "hound",
  "language",
@@ -9073,15 +9039,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff76201f031d8863c38aa7f905eca4f53abbfa15f609db4277d44cd8938f33fe"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "ogg_next_sys"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c990730c2782b922815753a62af535e4205267df190dfbd8aa5d74e11d7dcc3"
-dependencies = [
- "cc",
 ]
 
 [[package]]
@@ -14041,6 +13998,7 @@ version = "0.1.0"
 dependencies = [
  "atspi",
  "audio",
+ "base64 0.22.1",
  "dictation-ui-macos",
  "futures-util",
  "hound",
@@ -16782,20 +16740,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
-]
-
-[[package]]
-name = "vorbis_rs"
-version = "0.5.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "874075ad757c0f6031d4706ed75703a9ba6c711164a0b1dab55af86800cd618f"
-dependencies = [
- "aotuv_lancer_vorbis_sys",
- "errno",
- "getrandom 0.2.17",
- "ogg_next_sys",
- "thiserror 2.0.18",
- "tinyvec",
 ]
 
 [[package]]

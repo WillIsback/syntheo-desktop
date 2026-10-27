@@ -7,12 +7,10 @@ use futures_util::{Stream, StreamExt};
 mod error;
 mod pcm;
 mod playback;
-mod vorbis;
 
 pub use error::*;
 pub use pcm::*;
 pub use playback::open_default_playback_sink;
-pub use vorbis::*;
 
 pub use rodio::Source;
 
@@ -193,6 +191,24 @@ pub fn source_from_path(
     let file = std::fs::File::open(path.as_ref())?;
     let decoder = rodio::Decoder::try_from(file)?;
     Ok(decoder)
+}
+
+/// Decode audio held in memory. Dictation and imported files must never be
+/// written to disk, so the batch engine decodes straight from bytes.
+pub fn source_from_bytes<T>(data: T) -> Result<rodio::Decoder<std::io::Cursor<T>>, crate::Error>
+where
+    T: AsRef<[u8]> + Send + Sync + 'static,
+{
+    let decoder = rodio::Decoder::try_from(std::io::Cursor::new(data))?;
+    Ok(decoder)
+}
+
+pub fn audio_bytes_metadata<T>(data: T) -> Result<AudioMetadata, crate::Error>
+where
+    T: AsRef<[u8]> + Send + Sync + 'static,
+{
+    let source = source_from_bytes(data)?;
+    metadata_from_source(&source)
 }
 
 fn metadata_from_source<S>(source: &S) -> Result<AudioMetadata, crate::Error>

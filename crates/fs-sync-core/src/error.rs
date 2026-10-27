@@ -29,6 +29,4 @@ impl Serialize for Error {
 pub enum AudioImportError {
     #[error(transparent)]
     Io(#[from] std::io::Error),
-    #[error(transparent)]
-    Processing(#[from] anlg_audio_norm::Error),
 }

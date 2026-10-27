@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use rayon::prelude::*;
 use serde_json::Value;
@@ -317,99 +316,12 @@ pub(crate) async fn audio_import<R: tauri::Runtime>(
     source_path: String,
 ) -> Result<String, String> {
     let _guard = app.fs_sync().lock_session_audio(&session_id).await;
-    let session_dir = resolve_session_dir(&app, &session_id)?;
     let source_path = PathBuf::from(&source_path);
     let runtime = crate::runtime::TauriAudioImportRuntime::new(app);
     spawn_blocking!({
-        crate::audio::import_to_session(&runtime, &session_id, &session_dir, &source_path)
+        crate::audio::import_to_session(&runtime, &session_id, &source_path)
             .map(|path| path.to_string_lossy().to_string())
             .map_err(|e| e.to_string())
-    })
-}
-
-fn audio_import_source_extension(filename: &str, content_type: Option<&str>) -> String {
-    let extension = Path::new(filename)
-        .extension()
-        .and_then(|extension| extension.to_str())
-        .map(str::to_ascii_lowercase);
-
-    match extension.as_deref() {
-        Some("wav" | "mp3" | "ogg" | "mp4" | "m4a" | "flac" | "webm" | "aac") => {
-            return extension.unwrap();
-        }
-        Some("qta") => return "m4a".to_string(),
-        _ => {}
-    }
-
-    let content_type = content_type
-        .and_then(|value| value.split(';').next())
-        .map(str::trim)
-        .map(str::to_ascii_lowercase);
-
-    match content_type.as_deref() {
-        Some("audio/wav" | "audio/x-wav" | "audio/wave" | "audio/vnd.wave") => "wav",
-        Some("audio/mpeg" | "audio/mp3") => "mp3",
-        Some("audio/ogg") => "ogg",
-        Some(
-            "audio/mp4" | "audio/x-m4a" | "audio/m4a" | "audio/quicktime" | "audio/x-quicktime"
-            | "video/mp4" | "video/quicktime",
-        ) => "m4a",
-        Some("audio/flac" | "audio/x-flac") => "flac",
-        Some("audio/webm") => "webm",
-        Some("audio/aac" | "audio/x-aac") => "aac",
-        _ => "mp3",
-    }
-    .to_string()
-}
-
-fn audio_import_source_path(
-    session_dir: &Path,
-    filename: &str,
-    content_type: Option<&str>,
-) -> PathBuf {
-    let extension = audio_import_source_extension(filename, content_type);
-    let nonce = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|duration| duration.as_nanos())
-        .unwrap_or_default();
-
-    session_dir.join(format!(
-        "audio-upload-{}-{}.{}",
-        std::process::id(),
-        nonce,
-        extension
-    ))
-}
-
-#[tauri::command]
-#[specta::specta]
-pub(crate) async fn audio_import_data<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    session_id: String,
-    data: Vec<u8>,
-    filename: String,
-    content_type: Option<String>,
-) -> Result<String, String> {
-    let _guard = app.fs_sync().lock_session_audio(&session_id).await;
-    let session_dir = resolve_session_dir(&app, &session_id)?;
-    let runtime = crate::runtime::TauriAudioImportRuntime::new(app);
-    spawn_blocking!({
-        std::fs::create_dir_all(&session_dir).map_err(|e| e.to_string())?;
-
-        let source_path =
-            audio_import_source_path(&session_dir, &filename, content_type.as_deref());
-        std::fs::write(&source_path, data).map_err(|e| e.to_string())?;
-
-        let result =
-            crate::audio::import_to_session(&runtime, &session_id, &session_dir, &source_path)
-                .map(|path| path.to_string_lossy().to_string())
-                .map_err(|e| e.to_string());
-
-        if source_path.exists() {
-            let _ = std::fs::remove_file(&source_path);
-        }
-
-        result
     })
 }
 
@@ -758,22 +670,5 @@ mod tests {
             batches.into_iter().flatten().collect::<Vec<_>>(),
             (0..10).collect::<Vec<_>>()
         );
-    }
-
-    #[test]
-    fn audio_import_source_extension_prefers_supported_names_then_mime() {
-        for (filename, content_type, expected) in [
-            ("recording.WEBM", Some("audio/mp4"), "webm"),
-            ("recording.aac", None, "aac"),
-            ("Brian Shin.qta", None, "m4a"),
-            ("Brian Shin", Some("audio/mp4; codecs=alac"), "m4a"),
-            ("Brian Shin", Some("audio/quicktime"), "m4a"),
-        ] {
-            assert_eq!(
-                audio_import_source_extension(filename, content_type),
-                expected,
-                "unexpected extension for {filename:?} and {content_type:?}"
-            );
-        }
     }
 }

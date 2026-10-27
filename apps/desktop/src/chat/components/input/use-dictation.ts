@@ -152,7 +152,7 @@ export function useDictation({
     stopElapsedTimer();
     setPhase("transcribing");
     const generation = generationRef.current;
-    let recordedPath: string | null = null;
+    let audio: { data_base64: string; file_name: string } | null = null;
 
     try {
       const result = await dictationCommands.stopRecording(
@@ -161,10 +161,14 @@ export function useDictation({
       if (result.status === "error") {
         throw new Error(result.error);
       }
-      recordedPath = result.data.filePath;
+      audio = {
+        data_base64: result.data.audioBase64,
+        file_name: "dictation.wav",
+      };
 
       let transcript = "";
-      await runBatch(recordedPath, {
+      await runBatch("", {
+        audio,
         deferAudioFinalization: true,
         handlePersist: (words) => {
           transcript = words
@@ -202,9 +206,6 @@ export function useDictation({
       }
       console.error("[chat-dictation] failed to transcribe recording", error);
     } finally {
-      if (recordedPath) {
-        await discardTemporaryRecording(recordedPath);
-      }
       setPhase("idle");
       if (mountedRef.current && generation === generationRef.current) {
         editorRef.current?.focus();
@@ -270,19 +271,5 @@ async function cancelActiveRecording(transcriptionSessionId: string) {
     }
   } catch (error) {
     console.error("[chat-dictation] failed to cancel recording", error);
-  }
-}
-
-async function discardTemporaryRecording(filePath: string) {
-  try {
-    const result = await dictationCommands.discardRecording(filePath);
-    if (result.status === "error") {
-      throw new Error(result.error);
-    }
-  } catch (error) {
-    console.error(
-      "[chat-dictation] failed to discard temporary recording",
-      error,
-    );
   }
 }

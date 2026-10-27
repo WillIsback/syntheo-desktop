@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-use std::path::{Path, PathBuf};
 use std::sync::{
     Arc, Mutex,
     atomic::{AtomicBool, Ordering},
@@ -20,7 +18,9 @@ const MAX_RECORDING_SECONDS: u64 = 300;
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordedAudio {
-    pub file_path: String,
+    /// WAV encodé en base64 : l'audio de dictée ne touche jamais le disque, et
+    /// un `Vec<u8>` serait sérialisé en tableau de nombres côté IPC.
+    pub audio_base64: String,
     pub duration_ms: u64,
     pub transcript: Option<String>,
 }
@@ -34,14 +34,12 @@ struct ActiveRecording {
 
 pub struct Recorder {
     active: Mutex<Option<ActiveRecording>>,
-    completed: Mutex<HashSet<PathBuf>>,
 }
 
 impl Recorder {
     pub fn new() -> Self {
         Self {
             active: Mutex::new(None),
-            completed: Mutex::new(HashSet::new()),
         }
     }
 
@@ -73,37 +71,16 @@ impl Recorder {
         let stream = audio
             .open_mic_capture(microphone_device, SAMPLE_RATE, CHUNK_SIZE)
             .map_err(|error| Error::Capture(error.to_string()))?;
-        let temporary_file = tempfile::Builder::new()
-            .prefix("anarlog-dictation-")
-            .suffix(".wav")
-            .tempfile()
-            .map_err(|error| Error::Recording(error.to_string()))?;
-        let (_, path) = temporary_file
-            .keep()
-            .map_err(|error| Error::Recording(error.error.to_string()))?;
 
         let cancellation = CancellationToken::new();
         let task_cancellation = cancellation.clone();
-        let task_path = path.clone();
         let finalize = Arc::new(AtomicBool::new(false));
         let task_finalize = finalize.clone();
         let task = tauri::async_runtime::spawn(async move {
             let preview = preview
                 .zip(updates.clone())
                 .map(|(config, updates)| Preview::start(config, updates));
-            let result = record_to_file(
-                stream,
-                task_cancellation,
-                &task_path,
-                preview,
-                updates,
-                task_finalize,
-            )
-            .await;
-            if result.is_err() {
-                let _ = std::fs::remove_file(&task_path);
-            }
-            result
+            record_to_memory(stream, task_cancellation, preview, updates, task_finalize).await
         });
 
         *active = Some(ActiveRecording {
@@ -119,15 +96,10 @@ impl Recorder {
         let active = self.take_active(owner)?.ok_or(Error::NotRecording)?;
         active.finalize.store(true, Ordering::SeqCst);
         active.cancellation.cancel();
-        let recorded = active
+        active
             .task
             .await
-            .map_err(|error| Error::Task(error.to_string()))??;
-        self.completed
-            .lock()
-            .unwrap_or_else(|error| error.into_inner())
-            .insert(PathBuf::from(&recorded.file_path));
-        Ok(recorded)
+            .map_err(|error| Error::Task(error.to_string()))?
     }
 
     pub async fn cancel(&self, owner: &str) -> Result<(), Error> {
@@ -136,32 +108,11 @@ impl Recorder {
         };
 
         active.cancellation.cancel();
-        match active.task.await {
-            Ok(Ok(recorded)) => {
-                let _ = std::fs::remove_file(recorded.file_path);
-            }
-            Ok(Err(_)) => {}
-            Err(error) => return Err(Error::Task(error.to_string())),
-        }
+        active
+            .task
+            .await
+            .map_err(|error| Error::Task(error.to_string()))??;
         Ok(())
-    }
-
-    pub fn discard(&self, file_path: String) -> Result<(), Error> {
-        let path = PathBuf::from(file_path);
-        let removed = self
-            .completed
-            .lock()
-            .unwrap_or_else(|error| error.into_inner())
-            .remove(&path);
-        if !removed {
-            return Err(Error::UnknownRecording);
-        }
-
-        match std::fs::remove_file(path) {
-            Ok(()) => Ok(()),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-            Err(error) => Err(Error::Recording(error.to_string())),
-        }
     }
 
     fn take_active(&self, owner: &str) -> Result<Option<ActiveRecording>, Error> {
@@ -179,10 +130,9 @@ impl Recorder {
     }
 }
 
-async fn record_to_file(
+async fn record_to_memory(
     mut stream: anlg_audio::CaptureStream,
     cancellation: CancellationToken,
-    path: &Path,
     mut preview: Option<Preview>,
     updates: Option<Channel<RecordingUpdate>>,
     finalize: Arc<AtomicBool>,
@@ -193,42 +143,46 @@ async fn record_to_file(
         bits_per_sample: 32,
         sample_format: hound::SampleFormat::Float,
     };
-    let mut writer = hound::WavWriter::create(path, specification)
-        .map_err(|error| Error::Recording(error.to_string()))?;
-    let deadline = tokio::time::sleep(std::time::Duration::from_secs(MAX_RECORDING_SECONDS));
-    tokio::pin!(deadline);
+    let mut buffer: Vec<u8> = Vec::new();
     let mut sample_count = 0_u64;
+    {
+        let cursor = std::io::Cursor::new(&mut buffer);
+        let mut writer = hound::WavWriter::new(cursor, specification)
+            .map_err(|error| Error::Recording(error.to_string()))?;
+        let deadline = tokio::time::sleep(std::time::Duration::from_secs(MAX_RECORDING_SECONDS));
+        tokio::pin!(deadline);
 
-    loop {
-        tokio::select! {
-            _ = cancellation.cancelled() => break,
-            _ = &mut deadline => break,
-            next = stream.next() => {
-                let Some(frame) = next else {
-                    break;
-                };
-                let frame = frame.map_err(|error| Error::Capture(error.to_string()))?;
-                let samples = frame.preferred_mic();
-                for sample in samples.iter() {
-                    writer
-                        .write_sample(*sample)
-                        .map_err(|error| Error::Recording(error.to_string()))?;
-                }
-                sample_count += samples.len() as u64;
-                if let Some(updates) = &updates {
-                    let rms = (samples.iter().map(|s| f64::from(*s).powi(2)).sum::<f64>() / samples.len().max(1) as f64).sqrt();
-                    let _ = updates.send(RecordingUpdate::Amplitude { amplitude: (rms * 8.0).clamp(0.0, 1.0) });
-                    if preview.as_ref().is_some_and(|preview| !preview.send(&samples)) {
-                        preview = None;
+        loop {
+            tokio::select! {
+                _ = cancellation.cancelled() => break,
+                _ = &mut deadline => break,
+                next = stream.next() => {
+                    let Some(frame) = next else {
+                        break;
+                    };
+                    let frame = frame.map_err(|error| Error::Capture(error.to_string()))?;
+                    let samples = frame.preferred_mic();
+                    for sample in samples.iter() {
+                        writer
+                            .write_sample(*sample)
+                            .map_err(|error| Error::Recording(error.to_string()))?;
+                    }
+                    sample_count += samples.len() as u64;
+                    if let Some(updates) = &updates {
+                        let rms = (samples.iter().map(|s| f64::from(*s).powi(2)).sum::<f64>() / samples.len().max(1) as f64).sqrt();
+                        let _ = updates.send(RecordingUpdate::Amplitude { amplitude: (rms * 8.0).clamp(0.0, 1.0) });
+                        if preview.as_ref().is_some_and(|preview| !preview.send(&samples)) {
+                            preview = None;
+                        }
                     }
                 }
             }
         }
-    }
 
-    writer
-        .finalize()
-        .map_err(|error| Error::Recording(error.to_string()))?;
+        writer
+            .finalize()
+            .map_err(|error| Error::Recording(error.to_string()))?;
+    }
 
     let transcript = if finalize.load(Ordering::SeqCst) {
         if let Some(preview) = preview {
@@ -239,10 +193,14 @@ async fn record_to_file(
     } else {
         None
     };
+
     Ok(RecordedAudio {
-        transcript,
-        file_path: path.to_string_lossy().into_owned(),
+        audio_base64: {
+            use base64::Engine as _;
+            base64::engine::general_purpose::STANDARD.encode(&buffer)
+        },
         duration_ms: sample_count.saturating_mul(1_000) / u64::from(SAMPLE_RATE),
+        transcript,
     })
 }
 
@@ -316,7 +274,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn records_and_discards_a_temporary_wav() {
+    async fn records_to_memory_without_a_file() {
         let recorder = Recorder::new();
         recorder
             .start(Arc::new(TestAudio), None, "test".into())
@@ -324,16 +282,16 @@ mod tests {
         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
 
         let recorded = recorder.stop("test").await.unwrap();
-        let path = PathBuf::from(&recorded.file_path);
-        let reader = hound::WavReader::open(&path).unwrap();
+
+        use base64::Engine as _;
+        let wav = base64::engine::general_purpose::STANDARD
+            .decode(&recorded.audio_base64)
+            .unwrap();
+        let reader = hound::WavReader::new(std::io::Cursor::new(wav)).unwrap();
 
         assert_eq!(reader.spec().channels, 1);
         assert_eq!(reader.spec().sample_rate, SAMPLE_RATE);
         assert!(recorded.duration_ms > 0);
-        assert!(path.exists());
-
-        recorder.discard(recorded.file_path).unwrap();
-        assert!(!path.exists());
     }
 
     #[tokio::test]
@@ -395,7 +353,6 @@ mod tests {
         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         let recorded = recorder.stop("test").await.unwrap();
         assert!(recorded.duration_ms > 0);
-        recorder.discard(recorded.file_path).unwrap();
     }
 
     #[tokio::test]

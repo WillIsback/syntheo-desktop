@@ -11,6 +11,38 @@ use crate::{BatchEvent, BatchRuntime};
 
 use progressive::run_progressive_batch_session;
 use simple::run_direct_batch_for_adapter_kind;
+use upload::{AudioInputRef, audio_duration, segment_plan};
+
+impl BatchParams {
+    /// Source audio de cet envoi : le tampon mémoire prime sur le chemin.
+    pub(in crate::batch) fn audio_input(&self) -> AudioInputRef<'_> {
+        match &self.audio {
+            Some(audio) => AudioInputRef::Bytes {
+                data_base64: &audio.data_base64,
+                file_name: &audio.file_name,
+            },
+            None => AudioInputRef::Path(&self.file_path),
+        }
+    }
+
+    /// Copie légère (sans dupliquer un éventuel tampon audio) pour un segment.
+    pub(super) fn with_audio(&self, audio: Option<BatchAudio>) -> BatchParams {
+        BatchParams {
+            session_id: self.session_id.clone(),
+            provider: self.provider.clone(),
+            file_path: self.file_path.clone(),
+            audio,
+            model: self.model.clone(),
+            base_url: self.base_url.clone(),
+            api_key: self.api_key.clone(),
+            languages: self.languages.clone(),
+            keywords: self.keywords.clone(),
+            num_speakers: self.num_speakers,
+            min_speakers: self.min_speakers,
+            max_speakers: self.max_speakers,
+        }
+    }
+}
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, strum::Display, strum::EnumString)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
@@ -20,12 +52,26 @@ pub enum BatchProvider {
     OpenAI,
 }
 
+/// Tampon audio transmis en mémoire (dictée) : rien n'est écrit sur le disque.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
+pub struct BatchAudio {
+    /// Tampon audio en base64 : Tauri sérialise `Vec<u8>` en `number[]`, ce qui
+    /// ferait exploser la charge IPC d'un enregistrement dicté.
+    pub data_base64: String,
+    pub file_name: String,
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
 pub struct BatchParams {
     pub session_id: String,
     pub provider: BatchProvider,
+    #[serde(default)]
     pub file_path: String,
+    /// Prioritaire sur `file_path` quand présent : l'audio vient de la mémoire.
+    #[serde(default)]
+    pub audio: Option<BatchAudio>,
     #[serde(default)]
     pub model: Option<String>,
     pub base_url: String,
@@ -108,27 +154,25 @@ async fn run_batch_inner(
     runtime: Arc<dyn BatchRuntime>,
     params: BatchParams,
 ) -> crate::Result<BatchRunOutput> {
-    let metadata_joined = tokio::task::spawn_blocking({
-        let path = params.file_path.clone();
-        move || anlg_audio_utils::audio_file_metadata(path)
-    })
-    .await;
+    let metadata = {
+        let owned = params.audio_input().into_owned();
+        let metadata_joined = tokio::task::spawn_blocking(move || owned.metadata()).await;
 
-    let metadata_result = match metadata_joined {
-        Ok(result) => result,
-        Err(_err) => {
-            tracing::error!(error.type = "audio_metadata_task_join_failed", "audio_metadata_task_join_failed");
-            return Err(crate::BatchFailure::AudioMetadataJoinFailed.into());
-        }
-    };
+        let metadata_result = match metadata_joined {
+            Ok(result) => result,
+            Err(_err) => {
+                tracing::error!(error.type = "audio_metadata_task_join_failed", "audio_metadata_task_join_failed");
+                return Err(crate::BatchFailure::AudioMetadataJoinFailed.into());
+            }
+        };
 
-    let metadata = match metadata_result {
-        Ok(metadata) => metadata,
-        Err(err) => {
-            let raw_error = err.to_string();
-            let message = format_user_friendly_error(&raw_error);
-            log_batch_failure("audio_metadata_read", &raw_error);
-            return Err(crate::BatchFailure::AudioMetadataReadFailed { message }.into());
+        match metadata_result {
+            Ok(metadata) => metadata,
+            Err(raw_error) => {
+                let message = format_user_friendly_error(&raw_error);
+                log_batch_failure("audio_metadata_read", &raw_error);
+                return Err(crate::BatchFailure::AudioMetadataReadFailed { message }.into());
+            }
         }
     };
 
@@ -136,7 +180,21 @@ async fn run_batch_inner(
 
     match params.provider {
         BatchProvider::OpenAI => {
-            if OpenAIAdapter::supports_progressive_batch_model(listen_params.model.as_deref()) {
+            let audio = params.audio_input();
+            let needs_split = segment_plan(
+                &audio,
+                audio_duration(&audio),
+                AdapterKind::OpenAI.batch_upload_limit(listen_params.model.as_deref()),
+            )
+            .is_some();
+            // Le streaming progressif ne lit qu'un seul fichier : un tampon
+            // mémoire (dictée) ou un enregistrement à découper passe par le
+            // chemin direct, qui segmente en mémoire.
+            let can_stream = params.audio.is_none() && !needs_split;
+
+            if can_stream
+                && OpenAIAdapter::supports_progressive_batch_model(listen_params.model.as_deref())
+            {
                 run_progressive_batch_session(runtime, params, listen_params).await
             } else {
                 run_direct_batch_for_adapter_kind(AdapterKind::OpenAI, params, listen_params).await
@@ -238,6 +296,7 @@ mod tests {
             session_id: "session".to_string(),
             provider,
             file_path: "/tmp/audio.wav".to_string(),
+            audio: None,
             model: None,
             base_url: base_url.to_string(),
             api_key: "key".to_string(),

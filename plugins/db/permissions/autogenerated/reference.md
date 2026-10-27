@@ -4,7 +4,6 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-cleanup-recording-imports`
 - `allow-apply-session-ingest`
 - `allow-execute`
 - `allow-execute-proxy`
@@ -148,32 +147,6 @@ Enables the cleanup_legacy_files command without any pre-configured scope.
 <td>
 
 Denies the cleanup_legacy_files command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:allow-cleanup-recording-imports`
-
-</td>
-<td>
-
-Enables the cleanup_recording_imports command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-cleanup-recording-imports`
-
-</td>
-<td>
-
-Denies the cleanup_recording_imports command without any pre-configured scope.
 
 </td>
 </tr>

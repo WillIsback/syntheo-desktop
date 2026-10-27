@@ -26,7 +26,6 @@ const mocks = vi.hoisted(() => ({
   startSystemRecording: vi.fn(),
   stopRecording: vi.fn(),
   cancelRecording: vi.fn(),
-  discardRecording: vi.fn(),
   insertText: vi.fn(),
   checkPermission: vi.fn(),
   getCaptureState: vi.fn(),
@@ -79,7 +78,6 @@ vi.mock("@anlg/plugin-dictation", () => ({
     startSystemRecording: mocks.startSystemRecording,
     stopRecording: mocks.stopRecording,
     cancelRecording: mocks.cancelRecording,
-    discardRecording: mocks.discardRecording,
     insertText: mocks.insertText,
   },
 }));
@@ -159,7 +157,6 @@ describe("dictation access and lifecycle", () => {
       mocks.setPhase,
       mocks.startSystemRecording,
       mocks.cancelRecording,
-      mocks.discardRecording,
       mocks.insertText,
     ])
       fn.mockResolvedValue({ status: "ok", data: null });
@@ -174,7 +171,7 @@ describe("dictation access and lifecycle", () => {
     mocks.getCaptureState.mockResolvedValue({ status: "ok", data: "inactive" });
     mocks.stopRecording.mockResolvedValue({
       status: "ok",
-      data: { filePath: "/tmp/dictation.wav" },
+      data: { audioBase64: "AAAA", durationMs: 1000 },
     });
     mocks.stopTranscription.mockResolvedValue(undefined);
     mocks.runBatch.mockImplementation(async (_path, options) =>
@@ -229,7 +226,6 @@ describe("dictation access and lifecycle", () => {
       expect.objectContaining({ provider: "openai" }),
       expect.anything(),
     );
-    expect(mocks.discardRecording).toHaveBeenCalledWith("/tmp/dictation.wav");
   });
 
   it("reuses the finalized live transcript even when preview display is disabled", async () => {
@@ -242,7 +238,11 @@ describe("dictation access and lifecycle", () => {
     };
     mocks.stopRecording.mockResolvedValue({
       status: "ok",
-      data: { filePath: "/tmp/dictation.wav", transcript: "Finished live." },
+      data: {
+        audioBase64: "AAAA",
+        durationMs: 1000,
+        transcript: "Finished live.",
+      },
     });
     render(<DictationLifecycle />);
     await waitFor(() => expect(useDictationStatus.getState().ready).toBe(true));
@@ -278,7 +278,6 @@ describe("dictation access and lifecycle", () => {
       ),
     );
     expect(mocks.runBatch).not.toHaveBeenCalled();
-    expect(mocks.discardRecording).toHaveBeenCalledWith("/tmp/dictation.wav");
   });
 
   it("aborts and removes shortcuts when paid access is lost during recording", async () => {

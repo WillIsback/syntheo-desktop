@@ -171,7 +171,7 @@ async fn cleanup_interrupted_audio(
                 .vault_base()
                 .map_err(std::io::Error::other)?
                 .join("sessions");
-            crate::actors::recorder::recover_interrupted_captures_except(
+            crate::actors::audio_sweep::recover_interrupted_captures_except(
                 &sessions_dir,
                 &active,
                 &mut |session_id, deleting, result| {

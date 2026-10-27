@@ -1,15 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { cleanupRecordingImports } from "@anlg/plugin-db";
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
-import { commands as fsCommands } from "@anlg/plugin-fs2";
 import { commands as settingsCommands } from "@anlg/plugin-settings";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import { executeTransaction, liveQueryClient } from "~/db";
 import { withCloudsyncActivity } from "~/db/cloudsync-activity";
 import { getEnhancerService } from "~/services/enhancer";
-import { catalogLocalSessionAudio } from "~/session/attachments";
 import { useSession } from "~/session/queries";
 import { useAiProvidersState } from "~/settings/providers";
 import { useSettingsReady } from "~/settings/queries";
@@ -45,21 +42,14 @@ async function heartbeat() {
       params: [],
     },
   ]);
-  await cleanupRecordingImports(vault.data);
-  const completed = await liveQueryClient.execute<ImportJob>(
-    `SELECT id, meeting_id, file_path FROM local_recording_import_jobs WHERE processing_status IN ('done', 'failed') AND file_path != ''`,
-    [],
-  );
-  for (const job of completed) {
-    const removed = await fsCommands.remove(job.file_path);
-    if (removed.status === "ok")
-      await executeTransaction([
-        {
-          sql: `UPDATE local_recording_import_jobs SET file_path = '' WHERE id = ?`,
-          params: [job.id],
-        },
-      ]);
-  }
+  // The recording stays at its original location: no audio is copied into the
+  // app's data directory, so completed jobs only drop the stored path.
+  await executeTransaction([
+    {
+      sql: `UPDATE local_recording_import_jobs SET file_path = '' WHERE processing_status IN ('done', 'failed') AND file_path != ''`,
+      params: [],
+    },
+  ]);
 }
 
 export function RecordingImportWorker() {
@@ -167,7 +157,6 @@ async function processImport(
           job.file_path,
         );
         if (imported.status === "error") throw new Error(imported.error);
-        await catalogLocalSessionAudio(job.meeting_id);
         phase = "transcribing";
         await update(phase);
         await runBatch(imported.data, {

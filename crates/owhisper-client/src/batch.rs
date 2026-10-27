@@ -107,6 +107,25 @@ impl<A: BatchSttAdapter> BatchClient<A> {
             )
             .await
     }
+
+    /// Transcrire un tampon audio en mémoire : aucun fichier n'est écrit, ni
+    /// pour la source ni pour les éventuels segments.
+    pub async fn transcribe_bytes(
+        &self,
+        audio: Vec<u8>,
+        file_name: String,
+    ) -> Result<BatchResponse, Error> {
+        A::default()
+            .transcribe_bytes(
+                &self.client,
+                &self.api_base,
+                &self.api_key,
+                &self.params,
+                audio,
+                file_name,
+            )
+            .await
+    }
 }
 
 impl<A: crate::RealtimeSttAdapter + BatchSttAdapter> ListenClientBuilder<A> {

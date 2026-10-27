@@ -36,6 +36,12 @@ import type { SpeakerHintWithId, WordWithId } from "~/stt/types";
 
 type RunOptions = {
   signal?: AbortSignal;
+  /**
+   * Audio transmis en mémoire (dictée) : prioritaire sur le chemin de fichier,
+   * et jamais écrit sur le disque. Base64, car Tauri sérialise `Vec<u8>` en
+   * tableau de nombres.
+   */
+  audio?: { data_base64: string; file_name: string };
   recovery?: {
     persist: (words: WordWithId[], hints: SpeakerHintWithId[]) => Promise<void>;
   };
@@ -370,6 +376,7 @@ export const useRunBatch = (sessionId: string) => {
             session_id: jobId,
             provider: target.provider,
             file_path: filePath,
+            audio: options?.audio,
             model: target.model,
             base_url: target.baseUrl,
             api_key: target.apiKey,

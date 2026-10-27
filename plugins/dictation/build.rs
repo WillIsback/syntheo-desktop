@@ -7,7 +7,6 @@ const COMMANDS: &[&str] = &[
     "start_system_recording",
     "stop_recording",
     "cancel_recording",
-    "discard_recording",
     "capture_target",
     "insert_text",
 ];

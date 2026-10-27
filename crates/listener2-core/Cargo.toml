@@ -15,6 +15,7 @@ anlg-language = { workspace = true }
 anlg-mp3 = { workspace = true }
 anlg-user-error = { workspace = true }
 
+base64 = { workspace = true }
 hound = { workspace = true }
 
 owhisper-client = { workspace = true }

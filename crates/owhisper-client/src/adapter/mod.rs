@@ -159,6 +159,26 @@ pub trait BatchSttAdapter: Clone + Default + Send + Sync + 'static {
         params: &'a ListenParams,
         file_path: P,
     ) -> BatchFuture<'a>;
+
+    /// Transcrire un tampon audio en mémoire : les chemins qui ne doivent rien
+    /// écrire sur disque (dictée, imports) passent par ici. L'implémentation par
+    /// défaut refuse, tous les adaptateurs n'ayant pas de corps multipart
+    /// générique.
+    fn transcribe_bytes<'a>(
+        &'a self,
+        _client: &'a ClientWithMiddleware,
+        _api_base: &'a str,
+        _api_key: &'a str,
+        _params: &'a ListenParams,
+        _audio: Vec<u8>,
+        _file_name: String,
+    ) -> BatchFuture<'a> {
+        Box::pin(async {
+            Err(Error::AudioProcessing(
+                "this adapter cannot transcribe in-memory audio".to_string(),
+            ))
+        })
+    }
 }
 
 pub fn extract_query_params(url: &url::Url) -> Vec<(String, String)> {

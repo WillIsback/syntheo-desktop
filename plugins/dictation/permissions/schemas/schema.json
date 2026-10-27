@@ -319,18 +319,6 @@
           "markdownDescription": "Denies the capture_target command without any pre-configured scope."
         },
         {
-          "description": "Enables the discard_recording command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-discard-recording",
-          "markdownDescription": "Enables the discard_recording command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the discard_recording command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-discard-recording",
-          "markdownDescription": "Denies the discard_recording command without any pre-configured scope."
-        },
-        {
           "description": "Enables the hide command without any pre-configured scope.",
           "type": "string",
           "const": "allow-hide",

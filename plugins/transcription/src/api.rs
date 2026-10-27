@@ -209,12 +209,18 @@ pub type TranscriptionErrorCode = listener2::BatchErrorCode;
 pub type TranscriptionFailure = listener2::BatchFailure;
 pub type TranscriptionProvider = listener2::BatchProvider;
 pub type TranscriptionRunMode = listener2::BatchRunMode;
+/// Audio transmis en mémoire (dictée) : jamais écrit sur le disque.
+pub type TranscriptionAudio = listener2::BatchAudio;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct TranscriptionParams {
     pub session_id: String,
     pub provider: TranscriptionProvider,
+    #[serde(default)]
     pub file_path: String,
+    /// Prioritaire sur `file_path` quand présent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audio: Option<TranscriptionAudio>,
     #[serde(default)]
     pub model: Option<String>,
     pub base_url: String,
@@ -433,6 +439,7 @@ impl From<TranscriptionParams> for listener2::BatchParams {
             session_id: value.session_id,
             provider: value.provider,
             file_path: value.file_path,
+            audio: value.audio,
             model: value.model,
             base_url: value.base_url,
             api_key: value.api_key,

@@ -692,6 +692,7 @@ mod tests {
             session_id: "session-1".to_string(),
             provider,
             file_path: "/tmp/audio.wav".to_string(),
+            audio: None,
             model: model.map(ToOwned::to_owned),
             base_url: base_url.to_string(),
             api_key: "key".to_string(),

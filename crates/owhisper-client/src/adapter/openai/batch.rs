@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use futures_util::StreamExt;
 use openai_transcription::batch::{
@@ -11,7 +11,7 @@ use owhisper_interface::batch::{Alternatives, Channel, Response as BatchResponse
 use owhisper_interface::batch_stream::BatchStreamEvent;
 use reqwest::multipart::{Form, Part};
 
-use crate::adapter::http::streaming_file_part;
+use crate::adapter::http::AudioBody;
 use crate::adapter::{
     BatchFuture, BatchSttAdapter, ClientWithMiddleware, MIXED_CAPTURE_CHANNEL, StreamingBatchEvent,
     StreamingBatchStream, append_path_if_missing,
@@ -46,8 +46,24 @@ impl BatchSttAdapter for OpenAIAdapter {
         params: &'a ListenParams,
         file_path: P,
     ) -> BatchFuture<'a> {
-        let path = file_path.as_ref().to_path_buf();
-        Box::pin(do_transcribe_file(client, api_base, api_key, params, path))
+        let audio = AudioBody::Path(file_path.as_ref().to_path_buf());
+        Box::pin(do_transcribe_file(client, api_base, api_key, params, audio))
+    }
+
+    fn transcribe_bytes<'a>(
+        &'a self,
+        client: &'a ClientWithMiddleware,
+        api_base: &'a str,
+        api_key: &'a str,
+        params: &'a ListenParams,
+        audio: Vec<u8>,
+        file_name: String,
+    ) -> BatchFuture<'a> {
+        let audio = AudioBody::Bytes {
+            data: audio,
+            file_name,
+        };
+        Box::pin(do_transcribe_file(client, api_base, api_key, params, audio))
     }
 }
 
@@ -59,7 +75,7 @@ impl OpenAIAdapter {
         file_path: impl AsRef<Path>,
     ) -> Result<StreamingBatchStream, Error> {
         let file_path = file_path.as_ref().to_path_buf();
-        let file_part = build_file_part(&file_path).await?;
+        let file_part = build_file_part(AudioBody::Path(file_path)).await?;
 
         let model =
             OpenAIAdapter::resolve_batch_model(params.model.as_deref()).ok_or_else(|| {
@@ -136,12 +152,12 @@ async fn do_transcribe_file(
     api_base: &str,
     api_key: &str,
     params: &ListenParams,
-    file_path: PathBuf,
+    audio: AudioBody,
 ) -> Result<BatchResponse, Error> {
     let Some(model) = OpenAIAdapter::resolve_batch_model(params.model.as_deref()) else {
-        return transcribe_custom_model(client, api_base, api_key, params, &file_path).await;
+        return transcribe_custom_model(client, api_base, api_key, params, audio).await;
     };
-    let file_part = build_file_part(&file_path).await?;
+    let file_part = build_file_part(audio).await?;
     let options = build_transcription_options(params, model, true, false);
     let form = build_multipart_form(file_part, options)?;
     let url = transcription_url(api_base)?;
@@ -165,8 +181,8 @@ async fn do_transcribe_file(
     }
 }
 
-async fn build_file_part(file_path: &Path) -> Result<Part, Error> {
-    streaming_file_part(file_path).await
+async fn build_file_part(audio: AudioBody) -> Result<Part, Error> {
+    audio.to_part().await
 }
 
 /// On-prem servers (vLLM, speaches, faster-whisper-server) serve models the
@@ -177,7 +193,7 @@ async fn transcribe_custom_model(
     api_base: &str,
     api_key: &str,
     params: &ListenParams,
-    file_path: &Path,
+    audio: AudioBody,
 ) -> Result<BatchResponse, Error> {
     let model = params.model.as_deref().unwrap_or_default();
     crate::adapter::openai_compatible_batch::transcribe(
@@ -185,7 +201,7 @@ async fn transcribe_custom_model(
         api_base,
         api_key,
         params,
-        file_path,
+        audio,
         crate::adapter::openai_compatible_batch::OpenAICompatibleBatchConfig {
             provider: "openai",
             default_model: model,
@@ -711,6 +727,46 @@ mod tests {
             response.results.channels[0].alternatives[0].transcript,
             "bonjour"
         );
+    }
+
+    #[tokio::test]
+    async fn in_memory_audio_reaches_the_custom_batch_endpoint() {
+        use wiremock::matchers::{method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/v1/audio/transcriptions"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "text": "bonjour",
+                "words": [{ "word": "bonjour", "start": 0.0, "end": 0.5 }]
+            })))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let client = crate::BatchClient::<OpenAIAdapter>::builder()
+            .api_base(format!("{}/v1", server.uri()))
+            .api_key("")
+            .params(ListenParams {
+                model: Some("mistralai/Voxtral-Mini-3B-2507".to_string()),
+                ..Default::default()
+            })
+            .build();
+
+        let response = client
+            .transcribe_bytes(b"fake-wav-bytes".to_vec(), "dictation.wav".to_string())
+            .await
+            .unwrap();
+
+        assert_eq!(
+            response.results.channels[0].alternatives[0].transcript,
+            "bonjour"
+        );
+        let requests = server.received_requests().await.unwrap();
+        let body = String::from_utf8_lossy(&requests[0].body);
+        assert!(body.contains("filename=\"dictation.wav\""), "{body:.300}");
+        assert!(body.contains("fake-wav-bytes"), "{body:.300}");
     }
 
     #[test]

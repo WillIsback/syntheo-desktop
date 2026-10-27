@@ -3,7 +3,7 @@ use std::path::Path;
 
 use super::SessionParams;
 use super::session_span;
-use crate::actors::recorder::resolve_final_audio_path;
+use crate::actors::audio_sweep::resolve_final_audio_path;
 use crate::{ListenerRuntime, SessionLifecycleEvent};
 
 pub(crate) fn configure_sentry_session_context(params: &SessionParams) {

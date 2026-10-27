@@ -4,10 +4,10 @@ use owhisper_client::{AdapterKind, BatchSttAdapter, BatchUploadLimit, OpenAIAdap
 use owhisper_interface::batch::{Alternatives, Channel, Response, Results};
 use tracing::Instrument;
 
-use super::super::upload::{audio_duration, segment_plan, split_batch_upload};
+use super::super::upload::{AudioInputRef, audio_duration, segment_plan, split_batch_upload};
 use super::super::{
-    BatchParams, BatchRunMode, BatchRunOutput, format_user_friendly_error, log_batch_failure,
-    session_span,
+    BatchAudio, BatchParams, BatchRunMode, BatchRunOutput, format_user_friendly_error,
+    log_batch_failure, session_span,
 };
 
 pub(super) const DIRECT_BATCH_TIMEOUT_FLOOR: Duration = Duration::from_secs(15 * 60);
@@ -42,10 +42,10 @@ pub(super) async fn run_direct_batch<A: BatchSttAdapter>(
     listen_params: owhisper_interface::ListenParams,
     limit: Option<BatchUploadLimit>,
 ) -> crate::Result<BatchRunOutput> {
-    let audio_duration = audio_duration(&params.file_path);
+    let audio_duration = audio_duration(&params.audio_input());
     let timeout = direct_batch_timeout_for_audio(audio_duration);
 
-    match segment_plan(&params.file_path, audio_duration, limit) {
+    match segment_plan(&params.audio_input(), audio_duration, limit) {
         Some(segment_duration) => {
             run_segmented_batch::<A>(provider, params, listen_params, segment_duration, timeout)
                 .await
@@ -61,13 +61,15 @@ async fn run_segmented_batch<A: BatchSttAdapter>(
     segment_duration: Duration,
     timeout: Duration,
 ) -> crate::Result<BatchRunOutput> {
-    let segments = split_batch_upload(&params.file_path, segment_duration, provider).await?;
+    let segments = split_batch_upload(&params.audio_input(), segment_duration, provider).await?;
     listen_params.channels = 1;
 
-    let mut responses = Vec::with_capacity(segments.paths().len());
-    for path in segments.paths() {
-        let mut segment_params = params.clone();
-        segment_params.file_path = path.to_string_lossy().into_owned();
+    let mut responses = Vec::with_capacity(segments.len());
+    for (index, data) in segments.into_iter().enumerate() {
+        let segment_params = params.with_audio(Some(BatchAudio {
+            data_base64: super::super::upload::encode_base64(&data),
+            file_name: format!("segment-{index:04}.mp3"),
+        }));
 
         let output = run_direct_batch_with_timeout::<A>(
             provider,
@@ -209,35 +211,33 @@ pub(super) async fn run_direct_batch_with_timeout<A: BatchSttAdapter>(
             .build();
 
         tracing::debug!("transcribing file");
-        let response = match tokio::time::timeout(
-            timeout,
-            transcribe_with_rate_limit_retry(&client, &params.file_path),
-        )
-        .await
-        {
-            Ok(Ok(response)) => response,
-            Ok(Err(err)) => {
-                let raw_error = format!("{err:?}");
-                let message = format_user_friendly_error(&raw_error);
-                log_batch_failure("direct_batch_transcription", &raw_error);
-                return Err(crate::BatchFailure::DirectRequestFailed {
-                    provider: provider.to_string(),
-                    message,
+        let response =
+            match tokio::time::timeout(timeout, transcribe_with_rate_limit_retry(&client, &params))
+                .await
+            {
+                Ok(Ok(response)) => response,
+                Ok(Err(err)) => {
+                    let raw_error = format!("{err:?}");
+                    let message = format_user_friendly_error(&raw_error);
+                    log_batch_failure("direct_batch_transcription", &raw_error);
+                    return Err(crate::BatchFailure::DirectRequestFailed {
+                        provider: provider.to_string(),
+                        message,
+                    }
+                    .into());
                 }
-                .into());
-            }
-            Err(_) => {
-                tracing::error!(
-                    timeout_seconds = timeout.as_secs(),
-                    "batch transcription timed out"
-                );
-                return Err(crate::BatchFailure::DirectRequestTimedOut {
-                    provider: provider.to_string(),
-                    timeout_seconds: timeout.as_secs(),
+                Err(_) => {
+                    tracing::error!(
+                        timeout_seconds = timeout.as_secs(),
+                        "batch transcription timed out"
+                    );
+                    return Err(crate::BatchFailure::DirectRequestTimedOut {
+                        provider: provider.to_string(),
+                        timeout_seconds: timeout.as_secs(),
+                    }
+                    .into());
                 }
-                .into());
-            }
-        };
+            };
         tracing::info!("batch transcription completed");
 
         Ok(BatchRunOutput {
@@ -252,11 +252,21 @@ pub(super) async fn run_direct_batch_with_timeout<A: BatchSttAdapter>(
 
 async fn transcribe_with_rate_limit_retry<A: BatchSttAdapter>(
     client: &owhisper_client::BatchClient<A>,
-    file_path: &str,
+    params: &BatchParams,
 ) -> Result<Response, owhisper_client::Error> {
+    let audio = params.audio_input();
     let mut attempt = 0;
     loop {
-        let error = match client.transcribe_file(file_path).await {
+        let result = match audio {
+            AudioInputRef::Path(file_path) => client.transcribe_file(file_path).await,
+            AudioInputRef::Bytes { file_name, .. } => {
+                let data = audio
+                    .decode()
+                    .map_err(owhisper_client::Error::AudioProcessing)?;
+                client.transcribe_bytes(data, file_name.to_string()).await
+            }
+        };
+        let error = match result {
             Ok(response) => return Ok(response),
             Err(error) => error,
         };
