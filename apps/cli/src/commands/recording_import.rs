@@ -1,5 +1,5 @@
 use crate::{Args, Result, cli::MeetingCommand, db, output};
-use anlg_agent_access::{ImportRecordingInput, get_recording_import, import_recording};
+use syntheo_agent_access::{ImportRecordingInput, get_recording_import, import_recording};
 
 pub async fn run(args: &Args, command: MeetingCommand, json: bool) -> Result<u8> {
     let operation = if matches!(&command, MeetingCommand::ImportStatus { .. }) {

@@ -229,12 +229,13 @@ final class FloatingBarCommandCoalescerTests: XCTestCase {
 
   func testRecordingRateAmplitudeBridgeSoakHasBoundedResidentMemory() async throws {
     let environment = ProcessInfo.processInfo.environment
-    guard environment["ANLG_RUN_BRIDGE_SOAK"] == "1" else {
-      throw XCTSkip("Set ANLG_RUN_BRIDGE_SOAK=1 to run the 30-minute bridge soak")
+    guard environment["SYNTHEO_RUN_BRIDGE_SOAK"] == "1" else {
+      throw XCTSkip("Set SYNTHEO_RUN_BRIDGE_SOAK=1 to run the 30-minute bridge soak")
     }
 
-    let duration = TimeInterval(environment["ANLG_BRIDGE_SOAK_SECONDS"] ?? "1800") ?? 1800
-    let sampleInterval = TimeInterval(environment["ANLG_BRIDGE_SOAK_SAMPLE_SECONDS"] ?? "60") ?? 60
+    let duration = TimeInterval(environment["SYNTHEO_BRIDGE_SOAK_SECONDS"] ?? "1800") ?? 1800
+    let sampleInterval =
+      TimeInterval(environment["SYNTHEO_BRIDGE_SOAK_SAMPLE_SECONDS"] ?? "60") ?? 60
     let samples = ResidentMemorySamples()
     let finished = expectation(description: "Amplitude bridge soak finished")
 

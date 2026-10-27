@@ -1,5 +1,5 @@
 @import "@fontsource-variable/inter";
-@import "@anlg/ui/globals.css";
+@import "@syntheo/ui/globals.css";
 @import "./scrollbar.css" layer(base);
 @import "./scrollbar.utilities.css";
 
@@ -300,7 +300,7 @@ html[data-rounded-window] #root {
 
 /*
  * Capsule radii still read as pills/circles even with corner-shape: squircle.
- * Keep this unlayered so it outranks Tailwind utilities from @anlg/ui.
+ * Keep this unlayered so it outranks Tailwind utilities from @syntheo/ui.
  * Session view tabs opt out with .rounded-pill.
  */
 .rounded-full {

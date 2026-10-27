@@ -5,7 +5,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    Detect(#[from] anlg_detect::Error),
+    Detect(#[from] syntheo_detect::Error),
 }
 
 impl Serialize for Error {

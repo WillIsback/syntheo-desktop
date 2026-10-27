@@ -1,6 +1,6 @@
 import { APPLE_SMOOTHING, type SmoothCornerOptions } from "@lisse/core";
 
-import { DesignRadius } from "@anlg/design-system";
+import { DesignRadius } from "@syntheo/design-system";
 
 export const controlSquircle = {
   radius: DesignRadius.lg,

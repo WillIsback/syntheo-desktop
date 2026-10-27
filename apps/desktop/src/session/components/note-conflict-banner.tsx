@@ -2,8 +2,8 @@ import { Trans } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { Warning } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { Warning } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 
 import { VersionHistoryDialog } from "./version-history-dialog";
 

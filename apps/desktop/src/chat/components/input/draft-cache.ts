@@ -1,4 +1,4 @@
-import type { JSONContent } from "@anlg/editor/chat";
+import type { JSONContent } from "@syntheo/editor/chat";
 
 const MAX_RETAINED_DRAFTS = 50;
 const MAX_RETAINED_DRAFT_BYTES_PER_DRAFT = 16 * 1024 * 1024;

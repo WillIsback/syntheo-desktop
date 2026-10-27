@@ -1,14 +1,14 @@
 import { Trans } from "@lingui/react/macro";
 import { useState } from "react";
 
-import { Accordion } from "@anlg/ui/components/ui/accordion";
+import { Accordion } from "@syntheo/ui/components/ui/accordion";
 
 import { useLlmSettings } from "./context";
 import { ProviderId, PROVIDERS } from "./shared";
 
 import {
   filterProviders,
-  NonAnarlogProviderCard,
+  NonSyntheoProviderCard,
   ProviderSearch,
   StyledStreamdown,
 } from "~/settings/ai/shared";
@@ -37,7 +37,7 @@ export function ConfigureProviders() {
       >
         {providers.map((provider) => {
           return (
-            <NonAnarlogProviderCard
+            <NonSyntheoProviderCard
               key={provider.id}
               config={provider}
               providerType="llm"

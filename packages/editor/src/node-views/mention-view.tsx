@@ -3,8 +3,8 @@ import { Facehash, stringHash } from "facehash";
 import type { NodeSpec } from "prosemirror-model";
 import { forwardRef, useCallback } from "react";
 
-import { Buildings, Folder, Note, User } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { Buildings, Folder, Note, User } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 export const mentionNodeSpec: NodeSpec = {
   group: "inline",
@@ -44,7 +44,7 @@ export const mentionNodeSpec: NodeSpec = {
   },
 };
 
-const GLOBAL_NAVIGATE_FUNCTION = "__ANARLOG_NAVIGATE__";
+const GLOBAL_NAVIGATE_FUNCTION = "__SYNTHEO_NAVIGATE__";
 
 const FACEHASH_BG_CLASSES = [
   "bg-amber-50 dark:bg-amber-950",

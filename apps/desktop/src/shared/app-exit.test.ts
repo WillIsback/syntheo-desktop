@@ -14,7 +14,7 @@ vi.mock("@tauri-apps/api/event", () => ({
   }),
 }));
 
-vi.mock("@anlg/plugin-store2", () => ({
+vi.mock("@syntheo/plugin-store2", () => ({
   commands: { save: mocks.save },
 }));
 

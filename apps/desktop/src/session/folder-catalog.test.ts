@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   updateFolderWorkspace: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-session", () => ({
+vi.mock("@syntheo/plugin-session", () => ({
   commands: {
     deleteFolderCatalog: mocks.deleteFolderCatalog,
     ensureFolderCatalog: mocks.ensureFolderCatalog,
@@ -28,7 +28,7 @@ vi.mock("@anlg/plugin-session", () => ({
   },
 }));
 
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     createFolder: mocks.createFolder,
     deleteFolder: mocks.deleteFolder,

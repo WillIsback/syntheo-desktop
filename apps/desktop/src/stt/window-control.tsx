@@ -1,16 +1,16 @@
 import { emitTo, listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { commands as listenerCommands } from "@anlg/plugin-transcription";
-import { getCurrentWebviewWindowLabel } from "@anlg/plugin-windows";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { commands as listenerCommands } from "@syntheo/plugin-transcription";
+import { getCurrentWebviewWindowLabel } from "@syntheo/plugin-windows";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { useListener } from "./contexts";
 import { useStartListeningWithBatchOverride } from "./useStartListeningWithBatchOverride";
 
 import { listenerStore } from "~/store/zustand/listener/instance";
 
-const LISTENER_CONTROL_EVENT = "anlg:listener-control";
+const LISTENER_CONTROL_EVENT = "syntheo:listener-control";
 // The main webview may be dead or reloading; if it hasn't stopped the
 // capture by then, stop it natively.
 const MAIN_STOP_FALLBACK_DELAY_MS = 1_500;

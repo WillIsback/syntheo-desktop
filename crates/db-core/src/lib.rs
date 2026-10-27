@@ -41,7 +41,7 @@ pub enum DbOpenError {
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
     #[error(transparent)]
-    Cloudsync(#[from] anlg_cloudsync::Error),
+    Cloudsync(#[from] syntheo_cloudsync::Error),
 }
 
 pub type ManagedDb = std::sync::Arc<Db>;
@@ -51,7 +51,7 @@ const SQLITE_BUSY_TIMEOUT: Duration = Duration::from_secs(5);
 pub struct Db {
     pub(crate) cloudsync_enabled: bool,
     pub(crate) cloudsync_path: Option<PathBuf>,
-    pub(crate) cloudsync_initializer: anlg_cloudsync::CloudsyncConnectionInitializer,
+    pub(crate) cloudsync_initializer: syntheo_cloudsync::CloudsyncConnectionInitializer,
     pub(crate) cloudsync_connection: Arc<tokio::sync::Mutex<Option<PoolConnection<Sqlite>>>>,
     pub(crate) cloudsync_interrupt: Arc<CloudsyncInterruptHandle>,
     pub(crate) cloudsync_lifecycle: Arc<tokio::sync::Mutex<()>>,
@@ -60,7 +60,7 @@ pub struct Db {
     pub(crate) cloudsync_runtime: Arc<Mutex<CloudsyncRuntimeState>>,
     pub(crate) cloudsync_sync_hook: Arc<Mutex<Option<Arc<dyn CloudsyncSyncHook>>>>,
     pub(crate) pool: SqlitePool,
-    change_notifier: anlg_db_change::ChangeNotifier,
+    change_notifier: syntheo_db_change::ChangeNotifier,
 }
 
 impl std::fmt::Debug for Db {
@@ -98,16 +98,16 @@ impl Db {
             && matches!(options.storage, DbStorage::Local(_))
             && !options.journal_mode_wal
         {
-            return Err(anlg_cloudsync::Error::WalRequired.into());
+            return Err(syntheo_cloudsync::Error::WalRequired.into());
         }
 
-        let cloudsync_initializer = anlg_cloudsync::CloudsyncConnectionInitializer::default();
+        let cloudsync_initializer = syntheo_cloudsync::CloudsyncConnectionInitializer::default();
         let (change_notifier, pool_options) = match (options.cloudsync_enabled, options.storage) {
             (true, DbStorage::Local(_)) => {
-                anlg_db_change::ChangeNotifier::new_with_cloudsync(cloudsync_initializer.clone())
+                syntheo_db_change::ChangeNotifier::new_with_cloudsync(cloudsync_initializer.clone())
             }
-            (true, DbStorage::Memory) => anlg_db_change::ChangeNotifier::disabled(),
-            (false, _) => anlg_db_change::ChangeNotifier::new(),
+            (true, DbStorage::Memory) => syntheo_db_change::ChangeNotifier::disabled(),
+            (false, _) => syntheo_db_change::ChangeNotifier::new(),
         };
         connect_with_options(
             &options,
@@ -118,11 +118,11 @@ impl Db {
         .await
     }
 
-    pub fn change_notifier(&self) -> &anlg_db_change::ChangeNotifier {
+    pub fn change_notifier(&self) -> &syntheo_db_change::ChangeNotifier {
         &self.change_notifier
     }
 
-    pub async fn connect_local(path: impl AsRef<Path>) -> Result<Self, anlg_cloudsync::Error> {
+    pub async fn connect_local(path: impl AsRef<Path>) -> Result<Self, syntheo_cloudsync::Error> {
         if let Some(parent) = path.as_ref().parent() {
             std::fs::create_dir_all(parent)?;
         }
@@ -130,15 +130,15 @@ impl Db {
             .filename(path)
             .create_if_missing(true)
             .pragma("journal_mode", "WAL");
-        let cloudsync_initializer = anlg_cloudsync::CloudsyncConnectionInitializer::default();
+        let cloudsync_initializer = syntheo_cloudsync::CloudsyncConnectionInitializer::default();
         let (options, cloudsync_path) =
-            anlg_cloudsync::apply_with_initializer(options, &cloudsync_initializer)?;
+            syntheo_cloudsync::apply_with_initializer(options, &cloudsync_initializer)?;
         let (change_notifier, pool_options) =
-            anlg_db_change::ChangeNotifier::new_with_cloudsync(cloudsync_initializer.clone());
+            syntheo_db_change::ChangeNotifier::new_with_cloudsync(cloudsync_initializer.clone());
         let pool = apply_internal_pool_policy(pool_options)
             .connect_with(options)
             .await
-            .map_err(anlg_cloudsync::Error::from)?;
+            .map_err(syntheo_cloudsync::Error::from)?;
         ensure_cloudsync_wal(&pool).await?;
 
         Ok(Self {
@@ -157,21 +157,21 @@ impl Db {
         })
     }
 
-    pub async fn connect_memory() -> Result<Self, anlg_cloudsync::Error> {
+    pub async fn connect_memory() -> Result<Self, syntheo_cloudsync::Error> {
         let options =
             apply_internal_connect_policy(SqliteConnectOptions::from_str("sqlite::memory:")?);
-        let (options, cloudsync_path) = anlg_cloudsync::apply(options)?;
-        let (change_notifier, pool_options) = anlg_db_change::ChangeNotifier::disabled();
+        let (options, cloudsync_path) = syntheo_cloudsync::apply(options)?;
+        let (change_notifier, pool_options) = syntheo_db_change::ChangeNotifier::disabled();
         let pool = apply_internal_pool_policy(pool_options)
             .max_connections(1)
             .connect_with(options)
             .await
-            .map_err(anlg_cloudsync::Error::from)?;
+            .map_err(syntheo_cloudsync::Error::from)?;
 
         Ok(Self {
             cloudsync_enabled: true,
             cloudsync_path: Some(cloudsync_path),
-            cloudsync_initializer: anlg_cloudsync::CloudsyncConnectionInitializer::default(),
+            cloudsync_initializer: syntheo_cloudsync::CloudsyncConnectionInitializer::default(),
             cloudsync_connection: Arc::new(tokio::sync::Mutex::new(None)),
             cloudsync_interrupt: Arc::new(CloudsyncInterruptHandle::default()),
             cloudsync_lifecycle: Arc::new(tokio::sync::Mutex::new(())),
@@ -192,7 +192,7 @@ impl Db {
             .filename(path)
             .create_if_missing(true)
             .pragma("foreign_keys", "ON");
-        let (change_notifier, pool_options) = anlg_db_change::ChangeNotifier::new();
+        let (change_notifier, pool_options) = syntheo_db_change::ChangeNotifier::new();
         let pool = apply_internal_pool_policy(pool_options)
             .connect_with(options)
             .await?;
@@ -200,7 +200,7 @@ impl Db {
         Ok(Self {
             cloudsync_enabled: false,
             cloudsync_path: None,
-            cloudsync_initializer: anlg_cloudsync::CloudsyncConnectionInitializer::default(),
+            cloudsync_initializer: syntheo_cloudsync::CloudsyncConnectionInitializer::default(),
             cloudsync_connection: Arc::new(tokio::sync::Mutex::new(None)),
             cloudsync_interrupt: Arc::new(CloudsyncInterruptHandle::default()),
             cloudsync_lifecycle: Arc::new(tokio::sync::Mutex::new(())),
@@ -227,7 +227,7 @@ impl Db {
             .create_if_missing(false)
             .pragma("foreign_keys", "ON")
             .pragma("journal_mode", "WAL");
-        let (change_notifier, pool_options) = anlg_db_change::ChangeNotifier::new();
+        let (change_notifier, pool_options) = syntheo_db_change::ChangeNotifier::new();
         let pool = apply_internal_pool_policy(pool_options)
             .connect_with(options)
             .await?;
@@ -235,7 +235,7 @@ impl Db {
         Ok(Self {
             cloudsync_enabled: false,
             cloudsync_path: None,
-            cloudsync_initializer: anlg_cloudsync::CloudsyncConnectionInitializer::default(),
+            cloudsync_initializer: syntheo_cloudsync::CloudsyncConnectionInitializer::default(),
             cloudsync_connection: Arc::new(tokio::sync::Mutex::new(None)),
             cloudsync_interrupt: Arc::new(CloudsyncInterruptHandle::default()),
             cloudsync_lifecycle: Arc::new(tokio::sync::Mutex::new(())),
@@ -254,7 +254,7 @@ impl Db {
             .read_only(true)
             .pragma("foreign_keys", "ON")
             .pragma("query_only", "ON");
-        let (change_notifier, pool_options) = anlg_db_change::ChangeNotifier::new();
+        let (change_notifier, pool_options) = syntheo_db_change::ChangeNotifier::new();
         let pool = apply_internal_pool_policy(pool_options)
             .connect_with(options)
             .await?;
@@ -262,7 +262,7 @@ impl Db {
         Ok(Self {
             cloudsync_enabled: false,
             cloudsync_path: None,
-            cloudsync_initializer: anlg_cloudsync::CloudsyncConnectionInitializer::default(),
+            cloudsync_initializer: syntheo_cloudsync::CloudsyncConnectionInitializer::default(),
             cloudsync_connection: Arc::new(tokio::sync::Mutex::new(None)),
             cloudsync_interrupt: Arc::new(CloudsyncInterruptHandle::default()),
             cloudsync_lifecycle: Arc::new(tokio::sync::Mutex::new(())),
@@ -279,7 +279,7 @@ impl Db {
         let options =
             apply_internal_connect_policy(SqliteConnectOptions::from_str("sqlite::memory:")?)
                 .pragma("foreign_keys", "ON");
-        let (change_notifier, pool_options) = anlg_db_change::ChangeNotifier::new();
+        let (change_notifier, pool_options) = syntheo_db_change::ChangeNotifier::new();
         let pool = apply_internal_pool_policy(pool_options)
             .max_connections(1)
             .connect_with(options)
@@ -288,7 +288,7 @@ impl Db {
         Ok(Self {
             cloudsync_enabled: false,
             cloudsync_path: None,
-            cloudsync_initializer: anlg_cloudsync::CloudsyncConnectionInitializer::default(),
+            cloudsync_initializer: syntheo_cloudsync::CloudsyncConnectionInitializer::default(),
             cloudsync_connection: Arc::new(tokio::sync::Mutex::new(None)),
             cloudsync_interrupt: Arc::new(CloudsyncInterruptHandle::default()),
             cloudsync_lifecycle: Arc::new(tokio::sync::Mutex::new(())),
@@ -313,8 +313,8 @@ impl Db {
 async fn connect_with_options(
     options: &DbOpenOptions<'_>,
     pool_options: SqlitePoolOptions,
-    change_notifier: anlg_db_change::ChangeNotifier,
-    cloudsync_initializer: anlg_cloudsync::CloudsyncConnectionInitializer,
+    change_notifier: syntheo_db_change::ChangeNotifier,
+    cloudsync_initializer: syntheo_cloudsync::CloudsyncConnectionInitializer,
 ) -> Result<Db, DbOpenError> {
     let mut connect_options = match options.storage {
         DbStorage::Local(path) => {
@@ -340,11 +340,11 @@ async fn connect_with_options(
     let (connect_options, cloudsync_path) = match (options.cloudsync_enabled, options.storage) {
         (true, DbStorage::Local(_)) => {
             let (connect_options, cloudsync_path) =
-                anlg_cloudsync::apply_with_initializer(connect_options, &cloudsync_initializer)?;
+                syntheo_cloudsync::apply_with_initializer(connect_options, &cloudsync_initializer)?;
             (connect_options, Some(cloudsync_path))
         }
         (true, DbStorage::Memory) => {
-            let (connect_options, cloudsync_path) = anlg_cloudsync::apply(connect_options)?;
+            let (connect_options, cloudsync_path) = syntheo_cloudsync::apply(connect_options)?;
             (connect_options, Some(cloudsync_path))
         }
         (false, _) => (connect_options, None),
@@ -410,14 +410,14 @@ fn apply_internal_pool_policy(pool_options: SqlitePoolOptions) -> SqlitePoolOpti
     })
 }
 
-async fn ensure_cloudsync_wal(pool: &SqlitePool) -> Result<(), anlg_cloudsync::Error> {
+async fn ensure_cloudsync_wal(pool: &SqlitePool) -> Result<(), syntheo_cloudsync::Error> {
     let journal_mode: String = sqlx::query_scalar("PRAGMA journal_mode")
         .fetch_one(pool)
         .await?;
     if journal_mode.eq_ignore_ascii_case("wal") {
         Ok(())
     } else {
-        Err(anlg_cloudsync::Error::WalRequired)
+        Err(syntheo_cloudsync::Error::WalRequired)
     }
 }
 

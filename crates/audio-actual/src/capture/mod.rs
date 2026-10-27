@@ -2,8 +2,8 @@ mod joiner;
 mod recovery;
 mod stream;
 
-use anlg_audio::{CaptureConfig, CaptureStream, Error};
 use stream::{CaptureSide, setup_mic_stream, setup_speaker_stream};
+use syntheo_audio::{CaptureConfig, CaptureStream, Error};
 
 pub(crate) fn open_capture(config: CaptureConfig) -> Result<CaptureStream, Error> {
     Ok(stream::open_recovering(config))

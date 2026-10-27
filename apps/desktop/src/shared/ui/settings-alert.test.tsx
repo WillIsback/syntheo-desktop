@@ -8,9 +8,9 @@ const mocks = vi.hoisted(() => ({
   dismiss: vi.fn(),
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", async (importOriginal) => {
+vi.mock("@syntheo/ui/components/ui/toast", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("@anlg/ui/components/ui/toast")>();
+    await importOriginal<typeof import("@syntheo/ui/components/ui/toast")>();
   return {
     ...actual,
     toast: {
@@ -22,7 +22,7 @@ vi.mock("@anlg/ui/components/ui/toast", async (importOriginal) => {
   };
 });
 
-import { TOAST_DURATIONS } from "@anlg/ui/components/ui/toast";
+import { TOAST_DURATIONS } from "@syntheo/ui/components/ui/toast";
 
 import { SettingsAlertToast } from "./settings-alert";
 

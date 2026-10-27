@@ -1,6 +1,6 @@
 import { useRef } from "react";
 
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { isLockedFlag } from "~/lock/flag";
 import { useAppLock } from "~/lock/store";

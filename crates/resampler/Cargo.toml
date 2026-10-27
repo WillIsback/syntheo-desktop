@@ -9,23 +9,23 @@ default = ["async-source"]
 async-source = [
   "dep:dasp",
   "dep:futures-util",
-  "dep:anlg-audio-interface",
+  "dep:syntheo-audio-interface",
   "dep:pin-project",
 ]
 
 [dependencies]
-anlg-audio-interface = { workspace = true, optional = true }
 audioadapter-buffers = "2.0"
 dasp = { workspace = true, optional = true }
 futures-util = { workspace = true, optional = true }
 pin-project = { workspace = true, optional = true }
 rubato = "1.0.1"
+syntheo-audio-interface = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-anlg-data = { workspace = true }
 hound = { workspace = true }
 rodio = { workspace = true, features = ["symphonia-all"] }
+syntheo-data = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 
 [[bench]]

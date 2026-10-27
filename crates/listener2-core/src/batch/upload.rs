@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use anlg_audio_utils::Source;
 use owhisper_client::BatchUploadLimit;
+use syntheo_audio_utils::Source;
 
 pub(in crate::batch) fn encode_base64(data: &[u8]) -> String {
     use base64::Engine as _;
@@ -66,13 +66,13 @@ pub(in crate::batch) enum AudioInput {
 }
 
 impl AudioInput {
-    pub(in crate::batch) fn metadata(&self) -> Result<anlg_audio_utils::AudioMetadata, String> {
+    pub(in crate::batch) fn metadata(&self) -> Result<syntheo_audio_utils::AudioMetadata, String> {
         match self {
             AudioInput::Path(path) => {
-                anlg_audio_utils::audio_file_metadata(path).map_err(|error| error.to_string())
+                syntheo_audio_utils::audio_file_metadata(path).map_err(|error| error.to_string())
             }
             AudioInput::Bytes { data_base64 } => {
-                anlg_audio_utils::audio_bytes_metadata(decode_base64(data_base64)?)
+                syntheo_audio_utils::audio_bytes_metadata(decode_base64(data_base64)?)
                     .map_err(|error| error.to_string())
             }
         }
@@ -80,12 +80,12 @@ impl AudioInput {
 
     fn duration(&self) -> Option<Duration> {
         match self {
-            AudioInput::Path(path) => anlg_audio_utils::source_from_path(path)
+            AudioInput::Path(path) => syntheo_audio_utils::source_from_path(path)
                 .ok()
                 .and_then(|source| source.total_duration()),
             AudioInput::Bytes { data_base64 } => {
                 let data = decode_base64(data_base64).ok()?;
-                anlg_audio_utils::source_from_bytes(data)
+                syntheo_audio_utils::source_from_bytes(data)
                     .ok()
                     .and_then(|source| source.total_duration())
             }
@@ -96,15 +96,15 @@ impl AudioInput {
     fn encode_segments(&self, segment_duration: Duration) -> Result<Vec<Vec<u8>>, String> {
         match self {
             AudioInput::Path(path) => {
-                let source =
-                    anlg_audio_utils::source_from_path(path).map_err(|error| error.to_string())?;
-                anlg_mp3::encode_mono_segments_in_memory(source, segment_duration)
+                let source = syntheo_audio_utils::source_from_path(path)
+                    .map_err(|error| error.to_string())?;
+                syntheo_mp3::encode_mono_segments_in_memory(source, segment_duration)
                     .map_err(|error| error.to_string())
             }
             AudioInput::Bytes { data_base64 } => {
-                let source = anlg_audio_utils::source_from_bytes(decode_base64(data_base64)?)
+                let source = syntheo_audio_utils::source_from_bytes(decode_base64(data_base64)?)
                     .map_err(|error| error.to_string())?;
-                anlg_mp3::encode_mono_segments_in_memory(source, segment_duration)
+                syntheo_mp3::encode_mono_segments_in_memory(source, segment_duration)
                     .map_err(|error| error.to_string())
             }
         }
@@ -149,14 +149,14 @@ pub(super) async fn split_batch_upload(
                 error.type = "local_task_join_failed",
                 "batch_audio_segment_task_failed"
             );
-            failure("Anarlog couldn't prepare this recording for transcription.")
+            failure("Syntheo couldn't prepare this recording for transcription.")
         })?
         .map_err(|_error| {
             tracing::error!(
                 error.type = "audio_encode_failed",
                 "batch_audio_segment_failed"
             );
-            failure("Anarlog couldn't split this recording for transcription.")
+            failure("Syntheo couldn't split this recording for transcription.")
         })?;
 
     if segments.is_empty() {

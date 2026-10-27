@@ -1,5 +1,5 @@
-use anlg_http::HttpClient;
 use serde::Deserialize;
+use syntheo_http::HttpClient;
 
 use crate::error::Error;
 use crate::json::{ImportedMeeting, nonempty};
@@ -70,7 +70,7 @@ impl WebexTranscript {
 
     pub fn imported(
         &self,
-        transcript: Vec<anlg_zoom::TranscriptSegment>,
+        transcript: Vec<syntheo_zoom::TranscriptSegment>,
     ) -> Option<ImportedMeeting> {
         let id = self.transcript_id()?.to_string();
         let title = nonempty(self.meeting_topic.as_deref())

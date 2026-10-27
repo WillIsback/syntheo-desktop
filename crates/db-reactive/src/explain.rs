@@ -128,23 +128,23 @@ fn is_alias_stop_word(alias: &str) -> bool {
 mod tests {
     use super::*;
 
-    const LIVE_QUERY_TEST_MIGRATION_STEPS: &[anlg_db_migrate::MigrationStep] =
-        &[anlg_db_migrate::MigrationStep {
+    const LIVE_QUERY_TEST_MIGRATION_STEPS: &[syntheo_db_migrate::MigrationStep] =
+        &[syntheo_db_migrate::MigrationStep {
             id: "20260415000000_live_query_test_schema",
-            scope: anlg_db_migrate::MigrationScope::Plain,
+            scope: syntheo_db_migrate::MigrationScope::Plain,
             sql: include_str!("../tests/common/live_query_test_schema.sql"),
         }];
 
-    fn live_query_test_schema() -> anlg_db_migrate::DbSchema {
-        anlg_db_migrate::DbSchema {
+    fn live_query_test_schema() -> syntheo_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: LIVE_QUERY_TEST_MIGRATION_STEPS,
             validate_cloudsync_table: |_| false,
         }
     }
 
-    async fn test_db() -> anlg_db_core::Db {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_migrate::migrate(&db, live_query_test_schema())
+    async fn test_db() -> syntheo_db_core::Db {
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_migrate::migrate(&db, live_query_test_schema())
             .await
             .unwrap();
         db
@@ -225,7 +225,7 @@ mod tests {
 
     #[tokio::test]
     async fn non_reactive_queries_report_errors() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
         let error = extract_dependencies(db.pool(), "SELECT 1")
             .await
             .unwrap_err();

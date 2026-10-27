@@ -20,22 +20,22 @@ const ALLOWED_PATH_PREFIXES: &[&str] = &[
 const TYPE_REPLACEMENTS: &[(&str, &str)] = &[
     (
         "GoogleListCalendarsResponse",
-        "anlg_google_calendar::ListCalendarsResponse",
+        "syntheo_google_calendar::ListCalendarsResponse",
     ),
     (
         "GoogleListEventsResponse",
-        "anlg_google_calendar::ListEventsResponse",
+        "syntheo_google_calendar::ListEventsResponse",
     ),
     (
         "OutlookListCalendarsResponse",
-        "anlg_outlook_calendar::ListCalendarsResponse",
+        "syntheo_outlook_calendar::ListCalendarsResponse",
     ),
     (
         "OutlookListEventsResponse",
-        "anlg_outlook_calendar::ListEventsResponse",
+        "syntheo_outlook_calendar::ListEventsResponse",
     ),
-    ("CollectionPage", "anlg_ticket_interface::CollectionPage"),
-    ("TicketPage", "anlg_ticket_interface::TicketPage"),
+    ("CollectionPage", "syntheo_ticket_interface::CollectionPage"),
+    ("TicketPage", "syntheo_ticket_interface::TicketPage"),
 ];
 
 fn main() {

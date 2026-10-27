@@ -45,35 +45,35 @@ vi.mock("@tauri-apps/plugin-os", () => ({
   platform: () => mocks.platform,
 }));
 
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     sessionDir: vi.fn(() => Promise.resolve({ status: "ok", data: "" })),
   },
 }));
 
-vi.mock("@anlg/plugin-opener2", () => ({
+vi.mock("@syntheo/plugin-opener2", () => ({
   commands: {
     openPath: vi.fn(() => Promise.resolve()),
   },
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   commands: {
     windowShow: mocks.windowShow,
   },
 }));
 
-vi.mock("@anlg/ui/components/ui/dancing-sticks", () => ({
+vi.mock("@syntheo/ui/components/ui/dancing-sticks", () => ({
   DancingSticks: ({ amplitude }: { amplitude: number }) => (
     <span data-amplitude={amplitude} data-testid="dancing-sticks" />
   ),
 }));
 
-vi.mock("@anlg/ui/components/ui/spinner", () => ({
+vi.mock("@syntheo/ui/components/ui/spinner", () => ({
   Spinner: () => <span data-testid="spinner" />,
 }));
 
-vi.mock("@anlg/ui/components/ui/tooltip", () => ({
+vi.mock("@syntheo/ui/components/ui/tooltip", () => ({
   Tooltip: ({ children }: { children: ReactNode }) => <>{children}</>,
   TooltipContent: ({ children }: { children: ReactNode }) => <>{children}</>,
   TooltipTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,

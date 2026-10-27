@@ -24,22 +24,22 @@ pub enum Error {
     Poisoned,
 }
 
-impl From<anlg_cli_process::ProcessError> for Error {
-    fn from(value: anlg_cli_process::ProcessError) -> Self {
+impl From<syntheo_cli_process::ProcessError> for Error {
+    fn from(value: syntheo_cli_process::ProcessError) -> Self {
         match value {
-            anlg_cli_process::ProcessError::MissingStdout => Self::MissingStdout,
-            anlg_cli_process::ProcessError::StdoutRead(error) => Self::StdoutRead(error),
-            anlg_cli_process::ProcessError::Wait(error) => Self::Wait(error),
-            anlg_cli_process::ProcessError::Kill(error) => Self::Kill(error),
-            anlg_cli_process::ProcessError::ProcessFailed { detail } => {
+            syntheo_cli_process::ProcessError::MissingStdout => Self::MissingStdout,
+            syntheo_cli_process::ProcessError::StdoutRead(error) => Self::StdoutRead(error),
+            syntheo_cli_process::ProcessError::Wait(error) => Self::Wait(error),
+            syntheo_cli_process::ProcessError::Kill(error) => Self::Kill(error),
+            syntheo_cli_process::ProcessError::ProcessFailed { detail } => {
                 Self::ProcessFailed { detail }
             }
-            anlg_cli_process::ProcessError::Cancelled => Self::Cancelled,
+            syntheo_cli_process::ProcessError::Cancelled => Self::Cancelled,
             // Claude runs with stdin null, so stdin failures cannot occur.
-            anlg_cli_process::ProcessError::MissingStdin => Self::ProcessFailed {
+            syntheo_cli_process::ProcessError::MissingStdin => Self::ProcessFailed {
                 detail: "process missing stdin".to_string(),
             },
-            anlg_cli_process::ProcessError::StdinWrite(error) => Self::ProcessFailed {
+            syntheo_cli_process::ProcessError::StdinWrite(error) => Self::ProcessFailed {
                 detail: format!("failed to write process stdin: {error}"),
             },
         }

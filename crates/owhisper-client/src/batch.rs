@@ -140,7 +140,7 @@ impl<A: crate::RealtimeSttAdapter + BatchSttAdapter> ListenClientBuilder<A> {
 mod tests {
     use super::*;
     use crate::OpenAIAdapter;
-    use anlg_language::{ISO639, Language};
+    use syntheo_language::{ISO639, Language};
 
     #[test]
     fn normalizes_languages_when_constructed() {

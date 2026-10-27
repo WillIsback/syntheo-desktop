@@ -1,7 +1,7 @@
 import {
   commands as listenerCommands,
   type TranscriptionMode,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 type LiveTranscriptionConfig = {
   languages: string[];

@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-windows",
+  "name": "@syntheo/plugin-windows",
   "private": true,
   "main": "./js/index.ts",
   "exports": {

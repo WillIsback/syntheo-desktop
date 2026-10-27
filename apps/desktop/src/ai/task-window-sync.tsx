@@ -1,7 +1,7 @@
 import { emit, emitTo, listen, type UnlistenFn } from "@tauri-apps/api/event";
 
-import { getCurrentWebviewWindowLabel } from "@anlg/plugin-windows";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { getCurrentWebviewWindowLabel } from "@syntheo/plugin-windows";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import {
   type AutoEnhanceMode,
@@ -17,12 +17,12 @@ import {
   type TaskState,
 } from "~/store/zustand/ai-task/tasks";
 
-const TASK_SYNC_EVENT = "anlg:ai-task-sync";
-const TASK_SYNC_REQUEST_EVENT = "anlg:ai-task-sync-request";
-const TASK_CANCEL_EVENT = "anlg:ai-task-cancel";
-const TASK_ENHANCE_EVENT = "anlg:ai-task-enhance";
-const TASK_AUTO_ENHANCE_REQUEST_EVENT = "anlg:ai-task-auto-enhance-request";
-const TASK_AUTO_ENHANCE_RESULT_EVENT = "anlg:ai-task-auto-enhance-result";
+const TASK_SYNC_EVENT = "syntheo:ai-task-sync";
+const TASK_SYNC_REQUEST_EVENT = "syntheo:ai-task-sync-request";
+const TASK_CANCEL_EVENT = "syntheo:ai-task-cancel";
+const TASK_ENHANCE_EVENT = "syntheo:ai-task-enhance";
+const TASK_AUTO_ENHANCE_REQUEST_EVENT = "syntheo:ai-task-auto-enhance-request";
+const TASK_AUTO_ENHANCE_RESULT_EVENT = "syntheo:ai-task-auto-enhance-result";
 export const MAIN_AUTO_ENHANCE_TIMEOUT_MS = 30_000;
 export const MAX_SYNCED_ENHANCE_TASKS = 64;
 

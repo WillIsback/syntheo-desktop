@@ -1,6 +1,6 @@
 import { t } from "@lingui/core/macro";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
 
 import {
   formatMeetingPlatform,

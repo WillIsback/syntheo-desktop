@@ -35,19 +35,12 @@ fn validate_secret_coordinate(caller: SecretCaller, scope: &str, key: &str) -> R
 }
 
 fn secure_store_service(identifier: &str) -> String {
-    let identifier = match identifier {
-        "com.hyprnote.dev" => "com.anarlog.dev",
-        "com.hyprnote.staging" => "com.anarlog.staging",
-        "com.hyprnote.stable" | "com.hyprnote.Hyprnote" => "com.anarlog.stable",
-        identifier => identifier,
-    };
-
     format!("{identifier}.{SECURE_STORE_SUFFIX}")
 }
 
 fn secure_store_account(identifier: &str, scope: &str, key: &str) -> String {
     let account = format!("{scope}:{key}");
-    if identifier == "com.hyprnote.dev" {
+    if identifier == "fr.willisback.syntheo.dev" {
         // Rotate away from dev items whose ACLs captured unstable ad-hoc signatures.
         format!("v2:{account}")
     } else {
@@ -494,11 +487,11 @@ mod tests {
     #[test]
     fn secure_store_service_is_syntheo_specific() {
         assert_eq!(
-            secure_store_service(anlg_brand::STABLE_BUNDLE_ID),
+            secure_store_service(syntheo_brand::STABLE_BUNDLE_ID),
             format!("fr.willisback.syntheo.{SECURE_STORE_SUFFIX}")
         );
         assert_eq!(
-            secure_store_service(anlg_brand::DEV_BUNDLE_ID),
+            secure_store_service(syntheo_brand::DEV_BUNDLE_ID),
             format!("fr.willisback.syntheo.dev.{SECURE_STORE_SUFFIX}")
         );
     }
@@ -508,10 +501,14 @@ mod tests {
     #[test]
     fn maps_bundle_identifiers_to_secure_store_services() {
         for (identifier, expected) in [
-            ("com.hyprnote.dev", "com.anarlog.dev.secure-store"),
-            ("com.hyprnote.staging", "com.anarlog.staging.secure-store"),
-            ("com.hyprnote.stable", "com.anarlog.stable.secure-store"),
-            ("com.hyprnote.Hyprnote", "com.anarlog.stable.secure-store"),
+            (
+                "fr.willisback.syntheo.dev",
+                "fr.willisback.syntheo.dev.secure-store",
+            ),
+            (
+                "fr.willisback.syntheo",
+                "fr.willisback.syntheo.secure-store",
+            ),
             ("com.example.app", "com.example.app.secure-store"),
         ] {
             assert_eq!(
@@ -525,11 +522,11 @@ mod tests {
     #[test]
     fn versions_dev_accounts_across_signing_changes() {
         assert_eq!(
-            secure_store_account("com.hyprnote.dev", "provider", "openai"),
+            secure_store_account("fr.willisback.syntheo.dev", "provider", "openai"),
             "v2:provider:openai"
         );
         assert_eq!(
-            secure_store_account("com.hyprnote.stable", "provider", "openai"),
+            secure_store_account("fr.willisback.syntheo", "provider", "openai"),
             "provider:openai"
         );
     }
@@ -538,17 +535,11 @@ mod tests {
     fn lists_legacy_secret_locations_without_duplicates() {
         for (identifier, expected) in [
             (
-                "com.hyprnote.dev",
-                vec![
-                    (
-                        "com.anarlog.dev.secure-store".to_string(),
-                        "provider:openai".to_string(),
-                    ),
-                    (
-                        "com.hyprnote.dev.secure-store".to_string(),
-                        "provider:openai".to_string(),
-                    ),
-                ],
+                "fr.willisback.syntheo.dev",
+                vec![(
+                    "fr.willisback.syntheo.dev.secure-store".to_string(),
+                    "provider:openai".to_string(),
+                )],
             ),
             ("com.example.app", vec![]),
         ] {

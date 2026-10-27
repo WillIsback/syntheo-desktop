@@ -1,8 +1,8 @@
 import { t } from "@lingui/core/macro";
 
-import { Square, WarningCircle, Waveform } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { Spinner } from "@anlg/ui/components/ui/spinner";
+import { Square, WarningCircle, Waveform } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { Spinner } from "@syntheo/ui/components/ui/spinner";
 
 export function TranscriptEmptyState({
   isBatching,

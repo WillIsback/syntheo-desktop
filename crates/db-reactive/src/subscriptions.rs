@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
-use anlg_db_execute::DbExecutor;
+use syntheo_db_execute::DbExecutor;
 
 use crate::watch::{DependencyWatchIndex, WatchId};
 use crate::{DependencyAnalysis, DependencyTarget, QueryEventSink, SubscriptionRegistration};

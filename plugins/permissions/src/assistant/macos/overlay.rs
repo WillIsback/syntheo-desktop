@@ -4,8 +4,8 @@ use objc2_app_kit::{
 };
 use objc2_foundation::{MainThreadMarker, NSString};
 
-use anlg_overlay_kit::macos::layout::{LayoutHostView, LayoutSubview};
-use anlg_overlay_kit::macos::panel::create_nonactivating_panel_with_content;
+use syntheo_overlay_kit::macos::layout::{LayoutHostView, LayoutSubview};
+use syntheo_overlay_kit::macos::panel::create_nonactivating_panel_with_content;
 
 use super::host_app::HostApp;
 use super::layout;

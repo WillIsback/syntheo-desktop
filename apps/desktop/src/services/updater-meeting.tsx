@@ -1,7 +1,7 @@
 import { useStore } from "zustand";
 
-import { commands as updaterCommands } from "@anlg/plugin-updater2";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { commands as updaterCommands } from "@syntheo/plugin-updater2";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { isAppStoreBuild } from "~/shared/app-store";
 import { listenerStore } from "~/store/zustand/listener/instance";

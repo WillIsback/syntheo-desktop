@@ -77,7 +77,7 @@ pub struct BatchParams {
     pub base_url: String,
     pub api_key: String,
     #[serde(default)]
-    pub languages: Vec<anlg_language::Language>,
+    pub languages: Vec<syntheo_language::Language>,
     #[serde(default)]
     pub keywords: Vec<String>,
     #[serde(default)]
@@ -228,15 +228,15 @@ pub(super) fn session_span(session_id: &str) -> tracing::Span {
 }
 
 pub(super) fn log_batch_failure(operation: &str, error: &str) {
-    if anlg_user_error::is_user_error_text(error) {
+    if syntheo_user_error::is_user_error_text(error) {
         tracing::warn!(
-            anarlog.operation = operation,
+            syntheo.operation = operation,
             error.type = "user_error",
             "batch_operation_rejected"
         );
     } else {
         tracing::error!(
-            anarlog.operation = operation,
+            syntheo.operation = operation,
             error.type = "batch_operation_failed",
             "batch_operation_failed"
         );
@@ -300,7 +300,7 @@ mod tests {
             model: None,
             base_url: base_url.to_string(),
             api_key: "key".to_string(),
-            languages: vec![anlg_language::ISO639::En.into()],
+            languages: vec![syntheo_language::ISO639::En.into()],
             keywords: vec![],
             num_speakers: None,
             min_speakers: None,

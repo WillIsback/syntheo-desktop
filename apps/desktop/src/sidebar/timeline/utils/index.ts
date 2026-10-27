@@ -8,7 +8,7 @@ import {
   startOfDay,
   startOfMonth,
   TZDate,
-} from "@anlg/utils";
+} from "@syntheo/utils";
 
 import {
   folderPathMatchesFilter,

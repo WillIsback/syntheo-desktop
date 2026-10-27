@@ -17,11 +17,11 @@ const mocks = vi.hoisted(() => ({
   stopSfx: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-opener2", () => ({
+vi.mock("@syntheo/plugin-opener2", () => ({
   commands: { openUrl: vi.fn() },
 }));
 
-vi.mock("@anlg/plugin-sfx", () => ({
+vi.mock("@syntheo/plugin-sfx", () => ({
   commands: { stop: mocks.stopSfx },
 }));
 
@@ -79,12 +79,12 @@ it("shows a retryable error when onboarding cannot be persisted", async () => {
   });
 
   render(<FinalSection onContinue={onContinue} />);
-  fireEvent.click(screen.getByRole("button", { name: "Open Anarlog" }));
+  fireEvent.click(screen.getByRole("button", { name: "Open Syntheo" }));
 
   expect(
     (
       screen.getByRole("button", {
-        name: "Open Anarlog",
+        name: "Open Syntheo",
       }) as HTMLButtonElement
     ).disabled,
   ).toBe(true);
@@ -92,7 +92,7 @@ it("shows a retryable error when onboarding cannot be persisted", async () => {
   expect(
     (
       screen.getByRole("button", {
-        name: "Open Anarlog",
+        name: "Open Syntheo",
       }) as HTMLButtonElement
     ).disabled,
   ).toBe(false);
@@ -112,9 +112,9 @@ it("reuses the blank fallback session when persistence is retried", async () => 
     .mockResolvedValueOnce({ status: "ok", data: null });
 
   render(<FinalSection onContinue={onContinue} />);
-  fireEvent.click(screen.getByRole("button", { name: "Open Anarlog" }));
+  fireEvent.click(screen.getByRole("button", { name: "Open Syntheo" }));
   await screen.findByRole("alert");
-  fireEvent.click(screen.getByRole("button", { name: "Open Anarlog" }));
+  fireEvent.click(screen.getByRole("button", { name: "Open Syntheo" }));
 
   await waitFor(() => {
     expect(onContinue).toHaveBeenCalledWith("blank-session");
@@ -133,7 +133,7 @@ it("ignores concurrent finish attempts", async () => {
   );
 
   render(<FinalSection onContinue={onContinue} />);
-  const button = screen.getByRole("button", { name: "Open Anarlog" });
+  const button = screen.getByRole("button", { name: "Open Syntheo" });
   fireEvent.click(button);
   fireEvent.click(button);
   resolveWelcomeSession("welcome-session");

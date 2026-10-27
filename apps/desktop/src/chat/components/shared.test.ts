@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
 
 import { hasRenderableContent } from "~/chat/message-content";
-import type { AnlgUIMessage } from "~/chat/types";
+import type { SyntheoUIMessage } from "~/chat/types";
 
 describe("hasRenderableContent", () => {
-  const cases: Array<[string, AnlgUIMessage, boolean]> = [
+  const cases: Array<[string, SyntheoUIMessage, boolean]> = [
     [
       "blank reasoning",
       {

@@ -1,11 +1,11 @@
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 import { useCallback } from "react";
 
-import { commands as detectCommands } from "@anlg/plugin-detect";
-import { commands as templateCommands } from "@anlg/plugin-template";
-import { commands as trayCommands } from "@anlg/plugin-tray";
-import { commands as updaterCommands } from "@anlg/plugin-updater2";
-import { commands as windowsCommands } from "@anlg/plugin-windows";
+import { commands as detectCommands } from "@syntheo/plugin-detect";
+import { commands as templateCommands } from "@syntheo/plugin-template";
+import { commands as trayCommands } from "@syntheo/plugin-tray";
+import { commands as updaterCommands } from "@syntheo/plugin-updater2";
+import { commands as windowsCommands } from "@syntheo/plugin-windows";
 
 import { executeTransaction, liveQueryClient, useLiveQuery } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";

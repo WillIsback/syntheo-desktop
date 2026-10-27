@@ -140,7 +140,9 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("app.db");
         std::fs::write(dir.path().join("managed_settings.json"),br#"{"schema_version":1,"settings":{"intelligence_disabled":true,"cloud_sync_enabled":false}}"#).unwrap();
-        let db = anlg_db_core::Db::connect_local_plain(&path).await.unwrap();
+        let db = syntheo_db_core::Db::connect_local_plain(&path)
+            .await
+            .unwrap();
         crate::prepare_schema(&db).await.unwrap();
         assert!(
             sqlx::query("UPDATE app_settings SET value_json='true' WHERE id='cloud_sync_enabled'")
@@ -165,7 +167,9 @@ mod tests {
             .await
             .unwrap();
         db.pool().close().await;
-        let db = anlg_db_core::Db::connect_local_plain(&path).await.unwrap();
+        let db = syntheo_db_core::Db::connect_local_plain(&path)
+            .await
+            .unwrap();
         crate::prepare_schema(&db).await.unwrap();
         let disabled: String = sqlx::query_scalar(
             "SELECT value_json FROM app_settings WHERE id='intelligence_disabled'",

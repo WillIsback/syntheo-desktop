@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   rowsById: {} as Record<string, Array<Record<string, unknown>>>,
 }));
 
-vi.mock("@anlg/plugin-calendar", () => ({
+vi.mock("@syntheo/plugin-calendar", () => ({
   commands: {
     updateIgnoredCalendarItem: mocks.updateIgnoredCalendarItem,
   },

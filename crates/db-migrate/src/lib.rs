@@ -7,7 +7,7 @@ mod schema;
 pub use error::MigrateError;
 pub use schema::{DbSchema, MigrationScope, MigrationStep};
 
-use anlg_db_core::Db;
+use syntheo_db_core::Db;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct MigrationProgress {
@@ -30,7 +30,7 @@ pub async fn migrate_with_progress(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::{DbOpenOptions, DbStorage};
+    use syntheo_db_core::{DbOpenOptions, DbStorage};
 
     fn schema_of(steps: &'static [MigrationStep]) -> DbSchema {
         DbSchema {
@@ -157,7 +157,7 @@ mod tests {
             .unwrap();
 
         let floor: i64 = sqlx::query_scalar(
-            "SELECT min_supported_version FROM _anlg_schema_compat WHERE id = 0",
+            "SELECT min_supported_version FROM _syntheo_schema_compat WHERE id = 0",
         )
         .fetch_one(db.pool())
         .await

@@ -1,7 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 
-import { md2json } from "@anlg/editor/markdown";
+import { md2json } from "@syntheo/editor/markdown";
 
 import {
   resolveActiveEnhancedNoteId,

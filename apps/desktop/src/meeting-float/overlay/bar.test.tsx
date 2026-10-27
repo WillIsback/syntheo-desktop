@@ -1,11 +1,11 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { FloatingBarState } from "@anlg/plugin-windows";
+import type { FloatingBarState } from "@syntheo/plugin-windows";
 
 import { FloatingBarOverlay } from "./bar";
 
-vi.mock("@anlg/ui/components/ui/dancing-sticks", () => ({
+vi.mock("@syntheo/ui/components/ui/dancing-sticks", () => ({
   DancingSticks: ({ amplitude }: { amplitude: number }) => (
     <span data-testid="waveform" data-amplitude={amplitude} />
   ),

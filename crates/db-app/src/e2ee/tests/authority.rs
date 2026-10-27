@@ -9,7 +9,7 @@ async fn title(pool: &SqlitePool) -> String {
 
 pub(super) async fn accept(
     pool: &SqlitePool,
-    keyring: &anlg_e2ee::WorkspaceKeyring,
+    keyring: &syntheo_e2ee::WorkspaceKeyring,
     batch: &E2eeCloudBatch,
     head: &mut u64,
 ) -> Vec<E2eeWitnessEvent> {
@@ -115,7 +115,7 @@ async fn cloud_order_survives_lower_client_revisions_and_pending_edits_survive_l
         sequence: head,
         workspace_id: "workspace-a".into(),
         record_id: sealed.record_id,
-        payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+        payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
         payload: sealed.payload,
     };
     for pool in [db.pool(), fresh.pool()] {
@@ -256,7 +256,7 @@ async fn cloud_rebase_merges_disjoint_document_edits_before_freezing_the_upload(
             sequence: head,
             workspace_id: "workspace-a".into(),
             record_id: sealed.record_id,
-            payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+            payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
             payload: sealed.payload,
         }],
     )
@@ -351,7 +351,7 @@ async fn accepting_an_offline_title_edit_does_not_resurrect_a_cloud_tombstone() 
             sequence: head,
             workspace_id: "workspace-a".into(),
             record_id: sealed.record_id,
-            payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+            payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
             payload: sealed.payload,
         }],
     )
@@ -449,7 +449,7 @@ async fn replaying_cloud_history_retires_an_edit_from_a_backup_taken_before_batc
             sequence: events.len() as u64 + 1,
             workspace_id: "workspace-a".into(),
             record_id: sealed.record_id,
-            payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+            payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
             payload: sealed.payload,
         }],
     )

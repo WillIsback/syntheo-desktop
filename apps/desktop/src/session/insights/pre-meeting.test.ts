@@ -27,7 +27,7 @@ vi.mock("ai", async (importOriginal) => ({
   streamText: hoisted.streamText,
 }));
 
-vi.mock("@anlg/plugin-template", () => ({
+vi.mock("@syntheo/plugin-template", () => ({
   commands: {
     renderCustom: hoisted.renderCustom,
   },

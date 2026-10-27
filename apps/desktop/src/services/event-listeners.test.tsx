@@ -70,7 +70,7 @@ const {
   getListenerStateMock: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-notification", () => ({
+vi.mock("@syntheo/plugin-notification", () => ({
   events: {
     notificationEvent: {
       listen: notificationListenMock,
@@ -78,11 +78,11 @@ vi.mock("@anlg/plugin-notification", () => ({
   },
 }));
 
-vi.mock("@anlg/plugin-opener2", () => ({
+vi.mock("@syntheo/plugin-opener2", () => ({
   commands: { openUrl: openUrlMock },
 }));
 
-vi.mock("@anlg/plugin-updater2", () => ({
+vi.mock("@syntheo/plugin-updater2", () => ({
   commands: {
     maybeEmitUpdated: maybeEmitUpdatedMock,
   },
@@ -93,7 +93,7 @@ vi.mock("@anlg/plugin-updater2", () => ({
   },
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   getCurrentWebviewWindowLabel: getCurrentWebviewWindowLabelMock,
 }));
 

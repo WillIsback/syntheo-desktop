@@ -7,7 +7,7 @@ import type {
   IdentityAssignment,
   RenderTranscriptRequest,
   RenderedTranscriptSegment,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import { RenderTranscript } from "./transcript";
 
@@ -42,7 +42,7 @@ const mocks = vi.hoisted(() => ({
   })),
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     renderTranscriptSegments: mocks.renderTranscriptSegments,
   },
@@ -63,7 +63,7 @@ vi.mock("./word-span", () => ({
   ),
 }));
 
-vi.mock("@anlg/ui/components/ui/popover", () => ({
+vi.mock("@syntheo/ui/components/ui/popover", () => ({
   AppFloatingPanel: () => null,
   Popover: ({ children }: { children: ReactNode }) => <>{children}</>,
   PopoverContent: () => null,

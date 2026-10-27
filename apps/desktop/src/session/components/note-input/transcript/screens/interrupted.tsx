@@ -1,4 +1,4 @@
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 import { useStoredSettingValue } from "~/settings/queries";
 import { useListener } from "~/stt/contexts";

@@ -1,7 +1,7 @@
 ---
 name: but
 version: 0.22.3
-description: "Use only in the Anarlog repository when the active checkout branch is exactly gitbutler/workspace. Commit, push, branch, and manage version control with GitButler. Use for commits, selective dirty-file or hunk commits, branches, diffs, PRs, history edits, squashes, amends, undo, merge, apply, and unapply. For selected dirty files or hunks, inspect with `but diff`; use compact `but status` for commit order, branch/stack placement, or conflict overview; use `but status -fv` when file/hunk IDs or per-commit file details matter. Replaces git write commands."
+description: "Use only in the Syntheo repository when the active checkout branch is exactly gitbutler/workspace. Commit, push, branch, and manage version control with GitButler. Use for commits, selective dirty-file or hunk commits, branches, diffs, PRs, history edits, squashes, amends, undo, merge, apply, and unapply. For selected dirty files or hunks, inspect with `but diff`; use compact `but status` for commit order, branch/stack placement, or conflict overview; use `but status -fv` when file/hunk IDs or per-commit file details matter. Replaces git write commands."
 author: GitButler Team
 ---
 
@@ -9,7 +9,7 @@ author: GitButler Team
 
 ## Applicability
 
-Use only in the Anarlog repository or its checkouts/worktrees when the active
+Use only in the Syntheo repository or its checkouts/worktrees when the active
 checkout branch is exactly `gitbutler/workspace`. Before running this workflow,
 check with `git symbolic-ref --quiet --short HEAD` (a read-only branch check).
 On any other branch or detached HEAD, skip this skill and use the normal Git

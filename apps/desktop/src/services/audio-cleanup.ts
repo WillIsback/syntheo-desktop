@@ -2,8 +2,8 @@ import {
   commands,
   events,
   type CaptureStatusEvent,
-} from "@anlg/plugin-transcription";
-import { toast } from "@anlg/ui/components/ui/toast";
+} from "@syntheo/plugin-transcription";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import {
   clearCaptureAudioDeletionFailure,
@@ -23,8 +23,8 @@ export async function handleCaptureCleanupStatus(payload: CaptureStatusEvent) {
           : "audio-cleanup",
         duration: Infinity,
         description: payload.session_id
-          ? "Anarlog could not remove temporary audio and will retry cleanup automatically."
-          : "Anarlog could not finish audio cleanup or recovery and will retry automatically.",
+          ? "Syntheo could not remove temporary audio and will retry cleanup automatically."
+          : "Syntheo could not finish audio cleanup or recovery and will retry automatically.",
       },
     );
     if (payload.session_id) {
@@ -40,7 +40,7 @@ export async function handleCaptureCleanupStatus(payload: CaptureStatusEvent) {
       id: `audio-recovery-${payload.session_id}`,
       duration: Infinity,
       description:
-        "Anarlog could not restore interrupted audio and will retry recovery automatically.",
+        "Syntheo could not restore interrupted audio and will retry recovery automatically.",
     });
     if (payload.session_id) {
       await saveIncompleteCapture(payload.session_id, "audio-recovery", false);

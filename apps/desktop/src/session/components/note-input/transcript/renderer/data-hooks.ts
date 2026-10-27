@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo, useRef } from "react";
 
-import type { RenderTranscriptRequest } from "@anlg/plugin-transcription";
+import type { RenderTranscriptRequest } from "@syntheo/plugin-transcription";
 
 import { TRANSCRIPT_RENDER_CACHE_TIME_MS } from "../cache";
 import { useTranscriptRenderData } from "../render-request-hooks";

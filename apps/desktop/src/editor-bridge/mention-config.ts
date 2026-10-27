@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { MentionConfig } from "@anlg/editor/widgets";
+import type { MentionConfig } from "@syntheo/editor/widgets";
 
 import { useTimelineSessionsTable } from "~/calendar/queries";
 import { useHumans, useOrganizations } from "~/contacts/queries";

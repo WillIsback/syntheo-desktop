@@ -1,5 +1,5 @@
 //! Syntheo ne calcule plus d'empreintes vocales. Les versions héritées
-//! d'Anarlog ont pu en enregistrer : les vecteurs sont des secrets du
+//! d'Syntheo ont pu en enregistrer : les vecteurs sont des secrets du
 //! trousseau, ces tables n'en gardent que les coordonnées.
 
 use sqlx::SqlitePool;

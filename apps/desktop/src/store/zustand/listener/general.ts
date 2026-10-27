@@ -5,8 +5,8 @@ import {
   commands as listenerCommands,
   type CaptureConfigUpdate,
   type CaptureParams,
-} from "@anlg/plugin-transcription";
-import type { TranscriptionParams } from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
+import type { TranscriptionParams } from "@syntheo/plugin-transcription";
 
 import type { BatchActions, BatchState } from "./batch";
 import { hasConflictingBatchSession, runBatchSession } from "./general-batch";

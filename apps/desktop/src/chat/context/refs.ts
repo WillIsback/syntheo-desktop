@@ -1,4 +1,4 @@
-import type { AnlgUIMessage } from "../types";
+import type { SyntheoUIMessage } from "../types";
 import { CONTEXT_ENTITY_SOURCES } from "./entities";
 import type { ContextRef } from "./entities";
 
@@ -50,7 +50,7 @@ function getContextRefs(metadata: unknown): ContextRef[] {
 }
 
 export function extractContextRefsFromMessages(
-  messages: Array<Pick<AnlgUIMessage, "role" | "metadata">>,
+  messages: Array<Pick<SyntheoUIMessage, "role" | "metadata">>,
 ): ContextRef[] {
   const seen = new Set<string>();
   const refs: ContextRef[] = [];
@@ -68,7 +68,7 @@ export function extractContextRefsFromMessages(
   return refs;
 }
 
-function findLastUserMessage<T extends Pick<AnlgUIMessage, "role">>(
+function findLastUserMessage<T extends Pick<SyntheoUIMessage, "role">>(
   messages: T[],
 ): T | undefined {
   for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -80,7 +80,7 @@ function findLastUserMessage<T extends Pick<AnlgUIMessage, "role">>(
 }
 
 export function getCurrentSessionIdFromMessages(
-  messages: Array<Pick<AnlgUIMessage, "role" | "metadata">>,
+  messages: Array<Pick<SyntheoUIMessage, "role" | "metadata">>,
 ): string | undefined {
   const lastUserMessage = findLastUserMessage(messages);
   if (!lastUserMessage) return undefined;

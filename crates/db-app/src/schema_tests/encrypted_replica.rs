@@ -48,7 +48,7 @@ fn ciphertext_ownership_migrations_use_the_required_scopes() {
         .unwrap();
     assert_eq!(
         record_hash.scope,
-        anlg_db_migrate::MigrationScope::CloudsyncAlter {
+        syntheo_db_migrate::MigrationScope::CloudsyncAlter {
             table_name: "e2ee_records"
         }
     );
@@ -56,19 +56,22 @@ fn ciphertext_ownership_migrations_use_the_required_scopes() {
         .iter()
         .find(|step| step.id == "20260815100400_e2ee_ciphertext_ownership")
         .unwrap();
-    assert_eq!(ownership.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(ownership.scope, syntheo_db_migrate::MigrationScope::Plain);
     let local_hashes = APP_MIGRATION_STEPS
         .iter()
         .find(|step| step.id == "20260816100000_e2ee_replica_payload_hashes")
         .unwrap();
-    assert_eq!(local_hashes.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(
+        local_hashes.scope,
+        syntheo_db_migrate::MigrationScope::Plain
+    );
     let localization = APP_MIGRATION_STEPS
         .iter()
         .find(|step| step.id == "20260816100100_e2ee_payload_hash_local_state")
         .unwrap();
     assert_eq!(
         localization.scope,
-        anlg_db_migrate::MigrationScope::CloudsyncAlter {
+        syntheo_db_migrate::MigrationScope::CloudsyncAlter {
             table_name: "e2ee_records"
         }
     );
@@ -77,9 +80,9 @@ fn ciphertext_ownership_migrations_use_the_required_scopes() {
 #[tokio::test]
 async fn ciphertext_ownership_migration_preserves_legacy_versions_and_is_resumable() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260815100300_e2ee_record_payload_hash"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -88,9 +91,9 @@ async fn ciphertext_ownership_migration_preserves_legacy_versions_and_is_resumab
     .unwrap();
 
     let current_payload = "current-ciphertext";
-    let current_hash = anlg_e2ee::payload_hash(current_payload);
+    let current_hash = syntheo_e2ee::payload_hash(current_payload);
     let witnessed_payload = "witnessed-ciphertext";
-    let witnessed_hash = anlg_e2ee::payload_hash(witnessed_payload);
+    let witnessed_hash = syntheo_e2ee::payload_hash(witnessed_payload);
     sqlx::query(
         "INSERT INTO e2ee_records (id, workspace_id, payload)
          VALUES ('record-1', 'workspace-a', ?)",
@@ -124,8 +127,8 @@ async fn ciphertext_ownership_migration_preserves_legacy_versions_and_is_resumab
     .await
     .unwrap();
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let current: (String, String) = sqlx::query_as(
         "SELECT replica_hash.payload_hash, replica.payload
@@ -192,7 +195,7 @@ async fn ciphertext_ownership_migration_preserves_legacy_versions_and_is_resumab
 async fn current_ciphertext_is_shared_by_local_and_witness_metadata() {
     let db = test_db().await;
     let current_payload = "current-ciphertext";
-    let current_hash = anlg_e2ee::payload_hash(current_payload);
+    let current_hash = syntheo_e2ee::payload_hash(current_payload);
     sqlx::query(
         "INSERT INTO e2ee_records (id, workspace_id, payload)
          VALUES ('record-1', 'workspace-a', ?)",
@@ -290,7 +293,7 @@ async fn representative_ciphertext_corpus_uses_one_steady_state_copy() {
     let mut expected_payload_bytes = 0_i64;
     for index in 0..16 {
         let payload = format!("{index:02}-{}", "x".repeat(64 * 1024));
-        let payload_hash = anlg_e2ee::payload_hash(&payload);
+        let payload_hash = syntheo_e2ee::payload_hash(&payload);
         let record_id = format!("record-{index}");
         expected_payload_bytes += i64::try_from(payload.len()).unwrap();
         sqlx::query(
@@ -360,9 +363,9 @@ async fn representative_ciphertext_corpus_uses_one_steady_state_copy() {
 
 #[tokio::test]
 async fn e2ee_order_migration_backfills_the_canonical_payload_locally() {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
     let payload = "ciphertext";
-    let payload_hash = anlg_e2ee::payload_hash(payload);
+    let payload_hash = syntheo_e2ee::payload_hash(payload);
     sqlx::raw_sql(include_str!(
         "../../migrations/20260717120000_e2ee_replica.sql"
     ))
@@ -407,7 +410,7 @@ async fn e2ee_order_migration_backfills_the_canonical_payload_locally() {
         .iter()
         .find(|step| step.id == "20260717192000_e2ee_replica_order")
         .unwrap();
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
     sqlx::raw_sql(migration.sql)
         .execute(db.pool())
         .await
@@ -444,7 +447,7 @@ fn e2ee_witness_state_is_local_only() {
         .find(|step| step.id == "20260717193000_e2ee_freshness_witness")
         .unwrap();
 
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
     for table_name in ["e2ee_witness_records", "e2ee_witness_state"] {
         assert!(
             !cloudsync_table_registry()
@@ -462,7 +465,7 @@ fn e2ee_witness_pending_is_local_only_and_checksum_is_pinned() {
         .find(|step| step.id == "20260725001400_e2ee_witness_pending")
         .unwrap();
 
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
     assert!(
         !cloudsync_table_registry()
             .iter()
@@ -487,11 +490,11 @@ async fn e2ee_reconciliation_queues_are_local_and_track_replica_changes() {
         .unwrap();
     assert_eq!(
         queue_migration.scope,
-        anlg_db_migrate::MigrationScope::Plain
+        syntheo_db_migrate::MigrationScope::Plain
     );
     assert_eq!(
         trigger_migration.scope,
-        anlg_db_migrate::MigrationScope::CloudsyncAlter {
+        syntheo_db_migrate::MigrationScope::CloudsyncAlter {
             table_name: "e2ee_records"
         }
     );
@@ -536,9 +539,9 @@ async fn e2ee_reconciliation_queues_are_local_and_track_replica_changes() {
 #[tokio::test]
 async fn e2ee_witness_pending_migration_seeds_only_dominating_local_state() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260725001400_e2ee_witness_pending"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -575,7 +578,7 @@ async fn e2ee_witness_pending_migration_seeds_only_dominating_local_state() {
         .await
         .unwrap();
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let pending: Vec<String> =
         sqlx::query_scalar("SELECT record_id FROM e2ee_witness_pending ORDER BY record_id")
@@ -613,7 +616,7 @@ fn e2ee_dirty_rows_is_local_only_with_scoped_domain_triggers() {
         .unwrap();
     assert_eq!(
         table_migration.scope,
-        anlg_db_migrate::MigrationScope::Plain
+        syntheo_db_migrate::MigrationScope::Plain
     );
     for local_table in ["e2ee_apply_guard", "e2ee_dirty_rows"] {
         assert!(
@@ -632,7 +635,7 @@ fn e2ee_dirty_rows_is_local_only_with_scoped_domain_triggers() {
     for table_name in E2EE_DOMAIN_TABLES {
         assert!(trigger_migrations.iter().any(|step| matches!(
             step.scope,
-            anlg_db_migrate::MigrationScope::CloudsyncAlter {
+            syntheo_db_migrate::MigrationScope::CloudsyncAlter {
                 table_name: scoped_table
             } if scoped_table == *table_name
         )));
@@ -642,9 +645,9 @@ fn e2ee_dirty_rows_is_local_only_with_scoped_domain_triggers() {
 #[tokio::test]
 async fn e2ee_dirty_rows_migration_seeds_existing_domain_rows_and_tombstones() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260723120000_e2ee_dirty_rows"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -683,7 +686,7 @@ async fn e2ee_dirty_rows_migration_seeds_existing_domain_rows_and_tombstones() {
         .unwrap();
     }
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let dirty_rows: Vec<(String, String, String, i64)> = sqlx::query_as(
         "SELECT workspace_id, table_name, row_id, generation
@@ -719,9 +722,9 @@ async fn e2ee_dirty_rows_migration_seeds_existing_domain_rows_and_tombstones() {
 #[tokio::test]
 async fn synced_preferences_migration_backfills_settings_and_marks_them_dirty() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260810120000_synced_preferences"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -740,7 +743,7 @@ async fn synced_preferences_migration_backfills_settings_and_marks_them_dirty() 
     .await
     .unwrap();
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let preferences: Vec<(String, String, String, String)> = sqlx::query_as(
         "SELECT id, workspace_id, value_json, updated_at
@@ -789,9 +792,9 @@ async fn synced_preferences_migration_backfills_settings_and_marks_them_dirty() 
 #[tokio::test]
 async fn synced_preferences_backfill_is_skipped_without_a_workspace_binding() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260810120000_synced_preferences"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -804,7 +807,7 @@ async fn synced_preferences_backfill_is_skipped_without_a_workspace_binding() {
         .await
         .unwrap();
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let preference_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM synced_preferences")
         .fetch_one(db.pool())
@@ -1013,9 +1016,9 @@ async fn e2ee_apply_guard_suppresses_only_the_guarded_write() {
 #[tokio::test]
 async fn e2ee_dirty_triggers_apply_to_initialized_cloudsync_tables() {
     let db = Db::connect_memory().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260723120000_e2ee_dirty_rows"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -1031,7 +1034,7 @@ async fn e2ee_dirty_triggers_apply_to_initialized_cloudsync_tables() {
         db.cloudsync_init(table_name, None, None).await.unwrap();
     }
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let trigger_count: i64 = sqlx::query_scalar(
         "SELECT COUNT(*)
@@ -1088,9 +1091,9 @@ async fn torn_e2ee_payload_hash_local_state_migration_is_repaired() {
         "CREATE TRIGGER e2ee_replica_payload_hash_update",
     ] {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_migrate::migrate(
+        syntheo_db_migrate::migrate(
             &db,
-            anlg_db_migrate::DbSchema {
+            syntheo_db_migrate::DbSchema {
                 steps: migration_steps_before("20260816100100_e2ee_payload_hash_local_state"),
                 validate_cloudsync_table: cloudsync_alter_guard_required,
             },
@@ -1150,8 +1153,8 @@ async fn torn_e2ee_payload_hash_local_state_migration_is_repaired() {
 #[tokio::test]
 async fn torn_e2ee_payload_hash_repair_refreshes_the_cloudsync_schema_hash() {
     async fn open_cloudsync_db(path: &std::path::Path) -> Db {
-        Db::open(anlg_db_core::DbOpenOptions {
-            storage: anlg_db_core::DbStorage::Local(path),
+        Db::open(syntheo_db_core::DbOpenOptions {
+            storage: syntheo_db_core::DbStorage::Local(path),
             cloudsync_enabled: true,
             journal_mode_wal: true,
             foreign_keys: true,
@@ -1162,9 +1165,9 @@ async fn torn_e2ee_payload_hash_repair_refreshes_the_cloudsync_schema_hash() {
     }
 
     async fn migrate_until_before_torn_step(db: &Db) {
-        anlg_db_migrate::migrate(
+        syntheo_db_migrate::migrate(
             db,
-            anlg_db_migrate::DbSchema {
+            syntheo_db_migrate::DbSchema {
                 steps: migration_steps_before("20260816100100_e2ee_payload_hash_local_state"),
                 validate_cloudsync_table: cloudsync_alter_guard_required,
             },
@@ -1206,7 +1209,7 @@ async fn torn_e2ee_payload_hash_repair_refreshes_the_cloudsync_schema_hash() {
         migrate_until_before_torn_step(&db).await;
 
         let mut conn = db.pool().acquire().await.unwrap();
-        anlg_db_core::cloudsync_begin_alter_on(&mut *conn, "e2ee_records")
+        syntheo_db_core::cloudsync_begin_alter_on(&mut *conn, "e2ee_records")
             .await
             .unwrap();
         let cut = migration_sql
@@ -1245,9 +1248,9 @@ async fn torn_e2ee_payload_hash_repair_refreshes_the_cloudsync_schema_hash() {
 #[tokio::test]
 async fn e2ee_payload_hash_repair_ignores_databases_before_the_column_existed() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260815100300_e2ee_record_payload_hash"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -1300,9 +1303,9 @@ async fn e2ee_payload_hash_repair_leaves_cleanly_migrated_databases_alone() {
 async fn prepare_schema_skips_net_zero_e2ee_payload_hash_alters() {
     let clean_db = test_db().await;
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260815100300_e2ee_record_payload_hash"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -1349,9 +1352,9 @@ async fn prepare_schema_skips_net_zero_e2ee_payload_hash_alters() {
 #[tokio::test]
 async fn prepare_schema_still_drops_an_already_applied_payload_hash_column() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260816100100_e2ee_payload_hash_local_state"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -1399,8 +1402,8 @@ async fn prepare_schema_still_drops_an_already_applied_payload_hash_column() {
 #[tokio::test]
 async fn prepare_schema_does_not_rewrite_cloudsync_for_net_zero_payload_hash_alters() {
     async fn open_cloudsync_db(path: &std::path::Path) -> Db {
-        Db::open(anlg_db_core::DbOpenOptions {
-            storage: anlg_db_core::DbStorage::Local(path),
+        Db::open(syntheo_db_core::DbOpenOptions {
+            storage: syntheo_db_core::DbStorage::Local(path),
             cloudsync_enabled: true,
             journal_mode_wal: true,
             foreign_keys: true,
@@ -1412,9 +1415,9 @@ async fn prepare_schema_does_not_rewrite_cloudsync_for_net_zero_payload_hash_alt
 
     let dir = tempfile::tempdir().unwrap();
     let db = open_cloudsync_db(&dir.path().join("app.db")).await;
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20260815100300_e2ee_record_payload_hash"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },

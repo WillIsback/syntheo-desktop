@@ -5,7 +5,7 @@ import {
 import type { NodeSpec } from "prosemirror-model";
 import { forwardRef } from "react";
 
-import { File, X } from "@anlg/ui/components/icons";
+import { File, X } from "@syntheo/ui/components/icons";
 
 import { getSafeNodePos } from "./error-boundary";
 

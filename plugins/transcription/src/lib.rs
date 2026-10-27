@@ -20,15 +20,6 @@ mod live_journal;
 mod session_transcript;
 mod stopped_captures;
 
-pub use anlg_transcription_core::listener::{
-    DegradedError, ListenerRuntime, LiveTranscriptDelta, LiveTranscriptEngine,
-    LiveTranscriptSegment, LiveTranscriptSegmentDelta, LiveTranscriptUpdate,
-};
-pub use anlg_transcription_core::listener2::{
-    Error as Listener2Error, Result as Listener2Result, Subtitle, Token, VttWord,
-    export_words_to_vtt_file, is_supported_languages_batch, list_documented_language_codes_batch,
-    parse_subtitle_from_path, suggest_providers_for_languages_batch,
-};
 pub use api::*;
 pub use audio_retention::{SessionAudioRetentionEvent, SessionAudioRetentionPhase};
 pub use capture_gaps::CaptureGapRegistry;
@@ -37,9 +28,18 @@ pub use error::{Error, Result};
 pub use listener::{Listener, ListenerPluginExt};
 pub use listener2::{Listener2, Listener2PluginExt};
 pub use stopped_captures::StoppedCaptureRegistry;
+pub use syntheo_transcription_core::listener::{
+    DegradedError, ListenerRuntime, LiveTranscriptDelta, LiveTranscriptEngine,
+    LiveTranscriptSegment, LiveTranscriptSegmentDelta, LiveTranscriptUpdate,
+};
+pub use syntheo_transcription_core::listener2::{
+    Error as Listener2Error, Result as Listener2Result, Subtitle, Token, VttWord,
+    export_words_to_vtt_file, is_supported_languages_batch, list_documented_language_codes_batch,
+    parse_subtitle_from_path, suggest_providers_for_languages_batch,
+};
 
-use anlg_audio::AudioProvider;
-use anlg_transcription_core::listener::actors::{RootActor, RootArgs};
+use syntheo_audio::AudioProvider;
+use syntheo_transcription_core::listener::actors::{RootActor, RootArgs};
 
 const PLUGIN_NAME: &str = "transcription";
 
@@ -69,7 +69,7 @@ pub struct PluginState {
 pub struct SessionStateSnapshot {
     pub requested_live_transcription: bool,
     pub live_transcription_active: bool,
-    pub live_segments: Vec<anlg_transcription_core::listener::LiveTranscriptSegment>,
+    pub live_segments: Vec<syntheo_transcription_core::listener::LiveTranscriptSegment>,
     /// `Some(true)` only if every capture stream of this recording ran with the mic isolated
     /// (headphone output). One shared-speaker stretch pins it to `Some(false)`.
     pub mic_isolated: Option<bool>,

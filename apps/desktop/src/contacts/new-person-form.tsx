@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import React, { useState } from "react";
 
-import { ArrowElbowDownLeft } from "@anlg/ui/components/icons";
+import { ArrowElbowDownLeft } from "@syntheo/ui/components/icons";
 
 import { createHuman } from "~/contacts/queries";
 

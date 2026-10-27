@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
-import { commands as settingsCommands } from "@anlg/plugin-settings";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { commands as fsSyncCommands } from "@syntheo/plugin-fs-sync";
+import { commands as settingsCommands } from "@syntheo/plugin-settings";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { executeTransaction, liveQueryClient } from "~/db";
 import { withCloudsyncActivity } from "~/db/cloudsync-activity";

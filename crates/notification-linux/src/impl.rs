@@ -10,7 +10,7 @@ use gtk::{
 };
 use indexmap::IndexMap;
 
-use anlg_notification_interface::{
+use syntheo_notification_interface::{
     DismissTimer, ParticipantStatus, PrimaryAction, expanded_schedule_text, unix_now,
 };
 
@@ -34,7 +34,7 @@ thread_local! {
 
 struct NotificationInstance {
     key: String,
-    payload: anlg_notification_interface::Notification,
+    payload: syntheo_notification_interface::Notification,
     window: Window,
     timeout_source: Option<glib::SourceId>,
     dismiss_timer: Option<DismissTimer>,
@@ -47,7 +47,10 @@ struct NotificationInstance {
 }
 
 impl NotificationInstance {
-    fn content_height(payload: &anlg_notification_interface::Notification, expanded: bool) -> i32 {
+    fn content_height(
+        payload: &syntheo_notification_interface::Notification,
+        expanded: bool,
+    ) -> i32 {
         if expanded {
             EXPANDED_HEIGHT
         } else if payload.footer.is_some() {
@@ -443,7 +446,7 @@ impl NotificationManager {
         }
     }
 
-    fn show(&mut self, notification: anlg_notification_interface::Notification) {
+    fn show(&mut self, notification: syntheo_notification_interface::Notification) {
         if !self.ensure_gtk() {
             return;
         }
@@ -836,7 +839,7 @@ progressbar progress {
 }
 "#;
 
-pub fn show(notification: &anlg_notification_interface::Notification) {
+pub fn show(notification: &syntheo_notification_interface::Notification) {
     let notification = notification.clone();
     glib::MainContext::default().invoke(move || {
         NOTIFICATION_MANAGER.with(|manager| {

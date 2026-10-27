@@ -1,5 +1,5 @@
-use anlg_db_reactive::QueryEventSink;
 use serde_json::json;
+use syntheo_db_reactive::QueryEventSink;
 
 use crate::{QueryEvent, runtime};
 

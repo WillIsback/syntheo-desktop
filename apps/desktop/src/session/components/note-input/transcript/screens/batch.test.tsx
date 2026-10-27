@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { BatchState } from "./batch";
 
-vi.mock("@anlg/ui/components/ui/dancing-sticks", () => ({
+vi.mock("@syntheo/ui/components/ui/dancing-sticks", () => ({
   DancingSticks: () => null,
 }));
 

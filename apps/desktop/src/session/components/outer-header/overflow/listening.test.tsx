@@ -17,7 +17,7 @@ const {
   useListenerMock: vi.fn(),
 }));
 
-vi.mock("@anlg/ui/components/ui/dropdown-menu", () => ({
+vi.mock("@syntheo/ui/components/ui/dropdown-menu", () => ({
   DropdownMenuItem: ({
     children,
     ...props

@@ -8,8 +8,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@anlg/ui/components/ui/select";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/select";
+import { cn } from "@syntheo/utils";
 
 import { useLlmSettings } from "./context";
 import { HealthStatusIndicator, useConnectionHealth } from "./health";

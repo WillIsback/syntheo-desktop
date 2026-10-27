@@ -4,7 +4,7 @@ use crate::{
 };
 
 pub fn health(options: &HealthCheckOptions) -> ProviderHealth {
-    let health = anlg_codex::health_check_with_options(&anlg_codex::CodexOptions {
+    let health = syntheo_codex::health_check_with_options(&syntheo_codex::CodexOptions {
         codex_path_override: options.codex_path_override.clone(),
         ..Default::default()
     });
@@ -22,20 +22,20 @@ pub fn health(options: &HealthCheckOptions) -> ProviderHealth {
 }
 
 pub fn install_cli() -> Result<InstallCliResponse, String> {
-    let config_path = anlg_codex::config_path();
-    let command = anlg_codex::notify_command();
+    let config_path = syntheo_codex::config_path();
+    let command = syntheo_codex::notify_command();
 
-    let mut table = anlg_codex::read_config(&config_path)?;
+    let mut table = syntheo_codex::read_config(&config_path)?;
 
-    if table.contains_key("notify") && !anlg_codex::has_notify(&table, &command) {
+    if table.contains_key("notify") && !syntheo_codex::has_notify(&table, &command) {
         return Err(format!(
             "refusing to replace existing notify handler in {}",
             config_path.display()
         ));
     }
 
-    anlg_codex::set_notify(&mut table, command);
-    anlg_codex::write_config(&config_path, &table)?;
+    syntheo_codex::set_notify(&mut table, command);
+    syntheo_codex::write_config(&config_path, &table)?;
 
     Ok(InstallCliResponse {
         provider: ProviderKind::Codex,
@@ -48,35 +48,35 @@ pub fn install_cli() -> Result<InstallCliResponse, String> {
 }
 
 pub fn upgrade() {
-    upgrade_at(&anlg_codex::config_path());
+    upgrade_at(&syntheo_codex::config_path());
 }
 
 fn upgrade_at(config_path: &std::path::Path) {
-    let command = anlg_codex::notify_command();
-    let Ok(mut table) = anlg_codex::read_config(config_path) else {
+    let command = syntheo_codex::notify_command();
+    let Ok(mut table) = syntheo_codex::read_config(config_path) else {
         return;
     };
-    if !anlg_codex::has_notify(&table, &command) {
+    if !syntheo_codex::has_notify(&table, &command) {
         return;
     }
-    anlg_codex::set_notify(&mut table, command);
-    let _ = anlg_codex::write_config(config_path, &table);
+    syntheo_codex::set_notify(&mut table, command);
+    let _ = syntheo_codex::write_config(config_path, &table);
 }
 
 pub fn uninstall_cli() -> Result<UninstallCliResponse, String> {
-    let config_path = anlg_codex::config_path();
-    let command = anlg_codex::notify_command();
-    let mut table = anlg_codex::read_config(&config_path)?;
+    let config_path = syntheo_codex::config_path();
+    let command = syntheo_codex::notify_command();
+    let mut table = syntheo_codex::read_config(&config_path)?;
 
-    if table.contains_key("notify") && !anlg_codex::has_notify(&table, &command) {
+    if table.contains_key("notify") && !syntheo_codex::has_notify(&table, &command) {
         return Err(format!(
             "refusing to remove existing notify handler in {}",
             config_path.display()
         ));
     }
 
-    anlg_codex::remove_notify(&mut table);
-    anlg_codex::write_config(&config_path, &table)?;
+    syntheo_codex::remove_notify(&mut table);
+    syntheo_codex::write_config(&config_path, &table)?;
 
     Ok(UninstallCliResponse {
         provider: ProviderKind::Codex,
@@ -89,30 +89,30 @@ pub fn uninstall_cli() -> Result<UninstallCliResponse, String> {
 }
 
 fn integration_installed() -> Result<bool, String> {
-    let config_path = anlg_codex::config_path();
-    let table = anlg_codex::read_config(&config_path)?;
-    Ok(anlg_codex::has_notify(
+    let config_path = syntheo_codex::config_path();
+    let table = syntheo_codex::read_config(&config_path)?;
+    Ok(syntheo_codex::has_notify(
         &table,
-        &anlg_codex::notify_command(),
+        &syntheo_codex::notify_command(),
     ))
 }
 
-impl From<anlg_codex::HealthStatus> for ProviderHealthStatus {
-    fn from(value: anlg_codex::HealthStatus) -> Self {
+impl From<syntheo_codex::HealthStatus> for ProviderHealthStatus {
+    fn from(value: syntheo_codex::HealthStatus) -> Self {
         match value {
-            anlg_codex::HealthStatus::Ready => Self::Ready,
-            anlg_codex::HealthStatus::Warning => Self::Warning,
-            anlg_codex::HealthStatus::Error => Self::Error,
+            syntheo_codex::HealthStatus::Ready => Self::Ready,
+            syntheo_codex::HealthStatus::Warning => Self::Warning,
+            syntheo_codex::HealthStatus::Error => Self::Error,
         }
     }
 }
 
-impl From<anlg_codex::HealthAuthStatus> for ProviderAuthStatus {
-    fn from(value: anlg_codex::HealthAuthStatus) -> Self {
+impl From<syntheo_codex::HealthAuthStatus> for ProviderAuthStatus {
+    fn from(value: syntheo_codex::HealthAuthStatus) -> Self {
         match value {
-            anlg_codex::HealthAuthStatus::Authenticated => Self::Authenticated,
-            anlg_codex::HealthAuthStatus::Unauthenticated => Self::Unauthenticated,
-            anlg_codex::HealthAuthStatus::Unknown => Self::Unknown,
+            syntheo_codex::HealthAuthStatus::Authenticated => Self::Authenticated,
+            syntheo_codex::HealthAuthStatus::Unauthenticated => Self::Unauthenticated,
+            syntheo_codex::HealthAuthStatus::Unknown => Self::Unknown,
         }
     }
 }
@@ -132,10 +132,10 @@ mod tests {
 
         upgrade_at(&path);
 
-        let table = anlg_codex::read_config(&path).unwrap();
-        assert!(!anlg_codex::has_notify(
+        let table = syntheo_codex::read_config(&path).unwrap();
+        assert!(!syntheo_codex::has_notify(
             &table,
-            &anlg_codex::notify_command()
+            &syntheo_codex::notify_command()
         ));
     }
 
@@ -145,13 +145,13 @@ mod tests {
         let path = dir.path().join("config.toml");
 
         let mut table = toml::Table::new();
-        let command = anlg_codex::notify_command();
-        anlg_codex::set_notify(&mut table, command.clone());
-        anlg_codex::write_config(&path, &table).unwrap();
+        let command = syntheo_codex::notify_command();
+        syntheo_codex::set_notify(&mut table, command.clone());
+        syntheo_codex::write_config(&path, &table).unwrap();
 
         upgrade_at(&path);
 
-        let table = anlg_codex::read_config(&path).unwrap();
-        assert!(anlg_codex::has_notify(&table, &command));
+        let table = syntheo_codex::read_config(&path).unwrap();
+        assert!(syntheo_codex::has_notify(&table, &command));
     }
 }

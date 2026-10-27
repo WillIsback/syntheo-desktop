@@ -4,9 +4,9 @@ import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { platform } from "@tauri-apps/plugin-os";
 import { useShallow } from "zustand/react/shallow";
 
-import { commands as transcription } from "@anlg/plugin-transcription";
-import { Button } from "@anlg/ui/components/ui/button";
-import { Textarea } from "@anlg/ui/components/ui/textarea";
+import { commands as transcription } from "@syntheo/plugin-transcription";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { Textarea } from "@syntheo/ui/components/ui/textarea";
 
 import { DictationShortcut } from "./dictation-shortcut";
 
@@ -72,7 +72,7 @@ export function SettingsDictation() {
             title={<Trans>Enable dictation</Trans>}
             description={
               <Trans>
-                Keep Anarlog running to use your shortcut in other apps.
+                Keep Syntheo running to use your shortcut in other apps.
               </Trans>
             }
             checked={enabled}
@@ -127,7 +127,7 @@ export function SettingsDictation() {
             ) : (
               <Trans>
                 Press Escape to cancel. Dictation stops after five minutes and
-                pauses while Anarlog records a meeting.
+                pauses while Syntheo records a meeting.
               </Trans>
             )}
           </p>
@@ -210,7 +210,7 @@ export function SettingsDictation() {
               Dictation uses your microphone, transcription provider, languages,
               and dictionary. Temporary audio is deleted after transcription.
               Your last transcript stays in memory until dictation is disabled
-              or Anarlog closes.
+              or Syntheo closes.
             </Trans>
           </p>
           {status.lastTranscript && (

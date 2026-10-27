@@ -6,7 +6,7 @@ use std::sync::{
 };
 
 use crate::{DeviceEvent, DeviceSwitch, DeviceUpdate};
-use anlg_audio_device::macos::is_headphone_from_default_output_device;
+use syntheo_audio_device::macos::is_headphone_from_default_output_device;
 
 type ListenerFn = extern "C-unwind" fn(ca::Obj, u32, *const ca::PropAddr, *mut ()) -> os::Status;
 

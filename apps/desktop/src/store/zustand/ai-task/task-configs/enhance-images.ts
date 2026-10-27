@@ -1,7 +1,7 @@
 import {
   type AttachmentInfo,
   commands as fsSyncCommands,
-} from "@anlg/plugin-fs-sync";
+} from "@syntheo/plugin-fs-sync";
 
 export type EnhanceImageContext = {
   base64: string;

@@ -1,15 +1,15 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
-import { Button } from "@anlg/ui/components/ui/button";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Dialog,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@anlg/ui/components/ui/dialog";
-import { Input } from "@anlg/ui/components/ui/input";
+} from "@syntheo/ui/components/ui/dialog";
+import { Input } from "@syntheo/ui/components/ui/input";
 
 import { normalizeFolderPath } from "~/session/folders";
 import {

@@ -71,11 +71,11 @@ vi.mock("~/shared/config", () => ({
   useConfigValue: () => "en",
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { error: mocks.toastError },
 }));
 
-vi.mock("@anlg/editor/markdown", () => ({
+vi.mock("@syntheo/editor/markdown", () => ({
   md2json: (markdown: string) => ({ type: "doc", content: [{ markdown }] }),
 }));
 

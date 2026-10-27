@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   ),
 }));
 
-vi.mock("@anlg/plugin-template", () => ({
+vi.mock("@syntheo/plugin-template", () => ({
   commands: {
     saveGeneratedSummary: mocks.saveGeneratedSummary,
   },

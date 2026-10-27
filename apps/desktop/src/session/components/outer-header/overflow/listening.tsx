@@ -1,5 +1,5 @@
-import { Microphone, MicrophoneSlash } from "@anlg/ui/components/icons";
-import { DropdownMenuItem } from "@anlg/ui/components/ui/dropdown-menu";
+import { Microphone, MicrophoneSlash } from "@syntheo/ui/components/icons";
+import { DropdownMenuItem } from "@syntheo/ui/components/ui/dropdown-menu";
 
 import { useListener } from "~/stt/contexts";
 import { useStartListeningWithBatchOverride } from "~/stt/useStartListeningWithBatchOverride";

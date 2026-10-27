@@ -59,11 +59,11 @@ vi.mock("@tauri-apps/api/webviewWindow", () => ({
   getAllWebviewWindows: mocks.getAllWebviewWindows,
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   getCurrentWebviewWindowLabel: mocks.getCurrentWebviewWindowLabel,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { error: mocks.toastError, warning: mocks.toastWarning },
 }));
 
@@ -309,7 +309,7 @@ describe("useDeleteSession", () => {
     await waitFor(() => {
       expect(mocks.emitTo).toHaveBeenCalledWith(
         "main",
-        "anlg://session-deleted-for-undo",
+        "syntheo://session-deleted-for-undo",
         {
           sessionId: "session-1",
           data: mocks.deletedSessionData,
@@ -370,7 +370,7 @@ describe("useDeleteSession", () => {
 
     await waitFor(() => {
       expect(mocks.listen).toHaveBeenCalledWith(
-        "anlg://session-deleted-for-undo",
+        "syntheo://session-deleted-for-undo",
         expect.any(Function),
       );
     });

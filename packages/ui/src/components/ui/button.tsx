@@ -2,9 +2,9 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { squircleFocusVisibleClassName } from "@anlg/ui/lib/squircle";
-import { cn } from "@anlg/utils";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { squircleFocusVisibleClassName } from "@syntheo/ui/lib/squircle";
+import { cn } from "@syntheo/utils";
 
 const buttonVariants = cva(
   cn([

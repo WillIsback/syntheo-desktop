@@ -43,7 +43,7 @@
     "windows:allow-floating-bar-current-state",
     "windows:allow-live-caption-current-state",
     "tracing:default",
-    "anlg-tray:default",
+    "syntheo-tray:default",
     "attachment-sync:default",
     "agent:default",
     "updater:default",

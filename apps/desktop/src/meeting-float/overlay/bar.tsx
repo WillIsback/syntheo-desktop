@@ -3,16 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import type {
   FloatingBarState,
   FloatingTranscriptBubble,
-} from "@anlg/plugin-windows";
+} from "@syntheo/plugin-windows";
 import {
   ArrowsInSimple,
   ArrowsOutSimple,
   CaretDown,
   Square,
   WarningCircle,
-} from "@anlg/ui/components/icons";
-import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { DancingSticks } from "@syntheo/ui/components/ui/dancing-sticks";
+import { cn } from "@syntheo/utils";
 
 import { DictationTranscript } from "./dictation";
 import {
@@ -207,7 +207,7 @@ function StopControl({
       }
       title={
         state.status === "error"
-          ? `${state.transcriptNotice ?? "Recording needs attention"}. Open Anarlog to retry or change devices.`
+          ? `${state.transcriptNotice ?? "Recording needs attention"}. Open Syntheo to retry or change devices.`
           : undefined
       }
       disabled={state.dictation?.phase === "transcribing"}

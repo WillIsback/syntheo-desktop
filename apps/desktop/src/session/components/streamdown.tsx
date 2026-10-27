@@ -1,5 +1,5 @@
-import { parseImageMetadata } from "@anlg/editor/node-views";
-import { cn } from "@anlg/utils";
+import { parseImageMetadata } from "@syntheo/editor/node-views";
+import { cn } from "@syntheo/utils";
 
 // Typography comes from the shared `.note-typography` scope (see
 // packages/editor styles) so the streaming view matches the editor exactly;

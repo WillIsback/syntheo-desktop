@@ -15,15 +15,17 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-impl From<anlg_agent_access::Error> for Error {
-    fn from(error: anlg_agent_access::Error) -> Self {
+impl From<syntheo_agent_access::Error> for Error {
+    fn from(error: syntheo_agent_access::Error) -> Self {
         match error {
-            anlg_agent_access::Error::NotFound(what) => Self::NotFound(what),
-            anlg_agent_access::Error::Invalid(reason) => Self::operation("validate input", reason),
-            anlg_agent_access::Error::Conflict(reason) => {
+            syntheo_agent_access::Error::NotFound(what) => Self::NotFound(what),
+            syntheo_agent_access::Error::Invalid(reason) => {
+                Self::operation("validate input", reason)
+            }
+            syntheo_agent_access::Error::Conflict(reason) => {
                 Self::operation("update proposal", reason)
             }
-            anlg_agent_access::Error::Database { action, source } => {
+            syntheo_agent_access::Error::Database { action, source } => {
                 Self::operation(action, source.to_string())
             }
         }

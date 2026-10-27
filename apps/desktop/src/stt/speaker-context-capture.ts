@@ -1,10 +1,10 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
-import { commands as detectCommands } from "@anlg/plugin-detect";
+import { commands as detectCommands } from "@syntheo/plugin-detect";
 import {
   commands as transcriptionCommands,
   type SpeakerContextInterval,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import { executeTransaction, liveQueryClient } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";

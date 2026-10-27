@@ -1,7 +1,7 @@
 import {
   defaultSummaryDocumentId,
   hasSummaryContent,
-} from "@anlg/utils/session";
+} from "@syntheo/utils/session";
 
 import { executeTransaction, liveQueryClient } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";

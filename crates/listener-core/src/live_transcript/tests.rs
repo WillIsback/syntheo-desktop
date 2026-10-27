@@ -202,8 +202,8 @@ fn speaker_assignment_names_later_segments_from_the_same_speaker() {
             Some("self"),
             vec![IdentityAssignment {
                 human_id: "artem".to_string(),
-                scope: anlg_transcript::IdentityScope::ChannelSpeaker {
-                    channel: anlg_transcript::ChannelProfile::RemoteParty,
+                scope: syntheo_transcript::IdentityScope::ChannelSpeaker {
+                    channel: syntheo_transcript::ChannelProfile::RemoteParty,
                     speaker_index: 0,
                 },
             }],
@@ -418,8 +418,8 @@ fn isolated_mic_self_wins_over_scoped_guest_assignment() {
         Some("self"),
         vec![IdentityAssignment {
             human_id: "guest".to_string(),
-            scope: anlg_transcript::IdentityScope::ChannelSpeaker {
-                channel: anlg_transcript::ChannelProfile::DirectMic,
+            scope: syntheo_transcript::IdentityScope::ChannelSpeaker {
+                channel: syntheo_transcript::ChannelProfile::DirectMic,
                 speaker_index: 0,
             },
         }],
@@ -451,7 +451,7 @@ fn live_transcript_delta_keeps_speaker_index_on_words() {
             start_ms: 0,
             end_ms: 100,
             channel: 0,
-            state: anlg_transcript::WordState::Final,
+            state: syntheo_transcript::WordState::Final,
             speaker_index: Some(1),
         }],
         replaced_ids: vec!["replaced".to_string()],

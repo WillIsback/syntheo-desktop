@@ -1,5 +1,5 @@
-import { md2json } from "@anlg/editor/markdown";
-import { commands } from "@anlg/plugin-session";
+import { md2json } from "@syntheo/editor/markdown";
+import { commands } from "@syntheo/plugin-session";
 
 import { updateSession } from "./sessions";
 

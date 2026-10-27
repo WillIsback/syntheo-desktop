@@ -8,7 +8,7 @@ use super::MenuItemHandler;
 pub struct HelpSuggestFeature;
 
 impl MenuItemHandler for HelpSuggestFeature {
-    const ID: &'static str = "anlg_help_suggest_feature";
+    const ID: &'static str = "syntheo_help_suggest_feature";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
         let item = MenuItem::with_id(app, Self::ID, "Suggest Feature", true, None::<&str>)?;
@@ -16,6 +16,6 @@ impl MenuItemHandler for HelpSuggestFeature {
     }
 
     fn handle(_app: &AppHandle<tauri::Wry>) {
-        let _ = open::that("https://anarlog.so/discord");
+        let _ = open::that("https://github.com/WillIsback/syntheo-desktop/discord");
     }
 }

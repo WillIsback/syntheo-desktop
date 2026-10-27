@@ -4,7 +4,7 @@ use bytes::Bytes;
 use ractor::{ActorProcessingErr, ActorRef};
 
 use owhisper_client::{
-    AdapterKind, NvidiaAdapter, OpenAIAdapter, RealtimeSttAdapter, anlg_ws_client,
+    AdapterKind, NvidiaAdapter, OpenAIAdapter, RealtimeSttAdapter, syntheo_ws_client,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -35,7 +35,7 @@ fn client_build_error(args: &ListenerArgs, error: owhisper_client::Error) -> Act
     }
 }
 
-fn classify_ws_connect_failure(provider: &str, error: &anlg_ws_client::Error) -> DegradedError {
+fn classify_ws_connect_failure(provider: &str, error: &syntheo_ws_client::Error) -> DegradedError {
     if error.is_auth_error() {
         return DegradedError::AuthenticationFailed {
             provider: provider.to_string(),
@@ -43,8 +43,8 @@ fn classify_ws_connect_failure(provider: &str, error: &anlg_ws_client::Error) ->
     }
 
     match error {
-        anlg_ws_client::Error::InvalidRequest { message }
-        | anlg_ws_client::Error::ConnectFailed {
+        syntheo_ws_client::Error::InvalidRequest { message }
+        | syntheo_ws_client::Error::ConnectFailed {
             message,
             status_code: Some(400 | 402 | 404 | 422),
             ..
@@ -58,15 +58,15 @@ fn classify_ws_connect_failure(provider: &str, error: &anlg_ws_client::Error) ->
     }
 }
 
-fn ws_connect_error(args: &ListenerArgs, error: anlg_ws_client::Error) -> ActorProcessingErr {
+fn ws_connect_error(args: &ListenerArgs, error: syntheo_ws_client::Error) -> ActorProcessingErr {
     let provider =
         AdapterKind::from_url_and_languages(&args.base_url, &args.languages, Some(&args.model))
             .to_string();
     let message = format!("listen_ws_connect_failed: {error:?}");
 
     tracing::warn!(
-        anarlog.session.id = %args.session_id,
-        anarlog.stt.provider.name = %provider,
+        syntheo.session.id = %args.session_id,
+        syntheo.stt.provider.name = %provider,
         error.message = ?error,
         "listen_ws_connect_failed"
     );
@@ -166,8 +166,8 @@ fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
     (session_offset_secs, extra)
 }
 
-fn desktop_connect_policy() -> anlg_ws_client::client::WebSocketConnectPolicy {
-    anlg_ws_client::client::WebSocketConnectPolicy {
+fn desktop_connect_policy() -> syntheo_ws_client::client::WebSocketConnectPolicy {
+    syntheo_ws_client::client::WebSocketConnectPolicy {
         connect_timeout: Duration::from_secs(4),
         max_attempts: 1,
         retry_delay: Duration::from_secs(1),
@@ -283,12 +283,12 @@ mod tests {
 
     struct NoopRuntime;
 
-    impl anlg_storage::StorageRuntime for NoopRuntime {
-        fn global_base(&self) -> Result<std::path::PathBuf, anlg_storage::Error> {
+    impl syntheo_storage::StorageRuntime for NoopRuntime {
+        fn global_base(&self) -> Result<std::path::PathBuf, syntheo_storage::Error> {
             Ok(std::path::PathBuf::from("/tmp"))
         }
 
-        fn vault_base(&self) -> Result<std::path::PathBuf, anlg_storage::Error> {
+        fn vault_base(&self) -> Result<std::path::PathBuf, syntheo_storage::Error> {
             Ok(std::path::PathBuf::from("/tmp"))
         }
     }
@@ -306,7 +306,7 @@ mod tests {
     fn listener_args(base_url: &str, model: &str) -> ListenerArgs {
         ListenerArgs {
             runtime: Arc::new(NoopRuntime),
-            languages: vec![anlg_language::ISO639::En.into()],
+            languages: vec![syntheo_language::ISO639::En.into()],
             onboarding: false,
             model: model.to_string(),
             base_url: base_url.to_string(),
@@ -365,8 +365,8 @@ mod tests {
                 Some("self"),
             ),
             (
-                "anarlog proxy",
-                "https://api.anarlog.so/stt",
+                "syntheo proxy",
+                "https://api.example.com/stt",
                 "cloud",
                 vec!["self", "remote-a", "remote-b"],
                 Some("self"),
@@ -426,7 +426,7 @@ mod tests {
 
     #[test]
     fn websocket_connect_failures_are_classified() {
-        let error = anlg_ws_client::Error::ConnectFailed {
+        let error = syntheo_ws_client::Error::ConnectFailed {
             attempt: 1,
             max_attempts: 3,
             message: "HTTP 401 Unauthorized".to_string(),
@@ -440,7 +440,7 @@ mod tests {
             DegradedError::AuthenticationFailed { provider } if provider == "openai"
         ));
 
-        let error = anlg_ws_client::Error::ConnectFailed {
+        let error = syntheo_ws_client::Error::ConnectFailed {
             attempt: 1,
             max_attempts: 3,
             message: "HTTP 400 Bad Request".to_string(),
@@ -455,7 +455,7 @@ mod tests {
                 if provider == "openai" && message == "HTTP 400 Bad Request"
         ));
 
-        let error = anlg_ws_client::Error::ConnectRetriesExhausted {
+        let error = syntheo_ws_client::Error::ConnectRetriesExhausted {
             attempts: 3,
             last_error: "HTTP 503 Service Unavailable".to_string(),
             retry_after_secs: None,
@@ -468,7 +468,7 @@ mod tests {
 
     #[test]
     fn websocket_retry_after_reaches_the_session_supervisor() {
-        let error = anlg_ws_client::Error::ConnectFailed {
+        let error = syntheo_ws_client::Error::ConnectFailed {
             attempt: 1,
             max_attempts: 1,
             message: "HTTP 503 Service Unavailable".to_string(),
@@ -478,7 +478,10 @@ mod tests {
             retry_after_secs: Some(7),
         };
 
-        let error = ws_connect_error(&listener_args("https://api.anarlog.so/stt", "cloud"), error);
+        let error = ws_connect_error(
+            &listener_args("https://api.example.com/stt", "cloud"),
+            error,
+        );
         let error = error
             .downcast_ref::<super::super::ListenerInitError>()
             .expect("listener init error");

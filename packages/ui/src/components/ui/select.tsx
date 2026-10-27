@@ -2,9 +2,9 @@ import type { SmoothCornerOptions } from "@lisse/react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import * as React from "react";
 
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { squircleFocusVisibleClassName } from "@anlg/ui/lib/squircle";
-import { cn } from "@anlg/utils";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { squircleFocusVisibleClassName } from "@syntheo/ui/lib/squircle";
+import { cn } from "@syntheo/utils";
 
 import { CaretDown, CaretUp, Check } from "../icons";
 import { appFloatingItemClassName } from "./floating-content";

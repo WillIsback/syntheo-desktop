@@ -3,7 +3,7 @@ use objc2_app_kit::{NSApplicationActivationPolicy, NSRunningApplication, NSScree
 use objc2_core_foundation::CGRect;
 use objc2_foundation::{MainThreadMarker, NSRect, NSString};
 
-use anlg_overlay_kit::macos::{
+use syntheo_overlay_kit::macos::{
     application::frontmost_application_identity,
     geometry::{cg_frame_to_appkit, screen_geometries},
     support::rect,
@@ -85,7 +85,7 @@ struct SettingsWindowCandidate {
 fn settings_window_snapshot_from_candidate(
     candidate: SettingsWindowCandidate,
     pid: i32,
-    screens: &[anlg_overlay_kit::macos::geometry::ScreenGeometry],
+    screens: &[syntheo_overlay_kit::macos::geometry::ScreenGeometry],
 ) -> Option<SettingsWindowSnapshot> {
     if candidate.owner_pid != pid {
         return None;
@@ -145,7 +145,7 @@ fn rect_area(rect: NSRect) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use anlg_overlay_kit::macos::geometry::ScreenGeometry;
+    use syntheo_overlay_kit::macos::geometry::ScreenGeometry;
     use objc2_core_foundation::{CGPoint, CGRect, CGSize};
 
     use super::*;

@@ -1,4 +1,4 @@
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 function Kbd({ className, ...props }: React.ComponentProps<"kbd">) {
   return (

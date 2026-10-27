@@ -60,7 +60,7 @@ impl MicUsageTracker {
 pub(crate) fn spawn_timer<E: Env>(
     env: E,
     state: ProcessorState,
-    app: anlg_detect::InstalledApp,
+    app: syntheo_detect::InstalledApp,
     generation: u64,
     token: CancellationToken,
     threshold_secs: u64,

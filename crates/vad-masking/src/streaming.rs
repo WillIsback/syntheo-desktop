@@ -1,5 +1,5 @@
-use anlg_audio_utils::f32_to_i16_samples;
-use anlg_vad::earshot::VoiceActivityDetector;
+use syntheo_audio_utils::f32_to_i16_samples;
+use syntheo_vad::earshot::VoiceActivityDetector;
 
 #[derive(Clone, Debug)]
 pub struct VadConfig {
@@ -33,7 +33,7 @@ impl StreamingVad {
     }
 
     pub fn with_config(frame_hint: usize, cfg: VadConfig) -> Self {
-        let frame_size = anlg_vad::earshot::choose_optimal_frame_size(frame_hint);
+        let frame_size = syntheo_vad::earshot::choose_optimal_frame_size(frame_hint);
         debug_assert!(frame_size > 0, "VAD frame size must be > 0");
 
         Self {

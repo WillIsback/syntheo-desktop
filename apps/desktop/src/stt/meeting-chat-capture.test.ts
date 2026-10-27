@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { MeetingCapturedChatMessage } from "@anlg/plugin-detect";
+import type { MeetingCapturedChatMessage } from "@syntheo/plugin-detect";
 
 import { startMeetingChatCapture } from "./meeting-chat-capture";
 
@@ -20,7 +20,7 @@ const {
   captureSettingState: { value: true },
 }));
 
-vi.mock("@anlg/plugin-detect", () => ({
+vi.mock("@syntheo/plugin-detect", () => ({
   commands: {
     captureMeetingChatMessages: captureMeetingChatMessagesMock,
   },
@@ -34,7 +34,7 @@ vi.mock("~/stt/meeting-consent-store", () => ({
   persistParticipantConsent: persistParticipantConsentMock,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: {
     warning: toastWarningMock,
     dismiss: toastDismissMock,
@@ -298,7 +298,8 @@ describe("startMeetingChatCapture", () => {
   });
 
   test("excludes the generated disclosure while retaining participant chat", async () => {
-    const disclosure = "Anarlog disclosure https://anarlog.so";
+    const disclosure =
+      "Syntheo disclosure https://github.com/WillIsback/syntheo-desktop";
     captureMeetingChatMessagesMock.mockResolvedValue(captureResult([]));
     const stop = startMeetingChatCapture({
       sessionId: "session-1",
@@ -314,7 +315,7 @@ describe("startMeetingChatCapture", () => {
           id: "disclosure",
           direction: "outgoing",
           text: `  ${disclosure.replace(" ", "\n")}  `,
-          links: ["https://anarlog.so"],
+          links: ["https://github.com/WillIsback/syntheo-desktop"],
         },
         capturedMessage,
       ]),

@@ -1,4 +1,4 @@
-import type { AnlgUIMessage } from "~/chat/types";
+import type { SyntheoUIMessage } from "~/chat/types";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -26,6 +26,6 @@ function hasRenderableParts(parts: unknown): boolean {
   });
 }
 
-export function hasRenderableContent(message: AnlgUIMessage) {
+export function hasRenderableContent(message: SyntheoUIMessage) {
   return hasRenderableParts(message.parts);
 }

@@ -1,14 +1,14 @@
 import { Trans } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 
-import { Button } from "@anlg/ui/components/ui/button";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Dialog,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@anlg/ui/components/ui/dialog";
+} from "@syntheo/ui/components/ui/dialog";
 
 import { GlassDialogCancelButton, GlassDialogContent } from "./glass-dialog";
 

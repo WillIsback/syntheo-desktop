@@ -7,15 +7,15 @@ import {
   CircleNotch,
   DotsThree,
   Plus,
-} from "@anlg/ui/components/icons";
+} from "@syntheo/ui/components/icons";
 import {
   Accordion,
   AccordionContent,
   AccordionHeader,
   AccordionItem,
   AccordionTriggerPrimitive,
-} from "@anlg/ui/components/ui/accordion";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/accordion";
+import { cn } from "@syntheo/utils";
 
 import { AppleCalendarSelection } from "./apple/calendar-selection";
 import {

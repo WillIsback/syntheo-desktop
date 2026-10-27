@@ -6,7 +6,7 @@ import {
   getMeetingTranscript,
   getRecurringMeetingHistory,
   listMeetings,
-} from "@anlg/plugin-db";
+} from "@syntheo/plugin-db";
 
 const listLimitSchema = z
   .number()
@@ -41,7 +41,7 @@ const historyOffsetSchema = z
 export const buildListMeetingsTool = () =>
   tool({
     description:
-      "List recent Anarlog meetings with pagination metadata. Use query to narrow by title or meeting id and folder_path to scope to a folder and its subfolders, then pass next_offset as offset to continue.",
+      "List recent Syntheo meetings with pagination metadata. Use query to narrow by title or meeting id and folder_path to scope to a folder and its subfolders, then pass next_offset as offset to continue.",
     inputSchema: z.object({
       query: z
         .string()
@@ -63,9 +63,9 @@ export const buildListMeetingsTool = () =>
 export const buildGetMeetingTool = () =>
   tool({
     description:
-      "Get one Anarlog meeting with its canonical note, summaries, participants, and action items. Use get_meeting_transcript separately for transcript words.",
+      "Get one Syntheo meeting with its canonical note, summaries, participants, and action items. Use get_meeting_transcript separately for transcript words.",
     inputSchema: z.object({
-      meeting_id: z.string().describe("Anarlog meeting id"),
+      meeting_id: z.string().describe("Syntheo meeting id"),
     }),
     execute: getMeeting,
   });
@@ -73,9 +73,9 @@ export const buildGetMeetingTool = () =>
 export const buildGetMeetingTranscriptTool = () =>
   tool({
     description:
-      "Get a bounded page of transcript words and readable text for an Anarlog meeting. Pass pagination.next_offset as offset to continue.",
+      "Get a bounded page of transcript words and readable text for an Syntheo meeting. Pass pagination.next_offset as offset to continue.",
     inputSchema: z.object({
-      meeting_id: z.string().describe("Anarlog meeting id"),
+      meeting_id: z.string().describe("Syntheo meeting id"),
       offset: z
         .number()
         .int()

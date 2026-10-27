@@ -5,12 +5,12 @@ edition = "2024"
 license = "MIT"
 
 [dev-dependencies]
-anlg-audacity = { workspace = true }
-anlg-data = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 hound = { workspace = true }
 rodio = { workspace = true }
+syntheo-audacity = { workspace = true }
+syntheo-data = { workspace = true }
 
 [dependencies]
-anlg-audio-utils = { workspace = true }
-anlg-vad = { workspace = true, features = ["earshot"] }
+syntheo-audio-utils = { workspace = true }
+syntheo-vad = { workspace = true, features = ["earshot"] }

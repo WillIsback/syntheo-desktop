@@ -3,7 +3,7 @@ import { MultiFileDiff } from "@pierre/diffs/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 
-import { Button } from "@anlg/ui/components/ui/button";
+import { Button } from "@syntheo/ui/components/ui/button";
 
 import { useStrictModeUnmount } from "./hooks";
 

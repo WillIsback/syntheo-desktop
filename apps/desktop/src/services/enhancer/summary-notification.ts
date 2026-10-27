@@ -1,6 +1,6 @@
 import { t } from "@lingui/core/macro";
 
-import { commands as notificationCommands } from "@anlg/plugin-notification";
+import { commands as notificationCommands } from "@syntheo/plugin-notification";
 
 import { shouldShowNotification } from "~/shared/notification-policy";
 import { isAppWindowInactive } from "~/shared/window-activity";
@@ -41,7 +41,7 @@ export async function showSummaryReadyNotification(
       start_time: null,
       participants: null,
       event_details: null,
-      action_label: t`Open Anarlog`,
+      action_label: t`Open Syntheo`,
       action: null,
       action_menu: null,
       action_variant: null,

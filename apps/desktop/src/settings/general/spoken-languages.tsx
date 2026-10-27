@@ -1,10 +1,10 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMemo, useState } from "react";
 
-import { MagnifyingGlass, X } from "@anlg/ui/components/icons";
-import { Badge } from "@anlg/ui/components/ui/badge";
-import { Button } from "@anlg/ui/components/ui/button";
-import { cn } from "@anlg/utils";
+import { MagnifyingGlass, X } from "@syntheo/ui/components/icons";
+import { Badge } from "@syntheo/ui/components/ui/badge";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { cn } from "@syntheo/utils";
 
 import {
   getAdditionalSpokenLanguages,

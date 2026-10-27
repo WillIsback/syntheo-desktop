@@ -7,7 +7,7 @@ import {
   getLegacyCleanupStatus,
   getLegacyImportReport,
   runLegacyImport,
-} from "@anlg/plugin-db";
+} from "@syntheo/plugin-db";
 import {
   ArrowCounterClockwise,
   CheckCircle,
@@ -15,8 +15,8 @@ import {
   Info,
   Trash,
   Warning,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@anlg/ui/components/ui/dialog";
+} from "@syntheo/ui/components/ui/dialog";
 
 const QUERY_KEY = ["legacy-migration"] as const;
 
@@ -131,7 +131,7 @@ export function LegacyMigrationCleanupRow() {
     return {
       state: "unavailable" as const,
       label: t`Migration status unavailable`,
-      description: t`Anarlog will retry automatically. This does not affect your notes.`,
+      description: t`Syntheo will retry automatically. This does not affect your notes.`,
     };
   })();
 

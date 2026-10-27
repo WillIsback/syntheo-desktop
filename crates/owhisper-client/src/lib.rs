@@ -15,13 +15,13 @@ pub use adapter::{
 };
 pub use adapter::{StreamingBatchEvent, StreamingBatchStream};
 
-pub use anlg_ws_client;
 pub use batch::{BatchClient, BatchClientBuilder};
 pub use error::Error;
 pub use live::{
     DualHandle, FinalizeHandle, ListenClient, ListenClientBuilder, ListenClientDual,
     ListenClientDualInput, ListenClientInput,
 };
+pub use syntheo_ws_client;
 
 pub(crate) fn log_provider_failure(
     provider: &'static str,
@@ -44,16 +44,16 @@ pub(crate) fn log_provider_failure(
         })
         .unwrap_or("unknown");
 
-    if anlg_user_error::is_user_error_text(message) {
+    if syntheo_user_error::is_user_error_text(message) {
         tracing::warn!(
-            anarlog.stt.provider.name = provider,
+            syntheo.stt.provider.name = provider,
             error.type = safe_error_type,
             error.code = safe_error_code,
             "provider_request_rejected"
         );
     } else {
         tracing::error!(
-            anarlog.stt.provider.name = provider,
+            syntheo.stt.provider.name = provider,
             error.type = safe_error_type,
             error.code = safe_error_code,
             "provider_request_failed"

@@ -7,11 +7,11 @@ describe("micAppsShowInUse", () => {
     expect(micAppsShowInUse([{ id: "us.zoom.xos", name: "Zoom" }])).toBe(true);
   });
 
-  it("ignores Anarlog itself", () => {
+  it("ignores Syntheo itself", () => {
     expect(
       micAppsShowInUse([
-        { id: "com.anarlog.app", name: "Anarlog" },
-        { id: "com.hyprnote.app", name: "Hyprnote" },
+        { id: "com.syntheo.app", name: "Syntheo" },
+        { id: "com.syntheo.app", name: "Syntheo" },
       ]),
     ).toBe(false);
   });

@@ -16,7 +16,7 @@ specta-typescript = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
-anlg-audio = { workspace = true }
+syntheo-audio = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }
 tauri-plugin-shell = { workspace = true }
@@ -30,9 +30,9 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 
 [target."cfg(target_os = \"macos\")".dependencies]
-anlg-bundle = { workspace = true }
-anlg-overlay-kit = { workspace = true }
-anlg-tcc = { workspace = true, optional = true }
+syntheo-bundle = { workspace = true }
+syntheo-overlay-kit = { workspace = true }
+syntheo-tcc = { workspace = true, optional = true }
 block2 = { workspace = true }
 objc2 = { workspace = true }
 objc2-app-kit = { workspace = true }
@@ -60,4 +60,4 @@ macos-accessibility-client = { workspace = true }
 
 [features]
 default = []
-private-tcc = ["dep:anlg-tcc"]
+private-tcc = ["dep:syntheo-tcc"]

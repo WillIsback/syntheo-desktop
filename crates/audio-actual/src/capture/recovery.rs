@@ -6,8 +6,8 @@ use std::{
     time::Duration,
 };
 
-use anlg_audio::{CaptureChannel, Error};
 use futures_util::StreamExt;
+use syntheo_audio::{CaptureChannel, Error};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 

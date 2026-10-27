@@ -1,9 +1,9 @@
 use std::fmt::Write;
 use std::path::Path;
 
-use anlg_db_app::LegacyImportBatch;
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
+use syntheo_db_app::LegacyImportBatch;
 
 pub(super) fn parse_json_object(content: &str) -> Result<Map<String, Value>, String> {
     serde_json::from_str::<Value>(content)

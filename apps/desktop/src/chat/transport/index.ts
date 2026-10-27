@@ -11,7 +11,7 @@ import {
 import {
   type SessionContext,
   commands as templateCommands,
-} from "@anlg/plugin-template";
+} from "@syntheo/plugin-template";
 
 import type { ContextRef } from "../context/entities";
 import {
@@ -21,7 +21,7 @@ import {
 } from "../context/refs";
 import { CONTEXT_TEXT_FIELD } from "../tools/context-text";
 import type { ChatToolContext } from "../tools/current-session";
-import type { AnlgUIMessage } from "../types";
+import type { SyntheoUIMessage } from "../types";
 import {
   getMeetingIdsFromSearchOutput,
   hasContextText,
@@ -37,7 +37,7 @@ export type ResolvedChatContext =
   | { kind: "session"; context: SessionContext }
   | { kind: "text"; text: string };
 
-export class CustomChatTransport implements ChatTransport<AnlgUIMessage> {
+export class CustomChatTransport implements ChatTransport<SyntheoUIMessage> {
   constructor(
     private model: LanguageModel,
     private tools: ToolSet,
@@ -178,7 +178,7 @@ export class CustomChatTransport implements ChatTransport<AnlgUIMessage> {
     };
   }
 
-  sendMessages: ChatTransport<AnlgUIMessage>["sendMessages"] = async (
+  sendMessages: ChatTransport<SyntheoUIMessage>["sendMessages"] = async (
     options,
   ) => {
     const cache = new Map<string, string | null>();
@@ -255,7 +255,7 @@ export class CustomChatTransport implements ChatTransport<AnlgUIMessage> {
       },
     });
 
-    const messagesWithContext: AnlgUIMessage[] = [];
+    const messagesWithContext: SyntheoUIMessage[] = [];
 
     for (const [index, msg] of options.messages.entries()) {
       if (msg.role === "user") {
@@ -290,7 +290,7 @@ export class CustomChatTransport implements ChatTransport<AnlgUIMessage> {
         );
         messagesWithContext.push({
           ...msg,
-          parts: expandedParts as AnlgUIMessage["parts"],
+          parts: expandedParts as SyntheoUIMessage["parts"],
         });
       } else {
         messagesWithContext.push(msg);
@@ -331,7 +331,7 @@ export class CustomChatTransport implements ChatTransport<AnlgUIMessage> {
     });
   };
 
-  reconnectToStream: ChatTransport<AnlgUIMessage>["reconnectToStream"] =
+  reconnectToStream: ChatTransport<SyntheoUIMessage>["reconnectToStream"] =
     async () => {
       return null;
     };

@@ -10,21 +10,21 @@ specta = ["dep:specta"]
 tauri-event = ["specta", "dep:tauri-specta"]
 
 [dependencies]
-anlg-audio = { workspace = true }
-anlg-audio-device = { workspace = true }
-anlg-audio-utils = { workspace = true }
-anlg-device-monitor = { workspace = true }
-anlg-language = { workspace = true }
-anlg-storage = { workspace = true }
-anlg-supervisor = { workspace = true }
-anlg-transcript = { workspace = true }
-anlg-vad-masking = { workspace = true }
+syntheo-audio = { workspace = true }
+syntheo-audio-device = { workspace = true }
+syntheo-audio-utils = { workspace = true }
+syntheo-device-monitor = { workspace = true }
+syntheo-language = { workspace = true }
+syntheo-storage = { workspace = true }
+syntheo-supervisor = { workspace = true }
+syntheo-transcript = { workspace = true }
+syntheo-vad-masking = { workspace = true }
 
 owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }
 
-anlg-mp3 = { workspace = true }
 hound = { workspace = true }
+syntheo-mp3 = { workspace = true }
 
 ractor = { workspace = true, features = ["async-trait"] }
 
@@ -42,7 +42,7 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 
 [dev-dependencies]
-anlg-data = { workspace = true }
+syntheo-data = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 tokio-tungstenite = { workspace = true }

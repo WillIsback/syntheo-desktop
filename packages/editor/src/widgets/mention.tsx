@@ -23,7 +23,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { Buildings, Folder, Note, User } from "@anlg/ui/components/icons";
+import { Buildings, Folder, Note, User } from "@syntheo/ui/components/icons";
 
 export interface MentionItem {
   id: string;

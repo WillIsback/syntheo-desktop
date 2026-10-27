@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { defaultSummaryDocumentId } from "@anlg/utils/session";
+import { defaultSummaryDocumentId } from "@syntheo/utils/session";
 
 import { useAITask } from "~/ai/contexts";
 import { useEnhancedNoteRecords } from "~/session/queries";

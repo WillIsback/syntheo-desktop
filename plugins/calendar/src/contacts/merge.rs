@@ -142,7 +142,7 @@ pub async fn merge_humans(pool: &SqlitePool, request: MergeHumansRequest) -> Res
     run_write(pool, |conn| {
         let now = now.clone();
         Box::pin(async move {
-            let rows = anlg_db_app::list_merge_humans(conn, &selected, &duplicate)
+            let rows = syntheo_db_app::list_merge_humans(conn, &selected, &duplicate)
                 .await
                 .map_err(|error| error.to_string())?;
             let self_human_id = rows
@@ -150,7 +150,7 @@ pub async fn merge_humans(pool: &SqlitePool, request: MergeHumansRequest) -> Res
                 .find(|row| row.id == row.owner_user_id)
                 .map(|row| row.id.clone())
                 .unwrap_or_else(|| {
-                    if duplicate == anlg_db_app::DEFAULT_USER_ID {
+                    if duplicate == syntheo_db_app::DEFAULT_USER_ID {
                         duplicate.clone()
                     } else {
                         selected.clone()
@@ -184,24 +184,25 @@ pub async fn merge_humans(pool: &SqlitePool, request: MergeHumansRequest) -> Res
             let memo = merge_text(&primary.memo, &duplicate_row.memo);
 
             let mut extra_emails =
-                anlg_db_app::human_additional_emails_from_metadata(&primary.metadata_json);
+                syntheo_db_app::human_additional_emails_from_metadata(&primary.metadata_json);
             let email = if primary.email.trim().is_empty() {
                 duplicate_row.email.clone()
             } else {
                 extra_emails.push(duplicate_row.email.clone());
                 primary.email.clone()
             };
-            extra_emails.extend(anlg_db_app::human_additional_emails_from_metadata(
+            extra_emails.extend(syntheo_db_app::human_additional_emails_from_metadata(
                 &duplicate_row.metadata_json,
             ));
-            let additional_emails = anlg_db_app::normalize_additional_emails(&email, extra_emails);
+            let additional_emails =
+                syntheo_db_app::normalize_additional_emails(&email, extra_emails);
             let additional_emails_json = if additional_emails.is_empty() {
                 None
             } else {
                 Some(serde_json::to_string(&additional_emails).map_err(|error| error.to_string())?)
             };
 
-            anlg_db_app::tombstone_duplicate_participant_mappings(
+            syntheo_db_app::tombstone_duplicate_participant_mappings(
                 conn,
                 &now,
                 &duplicate_id,
@@ -209,12 +210,12 @@ pub async fn merge_humans(pool: &SqlitePool, request: MergeHumansRequest) -> Res
             )
             .await
             .map_err(|error| error.to_string())?;
-            anlg_db_app::reassign_participant_mappings(conn, &primary_id, &duplicate_id, &now)
+            syntheo_db_app::reassign_participant_mappings(conn, &primary_id, &duplicate_id, &now)
                 .await
                 .map_err(|error| error.to_string())?;
             reassign_speaker_references(conn, &primary_id, &primary.name, &duplicate_id, &now)
                 .await?;
-            anlg_db_app::update_merged_human(
+            syntheo_db_app::update_merged_human(
                 conn,
                 &job_title,
                 &linkedin_username,
@@ -228,7 +229,7 @@ pub async fn merge_humans(pool: &SqlitePool, request: MergeHumansRequest) -> Res
             )
             .await
             .map_err(|error| error.to_string())?;
-            anlg_db_app::soft_delete_contact(conn, "humans", &duplicate_id, &now)
+            syntheo_db_app::soft_delete_contact(conn, "humans", &duplicate_id, &now)
                 .await
                 .map_err(|error| error.to_string())?;
             Ok(())
@@ -240,11 +241,11 @@ pub async fn merge_humans(pool: &SqlitePool, request: MergeHumansRequest) -> Res
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 
@@ -422,7 +423,7 @@ mod tests {
         );
         let mut conn = db.pool().acquire().await.unwrap();
         assert_eq!(
-            anlg_db_app::load_render_humans(&mut conn, &["primary".to_string()])
+            syntheo_db_app::load_render_humans(&mut conn, &["primary".to_string()])
                 .await
                 .unwrap(),
             vec![("primary".to_string(), "N".to_string())]

@@ -105,7 +105,7 @@ fn sign_payload_bytes(secret: &str, body: &[u8]) -> String {
         .collect()
 }
 
-fn subscribes(endpoint: &anlg_db_app::WebhookEndpointRow, event: &str) -> bool {
+fn subscribes(endpoint: &syntheo_db_app::WebhookEndpointRow, event: &str) -> bool {
     let events: Vec<String> = serde_json::from_str(&endpoint.events_json).unwrap_or_default();
     events.is_empty() || events.iter().any(|subscribed| subscribed == event)
 }
@@ -121,7 +121,7 @@ fn envelope(event: &str, data: serde_json::Value) -> String {
 }
 
 async fn meeting_payload(pool: &SqlitePool, meeting_id: &str) -> Result<serde_json::Value, String> {
-    let export = anlg_agent_access::get_meeting_export(pool, meeting_id.to_string())
+    let export = syntheo_agent_access::get_meeting_export(pool, meeting_id.to_string())
         .await
         .map_err(|error| error.to_string())?;
     let transcript_text = export
@@ -159,7 +159,7 @@ pub async fn create_endpoint(
             KNOWN_EVENTS.join(", ")
         ));
     }
-    let endpoint_count = anlg_db_app::list_webhook_endpoints(pool)
+    let endpoint_count = syntheo_db_app::list_webhook_endpoints(pool)
         .await
         .map_err(|error| error.to_string())?
         .len();
@@ -170,8 +170,8 @@ pub async fn create_endpoint(
     }
 
     let events_json = serde_json::to_string(events).map_err(|error| error.to_string())?;
-    let secret = anlg_db_app::generate_webhook_secret();
-    let row = anlg_db_app::insert_webhook_endpoint(
+    let secret = syntheo_db_app::generate_webhook_secret();
+    let row = syntheo_db_app::insert_webhook_endpoint(
         pool,
         &uuid::Uuid::new_v4().to_string(),
         url,
@@ -195,7 +195,7 @@ pub async fn dispatch_event(
     meeting_id: &str,
 ) -> Result<usize, String> {
     let fanout_permit = acquire_fanout_slot().await?;
-    let mut endpoints = anlg_db_app::list_active_webhook_endpoints(pool)
+    let mut endpoints = syntheo_db_app::list_active_webhook_endpoints(pool)
         .await
         .map_err(|error| error.to_string())?
         .into_iter()
@@ -265,18 +265,19 @@ where
 
 pub async fn send_test(
     pool: &SqlitePool,
-    endpoint: &anlg_db_app::WebhookEndpointRow,
+    endpoint: &syntheo_db_app::WebhookEndpointRow,
 ) -> Result<crate::WebhookDelivery, String> {
     let _permit = acquire_test_delivery_slot().await?;
     let body = Bytes::from(envelope(
         EVENT_TEST,
-        serde_json::json!({ "message": "This is a test delivery from Anarlog." }),
+        serde_json::json!({ "message": "This is a test delivery from Syntheo." }),
     ));
     let delivery_id = format!("dlv_{}", uuid::Uuid::new_v4().simple());
     let status = deliver_once(endpoint, EVENT_TEST, &body, &delivery_id).await;
     let delivered = status.delivered;
     let status_text = truncate_status(&status.status);
-    if let Err(error) = anlg_db_app::record_webhook_delivery(pool, &endpoint.id, &status_text).await
+    if let Err(error) =
+        syntheo_db_app::record_webhook_delivery(pool, &endpoint.id, &status_text).await
     {
         tracing::warn!("[local-api] failed to record webhook delivery: {error}");
     }
@@ -293,7 +294,7 @@ struct DeliveryOutcome {
 
 async fn deliver_with_retry(
     pool: &SqlitePool,
-    endpoint: &anlg_db_app::WebhookEndpointRow,
+    endpoint: &syntheo_db_app::WebhookEndpointRow,
     event: &str,
     body: &Bytes,
 ) {
@@ -320,14 +321,15 @@ async fn deliver_with_retry(
         );
     }
     let status_text = truncate_status(&outcome.status);
-    if let Err(error) = anlg_db_app::record_webhook_delivery(pool, &endpoint.id, &status_text).await
+    if let Err(error) =
+        syntheo_db_app::record_webhook_delivery(pool, &endpoint.id, &status_text).await
     {
         tracing::warn!("[local-api] failed to record webhook delivery: {error}");
     }
 }
 
 async fn deliver_once(
-    endpoint: &anlg_db_app::WebhookEndpointRow,
+    endpoint: &syntheo_db_app::WebhookEndpointRow,
     event: &str,
     body: &Bytes,
     delivery_id: &str,
@@ -348,14 +350,14 @@ async fn deliver_once(
     let response = client
         .post(&endpoint.url)
         .header("content-type", "application/json")
-        .header("x-anarlog-event", event)
-        .header("x-anarlog-delivery", delivery_id)
+        .header("x-syntheo-event", event)
+        .header("x-syntheo-delivery", delivery_id)
         .header(
-            "x-anarlog-timestamp",
+            "x-syntheo-timestamp",
             chrono::Utc::now().timestamp().to_string(),
         )
         .header(
-            "x-anarlog-signature",
+            "x-syntheo-signature",
             format!(
                 "sha256={}",
                 sign_payload_bytes(&endpoint.secret, body.as_ref())
@@ -400,7 +402,7 @@ mod tests {
 
     #[test]
     fn empty_event_list_subscribes_to_everything() {
-        let endpoint = anlg_db_app::WebhookEndpointRow {
+        let endpoint = syntheo_db_app::WebhookEndpointRow {
             id: "webhook-1".to_string(),
             url: "https://example.com".to_string(),
             secret: "whsec_x".to_string(),
@@ -412,7 +414,7 @@ mod tests {
         };
         assert!(subscribes(&endpoint, EVENT_NOTE_ENHANCED));
 
-        let scoped = anlg_db_app::WebhookEndpointRow {
+        let scoped = syntheo_db_app::WebhookEndpointRow {
             events_json: "[\"meeting.completed\"]".to_string(),
             ..endpoint
         };
@@ -422,9 +424,9 @@ mod tests {
 
     #[tokio::test]
     async fn dispatch_without_subscribed_endpoints_is_a_no_op() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
-        anlg_db_app::insert_webhook_endpoint(
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::insert_webhook_endpoint(
             db.pool(),
             "webhook-1",
             "https://example.com",
@@ -443,11 +445,11 @@ mod tests {
 
     #[tokio::test]
     async fn endpoint_creation_stops_at_the_fanout_limit() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
 
         for index in 0..MAX_WEBHOOK_ENDPOINTS {
-            anlg_db_app::insert_webhook_endpoint(
+            syntheo_db_app::insert_webhook_endpoint(
                 db.pool(),
                 &format!("webhook-{index}"),
                 "https://example.com",
@@ -467,7 +469,7 @@ mod tests {
             format!("at most {MAX_WEBHOOK_ENDPOINTS} webhook endpoints can be configured")
         );
         assert_eq!(
-            anlg_db_app::list_webhook_endpoints(db.pool())
+            syntheo_db_app::list_webhook_endpoints(db.pool())
                 .await
                 .unwrap()
                 .len(),
@@ -477,8 +479,8 @@ mod tests {
 
     #[tokio::test]
     async fn endpoint_creation_rejects_bad_urls_and_unknown_events() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
 
         assert_eq!(
             create_endpoint(db.pool(), "example.com", &[])
@@ -493,7 +495,7 @@ mod tests {
                 .starts_with("unknown event 'nope'")
         );
         assert!(
-            anlg_db_app::list_webhook_endpoints(db.pool())
+            syntheo_db_app::list_webhook_endpoints(db.pool())
                 .await
                 .unwrap()
                 .is_empty()

@@ -3,24 +3,24 @@ use std::path::{Path, PathBuf};
 
 use crate::{Args, Error, Result};
 
-pub async fn open(args: &Args) -> Result<anlg_db_core::Db> {
+pub async fn open(args: &Args) -> Result<syntheo_db_core::Db> {
     let path = resolve_path(args)?;
     if !path.is_file() {
         return Err(Error::DatabaseNotFound(path));
     }
 
-    anlg_db_core::Db::connect_local_read_only(&path)
+    syntheo_db_core::Db::connect_local_read_only(&path)
         .await
         .map_err(|error| Error::operation("open database", error.to_string()))
 }
 
-pub async fn open_write(args: &Args) -> Result<anlg_db_core::Db> {
+pub async fn open_write(args: &Args) -> Result<syntheo_db_core::Db> {
     let path = resolve_path(args)?;
     if !path.is_file() {
         return Err(Error::DatabaseNotFound(path));
     }
 
-    anlg_db_core::Db::connect_local_read_write(&path)
+    syntheo_db_core::Db::connect_local_read_write(&path)
         .await
         .map_err(|error| Error::operation("open database for writes", error.to_string()))
 }
@@ -51,7 +51,7 @@ fn resolve_default_path_for_command(data_dir: &Path, command_name: Option<&OsStr
         .and_then(OsStr::to_str)
         .and_then(|name| Path::new(name).file_stem())
         .and_then(OsStr::to_str);
-    // Même résolution que l'app Syntheo : jamais la base d'une installation Anarlog.
+    // Même résolution que l'app Syntheo : jamais la base d'une installation Syntheo.
     if command_name == Some("syntheo-dev") {
         return data_dir.join("fr.willisback.syntheo.dev").join("app.db");
     }
@@ -74,18 +74,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_path_is_syntheo_and_ignores_anarlog_databases() {
+    fn default_path_is_syntheo_and_ignores_other_databases() {
         let dir = tempfile::tempdir().unwrap();
-        for legacy in ["anarlog", "hyprnote", "com.hyprnote.stable"] {
-            std::fs::create_dir_all(dir.path().join(legacy)).unwrap();
-            std::fs::write(dir.path().join(legacy).join("app.db"), b"x").unwrap();
+        for other in ["unrelated", "com.example.app"] {
+            std::fs::create_dir_all(dir.path().join(other)).unwrap();
+            std::fs::write(dir.path().join(other).join("app.db"), b"x").unwrap();
         }
+        std::fs::create_dir_all(dir.path().join("syntheo")).unwrap();
+        std::fs::write(dir.path().join("syntheo").join("app.db"), b"x").unwrap();
         assert_eq!(
             resolve_default_path_for_command(dir.path(), Some(OsStr::new("syntheo"))),
-            dir.path().join("syntheo/app.db")
-        );
-        assert_eq!(
-            resolve_default_path_for_command(dir.path(), Some(OsStr::new("anarlog"))),
             dir.path().join("syntheo/app.db")
         );
     }

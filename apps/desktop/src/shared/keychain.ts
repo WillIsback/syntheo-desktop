@@ -1,4 +1,4 @@
-import { commands as store2Commands } from "@anlg/plugin-store2";
+import { commands as store2Commands } from "@syntheo/plugin-store2";
 
 const MACOS_KEYCHAIN_ACCESS_ERROR_PREFIX =
   "macOS couldn't access your login Keychain.";

@@ -4,8 +4,8 @@ import {
   Popover,
   PopoverAnchor,
   PopoverContent,
-} from "@anlg/ui/components/ui/popover";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { cn } from "@syntheo/utils";
 
 import { SegmentHeader } from "./segment-header";
 import {

@@ -1,7 +1,7 @@
 import { create as mutate } from "mutative";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { toast } from "@anlg/ui/components/ui/toast";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 const {
   acknowledgeStoppedCaptureMock,
@@ -45,37 +45,37 @@ vi.mock("@tauri-apps/api/app", () => ({
   getIdentifier: getIdentifierMock,
 }));
 
-vi.mock("@anlg/plugin-detect", () => ({
+vi.mock("@syntheo/plugin-detect", () => ({
   commands: {
     listMicUsingApplications: listMicUsingApplicationsMock,
   },
 }));
 
-vi.mock("@anlg/plugin-hooks", () => ({
+vi.mock("@syntheo/plugin-hooks", () => ({
   commands: {
     runEventHooks: runEventHooksMock,
   },
 }));
 
-vi.mock("@anlg/plugin-icon", () => ({
+vi.mock("@syntheo/plugin-icon", () => ({
   commands: {
     setRecordingIndicator: setRecordingIndicatorMock,
   },
 }));
 
-vi.mock("@anlg/plugin-local-api", () => ({
+vi.mock("@syntheo/plugin-local-api", () => ({
   commands: {
     dispatchEvent: dispatchEventMock,
   },
 }));
 
-vi.mock("@anlg/plugin-settings", () => ({
+vi.mock("@syntheo/plugin-settings", () => ({
   commands: {
     vaultBase: vaultBaseMock,
   },
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     acknowledgeStoppedCapture: acknowledgeStoppedCaptureMock,
     getCaptureSnapshot: getCaptureSnapshotMock,
@@ -120,7 +120,7 @@ describe("General Listener Slice", () => {
   beforeEach(() => {
     store = createListenerStore();
     vi.clearAllMocks();
-    getIdentifierMock.mockResolvedValue("com.anarlog.stable");
+    getIdentifierMock.mockResolvedValue("com.syntheo.stable");
     getCaptureSnapshotMock.mockResolvedValue({
       status: "ok",
       data: {
@@ -145,7 +145,7 @@ describe("General Listener Slice", () => {
     stopCaptureMock.mockResolvedValue({ status: "ok", data: null });
     stopTranscriptionMock.mockResolvedValue({ status: "ok", data: null });
     dispatchEventMock.mockResolvedValue({ status: "ok", data: 1 });
-    vaultBaseMock.mockResolvedValue({ status: "ok", data: "/tmp/anarlog" });
+    vaultBaseMock.mockResolvedValue({ status: "ok", data: "/tmp/syntheo" });
   });
 
   test("keeps the next live transcript after the previous meeting finishes batch and summary work", async () => {

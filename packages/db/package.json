@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/db",
+  "name": "@syntheo/db",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
   },
   "types": "./src/index.ts",
   "dependencies": {
-    "@anlg/db-runtime": "workspace:*",
+    "@syntheo/db-runtime": "workspace:*",
     "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {

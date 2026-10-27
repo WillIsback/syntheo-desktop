@@ -2,11 +2,11 @@ import { getIdentifier } from "@tauri-apps/api/app";
 import { Cause, Effect, Exit } from "effect";
 import type { StoreApi } from "zustand";
 
-import { commands as detectCommands } from "@anlg/plugin-detect";
-import { commands as hooksCommands } from "@anlg/plugin-hooks";
-import { commands as iconCommands } from "@anlg/plugin-icon";
-import { commands as localApiCommands } from "@anlg/plugin-local-api";
-import { commands as settingsCommands } from "@anlg/plugin-settings";
+import { commands as detectCommands } from "@syntheo/plugin-detect";
+import { commands as hooksCommands } from "@syntheo/plugin-hooks";
+import { commands as iconCommands } from "@syntheo/plugin-icon";
+import { commands as localApiCommands } from "@syntheo/plugin-local-api";
+import { commands as settingsCommands } from "@syntheo/plugin-settings";
 import {
   commands as listenerCommands,
   events as listenerEvents,
@@ -19,8 +19,8 @@ import {
   type LiveTranscriptDelta,
   type LiveTranscriptSegment,
   type LiveTranscriptSegmentDelta,
-} from "@anlg/plugin-transcription";
-import { toast } from "@anlg/ui/components/ui/toast";
+} from "@syntheo/plugin-transcription";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import {
   type GeneralState,
@@ -212,7 +212,7 @@ const notifyTranscriptionStalled = () => {
     id: "live-transcription-stalled",
     duration: Infinity,
     description:
-      "Anarlog keeps listening while live transcription reconnects. No audio is kept, so the missing part will not be recovered.",
+      "Syntheo keeps listening while live transcription reconnects. No audio is kept, so the missing part will not be recovered.",
   });
 };
 
@@ -676,7 +676,7 @@ export const startLiveSession = <T extends LiveStore>(
           detectCommands
             .listMicUsingApplications()
             .then((r) => (r.status === "ok" ? r.data : null)),
-          getIdentifier().catch(() => "com.anarlog.stable"),
+          getIdentifier().catch(() => "fr.willisback.syntheo"),
         ]),
       catch: (error) => error,
     });
@@ -701,7 +701,7 @@ export const startLiveSession = <T extends LiveStore>(
             beforeListeningStarted: {
               args: {
                 resource_dir: sessionPath,
-                app_hyprnote: bundleId,
+                app_syntheo: bundleId,
                 app_meeting,
               },
             },
@@ -1086,7 +1086,7 @@ export const stopLiveSession = <T extends GeneralState>(
             if (r.status === "error") throw new Error(r.error);
             return r.data;
           }),
-          getIdentifier().catch(() => "com.anarlog.stable"),
+          getIdentifier().catch(() => "fr.willisback.syntheo"),
         ])
           .then(([dataDirPath, bundleId]) => {
             const sessionPath = getSessionResourcePath(dataDirPath, sessionId);
@@ -1094,7 +1094,7 @@ export const stopLiveSession = <T extends GeneralState>(
               afterListeningStopped: {
                 args: {
                   resource_dir: sessionPath,
-                  app_hyprnote: bundleId,
+                  app_syntheo: bundleId,
                   app_meeting: null,
                 },
               },

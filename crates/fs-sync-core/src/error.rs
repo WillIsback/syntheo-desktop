@@ -11,7 +11,7 @@ pub enum Error {
     #[error("Path error: {0}")]
     Path(String),
     #[error(transparent)]
-    Frontmatter(#[from] anlg_frontmatter::Error),
+    Frontmatter(#[from] syntheo_frontmatter::Error),
     #[error("Markdown error: {0}")]
     Markdown(String),
 }

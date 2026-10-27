@@ -1,7 +1,7 @@
 import { t } from "@lingui/core/macro";
 import { useCallback, useRef } from "react";
 
-import { toast } from "@anlg/ui/components/ui/toast";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import {
   runPreMeetingBriefJob,

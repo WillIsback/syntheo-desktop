@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   updateSession: vi.fn(() => Promise.resolve()),
 }));
 
-vi.mock("@anlg/plugin-session", () => ({
+vi.mock("@syntheo/plugin-session", () => ({
   commands: {
     createSession: mocks.createSession,
     createSessionForEvent: mocks.createSessionForEvent,

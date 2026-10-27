@@ -2,7 +2,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-} from "@anlg/ui/components/ui/dropdown-menu";
+} from "@syntheo/ui/components/ui/dropdown-menu";
 
 import { MenuGroup, MenuHint } from "./menu";
 
@@ -13,7 +13,7 @@ import { useConfigValues } from "~/shared/config";
 /**
  * Settings that change what is on screen, exposed as one-click toggles so a
  * build can be checked in both states without leaving the current view. This
- * is the closest thing Anarlog has to Linear's feature-flag tiles.
+ * is the closest thing Syntheo has to Linear's feature-flag tiles.
  */
 const QUICK_TOGGLES = [
   {

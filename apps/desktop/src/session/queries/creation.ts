@@ -1,5 +1,5 @@
-import { commands } from "@anlg/plugin-session";
-import { eventParticipantSchema, type EventParticipant } from "@anlg/store";
+import { commands } from "@syntheo/plugin-session";
+import { eventParticipantSchema, type EventParticipant } from "@syntheo/store";
 
 import { updateSession } from "./sessions";
 import type { SessionChanges } from "./types";

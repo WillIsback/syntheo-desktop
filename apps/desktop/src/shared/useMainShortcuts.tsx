@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { useShell } from "~/contexts/shell";
 import { leaveOverlayTab } from "~/shared/leave-overlay-tab";

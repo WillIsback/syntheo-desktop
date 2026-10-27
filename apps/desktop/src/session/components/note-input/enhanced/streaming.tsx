@@ -1,8 +1,8 @@
 import { Trans } from "@lingui/react/macro";
 import { Streamdown } from "streamdown";
 
-import { streamdownIcons } from "@anlg/ui/components/streamdown-icons";
-import { cn } from "@anlg/utils";
+import { streamdownIcons } from "@syntheo/ui/components/streamdown-icons";
+import { cn } from "@syntheo/utils";
 
 import { streamdownComponents } from "../../streamdown";
 
@@ -89,7 +89,7 @@ export function StreamingView({
                 appears.
               </Trans>
             ) : (
-              <Trans>Tip: The Anarlog team loves our users!</Trans>
+              <Trans>Tip: The Syntheo team loves our users!</Trans>
             )}
           </span>
         </p>

@@ -41,21 +41,21 @@ impl OpenAIAdapter {
         }
     }
 
-    pub fn language_support_live(_languages: &[anlg_language::Language]) -> LanguageSupport {
+    pub fn language_support_live(_languages: &[syntheo_language::Language]) -> LanguageSupport {
         LanguageSupport::Supported {
             quality: LanguageQuality::NoData,
         }
     }
 
-    pub fn language_support_batch(_languages: &[anlg_language::Language]) -> LanguageSupport {
+    pub fn language_support_batch(_languages: &[syntheo_language::Language]) -> LanguageSupport {
         Self::language_support_live(_languages)
     }
 
-    pub fn is_supported_languages_live(languages: &[anlg_language::Language]) -> bool {
+    pub fn is_supported_languages_live(languages: &[syntheo_language::Language]) -> bool {
         Self::language_support_live(languages).is_supported()
     }
 
-    pub fn is_supported_languages_batch(languages: &[anlg_language::Language]) -> bool {
+    pub fn is_supported_languages_batch(languages: &[syntheo_language::Language]) -> bool {
         Self::language_support_batch(languages).is_supported()
     }
 

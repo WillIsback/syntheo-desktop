@@ -7,7 +7,7 @@ fn shared_session_cache_is_plain_and_excluded_from_cloudsync() {
         .find(|step| step.id == "20260716173000_shared_session_cache")
         .unwrap();
 
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
     assert!(
         !cloudsync_table_registry()
             .iter()
@@ -19,9 +19,9 @@ fn shared_session_cache_is_plain_and_excluded_from_cloudsync() {
 #[tokio::test]
 async fn share_activation_backfills_only_previously_shared_manager_notes() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: migration_steps_before("20261002090000_session_share_activation_sync"),
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -121,7 +121,7 @@ fn shared_session_cache_migration_checksums_are_pinned() {
 #[tokio::test]
 async fn repairs_the_base_only_dev_cache_without_touching_notes() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(&db, schema_with_legacy_shared_session_cache(false))
+    syntheo_db_migrate::migrate(&db, schema_with_legacy_shared_session_cache(false))
         .await
         .unwrap();
     sqlx::query(
@@ -180,7 +180,7 @@ async fn repairs_the_base_only_dev_cache_without_touching_notes() {
 #[tokio::test]
 async fn repairs_the_known_legacy_shared_session_cache_migration() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(&db, schema_with_legacy_shared_session_cache(true))
+    syntheo_db_migrate::migrate(&db, schema_with_legacy_shared_session_cache(true))
         .await
         .unwrap();
     sqlx::query(
@@ -362,7 +362,7 @@ fn session_share_sync_state_is_plain_and_excluded_from_replication() {
         .find(|step| step.id == "20260717191000_session_share_sync_state")
         .unwrap();
 
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
     assert!(
         !cloudsync_table_registry()
             .iter()
@@ -451,7 +451,7 @@ async fn shared_session_cache_enforces_manager_web_edit_base() {
         .iter()
         .find(|step| step.id == "20260717190000_shared_session_cache_web_edits")
         .unwrap();
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
 
     let db = test_db().await;
     let insert = "INSERT INTO shared_session_cache (
@@ -521,7 +521,7 @@ async fn shared_session_cache_attachment_manifest_is_local_and_bounded() {
         .iter()
         .find(|step| step.id == "20260717172000_shared_session_cache_attachments")
         .unwrap();
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
 
     let db = test_db().await;
     sqlx::query(

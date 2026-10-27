@@ -15,7 +15,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-anlg-notification = { workspace = true, features = ["legacy"] }
+syntheo-notification = { workspace = true, features = ["legacy"] }
 
 tauri-plugin-windows = { workspace = true }
 

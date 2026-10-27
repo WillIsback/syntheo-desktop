@@ -5,17 +5,17 @@ mod fetch;
 pub mod runtime;
 mod windows_tz;
 
-pub use anlg_calendar_interface::{
+pub use error::Error;
+pub use syntheo_calendar_interface::{
     CalendarEvent, CalendarListItem, CalendarProviderType, CreateEventInput, EventFilter,
 };
-pub use error::Error;
 
 pub fn start(runtime: impl runtime::CalendarRuntime) {
     #[cfg(target_os = "macos")]
     {
         use std::sync::Arc;
         let runtime = Arc::new(runtime);
-        anlg_apple_calendar::setup_change_notification(move || {
+        syntheo_apple_calendar::setup_change_notification(move || {
             runtime.emit_changed();
         });
     }
@@ -301,8 +301,8 @@ fn open_apple_calendar() -> Result<(), Error> {
 }
 
 #[cfg(target_os = "macos")]
-fn list_apple_calendars() -> Result<Vec<anlg_apple_calendar::types::AppleCalendar>, Error> {
-    let handle = anlg_apple_calendar::Handle::new();
+fn list_apple_calendars() -> Result<Vec<syntheo_apple_calendar::types::AppleCalendar>, Error> {
+    let handle = syntheo_apple_calendar::Handle::new();
     handle
         .list_calendars()
         .map_err(|e| Error::Apple(e.to_string()))
@@ -311,9 +311,9 @@ fn list_apple_calendars() -> Result<Vec<anlg_apple_calendar::types::AppleCalenda
 #[cfg(target_os = "macos")]
 fn list_apple_events(
     filter: EventFilter,
-) -> Result<Vec<anlg_apple_calendar::types::AppleEvent>, Error> {
-    let handle = anlg_apple_calendar::Handle::new();
-    let filter = anlg_apple_calendar::types::EventFilter {
+) -> Result<Vec<syntheo_apple_calendar::types::AppleEvent>, Error> {
+    let handle = syntheo_apple_calendar::Handle::new();
+    let filter = syntheo_apple_calendar::types::EventFilter {
         from: filter.from,
         to: filter.to,
         calendar_tracking_id: filter.calendar_tracking_id,
@@ -326,12 +326,12 @@ fn list_apple_events(
 
 #[cfg(target_os = "macos")]
 fn create_apple_event(input: CreateEventInput) -> Result<String, Error> {
-    let handle = anlg_apple_calendar::Handle::new();
+    let handle = syntheo_apple_calendar::Handle::new();
 
     let start_date = parse_datetime(&input.started_at, "started_at")?;
     let end_date = parse_datetime(&input.ended_at, "ended_at")?;
 
-    let input = anlg_apple_calendar::types::CreateEventInput {
+    let input = syntheo_apple_calendar::types::CreateEventInput {
         title: input.title,
         start_date,
         end_date,
@@ -365,7 +365,7 @@ fn open_apple_calendar() -> Result<(), Error> {
 }
 
 #[cfg(not(target_os = "macos"))]
-fn list_apple_calendars() -> Result<Vec<anlg_apple_calendar::types::AppleCalendar>, Error> {
+fn list_apple_calendars() -> Result<Vec<syntheo_apple_calendar::types::AppleCalendar>, Error> {
     Err(Error::ProviderUnavailable {
         provider: CalendarProviderType::Apple,
     })
@@ -374,7 +374,7 @@ fn list_apple_calendars() -> Result<Vec<anlg_apple_calendar::types::AppleCalenda
 #[cfg(not(target_os = "macos"))]
 fn list_apple_events(
     _filter: EventFilter,
-) -> Result<Vec<anlg_apple_calendar::types::AppleEvent>, Error> {
+) -> Result<Vec<syntheo_apple_calendar::types::AppleEvent>, Error> {
     Err(Error::ProviderUnavailable {
         provider: CalendarProviderType::Apple,
     })
@@ -420,8 +420,8 @@ mod tests {
             ),
             (
                 "zoom in html",
-                "<p>Join Zoom Meeting<br/>https://anarlog.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1<br/></p>",
-                "https://anarlog.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
+                "<p>Join Zoom Meeting<br/>https://syntheo.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1<br/></p>",
+                "https://syntheo.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
             ),
             (
                 "korean google meet",
@@ -514,7 +514,7 @@ mod tests {
             assert_eq!(parse_meeting_link(link), None, "not a Kontur room: {link}");
         }
 
-        assert_eq!(parse_meeting_link("Follow us: https://x.com/anarlog"), None);
+        assert_eq!(parse_meeting_link("Follow us: https://x.com/syntheo"), None);
         assert_eq!(parse_meeting_link("Call: https://call.x.com/new"), None);
         assert_eq!(
             parse_meeting_link("Call: https://call.x.com/g1234567890"),

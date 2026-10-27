@@ -6,11 +6,11 @@ import {
   getStartupStatus,
   waitUntilReady,
   type StartupStatus,
-} from "@anlg/plugin-db";
-import { ArrowClockwise } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+} from "@syntheo/plugin-db";
+import { ArrowClockwise } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import { BrandLoadingView } from "./brand-loading-view";
 
@@ -104,7 +104,7 @@ function getStartupDetail(status: StartupStatus | undefined) {
 
 function StartupErrorView({ error }: { error: Error }) {
   const needsUpdate = error.message.includes(
-    "created by a newer version of Anarlog",
+    "created by a newer version of Syntheo",
   );
 
   const handleRestart = async () => {
@@ -122,11 +122,11 @@ function StartupErrorView({ error }: { error: Error }) {
     >
       <div className="flex max-w-sm flex-col items-center gap-4 text-center">
         <h1 className="text-foreground text-base font-semibold">
-          {needsUpdate ? "Anarlog needs an update" : "Anarlog could not start"}
+          {needsUpdate ? "Syntheo needs an update" : "Syntheo could not start"}
         </h1>
         <p className="text-muted-foreground text-sm leading-relaxed">
           {needsUpdate
-            ? "Your data was updated by a newer version of Anarlog, such as Anarlog Nightly, and this version cannot open it yet. Your existing data was left unchanged. Install the latest version of Anarlog, or keep using the newer app until this version catches up."
+            ? "Your data was updated by a newer version of Syntheo, such as Syntheo Nightly, and this version cannot open it yet. Your existing data was left unchanged. Install the latest version of Syntheo, or keep using the newer app until this version catches up."
             : "Your existing data was left unchanged. Please restart the app. If the problem continues, contact support."}
         </p>
         {needsUpdate ? null : (

@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 
-import { PushPin } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { PushPin } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { ContactImage } from "~/contacts/contact-avatar";
 import { type HumanRecord, toggleContactPin } from "~/contacts/queries";

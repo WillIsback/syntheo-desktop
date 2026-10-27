@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import {
   type CalendarSyncRange,

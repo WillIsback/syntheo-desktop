@@ -1,13 +1,13 @@
 import type { EditorView } from "prosemirror-view";
 import { forwardRef, memo, useCallback, useMemo } from "react";
 
-import { parseJsonContent } from "@anlg/editor/markdown";
+import { parseJsonContent } from "@syntheo/editor/markdown";
 import {
   NoteEditor,
   type JSONContent,
   type NoteEditorRef,
   normalizePortableAttachmentUrls,
-} from "@anlg/editor/note";
+} from "@syntheo/editor/note";
 
 import { AudioDropTarget } from "../audio-drop-target";
 import { useNoteFileHandlerConfig } from "../file-handler";

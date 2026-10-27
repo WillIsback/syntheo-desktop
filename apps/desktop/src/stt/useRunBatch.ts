@@ -8,7 +8,7 @@ import {
   type StoredSpeakerHint,
   type StoredTranscriptWord,
   type TranscriptionParams,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import { BatchResponseProcessingError } from "./batch-response-processing-error";
 import { completeCaptureTranscript } from "./capture-completion";

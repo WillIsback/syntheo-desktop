@@ -20,7 +20,7 @@ describe("getLiveTranscriptPausedMessage", () => {
         sttProvider: "openai",
         online: true,
       }),
-    ).toMatch(/Anarlog can't reach OpenAI-compatible/);
+    ).toMatch(/Syntheo can't reach OpenAI-compatible/);
   });
 
   it("live_interrupted_notice_mentions_no_saved_audio", () => {

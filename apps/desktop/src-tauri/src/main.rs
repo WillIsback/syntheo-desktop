@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    anarlog_desktop_lib::main()
+    syntheo_desktop_lib::main()
 }

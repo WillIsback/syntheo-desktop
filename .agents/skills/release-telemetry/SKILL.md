@@ -1,6 +1,6 @@
 ---
 name: release-telemetry
-description: Review Anarlog product analytics and error reporting for releases, preserving consent and verifying shipped attribution, ingestion, and symbols for affected paths.
+description: Review Syntheo product analytics and error reporting for releases, preserving consent and verifying shipped attribution, ingestion, and symbols for affected paths.
 metadata:
   internal: true
 ---

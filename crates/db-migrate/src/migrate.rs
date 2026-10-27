@@ -4,11 +4,11 @@ use std::future::Future;
 use std::pin::Pin;
 use std::time::{Duration, Instant};
 
-use anlg_db_core::Db;
 use sqlx::migrate::{
     AppliedMigration, Migrate, MigrateError as SqlxMigrateError, Migration, MigrationType,
 };
 use sqlx::{Executor, SqlSafeStr, Sqlite, SqliteConnection};
+use syntheo_db_core::Db;
 
 use crate::error::MigrateError;
 use crate::schema::{DbSchema, MigrationScope, MigrationStep};
@@ -195,7 +195,7 @@ fn validate_applied_migrations(
 // A step whose leading comment block contains a "-- breaking" line makes the
 // schema unreadable by builds that don't include it (e.g. dropped or renamed
 // columns); applying it raises the compat floor so older builds refuse to
-// open the database with a clear "update Anarlog" message instead of
+// open the database with a clear "update Syntheo" message instead of
 // misbehaving on a schema they don't understand.
 fn is_breaking_step(sql: &str) -> bool {
     sql.lines()
@@ -208,7 +208,7 @@ fn is_breaking_step(sql: &str) -> bool {
 
 async fn ensure_schema_compat_table(conn: &mut SqliteConnection) -> Result<(), sqlx::Error> {
     sqlx::query(
-        "CREATE TABLE IF NOT EXISTS _anlg_schema_compat ( \
+        "CREATE TABLE IF NOT EXISTS _syntheo_schema_compat ( \
              id INTEGER PRIMARY KEY CHECK (id = 0), \
              min_supported_version INTEGER NOT NULL \
          )",
@@ -217,7 +217,7 @@ async fn ensure_schema_compat_table(conn: &mut SqliteConnection) -> Result<(), s
     .await?;
 
     sqlx::query(
-        "INSERT OR IGNORE INTO _anlg_schema_compat (id, min_supported_version) VALUES (0, 0)",
+        "INSERT OR IGNORE INTO _syntheo_schema_compat (id, min_supported_version) VALUES (0, 0)",
     )
     .execute(&mut *conn)
     .await?;
@@ -226,7 +226,7 @@ async fn ensure_schema_compat_table(conn: &mut SqliteConnection) -> Result<(), s
 }
 
 async fn read_min_supported_version(conn: &mut SqliteConnection) -> Result<i64, sqlx::Error> {
-    sqlx::query_scalar("SELECT min_supported_version FROM _anlg_schema_compat WHERE id = 0")
+    sqlx::query_scalar("SELECT min_supported_version FROM _syntheo_schema_compat WHERE id = 0")
         .fetch_one(&mut *conn)
         .await
 }
@@ -236,7 +236,7 @@ async fn raise_min_supported_version(
     version: i64,
 ) -> Result<(), sqlx::Error> {
     sqlx::query(
-        "UPDATE _anlg_schema_compat \
+        "UPDATE _syntheo_schema_compat \
          SET min_supported_version = MAX(min_supported_version, ?1) \
          WHERE id = 0",
     )
@@ -390,7 +390,7 @@ impl Migrate for DbMigrateConnection<'_> {
                     table_name: cs_table,
                 } => {
                     let cloudsync_table_enabled = self.db.cloudsync_enabled()
-                        && anlg_db_core::cloudsync_is_enabled_on(&mut *self.conn, cs_table)
+                        && syntheo_db_core::cloudsync_is_enabled_on(&mut *self.conn, cs_table)
                             .await
                             .map_err(cloudsync_error)?;
 
@@ -459,13 +459,13 @@ async fn cloudsync_alter_migration(
     cs_table: &str,
     migration: &Migration,
 ) -> Result<(), SqlxMigrateError> {
-    anlg_db_core::cloudsync_begin_alter_on(&mut *conn, cs_table)
+    syntheo_db_core::cloudsync_begin_alter_on(&mut *conn, cs_table)
         .await
         .map_err(cloudsync_error)?;
 
     execute_migration(&mut *conn, migration).await?;
 
-    anlg_db_core::cloudsync_commit_alter_on(&mut *conn, cs_table)
+    syntheo_db_core::cloudsync_commit_alter_on(&mut *conn, cs_table)
         .await
         .map_err(cloudsync_error)?;
 

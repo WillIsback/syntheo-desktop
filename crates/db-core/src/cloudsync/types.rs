@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-pub use anlg_cloudsync::CloudsyncTableSpec;
-pub use anlg_cloudsync::NetworkResult as CloudsyncNetworkResult;
+pub use syntheo_cloudsync::CloudsyncTableSpec;
+pub use syntheo_cloudsync::NetworkResult as CloudsyncNetworkResult;
 
 pub fn cloudsync_receive_error(result: &CloudsyncNetworkResult) -> Option<String> {
     let receive = result.receive.as_ref()?;
@@ -117,11 +117,11 @@ pub enum CloudsyncRuntimeError {
     #[error("cloudsync local status is busy; try again")]
     LocalStatusBusy,
     #[error(transparent)]
-    Cloudsync(#[from] anlg_cloudsync::Error),
+    Cloudsync(#[from] syntheo_cloudsync::Error),
 }
 
 impl CloudsyncRuntimeError {
-    pub(crate) fn cloudsync_kind(&self) -> Option<anlg_cloudsync::ErrorKind> {
+    pub(crate) fn cloudsync_kind(&self) -> Option<syntheo_cloudsync::ErrorKind> {
         match self {
             Self::Cloudsync(error) => Some(error.kind()),
             _ => None,
@@ -131,17 +131,17 @@ impl CloudsyncRuntimeError {
     pub fn is_transient(&self) -> bool {
         matches!(
             self,
-            Self::Cloudsync(error) if error.kind() == anlg_cloudsync::ErrorKind::Transient
+            Self::Cloudsync(error) if error.kind() == syntheo_cloudsync::ErrorKind::Transient
         )
     }
 }
 
-impl From<anlg_cloudsync::ErrorKind> for CloudsyncErrorKind {
-    fn from(kind: anlg_cloudsync::ErrorKind) -> Self {
+impl From<syntheo_cloudsync::ErrorKind> for CloudsyncErrorKind {
+    fn from(kind: syntheo_cloudsync::ErrorKind) -> Self {
         match kind {
-            anlg_cloudsync::ErrorKind::Transient => Self::Transient,
-            anlg_cloudsync::ErrorKind::Auth => Self::Auth,
-            anlg_cloudsync::ErrorKind::Fatal => Self::Fatal,
+            syntheo_cloudsync::ErrorKind::Transient => Self::Transient,
+            syntheo_cloudsync::ErrorKind::Auth => Self::Auth,
+            syntheo_cloudsync::ErrorKind::Fatal => Self::Fatal,
         }
     }
 }
@@ -191,10 +191,9 @@ mod tests {
 
     #[test]
     fn runtime_exposes_transient_cloudsync_errors() {
-        let error = CloudsyncRuntimeError::from(anlg_cloudsync::Error::from(std::io::Error::new(
-            std::io::ErrorKind::ConnectionReset,
-            "connection reset",
-        )));
+        let error = CloudsyncRuntimeError::from(syntheo_cloudsync::Error::from(
+            std::io::Error::new(std::io::ErrorKind::ConnectionReset, "connection reset"),
+        ));
 
         assert!(error.is_transient());
         assert!(!CloudsyncRuntimeError::NotStarted.is_transient());

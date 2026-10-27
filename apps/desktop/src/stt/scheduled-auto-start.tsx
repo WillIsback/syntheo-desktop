@@ -3,11 +3,11 @@ import { useCallback, useRef } from "react";
 import {
   commands as detectCommands,
   events as detectEvents,
-} from "@anlg/plugin-detect";
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { getCurrentWebviewWindowLabel } from "@anlg/plugin-windows";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { parseEventInstant } from "@anlg/utils";
+} from "@syntheo/plugin-detect";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import { getCurrentWebviewWindowLabel } from "@syntheo/plugin-windows";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { parseEventInstant } from "@syntheo/utils";
 
 import { getIgnoredEventSets } from "~/calendar/ignored-events";
 import { liveQueryClient } from "~/db";
@@ -150,7 +150,7 @@ function trackMicHolds(
 // True when a meeting app took the mic during another scheduled meeting and
 // has held it since. A hold that began in free time is an early join. When
 // the earlier meeting began shortly before this one, an early join could be
-// for either meeting, so it only counts if Anarlog recorded the earlier one.
+// for either meeting, so it only counts if Syntheo recorded the earlier one.
 export function isPreviousCallOnMic({
   holds,
   meeting,

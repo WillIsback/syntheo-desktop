@@ -8,11 +8,11 @@ pub use authority::{
 #[cfg(test)]
 use std::collections::HashMap;
 
-use anlg_e2ee::OpenedField;
 #[cfg(test)]
 use serde_json::{Value, json};
 #[cfg(test)]
 use sqlx::SqlitePool;
+use syntheo_e2ee::OpenedField;
 
 mod witness;
 
@@ -98,7 +98,7 @@ pub enum E2eeReplicaError {
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
     #[error(transparent)]
-    Crypto(#[from] anlg_e2ee::Error),
+    Crypto(#[from] syntheo_e2ee::Error),
     #[error("encrypted replica contains an invalid table or field")]
     InvalidField,
     #[error("encrypted replica contains an unsupported SQLite value")]

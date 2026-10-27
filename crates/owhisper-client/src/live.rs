@@ -5,12 +5,12 @@ use std::time::Duration;
 
 use futures_util::{Stream, StreamExt};
 
-use anlg_ws_client::client::{
-    ClientRequestBuilder, Message, WebSocketClient, WebSocketHandle, WebSocketIO,
-};
 use owhisper_interface::ListenParams;
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
+use syntheo_ws_client::client::{
+    ClientRequestBuilder, Message, WebSocketClient, WebSocketHandle, WebSocketIO,
+};
 
 use crate::{OpenAIAdapter, RealtimeSttAdapter, append_provider_param, normalize_listen_params};
 
@@ -18,7 +18,7 @@ pub struct ListenClientBuilder<A: RealtimeSttAdapter = OpenAIAdapter> {
     pub(crate) api_base: Option<String>,
     pub(crate) api_key: Option<String>,
     pub(crate) params: Option<ListenParams>,
-    pub(crate) connect_policy: Option<anlg_ws_client::client::WebSocketConnectPolicy>,
+    pub(crate) connect_policy: Option<syntheo_ws_client::client::WebSocketConnectPolicy>,
     pub(crate) _marker: PhantomData<A>,
 }
 
@@ -52,7 +52,7 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
 
     pub fn connect_policy(
         mut self,
-        policy: anlg_ws_client::client::WebSocketConnectPolicy,
+        policy: syntheo_ws_client::client::WebSocketConnectPolicy,
     ) -> Self {
         self.connect_policy = Some(policy);
         self
@@ -81,7 +81,7 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
         adapter: &A,
         params: &ListenParams,
         channels: u8,
-    ) -> Result<anlg_ws_client::client::ClientRequestBuilder, crate::Error> {
+    ) -> Result<syntheo_ws_client::client::ClientRequestBuilder, crate::Error> {
         if let Some(rate) = adapter.required_sample_rate()
             && params.sample_rate != rate
         {
@@ -109,7 +109,7 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
             )
         })?;
 
-        let mut request = anlg_ws_client::client::ClientRequestBuilder::new(uri);
+        let mut request = syntheo_ws_client::client::ClientRequestBuilder::new(uri);
 
         if let Some((header_name, header_value)) =
             adapter.build_auth_header(self.api_key.as_deref())
@@ -179,7 +179,7 @@ pub struct ListenClient<A: RealtimeSttAdapter = OpenAIAdapter> {
     pub(crate) adapter: A,
     pub(crate) request: ClientRequestBuilder,
     pub(crate) initial_message: Option<Message>,
-    pub(crate) connect_policy: Option<anlg_ws_client::client::WebSocketConnectPolicy>,
+    pub(crate) connect_policy: Option<syntheo_ws_client::client::WebSocketConnectPolicy>,
 }
 
 #[derive(Clone)]
@@ -189,7 +189,7 @@ pub struct ListenClientDual<A: RealtimeSttAdapter> {
     pub(crate) mic_request: Option<ClientRequestBuilder>,
     pub(crate) mic_adapter: Option<A>,
     pub(crate) initial_message: Option<Message>,
-    pub(crate) connect_policy: Option<anlg_ws_client::client::WebSocketConnectPolicy>,
+    pub(crate) connect_policy: Option<syntheo_ws_client::client::WebSocketConnectPolicy>,
     pub(crate) api_key: Option<String>,
     pub(crate) params: ListenParams,
 }
@@ -309,7 +309,7 @@ impl WebSocketIO for ListenClientIO {
         }
     }
 
-    fn from_message(msg: Message) -> Result<Option<Self::Output>, anlg_ws_client::Error> {
+    fn from_message(msg: Message) -> Result<Option<Self::Output>, syntheo_ws_client::Error> {
         Ok(match msg {
             Message::Text(text) => Some(text.to_string()),
             _ => None,
@@ -344,7 +344,7 @@ impl WebSocketIO for ListenClientDualIO {
         }
     }
 
-    fn from_message(msg: Message) -> Result<Option<Self::Output>, anlg_ws_client::Error> {
+    fn from_message(msg: Message) -> Result<Option<Self::Output>, syntheo_ws_client::Error> {
         Ok(match msg {
             Message::Text(text) => Some(text.to_string()),
             _ => None,
@@ -365,10 +365,10 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
         audio_stream: impl Stream<Item = ListenClientInput> + Send + Unpin + 'static,
     ) -> Result<
         (
-            impl Stream<Item = Result<StreamResponse, anlg_ws_client::Error>>,
+            impl Stream<Item = Result<StreamResponse, syntheo_ws_client::Error>>,
             SingleHandle,
         ),
-        anlg_ws_client::Error,
+        syntheo_ws_client::Error,
     > {
         let finalize_message = finalize_message_factory(&self.adapter);
         let ws =
@@ -390,7 +390,7 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
         let adapter = self.adapter;
         let mapped_stream = raw_stream.flat_map(move |result| {
             let adapter = adapter.clone();
-            let responses: Vec<Result<StreamResponse, anlg_ws_client::Error>> = match result {
+            let responses: Vec<Result<StreamResponse, syntheo_ws_client::Error>> = match result {
                 Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
                 Err(e) => vec![Err(e)],
             };
@@ -406,14 +406,14 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
 }
 
 type DualOutputStream =
-    Pin<Box<dyn Stream<Item = Result<StreamResponse, anlg_ws_client::Error>> + Send>>;
+    Pin<Box<dyn Stream<Item = Result<StreamResponse, syntheo_ws_client::Error>> + Send>>;
 
 impl<A: RealtimeSttAdapter> ListenClientDual<A> {
     #[allow(clippy::wrong_self_convention)]
     pub async fn from_realtime_audio(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
-    ) -> Result<(DualOutputStream, DualHandle), anlg_ws_client::Error> {
+    ) -> Result<(DualOutputStream, DualHandle), syntheo_ws_client::Error> {
         if self.adapter.supports_native_multichannel() {
             self.from_realtime_audio_native(stream).await
         } else {
@@ -425,7 +425,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
     async fn from_realtime_audio_native(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
-    ) -> Result<(DualOutputStream, DualHandle), anlg_ws_client::Error> {
+    ) -> Result<(DualOutputStream, DualHandle), syntheo_ws_client::Error> {
         let finalize_message = finalize_message_factory(&self.adapter);
         let ws =
             websocket_client_with_keep_alive(&self.request, &self.adapter, self.connect_policy);
@@ -448,7 +448,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
         let adapter = self.adapter;
         let mapped_stream = raw_stream.flat_map(move |result| {
             let adapter = adapter.clone();
-            let responses: Vec<Result<StreamResponse, anlg_ws_client::Error>> = match result {
+            let responses: Vec<Result<StreamResponse, syntheo_ws_client::Error>> = match result {
                 Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
                 Err(e) => vec![Err(e)],
             };
@@ -466,7 +466,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
     async fn from_realtime_audio_split(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
-    ) -> Result<(DualOutputStream, DualHandle), anlg_ws_client::Error> {
+    ) -> Result<(DualOutputStream, DualHandle), syntheo_ws_client::Error> {
         let mic_adapter = self
             .mic_adapter
             .unwrap_or_else(|| self.adapter.fork_session());
@@ -509,7 +509,8 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
             let adapter = mic_adapter;
             move |result| {
                 let adapter = adapter.clone();
-                let responses: Vec<Result<StreamResponse, anlg_ws_client::Error>> = match result {
+                let responses: Vec<Result<StreamResponse, syntheo_ws_client::Error>> = match result
+                {
                     Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
                     Err(e) => vec![Err(e)],
                 };
@@ -521,7 +522,8 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
             let adapter = spk_adapter;
             move |result| {
                 let adapter = adapter.clone();
-                let responses: Vec<Result<StreamResponse, anlg_ws_client::Error>> = match result {
+                let responses: Vec<Result<StreamResponse, syntheo_ws_client::Error>> = match result
+                {
                     Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
                     Err(e) => vec![Err(e)],
                 };
@@ -593,10 +595,10 @@ fn mic_stream_params(params: &ListenParams) -> ListenParams {
 fn merge_streams_with_channel_remap<S1, S2>(
     mic_stream: S1,
     spk_stream: S2,
-) -> impl Stream<Item = Result<StreamResponse, anlg_ws_client::Error>> + Send
+) -> impl Stream<Item = Result<StreamResponse, syntheo_ws_client::Error>> + Send
 where
-    S1: Stream<Item = Result<StreamResponse, anlg_ws_client::Error>> + Send + 'static,
-    S2: Stream<Item = Result<StreamResponse, anlg_ws_client::Error>> + Send + 'static,
+    S1: Stream<Item = Result<StreamResponse, syntheo_ws_client::Error>> + Send + 'static,
+    S2: Stream<Item = Result<StreamResponse, syntheo_ws_client::Error>> + Send + 'static,
 {
     let mic_mapped = mic_stream.map(|result| {
         result.map(|mut response| {
@@ -618,7 +620,7 @@ where
 fn websocket_client_with_keep_alive<A: RealtimeSttAdapter>(
     request: &ClientRequestBuilder,
     adapter: &A,
-    connect_policy: Option<anlg_ws_client::client::WebSocketConnectPolicy>,
+    connect_policy: Option<syntheo_ws_client::client::WebSocketConnectPolicy>,
 ) -> WebSocketClient {
     let mut client = WebSocketClient::new(request.clone());
     if let Some(event_type) = adapter.initial_response_type() {

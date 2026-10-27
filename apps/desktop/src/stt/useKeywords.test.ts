@@ -170,9 +170,9 @@ describe("getSessionKeywords", () => {
     await expect(
       getSessionKeywords({
         sessionId: "session-1",
-        dictionaryTerms: ["Anarlog"],
+        dictionaryTerms: ["Syntheo"],
       }),
-    ).resolves.toEqual(expect.arrayContaining(["Anarlog", "Launch"]));
+    ).resolves.toEqual(expect.arrayContaining(["Syntheo", "Launch"]));
   });
 
   it("prioritizes mapped participants and attached event attendees", async () => {
@@ -200,10 +200,10 @@ describe("getSessionKeywords", () => {
 
     const result = await getSessionKeywords({
       sessionId: "session-1",
-      dictionaryTerms: ["Anarlog"],
+      dictionaryTerms: ["Syntheo"],
     });
 
-    expect(result.slice(0, 3)).toEqual(["Alice Kim", "Mina Park", "Anarlog"]);
+    expect(result.slice(0, 3)).toEqual(["Alice Kim", "Mina Park", "Syntheo"]);
     expect(result).toEqual(expect.arrayContaining(["Launch"]));
     expect(result).not.toContain("John Jeong");
   });
@@ -238,13 +238,13 @@ describe("dictionary term helpers", () => {
   it.each([
     {
       name: "parses stored JSON dictionary terms",
-      run: () => parseDictionaryTermsJson(JSON.stringify(["Anarlog", "Char"])),
-      expected: ["Anarlog", "Char"],
+      run: () => parseDictionaryTermsJson(JSON.stringify(["Syntheo", "Char"])),
+      expected: ["Syntheo", "Char"],
     },
     {
       name: "parses an array payload and drops duplicate spellings",
-      run: () => parseDictionaryTermsJson(["Anarlog", " anarlog "]),
-      expected: ["Anarlog"],
+      run: () => parseDictionaryTermsJson(["Syntheo", " syntheo "]),
+      expected: ["Syntheo"],
     },
     {
       name: "returns no terms for malformed JSON",
@@ -254,21 +254,21 @@ describe("dictionary term helpers", () => {
     {
       name: "parses newline and comma separated terms",
       run: () =>
-        parseDictionaryTermsText("Anarlog\nFastConformer, Parakeet TDT"),
-      expected: ["Anarlog", "FastConformer", "Parakeet TDT"],
+        parseDictionaryTermsText("Syntheo\nFastConformer, Parakeet TDT"),
+      expected: ["Syntheo", "FastConformer", "Parakeet TDT"],
     },
     {
       name: "normalizes duplicate terms while preserving first spelling",
-      run: () => normalizeKeywordList(["Anarlog", " anarlog ", "Parakeet"]),
-      expected: ["Anarlog", "Parakeet"],
+      run: () => normalizeKeywordList(["Syntheo", " syntheo ", "Parakeet"]),
+      expected: ["Syntheo", "Parakeet"],
     },
   ])("$name", ({ run, expected }) => {
     expect(run()).toEqual(expected);
   });
 
   it("formats stored terms one per line", () => {
-    expect(formatDictionaryTerms(["Anarlog", "Parakeet TDT"])).toBe(
-      "Anarlog\nParakeet TDT",
+    expect(formatDictionaryTerms(["Syntheo", "Parakeet TDT"])).toBe(
+      "Syntheo\nParakeet TDT",
     );
   });
 });

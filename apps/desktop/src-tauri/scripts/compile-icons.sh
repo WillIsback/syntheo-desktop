@@ -63,7 +63,7 @@ for variant in "${VARIANTS[@]}"; do
 done
 
 for variant in "${ARTIFACT_VARIANTS[@]}"; do
-  source_image="$ICONS_SRC/anarlog-${variant}.png"
+  source_image="$ICONS_SRC/syntheo-${variant}.png"
   output_dir="$RESOURCES/$variant"
   output_icon="$output_dir/AppIcon.icns"
   preview_image="$SRC_TAURI/../public/assets/app-icons/${variant}.png"

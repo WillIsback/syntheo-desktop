@@ -18,9 +18,14 @@ pub async fn toggle_contact_pin(
     let now = js_iso8601_timestamp();
     run_write(pool, |conn| {
         Box::pin(async move {
-            anlg_db_app::toggle_contact_pin(conn, request.kind.table(), &request.contact_id, &now)
-                .await
-                .map_err(|error| error.to_string())?;
+            syntheo_db_app::toggle_contact_pin(
+                conn,
+                request.kind.table(),
+                &request.contact_id,
+                &now,
+            )
+            .await
+            .map_err(|error| error.to_string())?;
             Ok(())
         })
     })
@@ -43,7 +48,7 @@ pub async fn reorder_pinned_contacts(
     run_write(pool, |conn| {
         Box::pin(async move {
             for (index, contact) in request.contacts.iter().enumerate() {
-                anlg_db_app::set_pinned_order(
+                syntheo_db_app::set_pinned_order(
                     conn,
                     contact.kind.table(),
                     index as i64,
@@ -62,11 +67,11 @@ pub async fn reorder_pinned_contacts(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 

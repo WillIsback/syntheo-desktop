@@ -4,7 +4,7 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 crate_dir=$(cd "$script_dir/.." && pwd)
-build_dir=$(mktemp -d "${TMPDIR:-/tmp}/anarlog-cloudsync-ios.XXXXXX")
+build_dir=$(mktemp -d "${TMPDIR:-/tmp}/syntheo-cloudsync-ios.XXXXXX")
 trap 'rm -rf "$build_dir"' EXIT
 source_dir="$build_dir/source"
 destination="$crate_dir/vendor/cloudsync/apple/CloudSync.xcframework"

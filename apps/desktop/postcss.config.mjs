@@ -1,1 +1,1 @@
-export { default } from "@anlg/ui/postcss.config";
+export { default } from "@syntheo/ui/postcss.config";

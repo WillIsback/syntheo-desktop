@@ -1,8 +1,8 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
-import { ArrowsDownUp, MagnifyingGlass, X } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { ArrowsDownUp, MagnifyingGlass, X } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -11,8 +11,8 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
 
 import type { HumanSessionRecord } from "./queries";
 

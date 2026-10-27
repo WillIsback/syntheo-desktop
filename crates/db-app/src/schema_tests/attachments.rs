@@ -7,7 +7,7 @@ fn attachment_local_state_is_plain_and_excluded_from_cloudsync() {
         .find(|step| step.id == "20260717140000_attachment_local_state")
         .unwrap();
 
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
     assert!(
         !cloudsync_table_registry()
             .iter()
@@ -24,7 +24,7 @@ fn attachment_transfer_jobs_are_plain_and_excluded_from_cloudsync() {
         .find(|step| step.id == "20260717150000_attachment_transfer_jobs")
         .unwrap();
 
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
     assert!(
         !cloudsync_table_registry()
             .iter()
@@ -55,7 +55,7 @@ fn attachment_transfer_jobs_migration_checksums_are_pinned() {
 #[tokio::test]
 async fn repairs_known_attachment_transfer_job_indexes_without_dropping_jobs() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(&db, schema_with_legacy_attachment_transfer_jobs())
+    syntheo_db_migrate::migrate(&db, schema_with_legacy_attachment_transfer_jobs())
         .await
         .unwrap();
     assert_eq!(
@@ -200,7 +200,7 @@ async fn unknown_attachment_transfer_jobs_checksum_fails_without_mutation() {
 #[tokio::test]
 async fn legacy_attachment_transfer_checksum_rejects_a_changed_schema() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(&db, schema_with_legacy_attachment_transfer_jobs())
+    syntheo_db_migrate::migrate(&db, schema_with_legacy_attachment_transfer_jobs())
         .await
         .unwrap();
     sqlx::raw_sql(
@@ -264,7 +264,7 @@ async fn legacy_attachment_transfer_checksum_rejects_current_indexes() {
 #[tokio::test]
 async fn attachment_transfer_job_index_repair_rolls_back_when_checksum_update_fails() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(&db, schema_with_legacy_attachment_transfer_jobs())
+    syntheo_db_migrate::migrate(&db, schema_with_legacy_attachment_transfer_jobs())
         .await
         .unwrap();
     sqlx::raw_sql(
@@ -305,7 +305,7 @@ async fn attachment_cloud_sync_intent_is_a_synced_additive_column() {
 
     assert_eq!(
         migration.scope,
-        anlg_db_migrate::MigrationScope::CloudsyncAlter {
+        syntheo_db_migrate::MigrationScope::CloudsyncAlter {
             table_name: "session_attachments",
         }
     );
@@ -343,7 +343,7 @@ fn shared_attachment_cache_is_plain_and_excluded_from_cloudsync() {
         .find(|step| step.id == "20260717171000_shared_session_attachment_cache")
         .unwrap();
 
-    assert_eq!(migration.scope, anlg_db_migrate::MigrationScope::Plain);
+    assert_eq!(migration.scope, syntheo_db_migrate::MigrationScope::Plain);
     assert!(
         !cloudsync_table_registry()
             .iter()

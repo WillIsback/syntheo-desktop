@@ -14,9 +14,9 @@ fn words_json(items: &[Value]) -> String {
 }
 
 async fn seed_transcript(
-    workspace_keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+    workspace_keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
     items: &[Value],
-) -> (anlg_db_core::Db, anlg_db_core::Db) {
+) -> (syntheo_db_core::Db, syntheo_db_core::Db) {
     let a = test_db().await;
     let b = test_db().await;
     sqlx::query(
@@ -60,7 +60,7 @@ async fn seed_transcript(
     (a, b)
 }
 
-async fn read_words(db: &anlg_db_core::Db) -> Vec<Value> {
+async fn read_words(db: &syntheo_db_core::Db) -> Vec<Value> {
     let json: String =
         sqlx::query_scalar("SELECT words_json FROM transcripts WHERE id = 'transcript-1'")
             .fetch_one(db.pool())
@@ -73,7 +73,7 @@ async fn read_words(db: &anlg_db_core::Db) -> Vec<Value> {
         .unwrap()
 }
 
-async fn write_words(db: &anlg_db_core::Db, items: &[Value], edited_at_ms: i64) {
+async fn write_words(db: &syntheo_db_core::Db, items: &[Value], edited_at_ms: i64) {
     sqlx::query("UPDATE transcripts SET words_json = ? WHERE id = 'transcript-1'")
         .bind(words_json(items))
         .execute(db.pool())
@@ -216,7 +216,7 @@ async fn cloud_winners_do_not_get_republished_by_a_clean_replica_with_a_faster_c
     }));
 }
 
-async fn chunk_state_revisions(db: &anlg_db_core::Db) -> HashMap<String, i64> {
+async fn chunk_state_revisions(db: &syntheo_db_core::Db) -> HashMap<String, i64> {
     sqlx::query_as::<_, (String, i64)>(
         "SELECT field_name, revision FROM e2ee_local_state
          WHERE table_name = 'transcripts' AND row_id = 'transcript-1' AND field_name LIKE 'words_json%'",
@@ -228,7 +228,7 @@ async fn chunk_state_revisions(db: &anlg_db_core::Db) -> HashMap<String, i64> {
     .collect()
 }
 
-async fn chunk_state_fields(db: &anlg_db_core::Db) -> Vec<String> {
+async fn chunk_state_fields(db: &syntheo_db_core::Db) -> Vec<String> {
     sqlx::query_scalar(
         "SELECT field_name FROM e2ee_local_state
          WHERE table_name = 'transcripts' AND row_id = 'transcript-1' AND field_name LIKE 'words_json%'
@@ -256,7 +256,7 @@ async fn initial_transcript_chunks_must_hydrate_before_local_edits_are_encrypted
                 .unwrap();
             if rotate_key {
                 let recovery = RecoveryKey::generate().unwrap();
-                let mut keyring: anlg_e2ee::WorkspaceKeyring =
+                let mut keyring: syntheo_e2ee::WorkspaceKeyring =
                     recovery.workspace_key("workspace-a").unwrap().into();
                 keyring.insert_retired(key.clone());
                 workspace_keys.insert("workspace-a".to_string(), keyring);

@@ -5,7 +5,7 @@ import {
 import type { NodeSpec } from "prosemirror-model";
 import { forwardRef } from "react";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
 import {
   ArrowSquareOut,
   File,
@@ -13,8 +13,8 @@ import {
   FileXls,
   Image,
   X,
-} from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import {
   useAttachmentEditingEnabled,

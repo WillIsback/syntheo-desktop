@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { toast } from "@anlg/ui/components/ui/toast";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import { useAITaskTask } from "~/ai/hooks";
 import { useLanguageModel } from "~/ai/hooks";

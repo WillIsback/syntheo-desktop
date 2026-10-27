@@ -10,5 +10,5 @@ name = "Desktop"
 icon = "run"
 command = '''
 pnpm i
-pnpm -F @anlg/desktop tauri dev
+pnpm -F @syntheo/desktop tauri dev
 '''

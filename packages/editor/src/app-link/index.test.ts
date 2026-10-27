@@ -34,15 +34,15 @@ const appLinkCases: AppLinkTestCase[] = [
   },
   {
     name: "Linear issue URLs",
-    url: "https://linear.app/fastrepl-inc/issue/ANLG-53/storage-model",
+    url: "https://linear.app/fastrepl-inc/issue/SYNTHEO-53/storage-model",
     attrs: {
       provider: "linear",
       kind: "issue",
       workspace: "fastrepl-inc",
-      resourceId: "ANLG-53",
+      resourceId: "SYNTHEO-53",
       resourceTitle: "Storage model",
     },
-    expected: { kind: "label", value: "fastrepl-inc Issue ANLG-53" },
+    expected: { kind: "label", value: "fastrepl-inc Issue SYNTHEO-53" },
   },
   {
     name: "unknown Linear routes without labeling them as workspaces",
@@ -123,14 +123,14 @@ const appLinkCases: AppLinkTestCase[] = [
   },
   {
     name: "Jira issue URLs",
-    url: "https://fastrepl.atlassian.net/browse/ANLG-5540",
+    url: "https://fastrepl.atlassian.net/browse/SYNTHEO-5540",
     attrs: {
       provider: "atlassian",
       kind: "jira_issue",
       workspace: "fastrepl",
-      resourceId: "ANLG-5540",
+      resourceId: "SYNTHEO-5540",
     },
-    expected: { kind: "label", value: "fastrepl Jira ANLG-5540" },
+    expected: { kind: "label", value: "fastrepl Jira SYNTHEO-5540" },
   },
   {
     name: "Confluence page URLs",

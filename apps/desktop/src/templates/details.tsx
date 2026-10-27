@@ -1,8 +1,8 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
-import { DotsThree, Heart, Plus } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { DotsThree, Heart, Plus } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -10,8 +10,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { cn } from "@syntheo/utils";
 
 import { AutoTemplateDetails } from "./auto-form";
 import { type WebTemplate } from "./codec";

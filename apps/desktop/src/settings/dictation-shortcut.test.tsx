@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   save: vi.fn(),
   cleanup: vi.fn(),
 }));
-vi.mock("@anlg/plugin-shortcut", () => ({
+vi.mock("@syntheo/plugin-shortcut", () => ({
   commands: { validate: mocks.validate },
 }));
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));

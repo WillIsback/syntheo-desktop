@@ -201,7 +201,7 @@ impl E2eeWitnessClient {
     pub async fn initialize(
         &self,
         pool: &sqlx::SqlitePool,
-        key: &anlg_e2ee::WorkspaceKey,
+        key: &syntheo_e2ee::WorkspaceKey,
     ) -> io::Result<()> {
         self.initialize_cancellable(pool, key, &E2eeWitnessCancellation::default())
             .await
@@ -210,10 +210,10 @@ impl E2eeWitnessClient {
     pub async fn initialize_cancellable(
         &self,
         pool: &sqlx::SqlitePool,
-        key: &anlg_e2ee::WorkspaceKey,
+        key: &syntheo_e2ee::WorkspaceKey,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<()> {
-        let keyring = anlg_e2ee::WorkspaceKeyring::new(key.clone());
+        let keyring = syntheo_e2ee::WorkspaceKeyring::new(key.clone());
         self.initialize_keyring_cancellable(pool, &keyring, cancellation)
             .await
     }
@@ -221,7 +221,7 @@ impl E2eeWitnessClient {
     pub async fn initialize_keyring_cancellable(
         &self,
         pool: &sqlx::SqlitePool,
-        keyring: &anlg_e2ee::WorkspaceKeyring,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<()> {
         self.initialize_keyring_with_page_handler_cancellable(
@@ -236,7 +236,7 @@ impl E2eeWitnessClient {
     pub async fn initialize_keyring_with_page_handler_cancellable<F, Fut>(
         &self,
         pool: &sqlx::SqlitePool,
-        keyring: &anlg_e2ee::WorkspaceKeyring,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
         mut on_merged_page: F,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<()>
@@ -277,7 +277,7 @@ impl E2eeWitnessClient {
                 .await?;
         } else {
             cancellation.check()?;
-            let has_local_state = anlg_db_app::has_e2ee_local_state(pool, &self.workspace_id)
+            let has_local_state = syntheo_db_app::has_e2ee_local_state(pool, &self.workspace_id)
                 .await
                 .map_err(replica_error)?;
             cancellation.check()?;
@@ -316,7 +316,7 @@ impl E2eeWitnessClient {
     pub async fn publish_and_refresh(
         &self,
         pool: &sqlx::SqlitePool,
-        key: &anlg_e2ee::WorkspaceKey,
+        key: &syntheo_e2ee::WorkspaceKey,
     ) -> io::Result<usize> {
         self.publish_and_refresh_cancellable(pool, key, &E2eeWitnessCancellation::default())
             .await
@@ -325,10 +325,10 @@ impl E2eeWitnessClient {
     pub async fn publish_and_refresh_cancellable(
         &self,
         pool: &sqlx::SqlitePool,
-        key: &anlg_e2ee::WorkspaceKey,
+        key: &syntheo_e2ee::WorkspaceKey,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<usize> {
-        let keyring = anlg_e2ee::WorkspaceKeyring::new(key.clone());
+        let keyring = syntheo_e2ee::WorkspaceKeyring::new(key.clone());
         self.publish_and_refresh_keyring_cancellable(pool, &keyring, cancellation)
             .await
     }
@@ -336,7 +336,7 @@ impl E2eeWitnessClient {
     pub async fn publish_and_refresh_keyring_cancellable(
         &self,
         pool: &sqlx::SqlitePool,
-        keyring: &anlg_e2ee::WorkspaceKeyring,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<usize> {
         self.publish_pending(pool, keyring, false, cancellation)
@@ -348,14 +348,14 @@ impl E2eeWitnessClient {
     pub async fn publish_and_refresh_notifying_cancellable<F>(
         &self,
         pool: &sqlx::SqlitePool,
-        key: &anlg_e2ee::WorkspaceKey,
+        key: &syntheo_e2ee::WorkspaceKey,
         on_events: F,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<usize>
     where
         F: FnMut(),
     {
-        let keyring = anlg_e2ee::WorkspaceKeyring::new(key.clone());
+        let keyring = syntheo_e2ee::WorkspaceKeyring::new(key.clone());
         self.publish_and_refresh_keyring_notifying_cancellable(
             pool,
             &keyring,
@@ -368,7 +368,7 @@ impl E2eeWitnessClient {
     pub async fn publish_and_refresh_keyring_notifying_cancellable<F>(
         &self,
         pool: &sqlx::SqlitePool,
-        keyring: &anlg_e2ee::WorkspaceKeyring,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
         on_events: F,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<usize>
@@ -385,7 +385,7 @@ impl E2eeWitnessClient {
     pub async fn refresh(
         &self,
         pool: &sqlx::SqlitePool,
-        key: &anlg_e2ee::WorkspaceKey,
+        key: &syntheo_e2ee::WorkspaceKey,
     ) -> io::Result<usize> {
         self.refresh_cancellable(pool, key, &E2eeWitnessCancellation::default())
             .await
@@ -394,10 +394,10 @@ impl E2eeWitnessClient {
     pub async fn refresh_cancellable(
         &self,
         pool: &sqlx::SqlitePool,
-        key: &anlg_e2ee::WorkspaceKey,
+        key: &syntheo_e2ee::WorkspaceKey,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<usize> {
-        let keyring = anlg_e2ee::WorkspaceKeyring::new(key.clone());
+        let keyring = syntheo_e2ee::WorkspaceKeyring::new(key.clone());
         self.refresh_keyring_cancellable(pool, &keyring, cancellation)
             .await
     }
@@ -405,7 +405,7 @@ impl E2eeWitnessClient {
     pub async fn refresh_keyring_cancellable(
         &self,
         pool: &sqlx::SqlitePool,
-        keyring: &anlg_e2ee::WorkspaceKeyring,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<usize> {
         self.refresh_keyring_notifying_cancellable(pool, keyring, || {}, cancellation)
@@ -416,7 +416,7 @@ impl E2eeWitnessClient {
     pub async fn refresh_notifying<F>(
         &self,
         pool: &sqlx::SqlitePool,
-        key: &anlg_e2ee::WorkspaceKey,
+        key: &syntheo_e2ee::WorkspaceKey,
         on_events: F,
     ) -> io::Result<usize>
     where
@@ -434,14 +434,14 @@ impl E2eeWitnessClient {
     pub async fn refresh_notifying_cancellable<F>(
         &self,
         pool: &sqlx::SqlitePool,
-        key: &anlg_e2ee::WorkspaceKey,
+        key: &syntheo_e2ee::WorkspaceKey,
         on_events: F,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<usize>
     where
         F: FnMut(),
     {
-        let keyring = anlg_e2ee::WorkspaceKeyring::new(key.clone());
+        let keyring = syntheo_e2ee::WorkspaceKeyring::new(key.clone());
         self.refresh_keyring_notifying_cancellable(pool, &keyring, on_events, cancellation)
             .await
     }
@@ -449,7 +449,7 @@ impl E2eeWitnessClient {
     pub async fn refresh_keyring_notifying_cancellable<F>(
         &self,
         pool: &sqlx::SqlitePool,
-        keyring: &anlg_e2ee::WorkspaceKeyring,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
         on_events: F,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<usize>
@@ -469,7 +469,7 @@ impl E2eeWitnessClient {
     pub async fn refresh_keyring_with_page_handler_cancellable<F, Fut>(
         &self,
         pool: &sqlx::SqlitePool,
-        keyring: &anlg_e2ee::WorkspaceKeyring,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
         on_merged_page: F,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<usize>
@@ -490,7 +490,7 @@ impl E2eeWitnessClient {
     async fn refresh_keyring_with_handlers_cancellable<F, G, Fut>(
         &self,
         pool: &sqlx::SqlitePool,
-        keyring: &anlg_e2ee::WorkspaceKeyring,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
         mut on_events: F,
         mut on_merged_page: G,
         cancellation: &E2eeWitnessCancellation,
@@ -523,7 +523,7 @@ impl E2eeWitnessClient {
         let mut pages = 0_u64;
         loop {
             if page.accepted && !accepted_pull {
-                anlg_db_app::set_e2ee_cloud_pull_in_progress(pool, &self.workspace_id, true)
+                syntheo_db_app::set_e2ee_cloud_pull_in_progress(pool, &self.workspace_id, true)
                     .await
                     .map_err(replica_error)?;
                 accepted_pull = true;
@@ -552,7 +552,7 @@ impl E2eeWitnessClient {
             let events = page
                 .events
                 .into_iter()
-                .map(|event| anlg_db_app::E2eeWitnessEvent {
+                .map(|event| syntheo_db_app::E2eeWitnessEvent {
                     sequence: event.sequence,
                     record_id: event.record_id,
                     workspace_id: self.workspace_id.clone(),
@@ -561,7 +561,7 @@ impl E2eeWitnessClient {
                 })
                 .collect::<Vec<_>>();
             cancellation.check()?;
-            anlg_db_app::merge_e2ee_witness_events_with_keyring_cancellable(
+            syntheo_db_app::merge_e2ee_witness_events_with_keyring_cancellable(
                 pool,
                 keyring,
                 &self.workspace_id,
@@ -578,7 +578,7 @@ impl E2eeWitnessClient {
             }
             if after != cursor {
                 cancellation.check()?;
-                anlg_db_app::advance_e2ee_witness_cursor(pool, &self.workspace_id, after)
+                syntheo_db_app::advance_e2ee_witness_cursor(pool, &self.workspace_id, after)
                     .await
                     .map_err(replica_error)?;
                 cancellation.check()?;
@@ -587,9 +587,13 @@ impl E2eeWitnessClient {
             pages += 1;
             if after == through {
                 if page.accepted {
-                    anlg_db_app::set_e2ee_cloud_pull_in_progress(pool, &self.workspace_id, false)
-                        .await
-                        .map_err(replica_error)?;
+                    syntheo_db_app::set_e2ee_cloud_pull_in_progress(
+                        pool,
+                        &self.workspace_id,
+                        false,
+                    )
+                    .await
+                    .map_err(replica_error)?;
                     on_merged_page().await?;
                     cancellation.check()?;
                 }
@@ -621,11 +625,11 @@ impl E2eeWitnessClient {
     async fn publish_pending(
         &self,
         pool: &sqlx::SqlitePool,
-        keyring: &anlg_e2ee::WorkspaceKeyring,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
         initialize: bool,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<()> {
-        if anlg_db_app::e2ee_cloud_authority_enabled(pool, &self.workspace_id)
+        if syntheo_db_app::e2ee_cloud_authority_enabled(pool, &self.workspace_id)
             .await
             .map_err(replica_error)?
         {
@@ -642,7 +646,7 @@ impl E2eeWitnessClient {
         let mut first_batch = true;
         loop {
             cancellation.check()?;
-            let uploads = anlg_db_app::pending_e2ee_witness_uploads_cancellable(
+            let uploads = syntheo_db_app::pending_e2ee_witness_uploads_cancellable(
                 pool,
                 &self.workspace_id,
                 key,
@@ -715,7 +719,7 @@ impl E2eeWitnessClient {
                 self.accepted_support.store(0, Ordering::Release);
                 self.refresh_keyring_cancellable(pool, keyring, cancellation)
                     .await?;
-                if anlg_db_app::e2ee_cloud_authority_enabled(pool, &self.workspace_id)
+                if syntheo_db_app::e2ee_cloud_authority_enabled(pool, &self.workspace_id)
                     .await
                     .map_err(replica_error)?
                 {
@@ -735,9 +739,12 @@ impl E2eeWitnessClient {
                 return Err(rollback_error());
             }
             cancellation.check()?;
-            anlg_db_app::acknowledge_e2ee_witness_uploads_cancellable(pool, key, &uploads, || {
-                cancellation.is_cancelled()
-            })
+            syntheo_db_app::acknowledge_e2ee_witness_uploads_cancellable(
+                pool,
+                key,
+                &uploads,
+                || cancellation.is_cancelled(),
+            )
             .await
             .map_err(replica_error)?;
             cancellation.check()?;
@@ -948,7 +955,7 @@ impl E2eeWitnessClient {
 }
 
 async fn witness_cursor(pool: &sqlx::SqlitePool, workspace_id: &str) -> io::Result<u64> {
-    anlg_db_app::e2ee_witness_cursor(pool, workspace_id)
+    syntheo_db_app::e2ee_witness_cursor(pool, workspace_id)
         .await
         .map_err(replica_error)
 }
@@ -993,8 +1000,8 @@ async fn read_bounded(response: reqwest::Response) -> io::Result<Vec<u8>> {
     Ok(bytes)
 }
 
-fn replica_error(error: anlg_db_app::E2eeReplicaError) -> io::Error {
-    if matches!(&error, anlg_db_app::E2eeReplicaError::Cancelled) {
+fn replica_error(error: syntheo_db_app::E2eeReplicaError) -> io::Error {
+    if matches!(&error, syntheo_db_app::E2eeReplicaError::Cancelled) {
         cancelled_error()
     } else {
         io::Error::other(format!("E2EE witness state failed: {error}"))

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext } from "react";
 
-import { commands as tantivy } from "@anlg/plugin-tantivy";
+import { commands as tantivy } from "@syntheo/plugin-tantivy";
 
 import { buildTantivyFilters } from "./filters";
 import type { SearchEntityType, SearchFilters, SearchHit } from "./types";

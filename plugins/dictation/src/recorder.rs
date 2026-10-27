@@ -45,7 +45,7 @@ impl Recorder {
 
     pub fn start(
         &self,
-        audio: Arc<dyn anlg_audio::AudioProvider>,
+        audio: Arc<dyn syntheo_audio::AudioProvider>,
         microphone_device: Option<String>,
         owner: String,
     ) -> Result<(), Error> {
@@ -54,7 +54,7 @@ impl Recorder {
 
     pub fn start_with_feedback(
         &self,
-        audio: Arc<dyn anlg_audio::AudioProvider>,
+        audio: Arc<dyn syntheo_audio::AudioProvider>,
         microphone_device: Option<String>,
         owner: String,
         preview: Option<PreviewConfig>,
@@ -131,7 +131,7 @@ impl Recorder {
 }
 
 async fn record_to_memory(
-    mut stream: anlg_audio::CaptureStream,
+    mut stream: syntheo_audio::CaptureStream,
     cancellation: CancellationToken,
     mut preview: Option<Preview>,
     updates: Option<Channel<RecordingUpdate>>,
@@ -208,15 +208,18 @@ async fn record_to_memory(
 mod tests {
     use std::sync::Arc;
 
-    use anlg_audio::{AudioProvider, CaptureConfig, CaptureFrame, CaptureStream};
     use futures_util::stream;
+    use syntheo_audio::{AudioProvider, CaptureConfig, CaptureFrame, CaptureStream};
 
     use super::*;
 
     struct TestAudio;
 
     impl AudioProvider for TestAudio {
-        fn open_capture(&self, _config: CaptureConfig) -> Result<CaptureStream, anlg_audio::Error> {
+        fn open_capture(
+            &self,
+            _config: CaptureConfig,
+        ) -> Result<CaptureStream, syntheo_audio::Error> {
             unreachable!()
         }
 
@@ -224,7 +227,7 @@ mod tests {
             &self,
             _sample_rate: u32,
             _chunk_size: usize,
-        ) -> Result<CaptureStream, anlg_audio::Error> {
+        ) -> Result<CaptureStream, syntheo_audio::Error> {
             unreachable!()
         }
 
@@ -233,7 +236,7 @@ mod tests {
             _device: Option<String>,
             _sample_rate: u32,
             _chunk_size: usize,
-        ) -> Result<CaptureStream, anlg_audio::Error> {
+        ) -> Result<CaptureStream, syntheo_audio::Error> {
             let frame = CaptureFrame {
                 raw_mic: Arc::from([0.25_f32; CHUNK_SIZE]),
                 raw_speaker: Arc::from([]),
@@ -264,11 +267,11 @@ mod tests {
             std::sync::mpsc::channel().0
         }
 
-        fn probe_mic(&self, _device: Option<String>) -> Result<(), anlg_audio::Error> {
+        fn probe_mic(&self, _device: Option<String>) -> Result<(), syntheo_audio::Error> {
             Ok(())
         }
 
-        fn probe_speaker(&self) -> Result<(), anlg_audio::Error> {
+        fn probe_speaker(&self) -> Result<(), syntheo_audio::Error> {
             Ok(())
         }
     }

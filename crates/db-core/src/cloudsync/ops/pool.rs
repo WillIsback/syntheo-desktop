@@ -3,7 +3,7 @@ use sqlx::pool::PoolConnection;
 
 pub(super) async fn close_pool_connections(
     connections: Vec<PoolConnection<Sqlite>>,
-) -> Result<(), anlg_cloudsync::Error> {
+) -> Result<(), syntheo_cloudsync::Error> {
     let mut first_error = None;
     for connection in connections {
         if let Err(error) = connection.close().await

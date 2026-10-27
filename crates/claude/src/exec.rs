@@ -5,7 +5,7 @@ use std::process::Stdio;
 use tokio::process::Command;
 use tokio_util::sync::CancellationToken;
 
-use anlg_cli_process::{StreamProcess, run_to_string, spawn_streaming_lines, spawn_with_retry};
+use syntheo_cli_process::{StreamProcess, run_to_string, spawn_streaming_lines, spawn_with_retry};
 
 use crate::error::Error;
 use crate::events::ClaudeEvent;

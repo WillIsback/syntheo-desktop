@@ -1,4 +1,4 @@
-import type { MeetingPlatform } from "@anlg/plugin-detect";
+import type { MeetingPlatform } from "@syntheo/plugin-detect";
 
 import {
   recordSessionSourceApps,

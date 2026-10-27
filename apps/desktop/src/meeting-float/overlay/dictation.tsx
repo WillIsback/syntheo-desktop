@@ -1,4 +1,4 @@
-import type { FloatingBarState } from "@anlg/plugin-windows";
+import type { FloatingBarState } from "@syntheo/plugin-windows";
 
 export function DictationTranscript({
   dictation,

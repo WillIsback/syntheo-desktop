@@ -1,15 +1,15 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 
-import { Button } from "@anlg/ui/components/ui/button";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@anlg/ui/components/ui/dialog";
-import { cn, formatDistanceToNow, safeParseDate } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dialog";
+import { cn, formatDistanceToNow, safeParseDate } from "@syntheo/utils";
 
 import {
   previewFromBody,

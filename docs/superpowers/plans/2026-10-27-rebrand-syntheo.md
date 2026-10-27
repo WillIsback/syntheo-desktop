@@ -343,6 +343,7 @@ git commit -m "chore(rebrand): renommage global des sources et des chemins [skip
 - Modify: `crates/http/Cargo.toml` (package `anlg-http-utils` → `syntheo-http-utils`), `plugins/tray/Cargo.toml` (`tauri-plugin-anlg-tray` → `tauri-plugin-syntheo-tray`), `apps/cli/Cargo.toml` (`anarlog`/`anarlog-cli` → `syntheo`/`syntheo-cli`), `apps/desktop/src-tauri/Cargo.toml` (`anarlog_desktop_lib` → `syntheo_desktop_lib`)
 - Modify: `apps/desktop/src-tauri/capabilities/default.json` (`anlg-tray:default` → `syntheo-tray:default`)
 - Modify (déjà fait par le codemod, à confirmer) : `plugins/tray/src/lib.rs` (`PLUGIN_NAME = "syntheo-tray"`), `plugins/tray/src/ext.rs` (`TRAY_ID`), `plugins/tray/src/macos_position.rs`
+- Modify/Regenerate (fichiers **générés** qui embarquent les identifiants de plugin) : `plugins/tray/js/bindings.gen.ts`, `apps/desktop/src-tauri/gen/schemas/{capabilities,acl-manifests,desktop-schema,linux-schema}.json`
 - Regenerate: `Cargo.lock`
 
 **Interfaces:**
@@ -372,10 +373,16 @@ cargo metadata --locked > /dev/null
 
 Expected: PASS ; metadata OK (lockfile à jour).
 
-- [ ] **Step 4: Contrôle capability/plugin (pas de build desktop possible en conteneur)**
+- [ ] **Step 4: Contrôle capability/plugin et fichiers générés (pas de build desktop possible en conteneur)**
 
-Run: `rg -n "syntheo-tray" apps/desktop/src-tauri/capabilities/default.json plugins/tray/src`
-Expected: `syntheo-tray:default` (capability) et `"syntheo-tray"` (constantes) cohérents.
+Run:
+
+```bash
+rg -n "syntheo-tray" apps/desktop/src-tauri/capabilities/default.json plugins/tray/src
+rg -n "anlg-tray" apps/desktop/src-tauri/gen plugins/tray/js
+```
+
+Expected: `syntheo-tray:default` (capability) et `"syntheo-tray"` (constantes) cohérents ; la seconde commande ne renvoie **rien**. Si les schémas générés sont commités, les régénérer via le `export_types`/build du plugin `tray` (hors conteneur, lib native requise) ou confirmer que le codemod les a mis à jour de façon cohérente.
 
 - [ ] **Step 5: Commit et PR**
 
@@ -692,3 +699,19 @@ Expected: tout vert.
 - Le renommage du plugin Tauri `anlg-tray` → `syntheo-tray` change un identifiant d'API inspecté par Tauri : valider par un build desktop hors conteneur (ou via la CI release) avant fusion.
 - Les clés de configuration SQLite (`syntheo.stt.provider.name`) sont renommées sans migration : Syntheo ayant son propre dossier de données (lot 01), il n'y a pas d'installation à migrer — un poste de dev peut perdre sa config de provider, à re-saisir.
 - Les URLs `anarlog.so` restantes sont **volontairement** laissées par le codemod et traitées en Task 6 : ne pas les renommer mécaniquement en `syntheo.so` (domaine inexistant).
+
+## Découvertes d'exécution (2026-10-27)
+
+Le codemod a réécrit **1618 fichiers**. Points relevés pendant l'exécution :
+
+- **Snapshots `.snap`** : extension absente de la liste du codemod → contenu non rebrandé (contrat CLI). Ajoutée à `EXT` ; les 2 snapshots `apps/cli/src/snapshots/*.snap` rebrandés par `node scripts/rebrand.mjs --write --path apps/cli/src/snapshots` (ne **pas** relancer globalement : cela écraserait le repli `anarlog-theme` de la Task 4).
+- **Protection `.dev` trop large** : la règle `anarlog\.dev` a protégé les identifiants `com.anarlog.dev` (doublon volontaire). Corrigés à la main.
+- **Shims de migration hérités** simplifiés vers les vrais identifiants Syntheo (`fr.willisback.syntheo` / `.dev`), car Syntheo n'a pas de données Anarlog à migrer :
+  - `plugins/store2/src/commands.rs` : `secure_store_service` devient identité ; rotation `v2:` sur `fr.willisback.syntheo.dev`.
+  - `crates/detect/src/list/mod.rs` : `SELF_BUNDLE_IDS`/`SELF_APP_NAMES`/`SELF_APP_PATH_SEGMENTS` réduits aux entrées Syntheo (plus de doublons `com.syntheo.*` ni `char`).
+  - `apps/cli/src/commands/meeting_delete.rs` : verrous `fr.willisback.syntheo[.dev].running.lock` (l'app écrit `{identifier}.running.lock`).
+  - `apps/desktop/scripts/dev-runner.mjs`, `examples/plugins/hello-world/install-dev.mjs`, `apps/desktop/src/store/zustand/listener/general-live.ts`, `apps/desktop/src/settings/appearance/app-icon.tsx` : replis/codesign vers les vrais identifiants.
+- **Identifiants de canal fictifs `com.syntheo.{stable,staging,nightly,dev}`** : laissés tels quels dans les listes/tests (brandés Syntheo, producteur et consommateur renommés ensemble). Syntheo n'embarque que `stable` et `dev` ; le nettoyage des canaux `staging`/`nightly` (vestiges) est un chantier séparé.
+- **Marqueurs E2EE — exception conservée** : les chaînes de séparation de domaine cryptographique (`anarlog-e2ee-*`, `anarlog-device-*`, préfixe de clé de récupération `anarlog-e2ee-v1:`) sont **laissées telles quelles**. Vérifié par test : les renommer en `syntheo-*` modifie les clés dérivées et casse la propagation des suppressions E2EE (`e2ee::tests::roundtrip::reconstructs_every_previously_synced_table_and_applies_deletions`, `e2ee::tests::library::incoming_deletions_are_retained_when_switching_back`), alors que `main` les passe. Ce sont des identifiants de format internes, non visibles de l'utilisateur. Les **en-têtes HTTP** `x-syntheo-*` (api-client généré) et les **clés de dépendance Cargo** (`syntheo-e2ee =`, `syntheo-device-monitor =`) restent, eux, rebrandés.
+- **Ordre des tables** dans `crates/db-app/src/schema_tests/migrations.rs` : le test trie par nom ; `_syntheo_schema_compat` (ex-`_anarlog_schema_compat`) passe désormais **après** `_sqlx_migrations` → attente réordonnée.
+- **Attribution** : le codemod a transformé « derived from Anarlog » en « derived from Syntheo » dans `AGENTS.md`/`README.md` → à restaurer en Task 8 (`LICENSE`/`NOTICE.md` étaient exclus).

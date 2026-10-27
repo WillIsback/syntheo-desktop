@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   execute: vi.fn(),
   validateBaseUrl: vi.fn(),
   verify: vi.fn<
-    typeof import("@anlg/provider-validation").verifyProviderCredentials
+    typeof import("@syntheo/provider-validation").verifyProviderCredentials
   >(async () => {}),
   fetch: vi.fn(),
   useLiveQuery: vi.fn(),
@@ -30,14 +30,14 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@tauri-apps/plugin-http", () => ({ fetch: mocks.fetch }));
 
-vi.mock("@anlg/provider-validation", () => ({
+vi.mock("@syntheo/provider-validation", () => ({
   validateProviderBaseUrl: mocks.validateBaseUrl,
   verifyProviderCredentials: mocks.verify,
   usesDeferredProviderAuthentication: (type: string, provider: string) =>
     type === "stt" && ["openai", "nvidia"].includes(provider),
 }));
 
-vi.mock("@anlg/plugin-store2", () => ({
+vi.mock("@syntheo/plugin-store2", () => ({
   commands: {
     getSecret: mocks.getSecret,
     setSecret: mocks.setSecret,
@@ -129,8 +129,8 @@ describe("SQLite AI providers", () => {
 
   it("rejects a public plain-HTTP STT endpoint even without key verification", async () => {
     const { verifyProviderCredentials } = await vi.importActual<
-      typeof import("@anlg/provider-validation")
-    >("@anlg/provider-validation");
+      typeof import("@syntheo/provider-validation")
+    >("@syntheo/provider-validation");
     mocks.verify.mockImplementation(verifyProviderCredentials);
     mocks.execute.mockResolvedValue([]);
     const queryClient = new QueryClient();
@@ -153,8 +153,8 @@ describe("SQLite AI providers", () => {
 
   it("saves an on-prem STT endpoint without requiring a model-list endpoint", async () => {
     const { verifyProviderCredentials } = await vi.importActual<
-      typeof import("@anlg/provider-validation")
-    >("@anlg/provider-validation");
+      typeof import("@syntheo/provider-validation")
+    >("@syntheo/provider-validation");
     mocks.verify.mockImplementation(verifyProviderCredentials);
     mocks.execute.mockResolvedValue([]);
     mocks.fetch.mockResolvedValue(new Response(null, { status: 404 }));
@@ -182,8 +182,8 @@ describe("SQLite AI providers", () => {
 
   it("saves a valid local provider and rejects an invalid replacement when the server restricts origins", async () => {
     const { verifyProviderCredentials } = await vi.importActual<
-      typeof import("@anlg/provider-validation")
-    >("@anlg/provider-validation");
+      typeof import("@syntheo/provider-validation")
+    >("@syntheo/provider-validation");
     mocks.verify.mockImplementation(verifyProviderCredentials);
     mocks.execute.mockResolvedValue([]);
     mocks.fetch.mockImplementation(async (_input, init) => {
@@ -224,8 +224,8 @@ describe("SQLite AI providers", () => {
     // Le seul provider LLM restant est on-prem et sa clé est facultative : sans
     // sonde, l'URL doit tout de même être contrôlée (HTTPS, ou HTTP privé).
     const { validateProviderBaseUrl } = await vi.importActual<
-      typeof import("@anlg/provider-validation")
-    >("@anlg/provider-validation");
+      typeof import("@syntheo/provider-validation")
+    >("@syntheo/provider-validation");
     mocks.validateBaseUrl.mockImplementation(validateProviderBaseUrl);
     mocks.execute.mockResolvedValue([]);
     const queryClient = new QueryClient({
@@ -255,8 +255,8 @@ describe("SQLite AI providers", () => {
 
   it("saves an on-prem LLM endpoint over plain HTTP on a private host", async () => {
     const { validateProviderBaseUrl } = await vi.importActual<
-      typeof import("@anlg/provider-validation")
-    >("@anlg/provider-validation");
+      typeof import("@syntheo/provider-validation")
+    >("@syntheo/provider-validation");
     mocks.validateBaseUrl.mockImplementation(validateProviderBaseUrl);
     mocks.execute.mockResolvedValue([]);
     const queryClient = new QueryClient({

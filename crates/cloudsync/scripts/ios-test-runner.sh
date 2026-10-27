@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-: "${ANARLOG_CLOUDSYNC_TEST_SIMULATOR:?Run test-ios.sh to select an isolated simulator}"
+: "${SYNTHEO_CLOUDSYNC_TEST_SIMULATOR:?Run test-ios.sh to select an isolated simulator}"
 codesign --force --sign - "$1"
-python3 - "$ANARLOG_CLOUDSYNC_TEST_SIMULATOR" "$@" <<'PY'
+python3 - "$SYNTHEO_CLOUDSYNC_TEST_SIMULATOR" "$@" <<'PY'
 import subprocess
 import sys
 

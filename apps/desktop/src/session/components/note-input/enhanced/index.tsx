@@ -3,9 +3,9 @@ import { useMutation } from "@tanstack/react-query";
 import type { EditorView } from "prosemirror-view";
 import { forwardRef } from "react";
 
-import type { NoteEditorRef } from "@anlg/editor/note";
-import { Button } from "@anlg/ui/components/ui/button";
-import { defaultSummaryDocumentId } from "@anlg/utils/session";
+import type { NoteEditorRef } from "@syntheo/editor/note";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { defaultSummaryDocumentId } from "@syntheo/utils/session";
 
 import { ConfigError } from "./config-error";
 import { EnhancedEditor } from "./editor";

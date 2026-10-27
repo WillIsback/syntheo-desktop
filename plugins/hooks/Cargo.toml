@@ -15,7 +15,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-anlg-hooks = { workspace = true }
+syntheo-hooks = { workspace = true }
 
 serde = { workspace = true }
 serde_yaml = { workspace = true }

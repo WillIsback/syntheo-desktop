@@ -1,16 +1,16 @@
-use anlg_db_app::{
+use serde::Serialize;
+use sqlx::SqlitePool;
+use syntheo_db_app::{
     BatchTranscriptInsert, BatchTranscriptReplace, BatchTranscriptRow,
     clear_incomplete_capture_markers, insert_batch_transcript, load_batch_transcript_by_id,
     load_session_batch_transcripts, mark_session_audio_transcription_complete,
 };
-use anlg_transcript::{
+use syntheo_transcript::{
     BatchRefinementOutcome, BatchRefinementRequest, BatchRefinementSource,
     BatchTranscriptPromotion, StoredLiveTranscriptDelta, StoredSpeakerHint, StoredTranscriptWord,
     materialize_live_transcript, parse_stored_speaker_hints, parse_stored_transcript_words,
     refine_batch_transcript, serialize_batch_transcript_hints, serialize_batch_transcript_words,
 };
-use serde::Serialize;
-use sqlx::SqlitePool;
 
 #[derive(Debug, Clone, serde::Deserialize, specta::Type)]
 pub struct SaveBatchTranscriptRequest {
@@ -194,14 +194,14 @@ fn materialize_source_row(row: BatchTranscriptRow) -> BatchRefinementSource {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
-    use anlg_transcript::WordState;
     use serde_json::Value;
     use sqlx::Row;
+    use syntheo_db_core::Db;
+    use syntheo_transcript::WordState;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO sessions (id, workspace_id, owner_user_id)
              VALUES

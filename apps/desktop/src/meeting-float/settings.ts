@@ -1,4 +1,4 @@
-import type { FloatingBarSettingsChange } from "@anlg/plugin-windows";
+import type { FloatingBarSettingsChange } from "@syntheo/plugin-windows";
 
 import type { SettingValues } from "~/settings/schema";
 

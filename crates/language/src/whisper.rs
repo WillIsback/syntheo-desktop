@@ -1,5 +1,5 @@
 use crate::{Error, ISO639, Language};
-use anlg_whisper::Language as WL;
+use syntheo_whisper::Language as WL;
 
 // Single source of truth for Whisper language support: both conversion
 // directions and `whisper_multilingual()` derive from this table.

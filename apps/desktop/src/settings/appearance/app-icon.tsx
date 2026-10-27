@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { getIdentifier } from "@tauri-apps/api/app";
 import { platform } from "@tauri-apps/plugin-os";
 
-import { CircleNotch, LockSimple } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { CircleNotch, LockSimple } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { useBillingAccess } from "~/billing/billing-context";
 import { useNotifyPlanRequired } from "~/settings/plan-gate";
@@ -44,7 +44,7 @@ export function AppIconSelector() {
   const theme: ThemePreference =
     storedTheme === "light" || storedTheme === "dark" ? storedTheme : "system";
   const setAppIcon = useSetSettingValue("app_icon");
-  const { data: appIdentifier = "com.hyprnote.stable" } = useQuery({
+  const { data: appIdentifier = "fr.willisback.syntheo" } = useQuery({
     queryKey: ["tauri", "app-identifier"],
     queryFn: getIdentifier,
     staleTime: Infinity,
@@ -78,7 +78,7 @@ export function AppIconSelector() {
           <Trans>App icon</Trans>
         </h3>
         <p className="text-muted-foreground mt-1 text-sm">
-          <Trans>Choose how Anarlog appears in the Dock.</Trans>
+          <Trans>Choose how Syntheo appears in the Dock.</Trans>
         </p>
       </div>
       <div

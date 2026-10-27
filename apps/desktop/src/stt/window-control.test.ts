@@ -10,13 +10,13 @@ vi.mock("@tauri-apps/api/event", () => ({
   listen: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     stopCaptureForSession: hoisted.stopCaptureForSession,
   },
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   getCurrentWebviewWindowLabel: () => "note-1",
 }));
 
@@ -46,7 +46,7 @@ describe("requestMainListenerControl", () => {
 
     expect(hoisted.emitTo).toHaveBeenCalledWith(
       "main",
-      "anlg:listener-control",
+      "syntheo:listener-control",
       expect.objectContaining({ action: "stop", sessionId: "session-1" }),
     );
     expect(hoisted.stopCaptureForSession).not.toHaveBeenCalled();
@@ -73,7 +73,7 @@ describe("requestMainListenerControl", () => {
 
     expect(hoisted.emitTo).toHaveBeenCalledWith(
       "main",
-      "anlg:listener-control",
+      "syntheo:listener-control",
       expect.objectContaining({ action: "start", sessionId: "session-1" }),
     );
     expect(hoisted.stopCaptureForSession).not.toHaveBeenCalled();

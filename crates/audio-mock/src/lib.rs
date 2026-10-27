@@ -13,11 +13,11 @@ use tokio::time::{Duration, MissedTickBehavior};
 use tokio_stream::wrappers::ReceiverStream;
 use tokio_util::sync::CancellationToken;
 
-pub use anlg_audio::{AudioProvider, CaptureConfig, CaptureFrame, CaptureStream, Error};
+pub use syntheo_audio::{AudioProvider, CaptureConfig, CaptureFrame, CaptureStream, Error};
 
 const MOCK_MIC_DEVICE_NAME: &str = "mock-mic";
-const MOCK_MIC_AUDIO_ENV: &str = "ANLG_MOCK_MIC_AUDIO";
-const MOCK_SPK_AUDIO_ENV: &str = "ANLG_MOCK_SPK_AUDIO";
+const MOCK_MIC_AUDIO_ENV: &str = "SYNTHEO_MOCK_MIC_AUDIO";
+const MOCK_SPK_AUDIO_ENV: &str = "SYNTHEO_MOCK_SPK_AUDIO";
 const MOCK_PLAYBACK_ENV: &str = "MOCK_PLAYBACK";
 
 struct AudioPaths {
@@ -29,14 +29,14 @@ fn audio_paths_for_selection(selection: u32) -> AudioPaths {
     match selection {
         // MOCK_AUDIO=1
         1 => AudioPaths {
-            mic: anlg_data::english_10::AUDIO_MIC_MP3_PATH,
-            spk: anlg_data::english_10::AUDIO_SPK_MP3_PATH,
+            mic: syntheo_data::english_10::AUDIO_MIC_MP3_PATH,
+            spk: syntheo_data::english_10::AUDIO_SPK_MP3_PATH,
         },
         // Future selections go here:
         // 2 => AudioPaths { ... },
         _ => AudioPaths {
-            mic: anlg_data::english_10::AUDIO_MIC_MP3_PATH,
-            spk: anlg_data::english_10::AUDIO_SPK_MP3_PATH,
+            mic: syntheo_data::english_10::AUDIO_MIC_MP3_PATH,
+            spk: syntheo_data::english_10::AUDIO_SPK_MP3_PATH,
         },
     }
 }
@@ -232,7 +232,7 @@ fn start_stereo_playback(mic: &MockAudioData, spk: &MockAudioData, stop: Arc<Ato
     std::thread::spawn(move || {
         use rodio::Player;
 
-        match anlg_audio_utils::open_default_playback_sink() {
+        match syntheo_audio_utils::open_default_playback_sink() {
             Ok(stream) => {
                 let player = Player::connect_new(stream.mixer());
                 player.append(MonoPlaybackSource {

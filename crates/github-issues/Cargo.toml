@@ -10,7 +10,7 @@ specta = ["dep:specta"]
 utoipa = ["dep:utoipa"]
 
 [dependencies]
-anlg-http = { workspace = true }
+syntheo-http = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

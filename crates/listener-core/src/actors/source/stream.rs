@@ -3,8 +3,8 @@ use std::sync::atomic::Ordering;
 use tokio_util::sync::CancellationToken;
 
 use crate::actors::ChannelMode;
-use anlg_audio::{AudioProvider, CaptureConfig, CaptureEvent, CaptureStream};
-use anlg_audio_utils::chunk_size_for_stt;
+use syntheo_audio::{AudioProvider, CaptureConfig, CaptureEvent, CaptureStream};
+use syntheo_audio_utils::chunk_size_for_stt;
 
 use super::{SourceFrame, SourceMsg, SourceState};
 
@@ -48,7 +48,7 @@ pub(super) struct CaptureSettings {
 // Headphones make AEC pure cost: it burns CPU and can degrade near-end speech. The check covers
 // every output that is playing, not just the default, because meeting apps pick their own speaker.
 pub(super) fn capture_settings(mic_swapped: bool) -> CaptureSettings {
-    let headphone_output = anlg_audio_device::headphone_only_output();
+    let headphone_output = syntheo_audio_device::headphone_only_output();
     if let Some(device) = &headphone_output {
         tracing::info!(
             device = %device.name,
@@ -93,7 +93,7 @@ pub(super) fn active_mic_device(
         return explicit;
     }
 
-    let replacement = anlg_audio_device::wired_input_replacing_bluetooth_default()?;
+    let replacement = syntheo_audio_device::wired_input_replacing_bluetooth_default()?;
     let active = audio
         .list_mic_devices()
         .into_iter()
@@ -255,7 +255,7 @@ async fn run_stream_loop(mut ctx: StreamContext, mode: ChannelMode) {
 
 async fn handle_capture_item(
     ctx: &StreamContext,
-    item: Option<Result<CaptureEvent, anlg_audio::Error>>,
+    item: Option<Result<CaptureEvent, syntheo_audio::Error>>,
 ) -> StreamResult {
     match item {
         Some(Ok(CaptureEvent::ChannelReady { channel, device })) => {

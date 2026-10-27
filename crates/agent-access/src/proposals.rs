@@ -18,7 +18,7 @@ const STATUS_DECLINED: &str = "declined";
 )]
 #[serde(rename_all = "snake_case")]
 pub struct CreateProposalInput {
-    #[schemars(description = "Anarlog meeting id")]
+    #[schemars(description = "Syntheo meeting id")]
     pub meeting_id: String,
     #[schemars(description = "summary_replace or memo_replace")]
     pub kind: String,
@@ -99,7 +99,7 @@ pub async fn create_proposal(pool: &SqlitePool, input: CreateProposalInput) -> R
         return Err(Error::Invalid("proposal content is empty".to_string()));
     }
     let source = normalize_source(input.source.as_deref());
-    let session = anlg_db_app::get_session(pool, &input.meeting_id)
+    let session = syntheo_db_app::get_session(pool, &input.meeting_id)
         .await
         .map_err(|source| Error::Database {
             action: "load meeting",
@@ -109,9 +109,9 @@ pub async fn create_proposal(pool: &SqlitePool, input: CreateProposalInput) -> R
 
     let target = resolve_target(pool, &session.id, kind, input.target_id.as_deref()).await?;
     let id = uuid::Uuid::new_v4().to_string();
-    let row = anlg_db_app::insert_session_proposal(
+    let row = syntheo_db_app::insert_session_proposal(
         pool,
-        anlg_db_app::InsertSessionProposal {
+        syntheo_db_app::InsertSessionProposal {
             id: &id,
             workspace_id: &session.workspace_id,
             session_id: &session.id,
@@ -134,7 +134,7 @@ pub async fn create_proposal(pool: &SqlitePool, input: CreateProposalInput) -> R
 
 pub async fn list_proposals(pool: &SqlitePool, input: ListProposalsInput) -> Result<ProposalPage> {
     if let Some(meeting_id) = input.meeting_id.as_deref() {
-        let exists = anlg_db_app::get_session(pool, meeting_id)
+        let exists = syntheo_db_app::get_session(pool, meeting_id)
             .await
             .map_err(|source| Error::Database {
                 action: "load meeting",
@@ -161,7 +161,7 @@ pub async fn list_proposals(pool: &SqlitePool, input: ListProposalsInput) -> Res
         .unwrap_or(DEFAULT_PROPOSAL_LIST_LIMIT)
         .clamp(1, MAX_PROPOSAL_LIST_LIMIT);
     let offset = input.offset.unwrap_or(0);
-    let mut rows = anlg_db_app::list_session_proposals(
+    let mut rows = syntheo_db_app::list_session_proposals(
         pool,
         input.meeting_id.as_deref(),
         status.as_deref(),
@@ -195,7 +195,7 @@ pub async fn decline_proposal(pool: &SqlitePool, input: DeclineProposalInput) ->
         )));
     }
 
-    let row = anlg_db_app::update_session_proposal_status(
+    let row = syntheo_db_app::update_session_proposal_status(
         pool,
         &input.proposal_id,
         STATUS_PENDING,
@@ -323,7 +323,7 @@ async fn resolve_target(
 }
 
 async fn load_proposal(pool: &SqlitePool, proposal_id: &str) -> Result<Proposal> {
-    anlg_db_app::get_session_proposal(pool, proposal_id)
+    syntheo_db_app::get_session_proposal(pool, proposal_id)
         .await
         .map_err(|source| Error::Database {
             action: "load proposal",
@@ -364,8 +364,8 @@ fn normalize_source(source: Option<&str>) -> String {
     }
 }
 
-impl From<anlg_db_app::SessionProposalRow> for Proposal {
-    fn from(value: anlg_db_app::SessionProposalRow) -> Self {
+impl From<syntheo_db_app::SessionProposalRow> for Proposal {
+    fn from(value: syntheo_db_app::SessionProposalRow) -> Self {
         let diff = proposal_unified_diff(&value.current_markdown, &value.proposed_markdown);
         Self {
             id: value.id,
@@ -388,13 +388,13 @@ impl From<anlg_db_app::SessionProposalRow> for Proposal {
 mod tests {
     use super::*;
 
-    async fn test_db() -> anlg_db_core::Db {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+    async fn test_db() -> syntheo_db_core::Db {
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 
-    async fn seed_meeting(db: &anlg_db_core::Db) {
+    async fn seed_meeting(db: &syntheo_db_core::Db) {
         sqlx::query(
             "INSERT INTO sessions (id, title, started_at) VALUES ('meeting-1', 'Planning', '2026-07-13')",
         )

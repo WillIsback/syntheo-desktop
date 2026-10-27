@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet, hash_map::DefaultHasher};
 use std::hash::{Hash, Hasher};
 
-use anlg_transcript::{
+use syntheo_transcript::{
     FinalizedWord, IdentityAssignment, PartialWord, SegmentBuilderOptions, build_segments,
     normalize_rendered_segment_words, stable_segment_id,
 };
@@ -313,7 +313,7 @@ fn build_live_segments(
 
 #[cfg(test)]
 mod tests {
-    use anlg_transcript::{
+    use syntheo_transcript::{
         ChannelProfile, FinalizedWord, IdentityAssignment, IdentityScope, PartialWord,
         SegmentBuilderOptions, WordState,
     };

@@ -11,12 +11,12 @@ import {
   getAppLinkLabel,
   type GitHubAttrs,
   type AppLinkAttrs,
-} from "@anlg/editor/app-link";
-import { getSafeNodePos } from "@anlg/editor/node-views";
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { commands as todoCommands } from "@anlg/plugin-todo";
-import { Check } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+} from "@syntheo/editor/app-link";
+import { getSafeNodePos } from "@syntheo/editor/node-views";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import { commands as todoCommands } from "@syntheo/plugin-todo";
+import { Check } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { collectSiblingResources, openTaskTab } from "~/task/open-task-tab";
 

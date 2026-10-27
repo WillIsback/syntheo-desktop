@@ -1,6 +1,6 @@
-// Démo distante (site Anarlog) retirée : la note de bienvenue n'a pas de lien.
+// Démo distante (site Syntheo) retirée : la note de bienvenue n'a pas de lien.
 export const WELCOME_NOTE_DEMO_URL = "";
-export const WELCOME_NOTE_TRACKING_ID = "anarlog-onboarding-demo-v1";
+export const WELCOME_NOTE_TRACKING_ID = "syntheo-onboarding-demo-v1";
 const WELCOME_NOTE_COMPLETE_PATH = "/onboarding-demo/complete";
 const WELCOME_NOTE_DEMO_AUTOJOIN_PARAM = "autojoin";
 

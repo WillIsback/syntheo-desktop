@@ -1,6 +1,6 @@
 ---
 name: release-new-version
-description: Coordinate Anarlog stable desktop releases and focused Docs, API, CLI, MCP, and Telemetry skills, including changelog publication with the app.
+description: Coordinate Syntheo stable desktop releases and focused Docs, API, CLI, MCP, and Telemetry skills, including changelog publication with the app.
 metadata:
   internal: true
 ---

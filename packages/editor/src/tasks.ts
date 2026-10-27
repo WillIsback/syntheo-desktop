@@ -1,4 +1,4 @@
-import type { TaskStatus } from "@anlg/store";
+import type { TaskStatus } from "@syntheo/store";
 
 import type { JSONContent } from "./note";
 
@@ -9,7 +9,7 @@ export interface TaskSource {
   id: string;
 }
 
-export type { TaskStatus } from "@anlg/store";
+export type { TaskStatus } from "@syntheo/store";
 
 export interface TaskRecord {
   taskId: string;

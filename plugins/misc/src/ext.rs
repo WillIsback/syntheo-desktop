@@ -56,7 +56,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Misc<'a, R, M> {
     }
 
     pub fn opinionated_md_to_html(&self, text: impl AsRef<str>) -> Result<String, String> {
-        anlg_buffer::opinionated_md_to_html(text.as_ref()).map_err(|e| e.to_string())
+        syntheo_buffer::opinionated_md_to_html(text.as_ref()).map_err(|e| e.to_string())
     }
 }
 

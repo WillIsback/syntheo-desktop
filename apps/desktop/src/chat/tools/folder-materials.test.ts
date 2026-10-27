@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   loadFolderMaterial: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     folderAttachmentRead: mocks.folderAttachmentRead,
   },

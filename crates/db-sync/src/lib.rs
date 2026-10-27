@@ -34,13 +34,13 @@ pub(crate) fn spawn_background(fut: impl std::future::Future<Output = ()> + Send
 }
 
 pub fn is_permanent_cloudsync_workspace_rejection(
-    error: &anlg_db_app::CloudsyncWorkspaceError,
+    error: &syntheo_db_app::CloudsyncWorkspaceError,
 ) -> bool {
     matches!(
         error,
-        anlg_db_app::CloudsyncWorkspaceError::InvalidWorkspaceId
-            | anlg_db_app::CloudsyncWorkspaceError::InvalidBinding
-            | anlg_db_app::CloudsyncWorkspaceError::AccountMismatch
-            | anlg_db_app::CloudsyncWorkspaceError::ForeignWorkspace { .. }
+        syntheo_db_app::CloudsyncWorkspaceError::InvalidWorkspaceId
+            | syntheo_db_app::CloudsyncWorkspaceError::InvalidBinding
+            | syntheo_db_app::CloudsyncWorkspaceError::AccountMismatch
+            | syntheo_db_app::CloudsyncWorkspaceError::ForeignWorkspace { .. }
     )
 }

@@ -90,8 +90,8 @@ async fn assert_cloudsync_connection_ready(
         .await
         .unwrap();
 
-    assert_eq!(version, anlg_cloudsync::CLOUDSYNC_VERSION);
-    assert_eq!(stored_version, anlg_cloudsync::CLOUDSYNC_VERSION);
+    assert_eq!(version, syntheo_cloudsync::CLOUDSYNC_VERSION);
+    assert_eq!(stored_version, syntheo_cloudsync::CLOUDSYNC_VERSION);
     assert_eq!(stored_site_id, expected_site_id);
     assert_eq!(context_site_id, expected_site_id);
     assert!(sync_enabled);
@@ -447,7 +447,10 @@ async fn cloudsync_and_change_notifier_share_transaction_lifecycle() {
     })
     .await
     .unwrap();
-    assert_eq!(first_change.kind, anlg_db_change::TableChangeKind::Insert);
+    assert_eq!(
+        first_change.kind,
+        syntheo_db_change::TableChangeKind::Insert
+    );
     while changes.try_recv().is_ok() {}
 
     let mut transaction = db.pool().begin().await.unwrap();
@@ -482,7 +485,7 @@ async fn cloudsync_and_change_notifier_share_transaction_lifecycle() {
         })
         .await
         .unwrap();
-    assert_eq!(sync_change.kind, anlg_db_change::TableChangeKind::Update);
+    assert_eq!(sync_change.kind, syntheo_db_change::TableChangeKind::Update);
     assert_eq!(sync_change.seq, other_change.seq);
     let second_version: i64 = sqlx::query_scalar("SELECT cloudsync_db_version()")
         .fetch_one(db.pool())
@@ -544,7 +547,10 @@ async fn cloudsync_and_change_notifier_share_transaction_lifecycle() {
     })
     .await
     .unwrap();
-    assert_eq!(final_change.kind, anlg_db_change::TableChangeKind::Update);
+    assert_eq!(
+        final_change.kind,
+        syntheo_db_change::TableChangeKind::Update
+    );
     let final_version: i64 = sqlx::query_scalar("SELECT cloudsync_db_version()")
         .fetch_one(db.pool())
         .await
@@ -579,7 +585,7 @@ async fn local_cloudsync_requires_wal() {
 
     assert!(matches!(
         error,
-        DbOpenError::Cloudsync(anlg_cloudsync::Error::WalRequired)
+        DbOpenError::Cloudsync(syntheo_cloudsync::Error::WalRequired)
     ));
 }
 
@@ -757,7 +763,7 @@ async fn emits_table_changes_for_local_writes() {
         .unwrap();
 
     assert_eq!(change.table, "test_events");
-    assert_eq!(change.kind, anlg_db_change::TableChangeKind::Insert);
+    assert_eq!(change.kind, syntheo_db_change::TableChangeKind::Insert);
     assert!(change.seq > before);
     assert_eq!(notifier.current_seq(), change.seq);
     assert_eq!(notifier.latest_table_seq("test_events"), Some(change.seq));
@@ -793,7 +799,7 @@ async fn emits_table_changes_only_after_commit() {
         .unwrap()
         .unwrap();
     assert_eq!(change.table, "test_events");
-    assert_eq!(change.kind, anlg_db_change::TableChangeKind::Insert);
+    assert_eq!(change.kind, syntheo_db_change::TableChangeKind::Insert);
     assert_eq!(notifier.latest_table_seq("test_events"), Some(change.seq));
 }
 
@@ -851,7 +857,7 @@ async fn coalesces_multiple_writes_in_a_transaction() {
         .unwrap()
         .unwrap();
     assert_eq!(change.table, "test_events");
-    assert_eq!(change.kind, anlg_db_change::TableChangeKind::Update);
+    assert_eq!(change.kind, syntheo_db_change::TableChangeKind::Update);
     assert_eq!(notifier.latest_table_seq("test_events"), Some(change.seq));
     assert!(
         tokio::time::timeout(std::time::Duration::from_millis(100), changes.recv())
@@ -894,9 +900,9 @@ async fn emits_update_and_delete_table_changes() {
         .unwrap();
 
     assert_eq!(update.table, "test_events");
-    assert_eq!(update.kind, anlg_db_change::TableChangeKind::Update);
+    assert_eq!(update.kind, syntheo_db_change::TableChangeKind::Update);
     assert_eq!(delete.table, "test_events");
-    assert_eq!(delete.kind, anlg_db_change::TableChangeKind::Delete);
+    assert_eq!(delete.kind, syntheo_db_change::TableChangeKind::Delete);
     assert!(delete.seq > update.seq);
     assert_eq!(notifier.latest_table_seq("test_events"), Some(delete.seq));
 }
@@ -1024,7 +1030,7 @@ async fn notifier_survives_db_drop() {
         .unwrap();
 
     assert_eq!(change.table, "retained_events");
-    assert_eq!(change.kind, anlg_db_change::TableChangeKind::Insert);
+    assert_eq!(change.kind, syntheo_db_change::TableChangeKind::Insert);
     assert_eq!(
         notifier.latest_table_seq("retained_events"),
         Some(change.seq)

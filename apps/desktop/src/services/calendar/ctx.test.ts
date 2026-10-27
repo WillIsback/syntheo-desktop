@@ -14,7 +14,7 @@ const writeQueue = vi.hoisted(() => ({
   enqueueDatabaseWrite: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-calendar", () => ({
+vi.mock("@syntheo/plugin-calendar", () => ({
   commands: {
     listConnectionIds: pluginCalendar.listConnectionIds,
     listCalendars: pluginCalendar.listCalendars,

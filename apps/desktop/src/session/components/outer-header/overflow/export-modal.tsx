@@ -4,21 +4,21 @@ import { downloadDir, join } from "@tauri-apps/api/path";
 import { save } from "@tauri-apps/plugin-dialog";
 import { useMemo, useState } from "react";
 
-import { json2md } from "@anlg/editor/markdown";
+import { json2md } from "@syntheo/editor/markdown";
 import {
   commands as exportCommands,
   type ExportMetadata,
   type TranscriptItem,
-} from "@anlg/plugin-export";
-import { commands as fs2Commands } from "@anlg/plugin-fs2";
-import { commands as openerCommands } from "@anlg/plugin-opener2";
+} from "@syntheo/plugin-export";
+import { commands as fs2Commands } from "@syntheo/plugin-fs2";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@anlg/ui/components/ui/dialog";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dialog";
+import { cn } from "@syntheo/utils";
 
 import { formatDate, formatDuration } from "./export-utils";
 

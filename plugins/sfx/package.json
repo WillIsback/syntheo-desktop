@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-sfx",
+  "name": "@syntheo/plugin-sfx",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

@@ -13,7 +13,7 @@ vi.mock("~/db", () => ({
   executeTransaction: mocks.executeTransaction,
   useLiveQuery: vi.fn(),
 }));
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: { createFolder: mocks.createFolder },
 }));
 

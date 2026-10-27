@@ -1,5 +1,5 @@
-use anlg_db_core::Db;
 use sqlx::{Column, Row, TypeInfo, ValueRef};
+use syntheo_db_core::Db;
 
 use crate::{Error, ProxyQueryMethod, ProxyQueryResult, TransactionStatement};
 
@@ -161,8 +161,8 @@ mod tests {
     use super::*;
     use crate::DbExecutor;
 
-    async fn test_db() -> anlg_db_core::Db {
-        anlg_db_core::Db::connect_memory_plain().await.unwrap()
+    async fn test_db() -> syntheo_db_core::Db {
+        syntheo_db_core::Db::connect_memory_plain().await.unwrap()
     }
 
     #[tokio::test]

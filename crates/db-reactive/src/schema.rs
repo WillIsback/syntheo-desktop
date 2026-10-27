@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use sqlx::{Row, SqlitePool};
 
-use anlg_db_change::ChangeNotifier;
+use syntheo_db_change::ChangeNotifier;
 
 use crate::DependencyTarget;
 

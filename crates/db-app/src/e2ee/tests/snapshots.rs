@@ -7,7 +7,7 @@ async fn rotated_keyring_applies_new_writes_over_an_old_snapshot() {
     let old_key = recovery.workspace_key("workspace-a").unwrap();
     let old_keys = HashMap::from([(
         "workspace-a".to_string(),
-        anlg_e2ee::WorkspaceKeyring::new(old_key.clone()),
+        syntheo_e2ee::WorkspaceKeyring::new(old_key.clone()),
     )]);
     let source = test_db().await;
     sqlx::query(
@@ -27,10 +27,10 @@ async fn rotated_keyring_applies_new_writes_over_an_old_snapshot() {
         .await
         .unwrap();
 
-    let new_key = anlg_e2ee::WorkspaceKey::generate().unwrap();
+    let new_key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
     let old_title_id = old_key.blind_field_id("sessions", "session-1", "title");
     let new_title_id = new_key.blind_field_id("sessions", "session-1", "title");
-    let mut rotated_keyring = anlg_e2ee::WorkspaceKeyring::new(new_key);
+    let mut rotated_keyring = syntheo_e2ee::WorkspaceKeyring::new(new_key);
     rotated_keyring.insert_retired(old_key);
     let rotated_keys = HashMap::from([("workspace-a".to_string(), rotated_keyring)]);
 
@@ -64,10 +64,10 @@ async fn rotated_keyring_applies_new_writes_over_an_old_snapshot() {
 
 #[tokio::test]
 async fn shared_replicas_collaborate_then_fail_closed_after_member_revocation() {
-    let old_key = anlg_e2ee::WorkspaceKey::generate().unwrap();
+    let old_key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
     let shared_keys = HashMap::from([(
         "workspace-a".to_string(),
-        anlg_e2ee::WorkspaceKeyring::new(old_key.clone()),
+        syntheo_e2ee::WorkspaceKeyring::new(old_key.clone()),
     )]);
     let owner = test_db().await;
     let member = test_db().await;
@@ -106,8 +106,8 @@ async fn shared_replicas_collaborate_then_fail_closed_after_member_revocation() 
             .unwrap();
     assert_eq!(owner_title, "Member edit");
 
-    let new_key = anlg_e2ee::WorkspaceKey::generate().unwrap();
-    let mut rotated_keyring = anlg_e2ee::WorkspaceKeyring::new(new_key);
+    let new_key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
+    let mut rotated_keyring = syntheo_e2ee::WorkspaceKeyring::new(new_key);
     rotated_keyring.insert_retired(old_key);
     let rotated_keys = HashMap::from([("workspace-a".to_string(), rotated_keyring)]);
 
@@ -122,7 +122,7 @@ async fn shared_replicas_collaborate_then_fail_closed_after_member_revocation() 
 
     assert!(matches!(
         apply_e2ee_replica_changes(member.pool(), &shared_keys).await,
-        Err(E2eeReplicaError::Crypto(anlg_e2ee::Error::UnknownKey))
+        Err(E2eeReplicaError::Crypto(syntheo_e2ee::Error::UnknownKey))
     ));
     let member_title: String =
         sqlx::query_scalar("SELECT title FROM sessions WHERE id = 'session-1'")
@@ -166,11 +166,11 @@ async fn rotated_keyring_authenticates_witness_history_from_a_retired_generation
         sequence: 1,
         record_id: sealed.record_id,
         workspace_id: "workspace-a".to_string(),
-        payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+        payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
         payload: sealed.payload,
     };
     let mut keyring =
-        anlg_e2ee::WorkspaceKeyring::new(anlg_e2ee::WorkspaceKey::generate().unwrap());
+        syntheo_e2ee::WorkspaceKeyring::new(syntheo_e2ee::WorkspaceKey::generate().unwrap());
     keyring.insert_retired(old_key);
 
     merge_e2ee_witness_events_with_keyring(db.pool(), &keyring, "workspace-a", &[event])
@@ -215,7 +215,7 @@ async fn fresh_device_waits_for_every_row_record_to_be_witnessed() {
         sequence: u64::try_from(index + 1).unwrap(),
         record_id: record_id.to_string(),
         workspace_id: "workspace-a".to_string(),
-        payload_hash: anlg_e2ee::payload_hash(payload),
+        payload_hash: syntheo_e2ee::payload_hash(payload),
         payload: payload.to_string(),
     };
     let (title_records, other_records): (Vec<_>, Vec<_>) = encrypted
@@ -315,7 +315,7 @@ async fn fresh_device_parks_new_rows_until_the_snapshot_download_completes() {
             sequence: u64::try_from(index + 1).unwrap(),
             record_id: record_id.to_string(),
             workspace_id: "workspace-a".to_string(),
-            payload_hash: anlg_e2ee::payload_hash(payload),
+            payload_hash: syntheo_e2ee::payload_hash(payload),
             payload: payload.to_string(),
         })
         .collect::<Vec<_>>();
@@ -447,7 +447,7 @@ async fn no_op_encryption_and_witness_repair_do_not_touch_replica_rows() {
             sequence: 1,
             record_id: title_record_id.clone(),
             workspace_id: "workspace-a".to_string(),
-            payload_hash: anlg_e2ee::payload_hash(&title_payload),
+            payload_hash: syntheo_e2ee::payload_hash(&title_payload),
             payload: title_payload,
         }],
     )

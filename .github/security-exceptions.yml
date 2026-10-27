@@ -7,7 +7,7 @@
 exceptions:
   - cve: "RUSTSEC-2023-0071, RUSTSEC-2026-0387, RUSTSEC-2026-0346, RUSTSEC-2026-0349, RUSTSEC-2026-0098, RUSTSEC-2026-0099, RUSTSEC-2026-0104, RUSTSEC-2026-0382, RUSTSEC-2026-0258, CVE-2026-18140, GHSA-82j2-j2ch-gfr8"
     reason: >-
-      Dette héritée d'Anarlog : rsa (jsonwebtoken), crypto-bigint, rustls 0.21,
+      Dette héritée d'Syntheo : rsa (jsonwebtoken), crypto-bigint, rustls 0.21,
       rustls-webpki 0.101, h2 0.3 et aws-smithy-json sont tirés par le compte
       cloud (api-*, supabase) et le SDK AWS (s3, bedrock), retirés aux chantiers
       04b et 04d. Pas de correctif compatible sans réécrire ces modules.
@@ -50,7 +50,7 @@ exceptions:
     reason: >-
       pnpm-lock.yaml : zod 3.x (correctif publié uniquement en 4.x, tiré par
       des dépendances tierces), extract-zip et node-forge (outillage de
-      développement épinglé à la racine par Anarlog, sans correctif publié).
+      développement épinglé à la racine par Syntheo, sans correctif publié).
       Absents de l'application livrée.
     expires: "2027-01-31"
     author: "WillIsback"

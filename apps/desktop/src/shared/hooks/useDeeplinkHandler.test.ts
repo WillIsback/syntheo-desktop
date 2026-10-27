@@ -1,14 +1,14 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import type { DeepLink } from "@anlg/plugin-deeplink2";
+import type { DeepLink } from "@syntheo/plugin-deeplink2";
 
 const mocks = vi.hoisted(() => ({
   handler: null as ((deepLink: DeepLink) => void) | null,
 }));
 
 vi.mock("@tauri-apps/api/core", () => ({ isTauri: () => true }));
-vi.mock("@anlg/plugin-deeplink2", () => ({
+vi.mock("@syntheo/plugin-deeplink2", () => ({
   commands: {
     takePendingDeepLinks: vi.fn(async () => ({ status: "ok", data: [] })),
   },

@@ -17,7 +17,7 @@ async fn wait_requests(server: &MockServer) -> Vec<wiremock::Request> {
 #[tokio::test]
 async fn watcher_polls_the_witness_and_stops_when_it_is_cleared() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
 
     let server = MockServer::start().await;
@@ -80,7 +80,7 @@ async fn watcher_polls_the_witness_and_stops_when_it_is_cleared() {
 #[tokio::test]
 async fn watcher_restarts_the_cursor_when_the_witness_workspace_changes() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
 
     let server = MockServer::start().await;
@@ -152,7 +152,7 @@ async fn watcher_restarts_the_cursor_when_the_witness_workspace_changes() {
 #[tokio::test]
 async fn watcher_polls_every_configured_workspace_witness() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(std::sync::Arc::clone(&db));
 
     let server = MockServer::start().await;

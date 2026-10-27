@@ -1,9 +1,9 @@
-import { commands as calendarCommands } from "@anlg/plugin-calendar";
+import { commands as calendarCommands } from "@syntheo/plugin-calendar";
 import type {
   CalendarListItem,
   CalendarProviderType,
   ProviderConnectionIds,
-} from "@anlg/plugin-calendar";
+} from "@syntheo/plugin-calendar";
 
 import { applyCalendarInventory, loadEnabledCalendars } from "./storage";
 

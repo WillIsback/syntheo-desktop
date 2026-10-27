@@ -5,7 +5,7 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-anlg-http = { workspace = true }
+syntheo-http = { workspace = true }
 
 chrono = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }

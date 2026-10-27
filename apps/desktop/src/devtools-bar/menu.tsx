@@ -3,8 +3,8 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { cn } from "@syntheo/utils";
 
 import { Hint } from "./hint";
 

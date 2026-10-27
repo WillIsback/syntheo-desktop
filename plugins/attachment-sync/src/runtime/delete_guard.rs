@@ -3,11 +3,11 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
-use anlg_e2ee::{
+use sqlx::FromRow;
+use syntheo_e2ee::{
     AttachmentBlobCiphertextMetadata, AttachmentBlobContext, AttachmentBlobMetadata,
     AttachmentBlobPlaintextMetadata, WorkspaceKey,
 };
-use sqlx::FromRow;
 use tauri::Runtime;
 use uuid::Uuid;
 
@@ -143,7 +143,7 @@ pub async fn prepare_delete_guard<R: Runtime>(
     let expected = plaintext_metadata(&record.expected_sha256, record.expected_size_bytes)?;
     let expected_size = expected.size_bytes;
     let remote_workspace_id =
-        anlg_db_app::local_library_remote_workspace(state.pool(), &record.workspace_id).await?;
+        syntheo_db_app::local_library_remote_workspace(state.pool(), &record.workspace_id).await?;
     let key = workspace_key(state, &remote_workspace_id)?;
     let (attachment_ref, version_ref) =
         attachment_backup_refs(&key, &remote_workspace_id, &record.attachment_id, &expected)?;
@@ -335,7 +335,8 @@ pub async fn commit_delete_guard<R: Runtime>(
         }
         let expected = plaintext_metadata(&record.expected_sha256, record.expected_size_bytes)?;
         let remote_workspace_id =
-            anlg_db_app::local_library_remote_workspace(state.pool(), &record.workspace_id).await?;
+            syntheo_db_app::local_library_remote_workspace(state.pool(), &record.workspace_id)
+                .await?;
         let key = workspace_key(state, &remote_workspace_id)?;
         let metadata = delete_guard_metadata(&record, &key, &remote_workspace_id, &expected)?
             .ok_or(Error::DeleteGuardChanged)?;
@@ -776,7 +777,7 @@ fn delete_source_changed(error: &Error) -> bool {
     match error {
         Error::LocalAttachmentUnavailable
         | Error::ChecksumMismatch
-        | Error::E2ee(anlg_e2ee::AttachmentBlobError::SourceMismatch) => true,
+        | Error::E2ee(syntheo_e2ee::AttachmentBlobError::SourceMismatch) => true,
         Error::Io(source) => source.kind() == std::io::ErrorKind::NotFound,
         _ => false,
     }
@@ -806,7 +807,7 @@ pub(super) fn seal_delete_guard(
     let metadata = match key.seal_attachment_blob(context, &mut source, &mut destination, expected)
     {
         Ok(metadata) => metadata,
-        Err(anlg_e2ee::AttachmentBlobError::Io(error))
+        Err(syntheo_e2ee::AttachmentBlobError::Io(error))
             if error.kind() == std::io::ErrorKind::ConnectionAborted =>
         {
             return Err(Error::Cancelled);
@@ -944,7 +945,7 @@ fn unique_attachment_conflict_path(destination: &Path) -> Result<PathBuf> {
         .file_name()
         .ok_or(Error::LocalAttachmentUnavailable)?
         .to_string_lossy();
-    Ok(parent.join(format!("{filename}.anarlog-conflict-{}", Uuid::new_v4())))
+    Ok(parent.join(format!("{filename}.syntheo-conflict-{}", Uuid::new_v4())))
 }
 
 pub(super) async fn create_delete_guard_root(path: &Path) -> Result<()> {
@@ -1071,7 +1072,7 @@ pub(super) fn stage_delete_guard_restore(
     let mut temp = tempfile::NamedTempFile::new_in(destination_parent)?;
     match key.open_attachment_blob(context, &mut source, &mut temp, expected) {
         Ok(_) => {}
-        Err(anlg_e2ee::AttachmentBlobError::Io(error))
+        Err(syntheo_e2ee::AttachmentBlobError::Io(error))
             if error.kind() == std::io::ErrorKind::ConnectionAborted =>
         {
             return Err(Error::Cancelled);

@@ -36,7 +36,7 @@ jobs:
           persist-credentials: false
 
       # Licences : la politique du projet refuse le copyleft fort (aligné sur
-      # la politique héritée d'Anarlog). Liste de refus plutôt qu'allow-list :
+      # la politique héritée d'Syntheo). Liste de refus plutôt qu'allow-list :
       # npm et cargo exposent des centaines d'expressions SPDX permissives.
       - name: Dependency Review
         if: github.event_name == 'pull_request'

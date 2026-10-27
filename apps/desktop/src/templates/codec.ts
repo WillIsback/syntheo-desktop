@@ -1,4 +1,4 @@
-import type { TemplateSection } from "@anlg/store";
+import type { TemplateSection } from "@syntheo/store";
 
 import { normalizeTemplateIcon, type TemplateIcon } from "./template-icon";
 

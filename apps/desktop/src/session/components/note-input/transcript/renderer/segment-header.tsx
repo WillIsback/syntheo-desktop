@@ -1,5 +1,5 @@
-import { Check } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { Check } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { useTranscriptSelectionState } from "./selection-context";
 import { SpeakerAssignPopover } from "./speaker-assign";

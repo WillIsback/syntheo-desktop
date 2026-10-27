@@ -2,13 +2,13 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { aiProviderSchema } from "@anlg/store";
+import { aiProviderSchema } from "@syntheo/store";
 
 import { PROVIDERS, STT_NIM_PRESET_URL } from "~/settings/ai/stt/shared";
 
 // Garde-fou : la transcription ne parle qu'aux protocoles standard des moteurs
 // on-premise (OpenAI Realtime et /v1/audio/transcriptions, NVIDIA NIM). Les
-// adaptateurs STT cloud hérités d'Anarlog sont supprimés.
+// adaptateurs STT cloud hérités d'Syntheo sont supprimés.
 // Vitest s'exécute depuis apps/desktop (environnement jsdom, pas d'URL file:).
 const REPO_ROOT = join(process.cwd(), "../..");
 
@@ -107,7 +107,7 @@ describe("stt on-prem", () => {
       });
     const offenders = files(join(REPO_ROOT, "apps/desktop/src")).filter(
       (path) =>
-        /@anlg\/plugin-local-(stt|llm)/.test(readFileSync(path, "utf8")),
+        /@syntheo\/plugin-local-(stt|llm)/.test(readFileSync(path, "utf8")),
     );
     expect(offenders).toEqual([]);
   });
@@ -126,14 +126,14 @@ describe("stt on-prem", () => {
   });
 
   it.each([
-    ["apps/desktop/src-tauri", "anlg-supervisor"],
-    ["crates/listener-core", "anlg-host"],
-    ["plugins/transcription", "anlg-audio-utils"],
+    ["apps/desktop/src-tauri", "syntheo-supervisor"],
+    ["crates/listener-core", "syntheo-host"],
+    ["plugins/transcription", "syntheo-audio-utils"],
     ["plugins/transcription", "base64"],
     ["plugins/transcription", "rodio"],
-    ["crates/owhisper-client", "anlg-audio-utils"],
+    ["crates/owhisper-client", "syntheo-audio-utils"],
     ["crates/owhisper-client", "rodio"],
-    ["crates/listener2-core", "anlg-data"],
+    ["crates/listener2-core", "syntheo-data"],
     ["crates/listener2-core", "rodio"],
   ])("%s no longer declares %s", (crate, dependency) => {
     expect(read(`${crate}/Cargo.toml`)).not.toMatch(

@@ -18,21 +18,21 @@ import {
   ArrowsClockwise,
   CaretLeft,
   CaretRight,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   ButtonGroup,
   ButtonGroupSeparator,
-} from "@anlg/ui/components/ui/button-group";
-import { Spinner } from "@anlg/ui/components/ui/spinner";
+} from "@syntheo/ui/components/ui/button-group";
+import { Spinner } from "@syntheo/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anlg/ui/components/ui/tooltip";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/tooltip";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { cn } from "@syntheo/utils";
 
 import { useSync } from "./context";
 import { DayCell } from "./day-cell";

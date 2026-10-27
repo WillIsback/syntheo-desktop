@@ -4,7 +4,7 @@ const { renderTranscriptSegmentsCommand } = vi.hoisted(() => ({
   renderTranscriptSegmentsCommand: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     renderTranscriptSegments: renderTranscriptSegmentsCommand,
   },

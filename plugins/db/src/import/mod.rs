@@ -77,7 +77,7 @@ pub(crate) async fn legacy_import_attempt_required(pool: &SqlitePool) -> Result<
              )
          )",
     )
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .fetch_one(pool)
     .await?;
 
@@ -95,7 +95,7 @@ pub(crate) async fn legacy_migration_verified(pool: &SqlitePool) -> Result<bool,
              AND parity_verified = 1
          )",
     )
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .fetch_one(pool)
     .await
 }
@@ -120,8 +120,8 @@ pub(crate) async fn legacy_migration_ready(pool: &SqlitePool) -> Result<bool, sq
              )
          )",
     )
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .fetch_one(pool)
     .await
 }
@@ -218,7 +218,7 @@ fn startup_vault_sources<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
 ) -> crate::Result<Vec<PathBuf>> {
     let bundle_id: &str = app.config().identifier.as_ref();
-    let settings_base = anlg_storage::global::compute_default_base(bundle_id)
+    let settings_base = syntheo_storage::global::compute_default_base(bundle_id)
         .ok_or(std::io::Error::other("settings base unavailable"))?;
     std::fs::create_dir_all(&settings_base)?;
 
@@ -227,8 +227,9 @@ fn startup_vault_sources<R: tauri::Runtime>(
     // first so a failed copy cannot strand its notes behind a completed
     // run, then the default base for files that never left it.
     let mut sources = Vec::new();
-    if let Some(recorded) = anlg_storage::vault::recorded_vault_path(&settings_base, &settings_base)
-        .filter(|recorded| !same_dir(recorded, &settings_base))
+    if let Some(recorded) =
+        syntheo_storage::vault::recorded_vault_path(&settings_base, &settings_base)
+            .filter(|recorded| !same_dir(recorded, &settings_base))
     {
         sources.push(recorded);
     }
@@ -255,7 +256,7 @@ mod tests {
         skipped_count: i64,
         conflict_count: i64,
     ) -> String {
-        anlg_db_app::begin_legacy_import_run(pool, run_id, "/vault", false)
+        syntheo_db_app::begin_legacy_import_run(pool, run_id, "/vault", false)
             .await
             .unwrap();
         sqlx::query(
@@ -274,15 +275,15 @@ mod tests {
         .await
         .unwrap();
 
-        anlg_db_app::finish_legacy_import_run(pool, run_id)
+        syntheo_db_app::finish_legacy_import_run(pool, run_id)
             .await
             .unwrap()
     }
 
     #[tokio::test]
     async fn migration_verification_uses_current_importer_version() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
 
         assert!(!legacy_migration_verified(db.pool()).await.unwrap());
         assert!(!legacy_migration_ready(db.pool()).await.unwrap());
@@ -292,7 +293,7 @@ mod tests {
              SET importer_version = ?, parity_verified = 1
              WHERE id = 'legacy_v1'",
         )
-        .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+        .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
         .execute(db.pool())
         .await
         .unwrap();
@@ -315,13 +316,13 @@ mod tests {
 
     #[tokio::test]
     async fn failed_source_scan_is_left_for_explicit_retry() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
 
-        anlg_db_app::begin_legacy_import_run(db.pool(), "failed-run", "/vault", false)
+        syntheo_db_app::begin_legacy_import_run(db.pool(), "failed-run", "/vault", false)
             .await
             .unwrap();
-        anlg_db_app::fail_legacy_import_run(db.pool(), "failed-run", "permission denied")
+        syntheo_db_app::fail_legacy_import_run(db.pool(), "failed-run", "permission denied")
             .await
             .unwrap();
 
@@ -332,8 +333,8 @@ mod tests {
 
     #[tokio::test]
     async fn conflict_only_import_preserves_cleanup_guard() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
 
         assert_eq!(
             finish_issue_run(db.pool(), "conflict-run", "conflict", 0, 1).await,
@@ -359,8 +360,8 @@ mod tests {
 
     #[tokio::test]
     async fn legacy_completed_with_issues_conflicts_remain_unverified() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         finish_issue_run(db.pool(), "legacy-conflict-run", "conflict", 0, 1).await;
         sqlx::query(
             "UPDATE migration_import_runs SET status = 'completed_with_issues' WHERE id = ?",
@@ -377,8 +378,8 @@ mod tests {
 
     #[tokio::test]
     async fn explicit_retry_normalizes_legacy_conflict_only_run() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         let sqlite_document = r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"SQLite note"}]}]}"#;
         let sqlite_words =
             r#"[{"id":"sqlite-word","text":"SQLite words","start_ms":0,"end_ms":10,"channel":0}]"#;
@@ -540,8 +541,8 @@ mod tests {
         for (run_id, item_status, skipped_count) in
             [("skipped-run", "partial", 1), ("error-run", "error", 0)]
         {
-            let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-            anlg_db_app::prepare_schema(&db).await.unwrap();
+            let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+            syntheo_db_app::prepare_schema(&db).await.unwrap();
             assert!(legacy_import_attempt_required(db.pool()).await.unwrap());
 
             assert_eq!(
@@ -556,8 +557,8 @@ mod tests {
 
     #[tokio::test]
     async fn orphaned_session_children_remain_unverified_for_explicit_retry() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         let vault = tempfile::tempdir().unwrap();
         let session_dir = vault.path().join("sessions/missing-session");
         std::fs::create_dir_all(&session_dir).unwrap();
@@ -596,8 +597,8 @@ mod tests {
 
     #[tokio::test]
     async fn document_and_transcript_conflicts_preserve_both_stores() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         let sqlite_document = r#"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"SQLite note"}]}]}"#;
         let sqlite_words =
             r#"[{"id":"sqlite-word","text":"SQLite words","start_ms":0,"end_ms":10,"channel":0}]"#;
@@ -719,8 +720,8 @@ mod tests {
 
     #[tokio::test]
     async fn stale_snapshots_for_preexisting_sqlite_domains_do_not_block_cutover() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO calendars \
              (id, tracking_id_calendar, name, enabled, provider, source, color, connection_id) \
@@ -848,7 +849,7 @@ mod tests {
         assert_eq!(run_status, "completed");
         assert_eq!(state_before.0, run_id);
         assert!(state_before.1);
-        assert_eq!(state_before.2, anlg_db_app::LEGACY_IMPORTER_VERSION);
+        assert_eq!(state_before.2, syntheo_db_app::LEGACY_IMPORTER_VERSION);
         assert!(legacy_migration_verified(db.pool()).await.unwrap());
         assert!(!legacy_import_attempt_required(db.pool()).await.unwrap());
 

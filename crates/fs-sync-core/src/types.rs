@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-pub use anlg_fs_format::{
-    TranscriptJson, TranscriptSpeakerHint, TranscriptWithData, TranscriptWord,
-};
 use serde::{Deserialize, Serialize};
 use specta::Type;
+pub use syntheo_fs_format::{
+    TranscriptJson, TranscriptSpeakerHint, TranscriptWithData, TranscriptWord,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct FolderInfo {

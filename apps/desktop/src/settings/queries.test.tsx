@@ -11,19 +11,19 @@ const mocks = vi.hoisted(() => ({
   ),
 }));
 
-vi.mock("@anlg/plugin-detect", () => ({
+vi.mock("@syntheo/plugin-detect", () => ({
   commands: {
     getPreferredLanguages: mocks.getPreferredLanguages,
   },
 }));
 
-vi.mock("@anlg/plugin-template", () => ({
+vi.mock("@syntheo/plugin-template", () => ({
   commands: {
     getTemplateSource: mocks.getTemplateSource,
   },
 }));
 
-vi.mock("@anlg/plugin-updater2", () => ({
+vi.mock("@syntheo/plugin-updater2", () => ({
   commands: {
     setAutomaticUpdatesEnabled: mocks.setAutomaticUpdatesEnabled,
   },
@@ -354,7 +354,7 @@ describe("SQLite settings", () => {
 
   it("clears a selected cloud language model provider that no longer exists", async () => {
     mocks.execute.mockImplementation(async () => [
-      { id: "current_llm_provider", value_json: JSON.stringify("anarlog") },
+      { id: "current_llm_provider", value_json: JSON.stringify("syntheo") },
       { id: "current_llm_model", value_json: JSON.stringify("auto") },
     ]);
     mocks.executeTransaction.mockImplementation(async (statements) =>
@@ -477,7 +477,7 @@ Start with decisions.`);
     mocks.execute.mockResolvedValue([
       {
         id: "personalization_dictionary_terms",
-        value_json: JSON.stringify(JSON.stringify(["Anarlog"])),
+        value_json: JSON.stringify(JSON.stringify(["Syntheo"])),
       },
     ]);
 
@@ -486,7 +486,7 @@ Start with decisions.`);
       (current) => JSON.stringify([...JSON.parse(current ?? "[]"), "Erebor"]),
     );
 
-    expect(next).toBe(JSON.stringify(["Anarlog", "Erebor"]));
+    expect(next).toBe(JSON.stringify(["Syntheo", "Erebor"]));
     const statement = mocks.executeTransaction.mock.calls[0][0][0];
     expect(statement.params.slice(0, 2)).toEqual([
       "personalization_dictionary_terms",

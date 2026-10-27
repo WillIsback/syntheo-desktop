@@ -8,11 +8,11 @@ import {
   commands as detectCommands,
   type InstalledApp,
   type Result,
-} from "@anlg/plugin-detect";
-import { commands as notificationCommands } from "@anlg/plugin-notification";
-import { X } from "@anlg/ui/components/icons";
-import { Badge } from "@anlg/ui/components/ui/badge";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/plugin-detect";
+import { commands as notificationCommands } from "@syntheo/plugin-notification";
+import { X } from "@syntheo/ui/components/icons";
+import { Badge } from "@syntheo/ui/components/ui/badge";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -20,22 +20,22 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@anlg/ui/components/ui/command";
+} from "@syntheo/ui/components/ui/command";
 import {
   AppFloatingPanel,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anlg/ui/components/ui/popover";
+} from "@syntheo/ui/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@anlg/ui/components/ui/select";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/select";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import {
   getIgnoredBundleIds,
@@ -259,7 +259,7 @@ export function NotificationSettingsView() {
                   description={
                     <Trans>
                       Ask before stopping when a meeting may have ended. When
-                      alerts are off, Anarlog keeps listening.
+                      alerts are off, Syntheo keeps listening.
                     </Trans>
                   }
                   checked={field.state.value}

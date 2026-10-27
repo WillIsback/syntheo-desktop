@@ -10,8 +10,8 @@ import {
   FileText,
   PictureInPicture,
   Waveform,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -24,7 +24,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
+} from "@syntheo/ui/components/ui/dropdown-menu";
 
 import { MetadataPanelContent } from "../metadata";
 import { AlwaysOnTop } from "./always-on-top";

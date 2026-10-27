@@ -1,4 +1,4 @@
-import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
+import { DancingSticks } from "@syntheo/ui/components/ui/dancing-sticks";
 
 import { LiveTranscriptInterruptedNotice } from "./interrupted";
 

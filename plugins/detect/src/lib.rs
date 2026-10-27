@@ -36,8 +36,8 @@ pub use policy::*;
 
 const PLUGIN_NAME: &str = "detect";
 
-pub(crate) type DetectorState = Mutex<anlg_detect::Detector>;
-pub(crate) type ScreenShareSamplerState = Arc<Mutex<anlg_detect::ScreenShareSampler>>;
+pub(crate) type DetectorState = Mutex<syntheo_detect::Detector>;
+pub(crate) type ScreenShareSamplerState = Arc<Mutex<syntheo_detect::ScreenShareSampler>>;
 
 #[cfg(feature = "test-support")]
 pub type ProcessorState = Arc<Mutex<Processor>>;
@@ -121,7 +121,7 @@ mod test {
         // Export to a private path: export_types rewrites js/bindings.gen.ts
         // concurrently, so reading the shared file here would race with it.
         let bindings_path = std::env::temp_dir().join(format!(
-            "anlg-{PLUGIN_NAME}-manifest-sync-{}.ts",
+            "syntheo-{PLUGIN_NAME}-manifest-sync-{}.ts",
             std::process::id()
         ));
         make_specta_builder::<tauri::Wry>()

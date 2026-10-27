@@ -9,7 +9,7 @@ all-features = false
 # gtk-rs non maintenues tirées par Tauri sur Linux sont hors de notre portée).
 unmaintained = "workspace"
 yanked = "deny"
-# Dette héritée d'Anarlog, recensée dans .github/security-exceptions.yml
+# Dette héritée d'Syntheo, recensée dans .github/security-exceptions.yml
 # (expiration 2027-01-31). Chaque entrée disparaît avec le chantier indiqué.
 ignore = [
   # Retirés avec les intégrations cloud / compte (chantier 04d) : jsonwebtoken (api-*, supabase), SDK AWS (s3, bedrock).

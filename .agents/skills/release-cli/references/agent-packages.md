@@ -4,16 +4,16 @@
 this review and publish each affected package once. Inherit release authorization;
 do not assume generating local files publishes or installs anything.
 
-1. Compare authored `skills/anarlog/` and its CLI/MCP/setup references with current
-   contracts. Review generated `agent-plugins/anarlog/`, `docs/skill.md`, native
+1. Compare authored `skills/syntheo/` and its CLI/MCP/setup references with current
+   contracts. Review generated `agent-plugins/syntheo/`, `docs/skill.md`, native
    manifests, and repository marketplace entries. CLI owns command/install
    examples; MCP owns protocol/auth setup, discovery and host manifests.
 2. Edit authored sources and regenerate mirrors:
 
    ```bash
-   node scripts/publish-anarlog-skill.mjs
-   node scripts/publish-anarlog-skill.mjs --check
-   node --test scripts/publish-anarlog-skill.test.mjs
+   node scripts/publish-syntheo-skill.mjs
+   node scripts/publish-syntheo-skill.mjs --check
+   node --test scripts/publish-syntheo-skill.test.mjs
    ```
 
    Confirm generation is stable. Bump the plugin's own version when its package

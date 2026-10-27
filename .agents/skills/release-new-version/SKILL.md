@@ -1,13 +1,13 @@
 ---
 name: release-new-version
-description: Coordinate focused release skills to prepare, publish, and verify Anarlog stable desktop releases and affected public surfaces, plus mobile distribution when requested.
+description: Coordinate focused release skills to prepare, publish, and verify Syntheo stable desktop releases and affected public surfaces, plus mobile distribution when requested.
 metadata:
   internal: true
 ---
 
 # Release a New Version
 
-Use this skill when preparing, publishing, or verifying an Anarlog release. This
+Use this skill when preparing, publishing, or verifying an Syntheo release. This
 is the coordinator: read all five focused skills below for the surface review,
 then execute their required work within the requested release scope. The user
 does not need to invoke each skill or ask separately for the changelog.
@@ -65,7 +65,7 @@ candidate/published revisions, checks, live or artifact evidence, and unresolved
 
 1. Record the requested version, platforms/channel, prior published versions, and
    candidate source in the matching Linear release issue. Follow
-   [Anarlog workflow](../anarlog-workflow/SKILL.md); keep one release record.
+   [Syntheo workflow](../syntheo-workflow/SKILL.md); keep one release record.
 2. Read the five surface skills and current workflows. Implement and validate
    needed changes, including the Desktop or Mobile changelog for each requested stream. Prepare
    Mobile notes before freeze; record availability only after verifying the build

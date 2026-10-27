@@ -1,5 +1,5 @@
 use super::*;
-use anlg_db_core::Db;
+use syntheo_db_core::Db;
 
 const LEGACY_SHARED_SESSION_CACHE_SQL: &str = r#"CREATE TABLE IF NOT EXISTS shared_session_cache (
   share_id          TEXT PRIMARY KEY NOT NULL CHECK (
@@ -41,8 +41,8 @@ ON shared_session_cache(workspace_id);
 "#;
 
 async fn test_db() -> Db {
-    let db = Db::open(anlg_db_core::DbOpenOptions {
-        storage: anlg_db_core::DbStorage::Memory,
+    let db = Db::open(syntheo_db_core::DbOpenOptions {
+        storage: syntheo_db_core::DbStorage::Memory,
         cloudsync_enabled: false,
         journal_mode_wal: true,
         foreign_keys: true,
@@ -69,7 +69,7 @@ async fn initialize_enabled_cloudsync_tables(db: &Db) {
     }
 }
 
-fn migration_steps_before(id: &str) -> &'static [anlg_db_migrate::MigrationStep] {
+fn migration_steps_before(id: &str) -> &'static [syntheo_db_migrate::MigrationStep] {
     let index = APP_MIGRATION_STEPS
         .iter()
         .position(|step| step.id == id)
@@ -79,7 +79,7 @@ fn migration_steps_before(id: &str) -> &'static [anlg_db_migrate::MigrationStep]
 
 fn schema_with_legacy_shared_session_cache(
     include_later_migrations: bool,
-) -> anlg_db_migrate::DbSchema {
+) -> syntheo_db_migrate::DbSchema {
     let migration_index = APP_MIGRATION_STEPS
         .iter()
         .position(|step| step.id == "20260716173000_shared_session_cache")
@@ -95,7 +95,7 @@ fn schema_with_legacy_shared_session_cache(
         .unwrap();
     migration.sql = LEGACY_SHARED_SESSION_CACHE_SQL;
 
-    anlg_db_migrate::DbSchema {
+    syntheo_db_migrate::DbSchema {
         steps: Box::leak(steps.into_boxed_slice()),
         validate_cloudsync_table: cloudsync_alter_guard_required,
     }
@@ -117,7 +117,7 @@ fn legacy_attachment_transfer_jobs_sql() -> String {
         )
 }
 
-fn schema_with_legacy_attachment_transfer_jobs() -> anlg_db_migrate::DbSchema {
+fn schema_with_legacy_attachment_transfer_jobs() -> syntheo_db_migrate::DbSchema {
     let mut steps = APP_MIGRATION_STEPS.to_vec();
     let migration = steps
         .iter_mut()
@@ -125,7 +125,7 @@ fn schema_with_legacy_attachment_transfer_jobs() -> anlg_db_migrate::DbSchema {
         .unwrap();
     migration.sql = Box::leak(legacy_attachment_transfer_jobs_sql().into_boxed_str());
 
-    anlg_db_migrate::DbSchema {
+    syntheo_db_migrate::DbSchema {
         steps: Box::leak(steps.into_boxed_slice()),
         validate_cloudsync_table: cloudsync_alter_guard_required,
     }
@@ -141,8 +141,8 @@ async fn attachment_transfer_jobs_schema_checksum_for_test(db: &Db) -> String {
 }
 
 async fn test_db_without_default_templates() -> Db {
-    let db = Db::open(anlg_db_core::DbOpenOptions {
-        storage: anlg_db_core::DbStorage::Memory,
+    let db = Db::open(syntheo_db_core::DbOpenOptions {
+        storage: syntheo_db_core::DbStorage::Memory,
         cloudsync_enabled: false,
         journal_mode_wal: true,
         foreign_keys: true,
@@ -150,9 +150,9 @@ async fn test_db_without_default_templates() -> Db {
     })
     .await
     .unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: &APP_MIGRATION_STEPS[..2],
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },

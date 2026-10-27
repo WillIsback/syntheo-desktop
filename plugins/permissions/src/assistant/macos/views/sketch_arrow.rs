@@ -3,9 +3,9 @@ use objc2::{MainThreadOnly, define_class, msg_send};
 use objc2_app_kit::{NSColor, NSLineCapStyle, NSLineJoinStyle, NSView};
 use objc2_foundation::{MainThreadMarker, NSObjectProtocol, NSRect};
 
-use anlg_overlay_kit::macos::path::bezier_path;
-use anlg_overlay_kit::macos::support::rect;
-use anlg_overlay_kit::{
+use syntheo_overlay_kit::macos::path::bezier_path;
+use syntheo_overlay_kit::macos::support::rect;
+use syntheo_overlay_kit::{
     layout::{LayoutPoint, LayoutSize},
     path::{PathCommand, PathFit, PathSpec, PathWinding},
 };
@@ -16,7 +16,7 @@ pub(crate) struct SketchArrowIvars {}
 define_class! {
     #[unsafe(super(NSView))]
     #[thread_kind = MainThreadOnly]
-    #[name = "AnarlogPermissionAssistantSketchArrowView"]
+    #[name = "SyntheoPermissionAssistantSketchArrowView"]
     #[ivars = SketchArrowIvars]
     pub(crate) struct SketchArrowView;
 

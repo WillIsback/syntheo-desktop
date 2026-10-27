@@ -205,7 +205,7 @@ pub struct SealedWorkspaceE2eeKey {
     pub grants: Vec<WorkspaceE2eeKeyGrantUpload>,
 }
 
-impl From<CloudsyncWorkspaceKeyGrant> for anlg_e2ee::WorkspaceKeyGrant {
+impl From<CloudsyncWorkspaceKeyGrant> for syntheo_e2ee::WorkspaceKeyGrant {
     fn from(value: CloudsyncWorkspaceKeyGrant) -> Self {
         Self {
             key_id: value.key_id,
@@ -216,8 +216,8 @@ impl From<CloudsyncWorkspaceKeyGrant> for anlg_e2ee::WorkspaceKeyGrant {
     }
 }
 
-impl From<anlg_e2ee::DeviceEnrollmentPackage> for E2eeDeviceEnrollmentPackage {
-    fn from(value: anlg_e2ee::DeviceEnrollmentPackage) -> Self {
+impl From<syntheo_e2ee::DeviceEnrollmentPackage> for E2eeDeviceEnrollmentPackage {
+    fn from(value: syntheo_e2ee::DeviceEnrollmentPackage) -> Self {
         Self {
             ephemeral_public_key: value.ephemeral_public_key,
             nonce: value.nonce,
@@ -226,7 +226,7 @@ impl From<anlg_e2ee::DeviceEnrollmentPackage> for E2eeDeviceEnrollmentPackage {
     }
 }
 
-impl From<E2eeDeviceEnrollmentPackage> for anlg_e2ee::DeviceEnrollmentPackage {
+impl From<E2eeDeviceEnrollmentPackage> for syntheo_e2ee::DeviceEnrollmentPackage {
     fn from(value: E2eeDeviceEnrollmentPackage) -> Self {
         Self {
             ephemeral_public_key: value.ephemeral_public_key,
@@ -287,7 +287,7 @@ pub struct CloudsyncE2eeWitness {
     pub access_token: String,
 }
 
-impl From<CloudsyncE2eeWitness> for anlg_db_sync::E2eeWitnessConfig {
+impl From<CloudsyncE2eeWitness> for syntheo_db_sync::E2eeWitnessConfig {
     fn from(value: CloudsyncE2eeWitness) -> Self {
         Self {
             endpoint: value.endpoint,
@@ -296,7 +296,7 @@ impl From<CloudsyncE2eeWitness> for anlg_db_sync::E2eeWitnessConfig {
     }
 }
 
-impl From<CloudsyncWorkspaceProjection> for anlg_db_app::CloudsyncWorkspaceProjection {
+impl From<CloudsyncWorkspaceProjection> for syntheo_db_app::CloudsyncWorkspaceProjection {
     fn from(projection: CloudsyncWorkspaceProjection) -> Self {
         Self {
             account_user_id: projection.account_user_id,
@@ -304,18 +304,20 @@ impl From<CloudsyncWorkspaceProjection> for anlg_db_app::CloudsyncWorkspaceProje
             workspaces: projection
                 .workspaces
                 .into_iter()
-                .map(|workspace| anlg_db_app::CloudsyncWorkspaceProjectionEntry {
-                    id: workspace.id,
-                    owner_user_id: workspace.owner_user_id,
-                    kind: workspace.kind,
-                    name: workspace.name,
-                    membership_id: workspace.membership_id,
-                    role: workspace.role,
-                    membership_created_at: workspace.membership_created_at,
-                    membership_updated_at: workspace.membership_updated_at,
-                    created_at: workspace.created_at,
-                    updated_at: workspace.updated_at,
-                })
+                .map(
+                    |workspace| syntheo_db_app::CloudsyncWorkspaceProjectionEntry {
+                        id: workspace.id,
+                        owner_user_id: workspace.owner_user_id,
+                        kind: workspace.kind,
+                        name: workspace.name,
+                        membership_id: workspace.membership_id,
+                        role: workspace.role,
+                        membership_created_at: workspace.membership_created_at,
+                        membership_updated_at: workspace.membership_updated_at,
+                        created_at: workspace.created_at,
+                        updated_at: workspace.updated_at,
+                    },
+                )
                 .collect(),
         }
     }
@@ -369,9 +371,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
 
 async fn bootstrap_app_database<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    db: std::sync::Arc<anlg_db_core::Db>,
+    db: std::sync::Arc<syntheo_db_core::Db>,
     runtime: &runtime::PluginDbRuntime,
-    startup_config: Option<anlg_db_core::CloudsyncRuntimeConfig>,
+    startup_config: Option<syntheo_db_core::CloudsyncRuntimeConfig>,
 ) -> std::result::Result<(), String> {
     runtime
         .ensure_app_schema()
@@ -418,7 +420,7 @@ async fn bootstrap_app_database<R: tauri::Runtime>(
 }
 
 pub fn init<R: tauri::Runtime>(
-    db: std::sync::Arc<anlg_db_core::Db>,
+    db: std::sync::Arc<syntheo_db_core::Db>,
 ) -> tauri::plugin::TauriPlugin<R> {
     init_with_cloudsync(db, None)
 }
@@ -437,8 +439,8 @@ pub fn close_webview_subscriptions<R: tauri::Runtime>(app: &tauri::AppHandle<R>,
 }
 
 pub fn init_with_cloudsync<R: tauri::Runtime>(
-    db: std::sync::Arc<anlg_db_core::Db>,
-    startup_config: Option<anlg_db_core::CloudsyncRuntimeConfig>,
+    db: std::sync::Arc<syntheo_db_core::Db>,
+    startup_config: Option<syntheo_db_core::CloudsyncRuntimeConfig>,
 ) -> tauri::plugin::TauriPlugin<R> {
     let specta_builder = make_specta_builder();
 

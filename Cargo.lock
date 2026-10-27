@@ -173,31 +173,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anarlog-cli"
-version = "0.1.0"
-dependencies = [
- "agent-access",
- "base64 0.22.1",
- "clap",
- "cli-docs",
- "db-app",
- "db-core",
- "dirs 6.0.0",
- "insta",
- "rmcp",
- "schemars 1.2.1",
- "serde",
- "serde_json",
- "sha2 0.11.0",
- "sqlx",
- "storage",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "url",
-]
-
-[[package]]
 name = "android_system_properties"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -211,10 +186,6 @@ name = "anes"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299"
-
-[[package]]
-name = "anlg-http-utils"
-version = "0.1.0"
 
 [[package]]
 name = "annotate-snippets"
@@ -3135,7 +3106,6 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-agent",
- "tauri-plugin-anlg-tray",
  "tauri-plugin-attachment-sync",
  "tauri-plugin-audio-priority",
  "tauri-plugin-automation",
@@ -3182,6 +3152,7 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
  "tauri-plugin-store2",
+ "tauri-plugin-syntheo-tray",
  "tauri-plugin-tantivy",
  "tauri-plugin-template",
  "tauri-plugin-todo",
@@ -4590,10 +4561,10 @@ dependencies = [
 name = "github-issues"
 version = "0.1.0"
 dependencies = [
- "anlg-http-utils",
  "serde",
  "serde_json",
  "specta",
+ "syntheo-http-utils",
  "thiserror 2.0.18",
  "tokio",
  "urlencoding",
@@ -5487,11 +5458,11 @@ dependencies = [
 name = "google-calendar"
 version = "0.1.0"
 dependencies = [
- "anlg-http-utils",
  "chrono",
  "serde",
  "serde_json",
  "specta",
+ "syntheo-http-utils",
  "thiserror 2.0.18",
  "tokio",
  "urlencoding",
@@ -7451,11 +7422,11 @@ dependencies = [
 name = "meeting-import"
 version = "0.1.0"
 dependencies = [
- "anlg-http-utils",
  "chrono",
  "dirs 6.0.0",
  "serde",
  "serde_json",
+ "syntheo-http-utils",
  "thiserror 2.0.18",
  "tokio",
  "url",
@@ -8775,11 +8746,11 @@ dependencies = [
 name = "outlook-calendar"
 version = "0.1.0"
 dependencies = [
- "anlg-http-utils",
  "chrono",
  "serde",
  "serde_json",
  "specta",
+ "syntheo-http-utils",
  "thiserror 2.0.18",
  "tokio",
  "urlencoding",
@@ -12469,6 +12440,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "syntheo-cli"
+version = "0.1.0"
+dependencies = [
+ "agent-access",
+ "base64 0.22.1",
+ "clap",
+ "cli-docs",
+ "db-app",
+ "db-core",
+ "dirs 6.0.0",
+ "insta",
+ "rmcp",
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "sha2 0.11.0",
+ "sqlx",
+ "storage",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "syntheo-http-utils"
+version = "0.1.0"
+
+[[package]]
 name = "sys-locale"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12918,36 +12918,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-anlg-tray"
-version = "0.1.0"
-dependencies = [
- "brand",
- "intercept",
- "libloading 0.8.9",
- "objc2",
- "objc2-app-kit",
- "objc2-foundation",
- "open",
- "serde",
- "serde_json",
- "specta",
- "specta-typescript",
- "tauri",
- "tauri-plugin",
- "tauri-plugin-clipboard-manager",
- "tauri-plugin-dialog",
- "tauri-plugin-misc",
- "tauri-plugin-store2",
- "tauri-plugin-updater2",
- "tauri-plugin-windows",
- "tauri-specta",
- "tokio",
- "tracing",
- "tray-icon",
- "unicode-width",
-]
-
-[[package]]
 name = "tauri-plugin-attachment-sync"
 version = "0.1.0"
 dependencies = [
@@ -13222,7 +13192,7 @@ dependencies = [
  "objc2-foundation",
  "tauri",
  "tauri-plugin",
- "tauri-plugin-anlg-tray",
+ "tauri-plugin-syntheo-tray",
  "tauri-plugin-window-state",
  "tauri-plugin-windows",
 ]
@@ -13849,6 +13819,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-syntheo-tray"
+version = "0.1.0"
+dependencies = [
+ "brand",
+ "intercept",
+ "libloading 0.8.9",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
+ "open",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-clipboard-manager",
+ "tauri-plugin-dialog",
+ "tauri-plugin-misc",
+ "tauri-plugin-store2",
+ "tauri-plugin-updater2",
+ "tauri-plugin-windows",
+ "tauri-specta",
+ "tokio",
+ "tracing",
+ "tray-icon",
+ "unicode-width",
+]
+
+[[package]]
 name = "tauri-plugin-tantivy"
 version = "0.1.0"
 dependencies = [
@@ -13896,7 +13896,6 @@ dependencies = [
 name = "tauri-plugin-todo"
 version = "0.1.0"
 dependencies = [
- "anlg-http-utils",
  "api-client",
  "apple-todo",
  "github-issues",
@@ -13904,6 +13903,7 @@ dependencies = [
  "serde",
  "specta",
  "specta-typescript",
+ "syntheo-http-utils",
  "tauri",
  "tauri-plugin",
  "tauri-specta",
@@ -13954,11 +13954,11 @@ dependencies = [
  "storage",
  "tauri",
  "tauri-plugin",
- "tauri-plugin-anlg-tray",
  "tauri-plugin-db",
  "tauri-plugin-fs-sync",
  "tauri-plugin-settings",
  "tauri-plugin-store2",
+ "tauri-plugin-syntheo-tray",
  "tauri-specta",
  "thiserror 2.0.18",
  "tokio",
@@ -17713,10 +17713,10 @@ checksum = "b8848ee67ecc8aedbaf3e4122217aff892639231befc6a1b58d29fff4c2cabaa"
 name = "zoom"
 version = "0.1.0"
 dependencies = [
- "anlg-http-utils",
  "chrono",
  "serde",
  "serde_json",
+ "syntheo-http-utils",
  "thiserror 2.0.18",
  "tokio",
  "urlencoding",

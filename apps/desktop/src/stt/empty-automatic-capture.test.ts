@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   empty: vi.fn(),
   flush: vi.fn(),
 }));
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     audioHasSpeech: mocks.speech,
     audioDelete: mocks.remove,

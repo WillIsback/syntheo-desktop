@@ -5,11 +5,11 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-anlg-askama-utils = { workspace = true }
 askama = { workspace = true }
 minijinja = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
+syntheo-askama-utils = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]

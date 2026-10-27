@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 
 use crate::transaction_utils::{js_iso8601_timestamp, rollback_row_count_mismatch};
-use anlg_db_app::{
-    GeneratedSummaryBodyUpdate, PendingAutoEnhanceMatch, delete_pending_auto_enhance,
-    update_generated_summary_body, upsert_session_tag, upsert_tag,
-};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use sqlx::SqlitePool;
+use syntheo_db_app::{
+    GeneratedSummaryBodyUpdate, PendingAutoEnhanceMatch, delete_pending_auto_enhance,
+    update_generated_summary_body, upsert_session_tag, upsert_tag,
+};
 
 const DEFAULT_USER_ID: &str = "00000000-0000-0000-0000-000000000000";
 const PENDING_AUTO_ENHANCE_SETTING_PREFIX: &str = "auto_enhance_pending:";
@@ -146,13 +146,13 @@ pub async fn save_generated_summary(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
     use serde_json::json;
     use sqlx::Row;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO sessions (id, workspace_id, owner_user_id)
              VALUES ('session-1', 'workspace-1', 'user-1')",

@@ -7,7 +7,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@anlg/ui/components/ui/select";
+} from "@syntheo/ui/components/ui/select";
 
 import { useSetSettingValue } from "~/settings/queries";
 import { SETTING_CONTROL_CLASS, SettingRow } from "~/settings/setting-row";

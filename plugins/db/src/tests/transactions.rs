@@ -19,7 +19,7 @@ async fn execute_proxy_applies_app_schema_before_run() {
         .execute_proxy(
             "INSERT INTO templates (id, title) VALUES (?, ?)".to_string(),
             vec![json!("template-1"), json!("Template 1")],
-            anlg_db_execute::ProxyQueryMethod::Run,
+            syntheo_db_execute::ProxyQueryMethod::Run,
         )
         .await
         .unwrap();
@@ -217,7 +217,7 @@ async fn open_memory_app_db_subscribe_sees_app_schema() {
 
     assert!(matches!(
         registration.analysis,
-        anlg_db_reactive::DependencyAnalysis::Reactive { .. }
+        syntheo_db_reactive::DependencyAnalysis::Reactive { .. }
     ));
 
     let event = next_event(&events, 0).await.unwrap();

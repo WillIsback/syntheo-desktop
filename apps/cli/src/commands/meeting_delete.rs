@@ -12,10 +12,8 @@ fn closed(base: &Path) -> Result<Vec<std::fs::File>> {
     let mut locks = Vec::new();
     for name in [
         "launch.lock",
-        "com.anarlog.stable.running.lock",
-        "com.anarlog.nightly.running.lock",
-        "com.hyprnote.stable.running.lock",
-        "com.hyprnote.nightly.running.lock",
+        "fr.willisback.syntheo.running.lock",
+        "fr.willisback.syntheo.dev.running.lock",
     ] {
         let file = std::fs::OpenOptions::new()
             .create(true)
@@ -24,7 +22,7 @@ fn closed(base: &Path) -> Result<Vec<std::fs::File>> {
             .open(base.join(name))
             .map_err(|_| invalid("cannot lock recorder"))?;
         file.try_lock()
-            .map_err(|_| invalid("close Anarlog before deletion"))?;
+            .map_err(|_| invalid("close Syntheo before deletion"))?;
         locks.push(file);
     }
     Ok(locks)
@@ -88,10 +86,10 @@ pub async fn initialize_managed(args: &Args, json: bool) -> Result<()> {
         return Err(invalid("managed policy required before initialization"));
     }
     let _locks = closed(base)?;
-    let db = anlg_db_core::Db::connect_local_plain(&path)
+    let db = syntheo_db_core::Db::connect_local_plain(&path)
         .await
         .map_err(|_| invalid("cannot initialize recorder database"))?;
-    anlg_db_app::prepare_schema(&db)
+    syntheo_db_app::prepare_schema(&db)
         .await
         .map_err(|_| invalid("cannot apply managed recorder policy"))?;
     let protected:bool=sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM managed_app_settings WHERE id='intelligence_disabled' AND value_json='true')").fetch_one(db.pool()).await.map_err(|_|invalid("cannot verify managed policy"))?;
@@ -163,7 +161,7 @@ pub async fn run(args: &Args, id: &str, expected: &str, json: bool) -> Result<()
         // IMMEDIATE transaction prevents all competing writers.
         let reader = db::open(args).await?;
         let exported =
-            anlg_agent_access::get_local_meeting_export(reader.pool(), id.to_owned()).await?;
+            syntheo_agent_access::get_local_meeting_export(reader.pool(), id.to_owned()).await?;
         reader.pool().close().await;
         // Stdout ends with a newline; `--output` files do not. Accept either.
         let body = output::json("meetings.export", &exported, None)?;
@@ -215,7 +213,7 @@ pub async fn run(args: &Args, id: &str, expected: &str, json: bool) -> Result<()
         for relative in &paths {
             contained(&base, relative)?;
         }
-        anlg_db_app::purge_local_session(&mut tx, id)
+        syntheo_db_app::purge_local_session(&mut tx, id)
             .await
             .map_err(|_| invalid("cannot purge local meeting"))?;
         let encoded =
@@ -282,8 +280,10 @@ mod tests {
     async fn fixture() -> (tempfile::TempDir, Args, String) {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("app.db");
-        let db = anlg_db_core::Db::connect_local_plain(&path).await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_local_plain(&path)
+            .await
+            .unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         for statement in [
             "INSERT INTO app_settings(id,value_json) VALUES('cloud_sync_enabled','false')",
             "INSERT INTO sessions(id,title,started_at,ended_at) VALUES('meeting-1','Raw title','2026-10-01T10:00:00Z','2026-10-01T10:30:00Z')",
@@ -296,9 +296,10 @@ mod tests {
         ] {
             sqlx::query(statement).execute(db.pool()).await.unwrap();
         }
-        let exported = anlg_agent_access::get_local_meeting_export(db.pool(), "meeting-1".into())
-            .await
-            .unwrap();
+        let exported =
+            syntheo_agent_access::get_local_meeting_export(db.pool(), "meeting-1".into())
+                .await
+                .unwrap();
         let bytes = format!(
             "{}\n",
             output::json("meetings.export", &exported, None).unwrap()
@@ -317,7 +318,7 @@ mod tests {
             std::fs::write(dir.path().join(folder).join("audio.wav"), b"Raw audio").unwrap();
         }
         let args = Args::try_parse_from([
-            "anarlog",
+            "syntheo",
             "--json",
             "--db-path",
             path.to_str().unwrap(),
@@ -334,9 +335,10 @@ mod tests {
     async fn saved_export_file_hash_is_accepted() {
         let (dir, args, _) = fixture().await;
         let db = db::open(&args).await.unwrap();
-        let exported = anlg_agent_access::get_local_meeting_export(db.pool(), "meeting-1".into())
-            .await
-            .unwrap();
+        let exported =
+            syntheo_agent_access::get_local_meeting_export(db.pool(), "meeting-1".into())
+                .await
+                .unwrap();
         let body = output::json("meetings.export", &exported, None).unwrap();
         db.pool().close().await;
         let hash = Sha256::digest(body.as_bytes())
@@ -421,7 +423,7 @@ mod tests {
             .write(true)
             .create(true)
             .truncate(false)
-            .open(dir.path().join("com.hyprnote.stable.running.lock"))
+            .open(dir.path().join("fr.willisback.syntheo.running.lock"))
             .unwrap();
         lock.try_lock().unwrap();
         assert!(run(&args, "meeting-1", &hash, true).await.is_err());
@@ -431,9 +433,10 @@ mod tests {
             .execute(db.pool())
             .await
             .unwrap();
-        let exported = anlg_agent_access::get_local_meeting_export(db.pool(), "meeting-1".into())
-            .await
-            .unwrap();
+        let exported =
+            syntheo_agent_access::get_local_meeting_export(db.pool(), "meeting-1".into())
+                .await
+                .unwrap();
         let bytes = format!(
             "{}\n",
             output::json("meetings.export", &exported, None).unwrap()
@@ -446,7 +449,7 @@ mod tests {
         assert!(run(&args, "meeting-1", &incomplete, true).await.is_err());
         let db = db::open_write(&args).await.unwrap();
         let mut tx = db.pool().begin().await.unwrap();
-        anlg_db_app::purge_local_session(&mut tx, "meeting-1")
+        syntheo_db_app::purge_local_session(&mut tx, "meeting-1")
             .await
             .unwrap();
         sqlx::query("INSERT INTO local_meeting_purges VALUES('meeting-1',?,'[\"sessions/project/meeting-1\",\"sessions/old/meeting-1\",\"search_index\"]')").bind(&hash).execute(&mut *tx).await.unwrap();
@@ -461,7 +464,7 @@ mod tests {
     async fn first_launch_initialization_requires_managed_policy_and_never_enables_intelligence() {
         let dir = tempfile::tempdir().unwrap();
         let args = Args::try_parse_from([
-            "anarlog",
+            "syntheo",
             "--json",
             "--base",
             dir.path().to_str().unwrap(),

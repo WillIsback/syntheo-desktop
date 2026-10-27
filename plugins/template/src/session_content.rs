@@ -1,11 +1,11 @@
-use anlg_db_app::{
+use serde::{Deserialize, Serialize};
+use specta::Type;
+use sqlx::SqlitePool;
+use syntheo_db_app::{
     SessionDocumentBodyUpdate, TranscriptContentUpdate, update_session_title,
     update_session_transcript, update_summary_document,
     update_title_document as update_generated_title_document,
 };
-use serde::{Deserialize, Serialize};
-use specta::Type;
-use sqlx::SqlitePool;
 
 use crate::transaction_utils::{js_iso8601_timestamp, rollback_row_count_mismatch};
 
@@ -199,12 +199,12 @@ async fn update_title_document(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
     use sqlx::Row;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         sqlx::query(
             "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
              VALUES ('session-1', 'workspace-1', 'user-1', '')",

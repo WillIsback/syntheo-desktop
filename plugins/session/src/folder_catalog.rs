@@ -37,10 +37,10 @@ pub struct UpdateFolderIconRequest {
 }
 
 async fn ensure_folder(conn: &mut SqliteConnection, path: &str) -> Result<(), String> {
-    anlg_db_app::revive_folder(conn, path)
+    syntheo_db_app::revive_folder(conn, path)
         .await
         .map_err(|error| error.to_string())?;
-    anlg_db_app::insert_folder_if_missing(conn, &uuid::Uuid::new_v4().to_string(), path)
+    syntheo_db_app::insert_folder_if_missing(conn, &uuid::Uuid::new_v4().to_string(), path)
         .await
         .map_err(|error| error.to_string())?;
     Ok(())
@@ -74,18 +74,18 @@ pub async fn rename_folder_catalog(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::rename_folder_row(&mut transaction, &request.new_path, &request.old_path)
+    syntheo_db_app::rename_folder_row(&mut transaction, &request.new_path, &request.old_path)
         .await
         .map_err(|error| error.to_string())?;
     ensure_folder(&mut transaction, &request.new_path).await?;
-    anlg_db_app::rewrite_folder_attachment_paths(
+    syntheo_db_app::rewrite_folder_attachment_paths(
         &mut transaction,
         &request.old_path,
         &request.new_path,
     )
     .await
     .map_err(|error| error.to_string())?;
-    anlg_db_app::rewrite_session_folder_paths(
+    syntheo_db_app::rewrite_session_folder_paths(
         &mut transaction,
         &request.old_path,
         &request.new_path,
@@ -108,13 +108,13 @@ pub async fn delete_folder_catalog(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::tombstone_folders_under(&mut transaction, &request.path)
+    syntheo_db_app::tombstone_folders_under(&mut transaction, &request.path)
         .await
         .map_err(|error| error.to_string())?;
-    anlg_db_app::tombstone_folder_attachments_under(&mut transaction, &request.path)
+    syntheo_db_app::tombstone_folder_attachments_under(&mut transaction, &request.path)
         .await
         .map_err(|error| error.to_string())?;
-    anlg_db_app::clear_session_folder_paths(&mut transaction, &request.path)
+    syntheo_db_app::clear_session_folder_paths(&mut transaction, &request.path)
         .await
         .map_err(|error| error.to_string())?;
 
@@ -133,9 +133,13 @@ pub async fn update_folder_instructions(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::update_folder_instructions(&mut transaction, &request.path, &request.instructions)
-        .await
-        .map_err(|error| error.to_string())?;
+    syntheo_db_app::update_folder_instructions(
+        &mut transaction,
+        &request.path,
+        &request.instructions,
+    )
+    .await
+    .map_err(|error| error.to_string())?;
 
     transaction
         .commit()
@@ -152,7 +156,7 @@ pub async fn update_folder_workspace(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::update_folder_workspace(&mut transaction, &request.path, &request.workspace_id)
+    syntheo_db_app::update_folder_workspace(&mut transaction, &request.path, &request.workspace_id)
         .await
         .map_err(|error| error.to_string())?;
 
@@ -172,7 +176,7 @@ pub async fn update_folder_icon(
         .map_err(|error| error.to_string())?;
 
     ensure_folder(&mut transaction, &request.path).await?;
-    anlg_db_app::update_folder_icon(&mut transaction, &request.path, &request.icon_json)
+    syntheo_db_app::update_folder_icon(&mut transaction, &request.path, &request.icon_json)
         .await
         .map_err(|error| error.to_string())?;
 

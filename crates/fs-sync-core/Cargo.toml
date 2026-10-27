@@ -9,11 +9,11 @@ default = []
 tauri-event = ["dep:tauri-specta"]
 
 [dependencies]
-anlg-audio-utils = { workspace = true }
-anlg-frontmatter = { workspace = true }
-anlg-fs-format = { workspace = true }
-anlg-tiptap = { workspace = true }
-anlg-vad = { workspace = true, features = ["earshot"] }
+syntheo-audio-utils = { workspace = true }
+syntheo-frontmatter = { workspace = true }
+syntheo-fs-format = { workspace = true }
+syntheo-tiptap = { workspace = true }
+syntheo-vad = { workspace = true, features = ["earshot"] }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -32,8 +32,8 @@ tracing = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 
 [dev-dependencies]
-anlg-data = { workspace = true }
 assert_fs = "1"
 criterion = { workspace = true }
 predicates = "3"
+syntheo-data = { workspace = true }
 tempfile = { workspace = true }

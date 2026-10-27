@@ -2,8 +2,12 @@ import { t } from "@lingui/core/macro";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useRef } from "react";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { ArrowLeft, Sidebar, SidebarSimple } from "@anlg/ui/components/icons";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import {
+  ArrowLeft,
+  Sidebar,
+  SidebarSimple,
+} from "@syntheo/ui/components/icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { cn } from "@syntheo/utils";
 
 import {
   LeftSurfaceChromeButton,

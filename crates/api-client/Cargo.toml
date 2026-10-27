@@ -5,9 +5,9 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-anlg-google-calendar = { workspace = true }
-anlg-outlook-calendar = { workspace = true }
-anlg-ticket-interface = { workspace = true }
+syntheo-google-calendar = { workspace = true }
+syntheo-outlook-calendar = { workspace = true }
+syntheo-ticket-interface = { workspace = true }
 
 chrono = { workspace = true, features = ["serde"] }
 progenitor-client = { workspace = true }

@@ -2,8 +2,8 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anlg/ui/components/ui/tooltip";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/tooltip";
+import { cn } from "@syntheo/utils";
 
 /** Dark monospace tooltip shared by the bar's segments and menu items. */
 export function Hint(props: {

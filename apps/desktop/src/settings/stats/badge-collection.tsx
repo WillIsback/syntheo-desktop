@@ -2,16 +2,16 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { Check } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { Check } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@anlg/ui/components/ui/dialog";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dialog";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import { collectBadges, useCollectedBadges } from "./badge-queries";
 import {
@@ -132,8 +132,8 @@ export function BadgeGallery({
   const [selectedId, setSelectedId] = useState<BadgeId | null>(null);
   const details = {
     hello: {
-      name: t`Hello, Anarlog`,
-      description: t`Create your Anarlog account. A place for your conversations to call home.`,
+      name: t`Hello, Syntheo`,
+      description: t`Create your Syntheo account. A place for your conversations to call home.`,
     },
     "all-set": {
       name: t`All Set`,

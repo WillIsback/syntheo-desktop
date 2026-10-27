@@ -1,8 +1,8 @@
 import type { ComponentProps } from "react";
 
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { panelSquircle } from "@anlg/ui/lib/squircle";
-import { cn } from "@anlg/utils";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { panelSquircle } from "@syntheo/ui/lib/squircle";
+import { cn } from "@syntheo/utils";
 
 // Nested radii stay concentric: outer = inner + padding.
 export const APP_FLOATING_CHROME_RADIUS_PX = 22;

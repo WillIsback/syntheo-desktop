@@ -9,8 +9,8 @@ import {
   CheckCircle,
   CircleNotch,
   XCircle,
-} from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 const SCROLL_DELAY_MS = 350;
 

@@ -1,4 +1,4 @@
-use anlg_calendar_interface::{
+use syntheo_calendar_interface::{
     CalendarEvent, CalendarListItem, CalendarProviderType, CreateEventInput, EventFilter,
 };
 use tauri::Manager;
@@ -10,7 +10,7 @@ use crate::error::Error;
 #[tauri::command]
 #[specta::specta]
 pub fn available_providers() -> Vec<CalendarProviderType> {
-    anlg_calendar::available_providers()
+    syntheo_calendar::available_providers()
 }
 
 #[tauri::command]
@@ -25,7 +25,7 @@ pub async fn is_provider_enabled<R: tauri::Runtime>(
         _ => access_token(&app)?,
     };
     let apple = is_apple_authorized(&app).await?;
-    anlg_calendar::is_provider_enabled(&config.api_base_url, token.as_deref(), apple, provider)
+    syntheo_calendar::is_provider_enabled(&config.api_base_url, token.as_deref(), apple, provider)
         .await
         .map_err(Into::into)
 }
@@ -34,11 +34,11 @@ pub async fn is_provider_enabled<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn list_connection_ids<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<Vec<anlg_calendar::ProviderConnectionIds>, Error> {
+) -> Result<Vec<syntheo_calendar::ProviderConnectionIds>, Error> {
     let config = app.state::<crate::PluginConfig>();
     let token = access_token(&app)?;
     let apple = is_apple_authorized(&app).await?;
-    anlg_calendar::list_connection_ids(&config.api_base_url, token.as_deref(), apple)
+    syntheo_calendar::list_connection_ids(&config.api_base_url, token.as_deref(), apple)
         .await
         .map_err(Into::into)
 }
@@ -55,7 +55,7 @@ pub async fn list_calendars<R: tauri::Runtime>(
         CalendarProviderType::Apple => String::new(),
         _ => require_access_token(&app)?,
     };
-    anlg_calendar::list_calendars(&config.api_base_url, &token, provider, &connection_id)
+    syntheo_calendar::list_calendars(&config.api_base_url, &token, provider, &connection_id)
         .await
         .map_err(Into::into)
 }
@@ -73,7 +73,7 @@ pub async fn list_events<R: tauri::Runtime>(
         CalendarProviderType::Apple => String::new(),
         _ => require_access_token(&app)?,
     };
-    anlg_calendar::list_events(
+    syntheo_calendar::list_events(
         &config.api_base_url,
         &token,
         provider,
@@ -90,7 +90,7 @@ pub fn open_calendar<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
     provider: CalendarProviderType,
 ) -> Result<(), Error> {
-    anlg_calendar::open_calendar(provider).map_err(Into::into)
+    syntheo_calendar::open_calendar(provider).map_err(Into::into)
 }
 
 #[tauri::command]
@@ -100,7 +100,7 @@ pub fn create_event<R: tauri::Runtime>(
     provider: CalendarProviderType,
     input: CreateEventInput,
 ) -> Result<String, Error> {
-    anlg_calendar::create_event(provider, input).map_err(Into::into)
+    syntheo_calendar::create_event(provider, input).map_err(Into::into)
 }
 
 macro_rules! contacts_command {
@@ -192,7 +192,7 @@ fn require_access_token<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<
     let token = access_token(app)?;
     match token {
         Some(t) if !t.is_empty() => Ok(t),
-        _ => Err(anlg_calendar::Error::NotAuthenticated.into()),
+        _ => Err(syntheo_calendar::Error::NotAuthenticated.into()),
     }
 }
 
@@ -203,7 +203,7 @@ async fn is_apple_authorized<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Re
             .permissions()
             .check(tauri_plugin_permissions::Permission::Calendar)
             .await
-            .map_err(|e| anlg_calendar::Error::Api(e.to_string()))?;
+            .map_err(|e| syntheo_calendar::Error::Api(e.to_string()))?;
         Ok(matches!(
             status,
             tauri_plugin_permissions::PermissionStatus::Authorized

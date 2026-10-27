@@ -1,5 +1,5 @@
-import { md2json } from "@anlg/editor/markdown";
-import type { ImportTextFile } from "@anlg/plugin-importer";
+import { md2json } from "@syntheo/editor/markdown";
+import type { ImportTextFile } from "@syntheo/plugin-importer";
 
 import { parseMeetingExport, type ImportedMeeting } from "./parser";
 

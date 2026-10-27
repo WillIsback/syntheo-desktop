@@ -41,7 +41,7 @@ impl Respond for InitiallyUninitializedWitness {
 
 async fn configured_test_hook() -> (E2eeSyncHook, MockServer) {
     let hook = E2eeSyncHook::default();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -67,7 +67,7 @@ async fn configured_test_hook() -> (E2eeSyncHook, MockServer) {
     (hook, witness_server)
 }
 
-fn receive_result(chunks: u64, complete: bool) -> anlg_db_core::CloudsyncNetworkResult {
+fn receive_result(chunks: u64, complete: bool) -> syntheo_db_core::CloudsyncNetworkResult {
     serde_json::from_value(serde_json::json!({
         "receive": {
             "rows": chunks,

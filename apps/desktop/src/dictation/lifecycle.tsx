@@ -5,12 +5,12 @@ import { useRef } from "react";
 import {
   commands as dictation,
   type RecordingUpdate,
-} from "@anlg/plugin-dictation";
-import { commands as permissions } from "@anlg/plugin-permissions";
-import { commands as shortcuts, events } from "@anlg/plugin-shortcut";
-import { commands as transcription } from "@anlg/plugin-transcription";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+} from "@syntheo/plugin-dictation";
+import { commands as permissions } from "@syntheo/plugin-permissions";
+import { commands as shortcuts, events } from "@syntheo/plugin-shortcut";
+import { commands as transcription } from "@syntheo/plugin-transcription";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { DictationController } from "./controller";
 import { waitForDictationPanel } from "./panel";
@@ -157,7 +157,7 @@ function ActiveDictation({
         const capture = unwrap(await transcription.getCaptureState());
         if (capture !== "inactive")
           throw new Error(
-            "Dictation is unavailable while Anarlog is recording a meeting.",
+            "Dictation is unavailable while Syntheo is recording a meeting.",
           );
         abort.signal.throwIfAborted();
         target = unwrap(await dictation.captureTarget());

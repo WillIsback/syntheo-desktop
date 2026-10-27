@@ -1,9 +1,9 @@
 import { useLingui } from "@lingui/react/macro";
 
-import { cn } from "@anlg/utils";
-import { createEditorTabs } from "@anlg/utils/session";
+import { cn } from "@syntheo/utils";
+import { createEditorTabs } from "@syntheo/utils/session";
 
-export { createEditorTabs } from "@anlg/utils/session";
+export { createEditorTabs } from "@syntheo/utils/session";
 
 import { HeaderViewEnhanced } from "./header-enhanced";
 import { HeaderViewRaw } from "./header-raw";

@@ -1,10 +1,10 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
 import {
   ArrowCounterClockwise,
   ArrowSquareOut,
-} from "@anlg/ui/components/icons";
+} from "@syntheo/ui/components/icons";
 
 import { ActionButton, MessageBubble, MessageContainer } from "./shared";
 

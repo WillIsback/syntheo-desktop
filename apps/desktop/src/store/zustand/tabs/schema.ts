@@ -5,7 +5,7 @@ import type {
   SessionsState as WindowsSessionsState,
   TabInput as WindowsTabInput,
   TemplatesState,
-} from "@anlg/plugin-windows";
+} from "@syntheo/plugin-windows";
 
 export type { EditorView };
 

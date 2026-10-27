@@ -4,7 +4,7 @@ const calendarCommands = vi.hoisted(() => ({
   listEvents: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-calendar", () => ({
+vi.mock("@syntheo/plugin-calendar", () => ({
   commands: calendarCommands,
 }));
 

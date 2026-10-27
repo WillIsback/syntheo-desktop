@@ -4,9 +4,9 @@ use crate::runtime::e2ee_sync::ReplicaSyncOutcome;
 #[tokio::test]
 async fn replica_transport_syncs_without_the_cloudsync_extension() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     let hook = E2eeSyncHook::default();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -85,10 +85,10 @@ fn paused_replica_sync_preserves_the_last_completed_result() {
 #[tokio::test]
 async fn replica_status_stays_pending_while_waiting_for_remote_chunks() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = PluginDbRuntime::new(db);
     let hook = &runtime.e2ee_sync_hook;
-    let recovery_key = anlg_e2ee::RecoveryKey::generate().unwrap();
+    let recovery_key = syntheo_e2ee::RecoveryKey::generate().unwrap();
     hook.set_personal_workspace("workspace-1", &recovery_key)
         .unwrap();
     hook.set_replica_witness(
@@ -117,9 +117,9 @@ async fn replica_status_stays_pending_while_waiting_for_remote_chunks() {
 async fn replica_transport_hydrates_a_fresh_local_database() {
     let source = Db::connect_memory_plain().await.unwrap();
     let target = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&source).await.unwrap();
-    anlg_db_app::prepare_schema(&target).await.unwrap();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    syntheo_db_app::prepare_schema(&source).await.unwrap();
+    syntheo_db_app::prepare_schema(&target).await.unwrap();
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -168,13 +168,13 @@ async fn replica_transport_hydrates_a_fresh_local_database() {
 async fn replica_transport_syncs_every_configured_workspace() {
     let source = Db::connect_memory_plain().await.unwrap();
     let target = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&source).await.unwrap();
-    anlg_db_app::prepare_schema(&target).await.unwrap();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    syntheo_db_app::prepare_schema(&source).await.unwrap();
+    syntheo_db_app::prepare_schema(&target).await.unwrap();
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
-    let shared_key = anlg_e2ee::WorkspaceKey::generate().unwrap();
+    let shared_key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
     let (witness_server, witness_config) =
         crate::tests::support::setup_witnesses(&["user-a", "workspace-shared"]).await;
     let configure = |hook: &E2eeSyncHook| {
@@ -183,7 +183,7 @@ async fn replica_transport_syncs_every_configured_workspace() {
             &recovery_key,
             HashMap::from([(
                 "workspace-shared".to_string(),
-                anlg_e2ee::WorkspaceKeyring::new(shared_key.clone()),
+                syntheo_e2ee::WorkspaceKeyring::new(shared_key.clone()),
             )]),
         )
         .unwrap();
@@ -251,9 +251,9 @@ async fn replica_transport_syncs_every_configured_workspace() {
 #[tokio::test]
 async fn replica_transport_rejects_a_witness_set_that_misses_a_workspace() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     let hook = E2eeSyncHook::default();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -262,7 +262,7 @@ async fn replica_transport_rejects_a_witness_set_that_misses_a_workspace() {
         &recovery_key,
         HashMap::from([(
             "workspace-shared".to_string(),
-            anlg_e2ee::WorkspaceKeyring::new(anlg_e2ee::WorkspaceKey::generate().unwrap()),
+            syntheo_e2ee::WorkspaceKeyring::new(syntheo_e2ee::WorkspaceKey::generate().unwrap()),
         )]),
     )
     .unwrap();
@@ -283,9 +283,9 @@ async fn replica_transport_rejects_a_witness_set_that_misses_a_workspace() {
 #[tokio::test]
 async fn capture_lifecycle_marker_defers_only_its_transcript() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     let hook = E2eeSyncHook::default();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -351,10 +351,10 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
     .unwrap();
 
     assert_eq!(
-        anlg_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
+        syntheo_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
             .await
             .unwrap(),
-        anlg_db_core::CloudsyncSyncDirective::SendAndReceive
+        syntheo_db_core::CloudsyncSyncDirective::SendAndReceive
     );
     assert!(!witness_server.received_requests().await.unwrap().is_empty());
     let remaining_dirty: Vec<(String, String)> = sqlx::query_as(
@@ -388,22 +388,23 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
     .unwrap();
     assert!(unrelated_records > 0);
 
-    let result: anlg_db_core::CloudsyncNetworkResult = serde_json::from_value(serde_json::json!({
-        "receive": {
-            "rows": 0,
-            "tables": [],
-            "chunks": 0,
-            "bytes": 0,
-            "complete": true
-        }
-    }))
-    .unwrap();
+    let result: syntheo_db_core::CloudsyncNetworkResult =
+        serde_json::from_value(serde_json::json!({
+            "receive": {
+                "rows": 0,
+                "tables": [],
+                "chunks": 0,
+                "bytes": 0,
+                "complete": true
+            }
+        }))
+        .unwrap();
     let mut pending_records: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM e2ee_replica_pending")
         .fetch_one(db.pool())
         .await
         .unwrap();
     loop {
-        let outcome = anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &result)
+        let outcome = syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &result)
             .await
             .unwrap();
         if !outcome.local_work_remaining {
@@ -449,9 +450,12 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
     .await
     .unwrap();
     assert!(
-        anlg_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(db.pool(), &keys,)
-            .await
-            .unwrap()
+        syntheo_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(
+            db.pool(),
+            &keys,
+        )
+        .await
+        .unwrap()
     );
 
     sqlx::query(
@@ -464,9 +468,12 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
     .await
     .unwrap();
     assert!(
-        anlg_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(db.pool(), &keys,)
-            .await
-            .unwrap()
+        syntheo_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(
+            db.pool(),
+            &keys,
+        )
+        .await
+        .unwrap()
     );
 
     sqlx::query(
@@ -478,9 +485,12 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
     .await
     .unwrap();
     assert!(
-        !anlg_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(db.pool(), &keys,)
-            .await
-            .unwrap()
+        !syntheo_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(
+            db.pool(),
+            &keys,
+        )
+        .await
+        .unwrap()
     );
 
     sqlx::query(
@@ -492,9 +502,12 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
     .await
     .unwrap();
     assert!(
-        !anlg_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(db.pool(), &keys,)
-            .await
-            .unwrap()
+        !syntheo_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(
+            db.pool(),
+            &keys,
+        )
+        .await
+        .unwrap()
     );
 
     sqlx::query(
@@ -506,9 +519,12 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
     .await
     .unwrap();
     assert!(
-        anlg_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(db.pool(), &keys,)
-            .await
-            .unwrap()
+        syntheo_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(
+            db.pool(),
+            &keys,
+        )
+        .await
+        .unwrap()
     );
 
     sqlx::query(
@@ -523,9 +539,12 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
     .await
     .unwrap();
     assert!(
-        anlg_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(db.pool(), &keys,)
-            .await
-            .unwrap()
+        syntheo_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(
+            db.pool(),
+            &keys,
+        )
+        .await
+        .unwrap()
     );
 
     sqlx::query(
@@ -543,9 +562,12 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
     .await
     .unwrap();
     assert!(
-        anlg_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(db.pool(), &keys,)
-            .await
-            .unwrap()
+        syntheo_db_app::has_pending_e2ee_replica_changes_deferring_active_captures(
+            db.pool(),
+            &keys,
+        )
+        .await
+        .unwrap()
     );
 
     sqlx::query(
@@ -563,16 +585,16 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
     .await
     .unwrap();
 
-    let outcome = anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &result)
+    let outcome = syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &result)
         .await
         .unwrap();
     assert!(outcome.local_work_remaining);
 
     assert_eq!(
-        anlg_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
+        syntheo_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
             .await
             .unwrap(),
-        anlg_db_core::CloudsyncSyncDirective::SendAndReceive
+        syntheo_db_core::CloudsyncSyncDirective::SendAndReceive
     );
     let protected_dirty: i64 = sqlx::query_scalar(
         "SELECT COUNT(*)
@@ -588,7 +610,7 @@ async fn capture_lifecycle_marker_defers_only_its_transcript() {
 #[tokio::test]
 async fn idle_sync_skips_replica_reconciliation_until_new_work_arrives() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     let (hook, _witness_server) = configured_test_hook().await;
     sqlx::query(
         "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
@@ -598,11 +620,11 @@ async fn idle_sync_skips_replica_reconciliation_until_new_work_arrives() {
     .await
     .unwrap();
 
-    anlg_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
+    syntheo_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
         .await
         .unwrap();
     let complete_idle = receive_result(0, true);
-    anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &complete_idle)
+    syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &complete_idle)
         .await
         .unwrap();
 
@@ -630,7 +652,7 @@ async fn idle_sync_skips_replica_reconciliation_until_new_work_arrives() {
         .unwrap();
 
     let idle_outcome =
-        anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &complete_idle)
+        syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &complete_idle)
             .await
             .unwrap();
     let idle_payload: String = sqlx::query_scalar("SELECT payload FROM e2ee_records WHERE id = ?")
@@ -642,7 +664,7 @@ async fn idle_sync_skips_replica_reconciliation_until_new_work_arrives() {
     assert!(!idle_outcome.local_work_remaining);
 
     let delivered = receive_result(1, true);
-    anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &delivered)
+    syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &delivered)
         .await
         .unwrap();
     let reconciled_payload: String =
@@ -657,7 +679,7 @@ async fn idle_sync_skips_replica_reconciliation_until_new_work_arrives() {
 #[tokio::test]
 async fn nonfinal_receive_keeps_reconciliation_pending_for_final_snapshot() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     let (hook, _witness_server) = configured_test_hook().await;
     sqlx::query(
         "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
@@ -667,10 +689,10 @@ async fn nonfinal_receive_keeps_reconciliation_pending_for_final_snapshot() {
     .await
     .unwrap();
 
-    anlg_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
+    syntheo_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
         .await
         .unwrap();
-    anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &receive_result(0, true))
+    syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &receive_result(0, true))
         .await
         .unwrap();
     let missing_record_id: String = sqlx::query_scalar(
@@ -693,7 +715,7 @@ async fn nonfinal_receive_keeps_reconciliation_pending_for_final_snapshot() {
         .unwrap();
 
     let partial_outcome =
-        anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &receive_result(1, false))
+        syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &receive_result(1, false))
             .await
             .unwrap();
     assert!(partial_outcome.local_work_remaining);
@@ -707,7 +729,7 @@ async fn nonfinal_receive_keeps_reconciliation_pending_for_final_snapshot() {
     );
 
     let final_outcome =
-        anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &receive_result(0, true))
+        syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &receive_result(0, true))
             .await
             .unwrap();
     assert!(!final_outcome.local_work_remaining);
@@ -725,7 +747,7 @@ async fn nonfinal_receive_keeps_reconciliation_pending_for_final_snapshot() {
         .execute(db.pool())
         .await
         .unwrap();
-    let failed_after_chunks: anlg_db_core::CloudsyncNetworkResult =
+    let failed_after_chunks: syntheo_db_core::CloudsyncNetworkResult =
         serde_json::from_value(serde_json::json!({
             "receive": {
                 "rows": 1,
@@ -738,7 +760,7 @@ async fn nonfinal_receive_keeps_reconciliation_pending_for_final_snapshot() {
         }))
         .unwrap();
     let failed_outcome =
-        anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &failed_after_chunks)
+        syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &failed_after_chunks)
             .await
             .unwrap();
     assert!(failed_outcome.local_work_remaining);
@@ -752,7 +774,7 @@ async fn nonfinal_receive_keeps_reconciliation_pending_for_final_snapshot() {
     );
 
     let retry_outcome =
-        anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &receive_result(0, true))
+        syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &receive_result(0, true))
             .await
             .unwrap();
     assert!(!retry_outcome.local_work_remaining);
@@ -769,9 +791,9 @@ async fn nonfinal_receive_keeps_reconciliation_pending_for_final_snapshot() {
 #[tokio::test]
 async fn activity_drains_large_no_mismatch_preflight_before_local_write() {
     let db = std::sync::Arc::new(Db::connect_memory_plain().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
     let runtime = std::sync::Arc::new(PluginDbRuntime::new(std::sync::Arc::clone(&db)));
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -849,7 +871,7 @@ async fn activity_drains_large_no_mismatch_preflight_before_local_write() {
                  )",
         )
         .bind(&sealed.record_id)
-        .bind(anlg_e2ee::payload_hash(&sealed.payload))
+        .bind(syntheo_e2ee::payload_hash(&sealed.payload))
         .bind(&sealed.payload)
         .bind(i64::from(index) + 1)
         .execute(&mut *transaction)
@@ -861,7 +883,7 @@ async fn activity_drains_large_no_mismatch_preflight_before_local_write() {
     let reconcile_runtime = std::sync::Arc::clone(&runtime);
     let reconcile_db = std::sync::Arc::clone(&db);
     let reconcile = tokio::spawn(async move {
-        anlg_db_core::CloudsyncSyncHook::after_sync(
+        syntheo_db_core::CloudsyncSyncHook::after_sync(
             reconcile_runtime.e2ee_sync_hook.as_ref(),
             reconcile_db.pool(),
             &receive_result(1, false),
@@ -938,9 +960,9 @@ fn reconciliation_epochs_preserve_newer_requests() {
 #[tokio::test]
 async fn witness_refresh_failure_keeps_reconciliation_pending() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     let hook = E2eeSyncHook::default();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -977,7 +999,7 @@ async fn witness_refresh_failure_keeps_reconciliation_pending() {
     hook.complete_reconciliation(setup_epoch);
 
     assert!(
-        anlg_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
+        syntheo_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
             .await
             .is_err()
     );
@@ -987,7 +1009,7 @@ async fn witness_refresh_failure_keeps_reconciliation_pending() {
 #[tokio::test]
 async fn failed_reconciliation_epoch_stays_pending() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     let (hook, _witness_server) = configured_test_hook().await;
     let setup_epoch = hook.reconciliation_request_epoch().unwrap();
     hook.complete_reconciliation(setup_epoch);
@@ -1016,7 +1038,7 @@ async fn failed_reconciliation_epoch_stays_pending() {
     .unwrap();
 
     assert!(
-        anlg_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &receive_result(1, true),)
+        syntheo_db_core::CloudsyncSyncHook::after_sync(&hook, db.pool(), &receive_result(1, true),)
             .await
             .is_err()
     );
@@ -1026,19 +1048,19 @@ async fn failed_reconciliation_epoch_stays_pending() {
 #[tokio::test]
 async fn shared_witness_rejection_blocks_the_cloudsync_network_phase() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     let hook = E2eeSyncHook::default();
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
-    let shared_key = anlg_e2ee::WorkspaceKey::generate().unwrap();
+    let shared_key = syntheo_e2ee::WorkspaceKey::generate().unwrap();
     hook.set_workspaces(
         "personal",
         &recovery_key,
         HashMap::from([(
             "shared".to_string(),
-            anlg_e2ee::WorkspaceKeyring::new(shared_key),
+            syntheo_e2ee::WorkspaceKeyring::new(shared_key),
         )]),
     )
     .unwrap();
@@ -1099,7 +1121,7 @@ async fn shared_witness_rejection_blocks_the_cloudsync_network_phase() {
     .await
     .unwrap();
 
-    let error = anlg_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
+    let error = syntheo_db_core::CloudsyncSyncHook::before_sync(&hook, db.pool())
         .await
         .unwrap_err();
 

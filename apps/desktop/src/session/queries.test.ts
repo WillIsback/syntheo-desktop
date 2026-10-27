@@ -43,7 +43,7 @@ const mocks = vi.hoisted(() => ({
   ),
 }));
 
-vi.mock("@anlg/plugin-session", () => ({
+vi.mock("@syntheo/plugin-session", () => ({
   commands: {
     createSession: mocks.createSession,
     createSessionForEvent: mocks.createSessionForEvent,
@@ -56,7 +56,7 @@ vi.mock("@anlg/plugin-session", () => ({
   },
 }));
 
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     deleteSessionFolder: vi.fn(() =>
       Promise.resolve({ status: "ok", data: null }),

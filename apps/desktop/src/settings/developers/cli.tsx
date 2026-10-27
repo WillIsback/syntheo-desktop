@@ -2,10 +2,10 @@ import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { CheckCircle, CircleNotch, Copy } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { cn } from "@anlg/utils";
+import { CheckCircle, CircleNotch, Copy } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { cn } from "@syntheo/utils";
 
 import { SkillsRow } from "./skills";
 
@@ -38,7 +38,7 @@ export function buildMcpConfiguration(command: string) {
   return JSON.stringify(
     {
       mcpServers: {
-        anarlog: {
+        syntheo: {
           command,
           args: ["mcp"],
         },
@@ -128,7 +128,7 @@ function CliSection({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <h3 className="flex items-center gap-1.5 text-sm font-medium">
-              <Trans>Anarlog CLI</Trans>
+              <Trans>Syntheo CLI</Trans>
               {isInstalled && (
                 <CheckCircle
                   aria-label={t`Installed`}
@@ -219,7 +219,7 @@ function CliStatus({
 
 function McpRow({ status }: { status: EmbeddedCliStatus | undefined }) {
   const isInstalled = status?.state === "installed";
-  const commandName = status?.commandName ?? "anarlog";
+  const commandName = status?.commandName ?? "syntheo";
   const configuration = buildMcpConfiguration(
     isInstalled ? status.installPath : commandName,
   );

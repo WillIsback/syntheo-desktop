@@ -8,14 +8,14 @@ const { executeMock, executeProxyMock, executeTransactionMock, subscribeMock } =
     subscribeMock: vi.fn(),
   }));
 
-vi.mock("@anlg/plugin-db", () => ({
+vi.mock("@syntheo/plugin-db", () => ({
   execute: executeMock,
   executeProxy: executeProxyMock,
   executeTransaction: executeTransactionMock,
   subscribe: subscribeMock,
 }));
 
-describe("@anlg/db-tauri", () => {
+describe("@syntheo/db-tauri", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

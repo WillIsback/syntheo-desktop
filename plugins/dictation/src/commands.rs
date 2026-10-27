@@ -66,7 +66,7 @@ pub(crate) async fn start_recording<R: tauri::Runtime>(
     owner: String,
 ) -> Result<(), String> {
     let audio = app
-        .state::<Arc<dyn anlg_audio::AudioProvider>>()
+        .state::<Arc<dyn syntheo_audio::AudioProvider>>()
         .inner()
         .clone();
     app.state::<Recorder>()
@@ -108,7 +108,7 @@ pub(crate) async fn start_system_recording<R: tauri::Runtime>(
     updates: tauri::ipc::Channel<crate::preview::RecordingUpdate>,
 ) -> Result<(), String> {
     let audio = app
-        .state::<Arc<dyn anlg_audio::AudioProvider>>()
+        .state::<Arc<dyn syntheo_audio::AudioProvider>>()
         .inner()
         .clone();
     app.state::<Recorder>()

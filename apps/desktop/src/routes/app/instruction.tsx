@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback } from "react";
 
-import { dismissInstruction } from "@anlg/plugin-windows";
+import { dismissInstruction } from "@syntheo/plugin-windows";
 
 import { InstructionScreen } from "~/instruction";
 

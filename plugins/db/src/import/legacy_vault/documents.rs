@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::path::Path;
 
-use anlg_db_app::{LegacyDocument, LegacyImportRow};
 use sqlx::SqlitePool;
+use syntheo_db_app::{LegacyDocument, LegacyImportRow};
 
 use super::sessions::parse_session_document;
 use super::source_format::{normalized_relative_path, sha256, stable_id};

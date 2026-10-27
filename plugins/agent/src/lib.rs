@@ -4,9 +4,9 @@ mod commands;
 mod error;
 mod ext;
 
-pub use anlg_agent_core::*;
 pub use error::{Error, Result};
 pub use ext::AgentPluginExt;
+pub use syntheo_agent_core::*;
 
 const PLUGIN_NAME: &str = "agent";
 
@@ -18,15 +18,15 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::install_cli::<Wry>,
             commands::uninstall_cli::<Wry>,
         ])
-        .typ::<anlg_agent_core::ProviderKind>()
-        .typ::<anlg_agent_core::ProviderHealthStatus>()
-        .typ::<anlg_agent_core::ProviderAuthStatus>()
-        .typ::<anlg_agent_core::ProviderHealth>()
-        .typ::<anlg_agent_core::HealthCheckResponse>()
-        .typ::<anlg_agent_core::InstallCliRequest>()
-        .typ::<anlg_agent_core::InstallCliResponse>()
-        .typ::<anlg_agent_core::UninstallCliRequest>()
-        .typ::<anlg_agent_core::UninstallCliResponse>()
+        .typ::<syntheo_agent_core::ProviderKind>()
+        .typ::<syntheo_agent_core::ProviderHealthStatus>()
+        .typ::<syntheo_agent_core::ProviderAuthStatus>()
+        .typ::<syntheo_agent_core::ProviderHealth>()
+        .typ::<syntheo_agent_core::HealthCheckResponse>()
+        .typ::<syntheo_agent_core::InstallCliRequest>()
+        .typ::<syntheo_agent_core::InstallCliResponse>()
+        .typ::<syntheo_agent_core::UninstallCliRequest>()
+        .typ::<syntheo_agent_core::UninstallCliResponse>()
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -36,7 +36,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|_app, _api| {
-            anlg_agent_core::upgrade_hooks();
+            syntheo_agent_core::upgrade_hooks();
             Ok(())
         })
         .build()

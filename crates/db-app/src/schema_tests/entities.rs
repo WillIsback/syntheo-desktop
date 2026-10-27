@@ -235,9 +235,9 @@ async fn template_roundtrip() {
 #[tokio::test]
 async fn migrations_seed_default_templates_without_overwriting_existing_rows() {
     let db = Db::connect_memory_plain().await.unwrap();
-    anlg_db_migrate::migrate(
+    syntheo_db_migrate::migrate(
         &db,
-        anlg_db_migrate::DbSchema {
+        syntheo_db_migrate::DbSchema {
             steps: &APP_MIGRATION_STEPS[..1],
             validate_cloudsync_table: cloudsync_alter_guard_required,
         },
@@ -261,7 +261,7 @@ async fn migrations_seed_default_templates_without_overwriting_existing_rows() {
     .await
     .unwrap();
 
-    anlg_db_migrate::migrate(&db, schema()).await.unwrap();
+    syntheo_db_migrate::migrate(&db, schema()).await.unwrap();
 
     let rows = list_templates(db.pool()).await.unwrap();
     assert_eq!(rows.len(), 17);

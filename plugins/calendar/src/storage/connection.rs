@@ -1,7 +1,7 @@
-use anlg_calendar_interface::CalendarProviderType;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use sqlx::SqlitePool;
+use syntheo_calendar_interface::CalendarProviderType;
 
 use super::provider_str;
 use super::transaction_utils::{js_iso8601_timestamp, rollback_error};
@@ -24,7 +24,7 @@ pub async fn tombstone_calendar_connection(
         .map_err(|error| error.to_string())?;
 
     let result = async {
-        anlg_db_app::tombstone_connection_events(
+        syntheo_db_app::tombstone_connection_events(
             &mut transaction,
             &now,
             provider,
@@ -32,7 +32,7 @@ pub async fn tombstone_calendar_connection(
         )
         .await
         .map_err(|error| error.to_string())?;
-        anlg_db_app::tombstone_connection_calendars(
+        syntheo_db_app::tombstone_connection_calendars(
             &mut transaction,
             &now,
             provider,
@@ -57,11 +57,11 @@ pub async fn tombstone_calendar_connection(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 

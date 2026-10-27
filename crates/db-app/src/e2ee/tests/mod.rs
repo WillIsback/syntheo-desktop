@@ -1,13 +1,13 @@
 use super::*;
-use anlg_e2ee::RecoveryKey;
+use syntheo_e2ee::RecoveryKey;
 
-async fn test_db() -> anlg_db_core::Db {
-    let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
+async fn test_db() -> syntheo_db_core::Db {
+    let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
     crate::prepare_schema(&db).await.unwrap();
     db
 }
 
-fn keys(workspace_id: &str) -> HashMap<String, anlg_e2ee::WorkspaceKeyring> {
+fn keys(workspace_id: &str) -> HashMap<String, syntheo_e2ee::WorkspaceKeyring> {
     let recovery =
         RecoveryKey::parse("anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc").unwrap();
     HashMap::from([(
@@ -39,7 +39,7 @@ async fn copy_replica(source: &SqlitePool, target: &SqlitePool) {
 // Model a field already emitted by Nightly before the compatible-writer rollout.
 async fn seed_nightly_field(
     pool: &SqlitePool,
-    workspace_keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+    workspace_keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
     table: &str,
     row_id: &str,
     field: &str,
@@ -70,7 +70,7 @@ async fn seed_nightly_field(
         revision: 1,
         writer_id: writer_id.to_string(),
         value_tag: key.value_tag(table, row_id, field, false, &value),
-        payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+        payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
         payload: sealed.payload,
         edited_at_ms: Some(1),
         republish: false,

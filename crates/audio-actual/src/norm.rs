@@ -12,7 +12,7 @@ const LIMITER_LOOKAHEAD_MS: usize = 10;
 const ANALYZE_CHUNK_SIZE: usize = 512;
 
 #[pin_project]
-pub struct NormalizedSource<S: anlg_audio_interface::AsyncSource> {
+pub struct NormalizedSource<S: syntheo_audio_interface::AsyncSource> {
     source: S,
     gain_linear: f32,
     ebur128: EbuR128,
@@ -59,11 +59,11 @@ impl TruePeakLimiter {
     }
 }
 
-pub trait NormalizeExt<S: anlg_audio_interface::AsyncSource> {
+pub trait NormalizeExt<S: syntheo_audio_interface::AsyncSource> {
     fn normalize(self) -> NormalizedSource<S>;
 }
 
-impl<S: anlg_audio_interface::AsyncSource> NormalizeExt<S> for S {
+impl<S: syntheo_audio_interface::AsyncSource> NormalizeExt<S> for S {
     fn normalize(self) -> NormalizedSource<S> {
         let sample_rate = self.sample_rate();
         let ebur128 = EbuR128::new(CHANNELS, sample_rate, Mode::I | Mode::TRUE_PEAK)
@@ -82,7 +82,7 @@ impl<S: anlg_audio_interface::AsyncSource> NormalizeExt<S> for S {
     }
 }
 
-impl<S: anlg_audio_interface::AsyncSource> Stream for NormalizedSource<S> {
+impl<S: syntheo_audio_interface::AsyncSource> Stream for NormalizedSource<S> {
     type Item = f32;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
@@ -117,7 +117,7 @@ impl<S: anlg_audio_interface::AsyncSource> Stream for NormalizedSource<S> {
     }
 }
 
-impl<S: anlg_audio_interface::AsyncSource> anlg_audio_interface::AsyncSource
+impl<S: syntheo_audio_interface::AsyncSource> syntheo_audio_interface::AsyncSource
     for NormalizedSource<S>
 {
     fn sample_rate(&self) -> u32 {
@@ -132,18 +132,18 @@ impl<S: anlg_audio_interface::AsyncSource> anlg_audio_interface::AsyncSource
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_audio_interface::AsyncSource;
     use futures_util::StreamExt;
+    use syntheo_audio_interface::AsyncSource;
 
     #[tokio::test]
     async fn normalize_preserves_sample_count_and_respects_true_peak_limit() {
         let input_samples: Vec<f32> = rodio::Decoder::try_from(
-            std::fs::File::open(anlg_data::english_1::AUDIO_PATH).unwrap(),
+            std::fs::File::open(syntheo_data::english_1::AUDIO_PATH).unwrap(),
         )
         .unwrap()
         .collect();
         let audio = rodio::Decoder::try_from(
-            std::fs::File::open(anlg_data::english_1::AUDIO_PATH).unwrap(),
+            std::fs::File::open(syntheo_data::english_1::AUDIO_PATH).unwrap(),
         )
         .unwrap();
         let mut normalized = audio.normalize();

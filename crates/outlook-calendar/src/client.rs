@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use anlg_http::HttpClient;
+use syntheo_http::HttpClient;
 
 use crate::error::Error;
 use crate::types::{

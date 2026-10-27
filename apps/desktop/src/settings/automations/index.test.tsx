@@ -103,7 +103,7 @@ vi.mock("./starter-config", () => ({
   NotionUpdateConfig: () => <div data-testid="config-notion" />,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: {
     error: mocks.toastError,
     success: mocks.toastSuccess,

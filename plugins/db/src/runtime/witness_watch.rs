@@ -1,1 +1,1 @@
-pub(super) use anlg_db_sync::{WitnessWatchTask, spawn_witness_watch};
+pub(super) use syntheo_db_sync::{WitnessWatchTask, spawn_witness_watch};

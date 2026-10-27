@@ -1,8 +1,8 @@
 import { useLingui } from "@lingui/react/macro";
 
-import { Button } from "@anlg/ui/components/ui/button";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { cn } from "@anlg/utils";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { cn } from "@syntheo/utils";
 
 export function DateRangeFilter({
   value,

@@ -53,7 +53,7 @@ $ pnpm lint && cargo clippy -p <crate> -- -D warnings
 - [ ] Aucun provider ni intégration cloud ajouté ; seuls les endpoints configurés par l'utilisateur sont contactés
 - [ ] Aucune écriture d'audio sur disque
 - [ ] Texte d'interface en français
-- [ ] Code porté depuis Anarlog : révision citée ici et dans `NOTICE.md` (sinon : sans objet)
+- [ ] Code porté depuis Syntheo : révision citée ici et dans `NOTICE.md` (sinon : sans objet)
 
 ## Checklist
 

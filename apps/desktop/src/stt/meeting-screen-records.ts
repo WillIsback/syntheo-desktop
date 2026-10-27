@@ -1,5 +1,5 @@
-import type { MeetingScreenShareCapture } from "@anlg/plugin-detect";
-import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
+import type { MeetingScreenShareCapture } from "@syntheo/plugin-detect";
+import { commands as fsSyncCommands } from "@syntheo/plugin-fs-sync";
 
 import { executeTransaction, useLiveQuery } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";

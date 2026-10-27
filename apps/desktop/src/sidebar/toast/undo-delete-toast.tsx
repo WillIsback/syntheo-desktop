@@ -2,8 +2,8 @@ import { t } from "@lingui/core/macro";
 import { useQueryClient } from "@tanstack/react-query";
 import { type CSSProperties, useCallback, useMemo } from "react";
 
-import { toast } from "@anlg/ui/components/ui/toast";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { restoreDeletedSession } from "~/session/queries";
 import { useTabs } from "~/store/zustand/tabs";

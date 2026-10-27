@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 
-vi.mock("@anlg/plugin-detect", () => ({ commands: {} }));
-vi.mock("@anlg/ui/components/ui/toast", () => ({ toast: {} }));
+vi.mock("@syntheo/plugin-detect", () => ({ commands: {} }));
+vi.mock("@syntheo/ui/components/ui/toast", () => ({ toast: {} }));
 vi.mock("./meeting-consent-store", () => ({
   persistDisclosureAttempt: vi.fn(),
 }));

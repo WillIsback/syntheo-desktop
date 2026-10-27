@@ -6,8 +6,8 @@ import {
 } from "@tauri-apps/api/window";
 import type { ReactNode } from "react";
 
-import { commands as iconCommands } from "@anlg/plugin-icon";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { commands as iconCommands } from "@syntheo/plugin-icon";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { applyDocumentTheme, writeStoredThemePreference } from "./apply";
 import {
@@ -189,7 +189,7 @@ async function applyDockIcon(
   systemIsDark: boolean,
 ) {
   const appIdentifier = await getIdentifier().catch(
-    () => "com.hyprnote.stable",
+    () => "fr.willisback.syntheo",
   );
 
   try {

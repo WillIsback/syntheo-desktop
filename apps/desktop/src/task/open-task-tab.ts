@@ -1,6 +1,6 @@
 import type { Node } from "prosemirror-model";
 
-import type { AppLinkAttrs } from "@anlg/editor/app-link";
+import type { AppLinkAttrs } from "@syntheo/editor/app-link";
 
 import { id } from "~/shared/utils";
 import { type Tab, type TaskResource, useTabs } from "~/store/zustand/tabs";

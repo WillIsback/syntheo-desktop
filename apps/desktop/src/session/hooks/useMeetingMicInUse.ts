@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { commands as detectCommands } from "@anlg/plugin-detect";
+import { commands as detectCommands } from "@syntheo/plugin-detect";
 
 import { getIgnorableApps, type MicApp } from "~/stt/meeting-apps";
 
@@ -9,7 +9,7 @@ const MEETING_MIC_POLL_INTERVAL_MS = 5_000;
 export function micAppsShowInUse(apps: MicApp[]): boolean {
   return getIgnorableApps(apps).some((app) => {
     const key = app.id.toLowerCase();
-    return !key.includes("anarlog") && !key.includes("hyprnote");
+    return !key.includes("syntheo") && !key.includes("syntheo");
   });
 }
 

@@ -134,7 +134,7 @@ pub async fn ensure_cloudsync_recovery_state(
     generation: &str,
     account_user_id: &str,
     workspace_id: &str,
-    key: &anlg_e2ee::WorkspaceKey,
+    key: &syntheo_e2ee::WorkspaceKey,
 ) -> Result<CloudsyncRecoveryState, CloudsyncWorkspaceError> {
     let account_user_id = validated_account_user_id(account_user_id)?;
     if generation.trim().is_empty() || workspace_id.trim().is_empty() {
@@ -200,7 +200,7 @@ pub async fn ensure_cloudsync_recovery_state(
         key_id: key.key_id().to_string(),
         phase: CloudsyncRecoveryPhase::NeedFirstLogout,
         barrier_id: barrier.record_id,
-        barrier_payload_hash: anlg_e2ee::payload_hash(&barrier.payload),
+        barrier_payload_hash: syntheo_e2ee::payload_hash(&barrier.payload),
         barrier_payload: barrier.payload,
     };
     let value_json =
@@ -288,7 +288,7 @@ pub async fn advance_cloudsync_recovery_phase(
 pub async fn insert_cloudsync_recovery_barrier(
     pool: &SqlitePool,
     state: &CloudsyncRecoveryState,
-    key: &anlg_e2ee::WorkspaceKey,
+    key: &syntheo_e2ee::WorkspaceKey,
 ) -> Result<bool, CloudsyncWorkspaceError> {
     validate_cloudsync_recovery_barrier(state, key)?;
     let mut transaction = pool.begin_with("BEGIN IMMEDIATE").await?;
@@ -324,7 +324,7 @@ pub async fn insert_cloudsync_recovery_barrier(
 pub async fn cloudsync_recovery_barrier_is_exact(
     pool: &SqlitePool,
     state: &CloudsyncRecoveryState,
-    key: &anlg_e2ee::WorkspaceKey,
+    key: &syntheo_e2ee::WorkspaceKey,
 ) -> Result<bool, CloudsyncWorkspaceError> {
     validate_cloudsync_recovery_barrier(state, key)?;
     let record: Option<(String, String)> = sqlx::query_as(
@@ -343,7 +343,7 @@ pub async fn cloudsync_recovery_barrier_is_exact(
 pub async fn delete_cloudsync_recovery_barrier(
     pool: &SqlitePool,
     state: &CloudsyncRecoveryState,
-    key: &anlg_e2ee::WorkspaceKey,
+    key: &syntheo_e2ee::WorkspaceKey,
 ) -> Result<bool, CloudsyncWorkspaceError> {
     validate_cloudsync_recovery_barrier(state, key)?;
     let mut transaction = pool.begin_with("BEGIN IMMEDIATE").await?;
@@ -581,7 +581,7 @@ pub(super) fn parse_cloudsync_recovery_state(
         || state.key_id.trim().is_empty()
         || state.barrier_id.trim().is_empty()
         || state.barrier_payload.trim().is_empty()
-        || anlg_e2ee::payload_hash(&state.barrier_payload) != state.barrier_payload_hash
+        || syntheo_e2ee::payload_hash(&state.barrier_payload) != state.barrier_payload_hash
     {
         return Err(CloudsyncWorkspaceError::InvalidRecoveryState);
     }
@@ -590,11 +590,11 @@ pub(super) fn parse_cloudsync_recovery_state(
 
 fn validate_cloudsync_recovery_barrier(
     state: &CloudsyncRecoveryState,
-    key: &anlg_e2ee::WorkspaceKey,
+    key: &syntheo_e2ee::WorkspaceKey,
 ) -> Result<(), CloudsyncWorkspaceError> {
     if state.protocol_version != CLOUDSYNC_RECOVERY_PROTOCOL_VERSION
         || state.key_id != key.key_id()
-        || anlg_e2ee::payload_hash(&state.barrier_payload) != state.barrier_payload_hash
+        || syntheo_e2ee::payload_hash(&state.barrier_payload) != state.barrier_payload_hash
     {
         return Err(CloudsyncWorkspaceError::InvalidRecoveryState);
     }

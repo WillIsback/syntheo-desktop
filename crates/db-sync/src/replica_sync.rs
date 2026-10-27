@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use anlg_db_core::Db;
+use syntheo_db_core::Db;
 
 use super::e2ee_sync::{E2eeSyncHook, ReplicaSyncOutcome};
 

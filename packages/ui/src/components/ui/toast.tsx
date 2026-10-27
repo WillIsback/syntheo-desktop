@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 
-import { CircleNotch } from "@anlg/ui/components/icons";
+import { CircleNotch } from "@syntheo/ui/components/icons";
 
 import {
   AppToaster,

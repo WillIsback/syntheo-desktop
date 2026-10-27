@@ -1,16 +1,16 @@
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useRef, useState } from "react";
 
-import { commands as deeplinkCommands } from "@anlg/plugin-deeplink2";
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { Headset, Square, VideoCamera } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { commands as deeplinkCommands } from "@syntheo/plugin-deeplink2";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import { Headset, Square, VideoCamera } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Popover,
   PopoverAnchor,
   PopoverContent,
-} from "@anlg/ui/components/ui/popover";
-import { cn, parseEventInstant, safeParseDate } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { cn, parseEventInstant, safeParseDate } from "@syntheo/utils";
 
 import { FolderPicker } from "../folder-picker";
 import { RecordingIcon, useHasTranscript } from "../shared";
@@ -293,7 +293,7 @@ function HeaderMeetingAction({
         title: t`Join meeting and record`,
         icon: isWelcomeDemo ? (
           <img
-            src="/assets/anarlog-icon.png"
+            src="/assets/syntheo-icon.png"
             alt=""
             className="size-3.5 shrink-0"
           />
@@ -366,7 +366,7 @@ function HeaderMeetingAction({
             />
             <span className="relative block font-medium">{t`Try the demo`}</span>
             <span className="text-muted-foreground relative mt-0.5 block leading-snug">
-              {t`This is a prerecorded demo, so your camera stays off. Click Join & record to see Anarlog in action.`}
+              {t`This is a prerecorded demo, so your camera stays off. Click Join & record to see Syntheo in action.`}
             </span>
           </PopoverContent>
         ) : showCountdown ? (

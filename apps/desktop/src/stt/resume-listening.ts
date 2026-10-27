@@ -1,10 +1,10 @@
 import { useCallback, useRef } from "react";
 
-import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
+import { commands as fsSyncCommands } from "@syntheo/plugin-fs-sync";
 import {
   commands as listenerCommands,
   type StoppedCapture,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import { getAudioDurationMs, useCaptureLifecycle } from "./capture-lifecycle";
 import { useListener } from "./contexts";

@@ -9,7 +9,7 @@ import {
 import { type ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { TooltipProvider } from "@anlg/ui/components/ui/tooltip";
+import { TooltipProvider } from "@syntheo/ui/components/ui/tooltip";
 
 import { TitleInput } from "./title-input";
 

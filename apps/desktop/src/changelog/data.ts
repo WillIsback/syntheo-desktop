@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 // @ts-ignore virtual module provided by the Vite changelog plugin
 import { latestContent, latestVersion } from "virtual:changelog";
 
-import { processContent } from "@anlg/changelog";
+import { processContent } from "@syntheo/changelog";
 
 import { changelogUrl } from "./source";
 

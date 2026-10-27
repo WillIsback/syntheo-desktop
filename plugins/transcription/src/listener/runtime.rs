@@ -1,5 +1,5 @@
-use anlg_transcription_core::listener::ListenerRuntime;
 use ractor::{ActorRef, call_t, registry};
+use syntheo_transcription_core::listener::ListenerRuntime;
 use tauri::Manager;
 use tauri_plugin_settings::SettingsPluginExt;
 use tauri_specta::Event;
@@ -9,8 +9,8 @@ use crate::{
     MicIsolationCache, SessionStateCache, SessionStateSnapshot, StoppedCapture,
     StoppedCaptureRegistry,
 };
-use anlg_transcription_core::listener::State as RootState;
-use anlg_transcription_core::listener::actors::{RootActor, RootMsg};
+use syntheo_transcription_core::listener::State as RootState;
+use syntheo_transcription_core::listener::actors::{RootActor, RootMsg};
 
 const LIVE_SEGMENT_SNAPSHOT_LIMIT: usize = 200;
 
@@ -23,34 +23,36 @@ pub struct TauriRuntime {
     pub capture_gap_registry: CaptureGapRegistry,
 }
 
-impl anlg_storage::StorageRuntime for TauriRuntime {
-    fn global_base(&self) -> Result<std::path::PathBuf, anlg_storage::Error> {
+impl syntheo_storage::StorageRuntime for TauriRuntime {
+    fn global_base(&self) -> Result<std::path::PathBuf, syntheo_storage::Error> {
         self.app
             .settings()
             .global_base()
             .map(|p| p.into_std_path_buf())
-            .map_err(|_| anlg_storage::Error::DataDirUnavailable)
+            .map_err(|_| syntheo_storage::Error::DataDirUnavailable)
     }
 
-    fn vault_base(&self) -> Result<std::path::PathBuf, anlg_storage::Error> {
+    fn vault_base(&self) -> Result<std::path::PathBuf, syntheo_storage::Error> {
         self.app
             .settings()
             .vault_base()
             .map(|p| p.into_std_path_buf())
-            .map_err(|_| anlg_storage::Error::DataDirUnavailable)
+            .map_err(|_| syntheo_storage::Error::DataDirUnavailable)
     }
 }
 
 impl ListenerRuntime for TauriRuntime {
-    fn emit_lifecycle(&self, event: anlg_transcription_core::listener::SessionLifecycleEvent) {
+    fn emit_lifecycle(&self, event: syntheo_transcription_core::listener::SessionLifecycleEvent) {
         use tauri_plugin_tray::TrayPluginExt;
         match &event {
-            anlg_transcription_core::listener::SessionLifecycleEvent::Active { error, .. } => {
+            syntheo_transcription_core::listener::SessionLifecycleEvent::Active {
+                error, ..
+            } => {
                 let _ = self.app.tray().set_start_disabled(true);
                 let _ = self.app.tray().set_degraded(error.is_some());
                 let _ = self.app.tray().set_recording(true);
             }
-            anlg_transcription_core::listener::SessionLifecycleEvent::Inactive { .. } => {
+            syntheo_transcription_core::listener::SessionLifecycleEvent::Inactive { .. } => {
                 let app = self.app.clone();
                 tauri::async_runtime::spawn(async move {
                     match current_root_state().await {
@@ -67,11 +69,11 @@ impl ListenerRuntime for TauriRuntime {
                     }
                 });
             }
-            anlg_transcription_core::listener::SessionLifecycleEvent::Finalizing { .. } => {}
+            syntheo_transcription_core::listener::SessionLifecycleEvent::Finalizing { .. } => {}
         }
 
         let capture_event = match event {
-            anlg_transcription_core::listener::SessionLifecycleEvent::Active {
+            syntheo_transcription_core::listener::SessionLifecycleEvent::Active {
                 session_id,
                 requested_transcription_mode,
                 current_transcription_mode,
@@ -79,9 +81,9 @@ impl ListenerRuntime for TauriRuntime {
             } => {
                 self.stopped_capture_registry.clear_session(&session_id);
                 let requested_live_transcription = requested_transcription_mode
-                    == anlg_transcription_core::listener::TranscriptionMode::Live;
+                    == syntheo_transcription_core::listener::TranscriptionMode::Live;
                 let live_transcription_active = current_transcription_mode
-                    == anlg_transcription_core::listener::TranscriptionMode::Live;
+                    == syntheo_transcription_core::listener::TranscriptionMode::Live;
                 let now_ms = crate::capture_gaps::unix_now_ms();
                 let new_capture = if let Ok(mut cache) = self.session_state_cache.lock() {
                     let state = cache.entry(session_id.clone()).or_default();
@@ -108,10 +110,10 @@ impl ListenerRuntime for TauriRuntime {
                     degraded: error,
                 }
             }
-            anlg_transcription_core::listener::SessionLifecycleEvent::Finalizing { session_id } => {
-                CaptureLifecycleEvent::Finalizing { session_id }
-            }
-            anlg_transcription_core::listener::SessionLifecycleEvent::Inactive {
+            syntheo_transcription_core::listener::SessionLifecycleEvent::Finalizing {
+                session_id,
+            } => CaptureLifecycleEvent::Finalizing { session_id },
+            syntheo_transcription_core::listener::SessionLifecycleEvent::Inactive {
                 session_id,
                 audio_path,
                 error,
@@ -181,8 +183,8 @@ impl ListenerRuntime for TauriRuntime {
         }
     }
 
-    fn emit_progress(&self, event: anlg_transcription_core::listener::SessionProgressEvent) {
-        if let anlg_transcription_core::listener::SessionProgressEvent::Connected {
+    fn emit_progress(&self, event: syntheo_transcription_core::listener::SessionProgressEvent) {
+        if let syntheo_transcription_core::listener::SessionProgressEvent::Connected {
             session_id,
             ..
         } = &event
@@ -195,15 +197,15 @@ impl ListenerRuntime for TauriRuntime {
         }
     }
 
-    fn emit_error(&self, event: anlg_transcription_core::listener::SessionErrorEvent) {
+    fn emit_error(&self, event: syntheo_transcription_core::listener::SessionErrorEvent) {
         match &event {
-            anlg_transcription_core::listener::SessionErrorEvent::ConnectionError {
+            syntheo_transcription_core::listener::SessionErrorEvent::ConnectionError {
                 session_id,
                 ..
             } => self
                 .capture_gap_registry
                 .interrupted(session_id, crate::capture_gaps::unix_now_ms()),
-            anlg_transcription_core::listener::SessionErrorEvent::AudioError {
+            syntheo_transcription_core::listener::SessionErrorEvent::AudioError {
                 session_id,
                 error,
                 ..
@@ -218,9 +220,9 @@ impl ListenerRuntime for TauriRuntime {
         }
     }
 
-    fn emit_data(&self, event: anlg_transcription_core::listener::SessionDataEvent) {
+    fn emit_data(&self, event: syntheo_transcription_core::listener::SessionDataEvent) {
         match &event {
-            anlg_transcription_core::listener::SessionDataEvent::TranscriptDelta {
+            syntheo_transcription_core::listener::SessionDataEvent::TranscriptDelta {
                 session_id,
                 delta,
             } => {
@@ -232,7 +234,7 @@ impl ListenerRuntime for TauriRuntime {
                     registry.append(session_id, delta.as_ref().clone());
                 }
             }
-            anlg_transcription_core::listener::SessionDataEvent::TranscriptSegmentDelta {
+            syntheo_transcription_core::listener::SessionDataEvent::TranscriptSegmentDelta {
                 session_id,
                 delta,
             } => {
@@ -243,7 +245,7 @@ impl ListenerRuntime for TauriRuntime {
                     apply_segment_delta(&mut state.live_segments, delta);
                 }
             }
-            anlg_transcription_core::listener::SessionDataEvent::MicIsolated {
+            syntheo_transcription_core::listener::SessionDataEvent::MicIsolated {
                 session_id,
                 value,
             } => {
@@ -270,8 +272,8 @@ fn merge_mic_isolation(previous: Option<bool>, value: bool) -> bool {
 }
 
 fn apply_segment_delta(
-    segments: &mut Vec<anlg_transcription_core::listener::LiveTranscriptSegment>,
-    delta: &anlg_transcription_core::listener::LiveTranscriptSegmentDelta,
+    segments: &mut Vec<syntheo_transcription_core::listener::LiveTranscriptSegment>,
+    delta: &syntheo_transcription_core::listener::LiveTranscriptSegmentDelta,
 ) {
     let changed_ids = delta
         .removed_ids
@@ -303,8 +305,8 @@ async fn current_root_state() -> RootState {
 
 #[cfg(test)]
 mod tests {
-    use anlg_transcript::{ChannelProfile, SegmentKey};
-    use anlg_transcription_core::listener::{LiveTranscriptSegment, LiveTranscriptSegmentDelta};
+    use syntheo_transcript::{ChannelProfile, SegmentKey};
+    use syntheo_transcription_core::listener::{LiveTranscriptSegment, LiveTranscriptSegmentDelta};
 
     use super::{LIVE_SEGMENT_SNAPSHOT_LIMIT, apply_segment_delta, merge_mic_isolation};
 
@@ -376,10 +378,12 @@ mod tests {
 
 fn update_audio_cleanup_status(
     cache: &crate::AudioCleanupStatus,
-    event: &anlg_transcription_core::listener::SessionErrorEvent,
+    event: &syntheo_transcription_core::listener::SessionErrorEvent,
 ) {
-    let anlg_transcription_core::listener::SessionErrorEvent::AudioError {
-        session_id, error, ..
+    let syntheo_transcription_core::listener::SessionErrorEvent::AudioError {
+        session_id,
+        error,
+        ..
     } = event
     else {
         return;
@@ -442,7 +446,7 @@ mod cleanup_status_tests {
         ] {
             update_audio_cleanup_status(
                 &cache,
-                &anlg_transcription_core::listener::SessionErrorEvent::AudioError {
+                &syntheo_transcription_core::listener::SessionErrorEvent::AudioError {
                     session_id: "session".into(),
                     error: error.into(),
                     device: None,

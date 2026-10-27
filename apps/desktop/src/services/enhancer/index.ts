@@ -1,6 +1,9 @@
 import type { LanguageModel } from "ai";
 
-import { hasSummaryContent, resolveSummaryDocument } from "@anlg/utils/session";
+import {
+  hasSummaryContent,
+  resolveSummaryDocument,
+} from "@syntheo/utils/session";
 
 import { type EnhanceEligibilitySkipCode, getEligibility } from "./eligibility";
 import {

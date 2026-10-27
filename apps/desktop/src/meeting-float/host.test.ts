@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { LiveTranscriptSegment } from "@anlg/plugin-transcription";
+import type { LiveTranscriptSegment } from "@syntheo/plugin-transcription";
 
 import {
   getFloatingRouteState,

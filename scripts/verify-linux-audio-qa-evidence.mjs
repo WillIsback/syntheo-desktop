@@ -12,7 +12,7 @@ export const linuxAudioQaPolicy = JSON.parse(
   ),
 );
 
-const APPLICATION = "fastrepl/hyprnote2";
+const APPLICATION = "WillIsback/syntheo-desktop2";
 const SOURCE_WORKFLOW = ".github/workflows/desktop_cd.yaml";
 const ARCHITECTURES = [
   {
@@ -288,7 +288,7 @@ async function verifyArchitecture({
     await readFile(await required("debian-package.txt"), "utf8"),
   );
   invariant(
-    packageFields.package === "anarlog" &&
+    packageFields.package === "syntheo" &&
       packageFields.version === version &&
       packageFields.architecture === architecture.debianArch,
     `Linux ${architecture.artifactArch} Debian package identity mismatch`,

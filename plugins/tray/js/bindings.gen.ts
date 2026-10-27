@@ -8,7 +8,7 @@
 export const commands = {
 async setTrayIconVisible(visible: boolean) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:anlg-tray|set_tray_icon_visible", { visible }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:syntheo-tray|set_tray_icon_visible", { visible }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -16,7 +16,7 @@ async setTrayIconVisible(visible: boolean) : Promise<Result<null, string>> {
 },
 async setTraySchedule(events: TrayScheduleEvent[]) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:anlg-tray|set_tray_schedule", { events }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:syntheo-tray|set_tray_schedule", { events }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -24,7 +24,7 @@ async setTraySchedule(events: TrayScheduleEvent[]) : Promise<Result<null, string
 },
 async setTrayRecordingTitle(title: string | null) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:anlg-tray|set_tray_recording_title", { title }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:syntheo-tray|set_tray_recording_title", { title }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

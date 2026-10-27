@@ -11,12 +11,12 @@ description = "Outbound meeting webhooks, markdown export, and cloud snapshot pr
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
-anlg-db-core = { workspace = true }
 specta-typescript = { workspace = true }
+syntheo-db-core = { workspace = true }
 
 [dependencies]
-anlg-agent-access = { workspace = true }
-anlg-db-app = { workspace = true }
+syntheo-agent-access = { workspace = true }
+syntheo-db-app = { workspace = true }
 tauri-plugin-db = { workspace = true }
 
 bytes = { workspace = true }

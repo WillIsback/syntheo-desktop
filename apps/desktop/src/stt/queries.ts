@@ -1,7 +1,7 @@
 import type {
   LiveTranscriptDelta,
   RenderTranscriptHuman,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import type { RecoveryInterval } from "./capture-audio-recovery";
 import { selectRecoveredWords } from "./recovered-transcript";

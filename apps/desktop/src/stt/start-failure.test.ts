@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: mocks.platform }));
 
-vi.mock("@anlg/plugin-permissions", () => ({
+vi.mock("@syntheo/plugin-permissions", () => ({
   commands: { checkPermission: mocks.checkPermission },
 }));
 

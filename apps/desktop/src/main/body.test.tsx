@@ -39,7 +39,7 @@ vi.mock("@tauri-apps/plugin-os", () => ({
   },
 }));
 
-vi.mock("@anlg/ui/components/ui/resizable", () => ({
+vi.mock("@syntheo/ui/components/ui/resizable", () => ({
   ResizablePanelGroup: ({
     children,
     onLayout,

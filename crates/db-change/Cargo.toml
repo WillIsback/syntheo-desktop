@@ -5,7 +5,7 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-anlg-cloudsync = { workspace = true }
+syntheo-cloudsync = { workspace = true }
 
 sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 tokio = { workspace = true, features = ["sync"] }

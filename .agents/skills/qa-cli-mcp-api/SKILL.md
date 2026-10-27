@@ -1,6 +1,6 @@
 ---
 name: qa-cli-mcp-api
-description: Select and run explicitly requested, risk-based QA for Anarlog's CLI, webhooks, stdio MCP, hosted Cloud API, and remote MCP. Test only affected lanes unless comprehensive coverage is requested.
+description: Select and run explicitly requested, risk-based QA for Syntheo's CLI, webhooks, stdio MCP, hosted Cloud API, and remote MCP. Test only affected lanes unless comprehensive coverage is requested.
 ---
 
 # QA: CLI, MCP, and API
@@ -97,7 +97,7 @@ Postgres directly for the live happy-path tests.
 Run from the repository root:
 
 ```bash
-cargo test -p anarlog-cli
+cargo test -p syntheo-cli
 cargo test -p tauri-plugin-local-api
 cargo test -p api-cloud
 cargo test -p api openapi::tests
@@ -120,10 +120,10 @@ generation. A generated diff after the second run is a failure.
 
 ## Local CLI
 
-Build the candidate CLI with `cargo build -p anarlog-cli`, then use the built
+Build the candidate CLI with `cargo build -p syntheo-cli`, then use the built
 binary for every step.
 
-1. Run `anarlog --json doctor`.
+1. Run `syntheo --json doctor`.
    - PASS when it exits `0`, reports `schema_version: "1"`, uses command
      `doctor`, reports `ready: true`, and resolves the intended QA database.
 2. Run `meetings list` with JSON output.
@@ -164,7 +164,7 @@ Launch the exact desktop candidate and add a temporary receiver under
 
 ## Local stdio MCP
 
-Start `anarlog mcp` through a real MCP client over stdio. Do not validate this
+Start `syntheo mcp` through a real MCP client over stdio. Do not validate this
 lane by invoking server handlers directly.
 
 1. Connect with the current MCP lifecycle and run `tools/list`. Repeat the handshake with a legacy `2025-11-25` client.
@@ -232,11 +232,11 @@ Connect a real Streamable HTTP MCP client to the deployed `/mcp` endpoint.
 4. Repeat initialization or a tool call with no credential, a malformed key, a
    revoked key, an expired account, and after opt-out. Unauthenticated MCP
    requests must return `WWW-Authenticate` pointing at
-   `https://api.anarlog.so/.well-known/oauth-protected-resource/mcp`.
+   `https://api.example.com/.well-known/oauth-protected-resource/mcp`.
 5. When OAuth is affected, complete MCP OAuth 2.1 discovery and consent from at
    least one documented host (Claude Code, Cursor, ChatGPT/Codex, or Copilot).
-   Confirm the consent screen is Anarlog's `/oauth/consent` route, the issued
-   token is bound to `https://api.anarlog.so/mcp`, and a tool call then reads
+   Confirm the consent screen is Syntheo's `/oauth/consent` route, the issued
+   token is bound to `https://api.example.com/mcp`, and a tool call then reads
    the marked meeting. Repeat with a static `anl_` key for hosts that cannot
    complete OAuth.
 6. Connect at least one supported agent client using the documented setup and

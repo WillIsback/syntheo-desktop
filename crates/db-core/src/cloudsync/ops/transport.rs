@@ -1,4 +1,4 @@
-use anlg_cloudsync::{OwnedSqliteConnection, ReservedConnection};
+use syntheo_cloudsync::{OwnedSqliteConnection, ReservedConnection};
 
 use super::super::CloudsyncInterruptHandle;
 use super::payload::ensure_pending_payload_fits;
@@ -8,7 +8,7 @@ pub(crate) async fn guarded_interruptible_network_send_changes<C, F>(
     connection: &mut ReservedConnection<C>,
     interrupt: &CloudsyncInterruptHandle,
     cancelled: F,
-) -> Result<anlg_cloudsync::NetworkResult, anlg_cloudsync::Error>
+) -> Result<syntheo_cloudsync::NetworkResult, syntheo_cloudsync::Error>
 where
     C: OwnedSqliteConnection,
     F: Fn() -> bool + Sync,
@@ -19,9 +19,10 @@ where
 pub(crate) async fn interruptible_network_receive_changes<C: OwnedSqliteConnection>(
     connection: &mut ReservedConnection<C>,
     interrupt: &CloudsyncInterruptHandle,
-) -> Result<anlg_cloudsync::NetworkResult, anlg_cloudsync::Error> {
+) -> Result<syntheo_cloudsync::NetworkResult, syntheo_cloudsync::Error> {
     let registration = interrupt.register(connection.connection().await?).await?;
-    let result = anlg_cloudsync::network_receive_changes_on_connection(connection, Some(1)).await;
+    let result =
+        syntheo_cloudsync::network_receive_changes_on_connection(connection, Some(1)).await;
     registration.finish(connection.connection().await?).await?;
     result
 }
@@ -29,9 +30,9 @@ pub(crate) async fn interruptible_network_receive_changes<C: OwnedSqliteConnecti
 pub(crate) async fn interruptible_network_logout<C: OwnedSqliteConnection>(
     connection: &mut ReservedConnection<C>,
     interrupt: &CloudsyncInterruptHandle,
-) -> Result<(), anlg_cloudsync::Error> {
+) -> Result<(), syntheo_cloudsync::Error> {
     let registration = interrupt.register(connection.connection().await?).await?;
-    let result = anlg_cloudsync::network_logout_on_connection(connection).await;
+    let result = syntheo_cloudsync::network_logout_on_connection(connection).await;
     registration.finish(connection.connection().await?).await?;
     result
 }
@@ -40,7 +41,7 @@ async fn guarded_network_send_changes_with_interrupt<C: OwnedSqliteConnection>(
     connection: &mut ReservedConnection<C>,
     interrupt: &CloudsyncInterruptHandle,
     cancelled: &(dyn Fn() -> bool + Sync),
-) -> Result<anlg_cloudsync::NetworkResult, anlg_cloudsync::Error> {
+) -> Result<syntheo_cloudsync::NetworkResult, syntheo_cloudsync::Error> {
     let batch = ensure_pending_payload_fits(connection, interrupt).await?;
     match interruptible_network_send_changes(
         connection,
@@ -65,7 +66,7 @@ async fn guarded_network_send_changes_with_interrupt<C: OwnedSqliteConnection>(
                     return Err(send_error);
                 }
             };
-            match anlg_cloudsync::reconcile_confirmed_pending_payload(
+            match syntheo_cloudsync::reconcile_confirmed_pending_payload(
                 connection.connection().await?,
                 batch,
                 &status,
@@ -103,21 +104,21 @@ async fn guarded_network_send_changes_with_interrupt<C: OwnedSqliteConnection>(
 }
 
 pub(super) fn should_reconcile_send_failure(
-    batch: anlg_cloudsync::PendingPayloadBatch,
-    error: &anlg_cloudsync::Error,
+    batch: syntheo_cloudsync::PendingPayloadBatch,
+    error: &syntheo_cloudsync::Error,
     cancelled: bool,
 ) -> bool {
-    !cancelled && batch.chunks > 0 && error.kind() == anlg_cloudsync::ErrorKind::Transient
+    !cancelled && batch.chunks > 0 && error.kind() == syntheo_cloudsync::ErrorKind::Transient
 }
 
 async fn interruptible_network_send_changes<C: OwnedSqliteConnection>(
     connection: &mut ReservedConnection<C>,
     interrupt: &CloudsyncInterruptHandle,
     max_db_versions: i64,
-) -> Result<anlg_cloudsync::NetworkResult, anlg_cloudsync::Error> {
+) -> Result<syntheo_cloudsync::NetworkResult, syntheo_cloudsync::Error> {
     let registration = interrupt.register(connection.connection().await?).await?;
     let result =
-        anlg_cloudsync::network_send_changes_bounded_on_connection(connection, max_db_versions)
+        syntheo_cloudsync::network_send_changes_bounded_on_connection(connection, max_db_versions)
             .await;
     registration.finish(connection.connection().await?).await?;
     result
@@ -126,26 +127,26 @@ async fn interruptible_network_send_changes<C: OwnedSqliteConnection>(
 pub(super) async fn interruptible_network_status<C: OwnedSqliteConnection>(
     connection: &mut ReservedConnection<C>,
     interrupt: Option<&CloudsyncInterruptHandle>,
-) -> Result<anlg_cloudsync::NetworkStatus, anlg_cloudsync::Error> {
+) -> Result<syntheo_cloudsync::NetworkStatus, syntheo_cloudsync::Error> {
     let Some(interrupt) = interrupt else {
-        return anlg_cloudsync::network_status(connection.connection().await?).await;
+        return syntheo_cloudsync::network_status(connection.connection().await?).await;
     };
     let registration = interrupt.register(connection.connection().await?).await?;
-    let result = anlg_cloudsync::network_status_on_connection(connection).await;
+    let result = syntheo_cloudsync::network_status_on_connection(connection).await;
     registration.finish(connection.connection().await?).await?;
     result
 }
 
 pub(super) fn reconciled_send_result(
-    batch: anlg_cloudsync::PendingPayloadBatch,
-    status: &anlg_cloudsync::NetworkStatus,
+    batch: syntheo_cloudsync::PendingPayloadBatch,
+    status: &syntheo_cloudsync::NetworkStatus,
     has_unsent_changes: bool,
-) -> anlg_cloudsync::NetworkResult {
+) -> syntheo_cloudsync::NetworkResult {
     let fully_confirmed = batch.watermark_db_version.is_some_and(|watermark| {
         status.last_optimistic_version >= watermark && status.last_confirmed_version >= watermark
     });
-    anlg_cloudsync::NetworkResult {
-        send: Some(anlg_cloudsync::NetworkSendResult {
+    syntheo_cloudsync::NetworkResult {
+        send: Some(syntheo_cloudsync::NetworkSendResult {
             status: if !fully_confirmed || batch.remaining || has_unsent_changes {
                 "syncing"
             } else {
@@ -171,10 +172,10 @@ pub(super) fn reconciled_send_result(
 }
 
 pub(super) fn merge_bounded_sync_results(
-    send: anlg_cloudsync::NetworkResult,
-    receive: anlg_cloudsync::NetworkResult,
-) -> anlg_cloudsync::NetworkResult {
-    anlg_cloudsync::NetworkResult {
+    send: syntheo_cloudsync::NetworkResult,
+    receive: syntheo_cloudsync::NetworkResult,
+) -> syntheo_cloudsync::NetworkResult {
+    syntheo_cloudsync::NetworkResult {
         send: send.send.or(receive.send),
         receive: receive.receive.or(send.receive),
     }

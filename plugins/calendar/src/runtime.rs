@@ -1,4 +1,4 @@
-use anlg_calendar::runtime::CalendarRuntime;
+use syntheo_calendar::runtime::CalendarRuntime;
 use tauri_specta::Event as _;
 
 use crate::events::CalendarChangedEvent;

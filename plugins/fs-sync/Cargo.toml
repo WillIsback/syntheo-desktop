@@ -17,7 +17,7 @@ tempfile = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt", "time"] }
 
 [dependencies]
-anlg-fs-sync-core = { workspace = true, features = ["tauri-event"] }
+syntheo-fs-sync-core = { workspace = true, features = ["tauri-event"] }
 
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["serde_json"] }

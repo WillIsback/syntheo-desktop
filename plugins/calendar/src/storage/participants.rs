@@ -1,4 +1,4 @@
-use anlg_db_app::{ParticipantHumanRow, ParticipantMappingRow, SessionSyncRow};
+use syntheo_db_app::{ParticipantHumanRow, ParticipantMappingRow, SessionSyncRow};
 
 use super::connection_sync::IncomingEventParticipant;
 use super::identity::{NameSource, derive_contact_identity, is_email_placeholder_name};
@@ -243,7 +243,7 @@ fn plan_human_enrichment(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_app::{ParticipantHumanRow, ParticipantMappingRow, SessionSyncRow};
+    use syntheo_db_app::{ParticipantHumanRow, ParticipantMappingRow, SessionSyncRow};
 
     fn participant(email: &str, name: Option<&str>) -> IncomingEventParticipant {
         IncomingEventParticipant {

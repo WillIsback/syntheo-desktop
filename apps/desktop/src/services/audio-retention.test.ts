@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   live: { loading: false, sessionId: null as string | null },
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: { deleteProcessedSessionAudio: mocks.deleteProcessedSessionAudio },
   events: {},
 }));

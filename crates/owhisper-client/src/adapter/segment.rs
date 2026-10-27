@@ -1,6 +1,6 @@
-use anlg_ws_client::client::Message;
 use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use serde_json::Value;
+use syntheo_ws_client::client::Message;
 
 use super::parsing::WordBuilder;
 

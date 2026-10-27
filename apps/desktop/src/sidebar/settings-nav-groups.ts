@@ -20,7 +20,7 @@ import {
   Users,
   VideoCamera,
   Waveform,
-} from "@anlg/ui/components/icons";
+} from "@syntheo/ui/components/icons";
 
 import { privacyMessages } from "~/settings/general/app-settings";
 import { type SettingsTab, type TabInput } from "~/store/zustand/tabs";

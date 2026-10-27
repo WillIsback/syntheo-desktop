@@ -99,7 +99,7 @@ fn transform_mentions_in_markdown(markdown: &str) -> String {
         let app_url = format!("/app/{}/{}", mention_type, id);
 
         format!(
-            r#"<a class="mention" data-mention="true" data-id="{}" data-type="{}" data-label="{}" href="javascript:void(0)" onclick="event.preventDefault(); if (window.__ANARLOG_NAVIGATE__) window.__ANARLOG_NAVIGATE__('{}');">@{}</a>"#,
+            r#"<a class="mention" data-mention="true" data-id="{}" data-type="{}" data-label="{}" href="javascript:void(0)" onclick="event.preventDefault(); if (window.__SYNTHEO_NAVIGATE__) window.__SYNTHEO_NAVIGATE__('{}');">@{}</a>"#,
             id, mention_type, label, app_url, label
         )
     }).to_string()
@@ -285,7 +285,7 @@ mod tests {
     fn test_md_to_md_3() {
         let input = r#"
 # Enhanced Meeting Notes
-## What Anarlog Does
+## What Syntheo Does
 - A smart notepad for people with back-to-back meetings.
 - Listens to the meeting so you don't have to write everything down.
 - Merges your notes and the transcript into a clean, context-aware summary.
@@ -301,20 +301,20 @@ mod tests {
 - Offers powerful extensions—like real-time transcripts and CRM uploads (e.g. Twenty).
 
 ## Stay Connected
-- Follow updates on [X](https://anarlog.so/x).
-- Join the community and chat on [Discord](https://anarlog.so/discord). 
+- Follow updates on [X](https://github.com/WillIsback/syntheo-desktop/x).
+- Join the community and chat on [Discord](https://github.com/WillIsback/syntheo-desktop/discord). 
 
 # Participants:
 
-* [John Jeong](mailto:john@hyprnote.com)
-* [Yujong Lee](mailto:yujonglee@hyprnote.com)
+* [John Jeong](mailto:john@syntheo.com)
+* [Yujong Lee](mailto:yujonglee@syntheo.com)
 
 # Meeting Transcript
 (No raw excerpt provided, utilized to generate the enhanced note)
 "#;
 
         insta::assert_snapshot!(md_to_md(input).unwrap().to_string(), @"
-        # What Anarlog Does
+        # What Syntheo Does
 
         - A smart notepad for people with back-to-back meetings.
         - Listens to the meeting so you don't have to write everything down.
@@ -340,15 +340,15 @@ mod tests {
 
         # Stay Connected
 
-        - Follow updates on [X](https://anarlog.so/x).
-        - Join the community and chat on [Discord](https://anarlog.so/discord).
+        - Follow updates on [X](https://github.com/WillIsback/syntheo-desktop/x).
+        - Join the community and chat on [Discord](https://github.com/WillIsback/syntheo-desktop/discord).
 
          
 
         # Participants:
 
-        - [John Jeong](mailto:john@hyprnote.com)
-        - [Yujong Lee](mailto:yujonglee@hyprnote.com)
+        - [John Jeong](mailto:john@syntheo.com)
+        - [Yujong Lee](mailto:yujonglee@syntheo.com)
 
          
 
@@ -362,7 +362,7 @@ mod tests {
     fn test_opinionated_md_to_html() {
         let input = r#"
 # Enhanced Meeting Notes
-## What Anarlog Does
+## What Syntheo Does
 - A smart notepad for people with back-to-back meetings.
 - Listens to the meeting so you don't have to write everything down.
 - Merges your notes and the transcript into a clean, context-aware summary.
@@ -378,12 +378,12 @@ mod tests {
 - Offers powerful extensions—like real-time transcripts and CRM uploads (e.g. Twenty).
 
 ## Stay Connected
-- Follow updates on [X](https://anarlog.so/x).
-- Join the community and chat on [Discord](https://anarlog.so/discord).
+- Follow updates on [X](https://github.com/WillIsback/syntheo-desktop/x).
+- Join the community and chat on [Discord](https://github.com/WillIsback/syntheo-desktop/discord).
 "#;
 
         insta::assert_snapshot!(opinionated_md_to_html(input).unwrap().to_string(), @r#"
-        <h1>What Anarlog Does</h1>
+        <h1>What Syntheo Does</h1>
         <ul>
         <li>A smart notepad for people with back-to-back meetings.</li>
         <li>Listens to the meeting so you don't have to write everything down.</li>
@@ -406,8 +406,8 @@ mod tests {
         <p> </p>
         <h1>Stay Connected</h1>
         <ul>
-        <li>Follow updates on <a href="https://anarlog.so/x">X</a>.</li>
-        <li>Join the community and chat on <a href="https://anarlog.so/discord">Discord</a>.</li>
+        <li>Follow updates on <a href="https://github.com/WillIsback/syntheo-desktop/x">X</a>.</li>
+        <li>Join the community and chat on <a href="https://github.com/WillIsback/syntheo-desktop/discord">Discord</a>.</li>
         </ul>
         "#);
     }

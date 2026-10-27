@@ -1,4 +1,4 @@
-import { commands as windowsCommands } from "@anlg/plugin-windows";
+import { commands as windowsCommands } from "@syntheo/plugin-windows";
 
 import type { FloatingRouteState } from "./route-state";
 

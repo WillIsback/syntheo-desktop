@@ -10,9 +10,9 @@ import {
   useState,
 } from "react";
 
-import { CalendarDots } from "@anlg/ui/components/icons";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+import { CalendarDots } from "@syntheo/ui/components/icons";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import { useAnchor, useAutoScrollToAnchor } from "./anchor";
 import { TimelineBuckets } from "./buckets";

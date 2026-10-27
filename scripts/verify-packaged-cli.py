@@ -13,32 +13,32 @@ import threading
 def verify(package_root: Path, version: str):
     binaries = [
         path
-        for path in package_root.rglob("anarlog-cli*")
-        if path.is_file() and path.name in {"anarlog-cli", "anarlog-cli.exe"}
+        for path in package_root.rglob("syntheo-cli*")
+        if path.is_file() and path.name in {"syntheo-cli", "syntheo-cli.exe"}
     ]
     if len(binaries) != 1:
         raise RuntimeError(f"Expected one packaged CLI, found {binaries}")
     binary = binaries[0].resolve()
     snapshot = (
         Path(__file__).resolve().parent.parent
-        / "apps/cli/src/snapshots/anarlog_cli__mcp__tests__mcp_contract.snap"
+        / "apps/cli/src/snapshots/syntheo_cli__mcp__tests__mcp_contract.snap"
     )
     contract = json.loads(snapshot.read_text().split("---", 2)[2])
 
-    with tempfile.TemporaryDirectory(prefix="anarlog-cli-release-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="syntheo-cli-release-") as temporary:
         root = Path(temporary)
         database = root / "fixture.db"
         with closing(sqlite3.connect(database)) as connection:
             connection.execute("PRAGMA user_version = 0")
         env = {
             **os.environ,
-            "ANARLOG_DISABLE_SENTRY": "1",
-            "ANARLOG_AUTH_PATH": str(root / "auth.json"),
+            "SYNTHEO_DISABLE_SENTRY": "1",
+            "SYNTHEO_AUTH_PATH": str(root / "auth.json"),
         }
         actual = subprocess.check_output(
             [str(binary), "--version"], text=True, env=env, timeout=30
         ).strip()
-        if actual != f"anarlog {version}":
+        if actual != f"syntheo {version}":
             raise RuntimeError(f"Unexpected packaged CLI version: {actual}")
         for command in [[], ["meetings"], ["proposals"], ["mcp"]]:
             subprocess.run(
@@ -106,7 +106,7 @@ def verify(package_root: Path, version: str):
                     raise RuntimeError(
                         "Packaged MCP instructions differ from the contract"
                     )
-                if initialized["serverInfo"] != {"name": "anarlog", "version": version}:
+                if initialized["serverInfo"] != {"name": "syntheo", "version": version}:
                     raise RuntimeError(
                         "Packaged MCP server version differs from the CLI"
                     )

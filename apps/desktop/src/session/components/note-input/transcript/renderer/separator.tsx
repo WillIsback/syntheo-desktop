@@ -1,4 +1,4 @@
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 export function TranscriptSeparator() {
   return (

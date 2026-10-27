@@ -9,7 +9,7 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-use anlg_audio_utils::Source;
+use syntheo_audio_utils::Source;
 
 const RECOVERY_DIR: &str = "audio-recovery";
 pub const DELETE_ON_STOP: &str = ".delete-audio-on-stop";
@@ -192,7 +192,7 @@ fn is_recovery_partial_name(name: &str) -> bool {
 }
 
 fn partial_is_unreadable(path: &Path) -> bool {
-    anlg_audio_utils::source_from_path(path).is_err()
+    syntheo_audio_utils::source_from_path(path).is_err()
 }
 
 // Call only during application startup. Active `.part` files must stay
@@ -225,7 +225,7 @@ fn recover_partial_chunks(session_dir: &Path) -> std::io::Result<()> {
         ) else {
             continue;
         };
-        let source = match anlg_audio_utils::source_from_path(entry.path()) {
+        let source = match syntheo_audio_utils::source_from_path(entry.path()) {
             Ok(source) => source,
             Err(error) => {
                 tracing::warn!(?error, path = ?entry.path(), "partial_audio_unreadable");

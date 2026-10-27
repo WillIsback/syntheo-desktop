@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-overlay",
+  "name": "@syntheo/plugin-overlay",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

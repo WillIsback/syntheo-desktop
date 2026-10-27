@@ -41,7 +41,7 @@ pub async fn apply_contact_enhancement(
     run_write(pool, |conn| {
         Box::pin(async move {
             if request.create_if_missing {
-                anlg_db_app::upsert_revived_human(
+                syntheo_db_app::upsert_revived_human(
                     conn,
                     &request.human_id,
                     &request.owner_user_id,
@@ -55,7 +55,7 @@ pub async fn apply_contact_enhancement(
 
             let company_name = request.company_name.as_deref().unwrap_or_default();
             if !company_name.is_empty() {
-                anlg_db_app::insert_organization_by_name_if_missing(
+                syntheo_db_app::insert_organization_by_name_if_missing(
                     conn,
                     &uuid::Uuid::new_v4().to_string(),
                     &request.owner_user_id,
@@ -99,7 +99,7 @@ pub async fn apply_contact_enhancement(
             }
 
             if !assignments.is_empty() {
-                anlg_db_app::update_contact_fields(
+                syntheo_db_app::update_contact_fields(
                     conn,
                     "humans",
                     &assignments,
@@ -118,11 +118,11 @@ pub async fn apply_contact_enhancement(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 

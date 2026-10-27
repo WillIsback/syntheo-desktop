@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use anlg_transcription_core::listener2 as core;
+use syntheo_transcription_core::listener2 as core;
 use tauri::Manager;
 
 use crate::TranscriptionParams;
@@ -92,7 +92,7 @@ pub async fn is_supported_languages_batch<R: tauri::Runtime>(
 ) -> Result<bool, String> {
     let languages_parsed = languages
         .iter()
-        .map(|s| anlg_language::Language::from_str(s))
+        .map(|s| syntheo_language::Language::from_str(s))
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| format!("unknown_language: {}", e))?;
 
@@ -107,7 +107,7 @@ pub async fn suggest_providers_for_languages_batch<R: tauri::Runtime>(
 ) -> Result<Vec<String>, String> {
     let languages_parsed = languages
         .iter()
-        .map(|s| anlg_language::Language::from_str(s))
+        .map(|s| syntheo_language::Language::from_str(s))
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| format!("unknown_language: {}", e))?;
 
@@ -127,9 +127,9 @@ pub async fn list_documented_language_codes_batch<R: tauri::Runtime>(
 #[tauri::command]
 #[specta::specta]
 pub async fn refine_batch_transcript(
-    request: anlg_transcript::BatchRefinementRequest,
-) -> Result<anlg_transcript::BatchRefinementOutcome, String> {
-    Ok(anlg_transcript::refine_batch_transcript(request))
+    request: syntheo_transcript::BatchRefinementRequest,
+) -> Result<syntheo_transcript::BatchRefinementOutcome, String> {
+    Ok(syntheo_transcript::refine_batch_transcript(request))
 }
 
 #[tauri::command]
@@ -162,9 +162,9 @@ pub async fn render_session_transcript<R: tauri::Runtime>(
 #[tauri::command]
 #[specta::specta]
 pub async fn reconcile_refined_speaker_clusters(
-    request: anlg_transcript::SpeakerClusterReconciliationRequest,
-) -> Result<Vec<anlg_transcript::StoredSpeakerHint>, String> {
-    Ok(anlg_transcript::reconcile_refined_speaker_clusters(
+    request: syntheo_transcript::SpeakerClusterReconciliationRequest,
+) -> Result<Vec<syntheo_transcript::StoredSpeakerHint>, String> {
+    Ok(syntheo_transcript::reconcile_refined_speaker_clusters(
         &request.source,
         &request.words,
         request.hints,

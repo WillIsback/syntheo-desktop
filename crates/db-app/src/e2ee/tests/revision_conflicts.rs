@@ -323,12 +323,13 @@ async fn equal_revision_payloads_converge_and_repair_the_replica() {
             json!("Clone B"),
         )
         .unwrap();
-    let (winner, winner_title, replay) =
-        if anlg_e2ee::payload_hash(&third.payload) > anlg_e2ee::payload_hash(&fourth.payload) {
-            (third, "Clone A", fourth)
-        } else {
-            (fourth, "Clone B", third)
-        };
+    let (winner, winner_title, replay) = if syntheo_e2ee::payload_hash(&third.payload)
+        > syntheo_e2ee::payload_hash(&fourth.payload)
+    {
+        (third, "Clone A", fourth)
+    } else {
+        (fourth, "Clone B", third)
+    };
 
     sqlx::query("UPDATE e2ee_records SET payload = ? WHERE id = ?")
         .bind(&winner.payload)

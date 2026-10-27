@@ -123,7 +123,7 @@ pub(super) fn record_sync_result(
         runtime.last_error_kind = runtime
             .last_error
             .as_deref()
-            .map(|error| anlg_cloudsync::Error::Io(std::io::Error::other(error)).kind());
+            .map(|error| syntheo_cloudsync::Error::Io(std::io::Error::other(error)).kind());
         return;
     }
 
@@ -210,7 +210,7 @@ fn log_sync_result(
                 receive.error.is_some() || receive.last_failure.is_some()
             }),
             error_kind = ?activity.error.as_deref().map(|error| {
-                anlg_cloudsync::Error::Io(std::io::Error::other(error)).kind()
+                syntheo_cloudsync::Error::Io(std::io::Error::other(error)).kind()
             }),
             send_failure_code = ?send_failure.code,
             send_failure_stage = ?send_failure.stage,
@@ -317,7 +317,7 @@ fn embedded_sync_error(result: &CloudsyncNetworkResult) -> Option<String> {
 
 pub(super) fn record_sync_error(
     runtime: &Mutex<CloudsyncRuntimeState>,
-    error: &anlg_cloudsync::Error,
+    error: &syntheo_cloudsync::Error,
     trigger: CloudsyncActivityTrigger,
 ) -> u32 {
     let mut runtime = runtime.lock().unwrap();
@@ -358,7 +358,7 @@ pub(super) struct CloudsyncLoopContext {
     pub(super) interrupt: Arc<super::super::CloudsyncInterruptHandle>,
     pub(super) sync_operation: Arc<tokio::sync::Mutex<()>>,
     pub(super) sync_requested: Arc<tokio::sync::Notify>,
-    pub(super) change_rx: tokio::sync::broadcast::Receiver<anlg_db_change::TableChange>,
+    pub(super) change_rx: tokio::sync::broadcast::Receiver<syntheo_db_change::TableChange>,
     pub(super) synced_tables: std::collections::HashSet<String>,
     pub(super) runtime_state: Arc<Mutex<CloudsyncRuntimeState>>,
     pub(super) sync_hook: Arc<Mutex<Option<Arc<dyn super::super::CloudsyncSyncHook>>>>,
@@ -397,7 +397,7 @@ pub(super) fn cloudsync_wake_deadline(
 /// tables are skipped without completing so a pending interval timer keeps
 /// its deadline; a lagged subscription wakes conservatively.
 pub(super) async fn next_synced_change(
-    change_rx: &mut tokio::sync::broadcast::Receiver<anlg_db_change::TableChange>,
+    change_rx: &mut tokio::sync::broadcast::Receiver<syntheo_db_change::TableChange>,
     synced_tables: &std::collections::HashSet<String>,
     closed: &mut bool,
 ) {
@@ -429,7 +429,7 @@ pub(super) async fn next_synced_change(
 /// writes nothing, and the loop settles. A lagged subscription reports
 /// conservatively.
 pub(super) fn drain_pending_changes(
-    change_rx: &mut tokio::sync::broadcast::Receiver<anlg_db_change::TableChange>,
+    change_rx: &mut tokio::sync::broadcast::Receiver<syntheo_db_change::TableChange>,
     synced_tables: &std::collections::HashSet<String>,
 ) -> bool {
     let mut synced_change_seen = false;
@@ -524,7 +524,7 @@ pub(super) async fn cloudsync_background_loop(
 async fn sync_cloudsync_with_retry(
     context: &CloudsyncLoopContext,
     shutdown_rx: &mut oneshot::Receiver<()>,
-) -> Option<Result<CloudsyncStepOutcome, anlg_cloudsync::Error>> {
+) -> Option<Result<CloudsyncStepOutcome, syntheo_cloudsync::Error>> {
     let mut backoff = ExponentialBuilder::default()
         .with_min_delay(context.config.interval)
         .with_max_delay(Duration::from_secs(MAX_BACKOFF_SECS))
@@ -535,7 +535,7 @@ async fn sync_cloudsync_with_retry(
         let result = run_sync_or_shutdown(context, shutdown_rx).await?;
 
         match result {
-            Err(error) if error.kind() == anlg_cloudsync::ErrorKind::Transient => {
+            Err(error) if error.kind() == syntheo_cloudsync::ErrorKind::Transient => {
                 let Some(retry_after) = backoff.next() else {
                     return Some(Err(error));
                 };
@@ -570,7 +570,7 @@ async fn sync_cloudsync_with_retry(
 async fn run_sync_or_shutdown(
     context: &CloudsyncLoopContext,
     shutdown_rx: &mut oneshot::Receiver<()>,
-) -> Option<Result<CloudsyncStepOutcome, anlg_cloudsync::Error>> {
+) -> Option<Result<CloudsyncStepOutcome, syntheo_cloudsync::Error>> {
     let sync = sync_cloudsync_connection(
         &context.pool,
         &context.connection,
@@ -621,7 +621,7 @@ pub(super) async fn sync_cloudsync_connection(
     sync_operation: &tokio::sync::Mutex<()>,
     runtime_state: &Mutex<CloudsyncRuntimeState>,
     sync_hook: &Mutex<Option<Arc<dyn super::super::CloudsyncSyncHook>>>,
-) -> Result<CloudsyncStepOutcome, anlg_cloudsync::Error> {
+) -> Result<CloudsyncStepOutcome, syntheo_cloudsync::Error> {
     let _sync_operation = sync_operation.lock().await;
     if cloudsync_activity_paused(sync_hook) {
         tracing::debug!("cloudsync deferred while local activity is active");
@@ -733,10 +733,12 @@ pub(super) async fn sync_cloudsync_connection(
     )))
 }
 
-pub(super) async fn pending_cloudsync_payload_exists<C: anlg_cloudsync::OwnedSqliteConnection>(
-    connection: &mut anlg_cloudsync::ReservedConnection<C>,
+pub(super) async fn pending_cloudsync_payload_exists<
+    C: syntheo_cloudsync::OwnedSqliteConnection,
+>(
+    connection: &mut syntheo_cloudsync::ReservedConnection<C>,
     interrupt: &super::super::CloudsyncInterruptHandle,
-) -> Result<bool, anlg_cloudsync::Error> {
+) -> Result<bool, syntheo_cloudsync::Error> {
     if !super::super::ops::cloudsync_has_local_unsent_changes_on(connection.connection().await?)
         .await?
     {
@@ -780,7 +782,7 @@ pub(super) fn merge_bounded_sync_results(
 pub(super) async fn run_before_sync_hook(
     hook: &Mutex<Option<Arc<dyn super::super::CloudsyncSyncHook>>>,
     pool: &SqlitePool,
-) -> Result<super::super::CloudsyncSyncDirective, anlg_cloudsync::Error> {
+) -> Result<super::super::CloudsyncSyncDirective, syntheo_cloudsync::Error> {
     let hook = hook.lock().unwrap().clone();
     match hook {
         Some(hook) => hook.before_sync(pool).await,
@@ -792,7 +794,7 @@ pub(super) async fn run_after_sync_hook(
     hook: &Mutex<Option<Arc<dyn super::super::CloudsyncSyncHook>>>,
     pool: &SqlitePool,
     result: &CloudsyncNetworkResult,
-) -> Result<super::super::CloudsyncHookOutcome, anlg_cloudsync::Error> {
+) -> Result<super::super::CloudsyncHookOutcome, syntheo_cloudsync::Error> {
     let hook = hook.lock().unwrap().clone();
     match hook {
         Some(hook) => hook.after_sync(pool, result).await,

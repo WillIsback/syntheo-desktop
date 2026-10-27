@@ -2,7 +2,7 @@ import {
   commands,
   type RenderTranscriptRequest,
   type RenderedTranscriptSegment,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import type { ListenerState } from "./route-state";
 

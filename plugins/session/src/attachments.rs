@@ -53,7 +53,7 @@ pub async fn catalog_note_attachment(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::enqueue_replaced_attachment_delete_by_path(
+    syntheo_db_app::enqueue_replaced_attachment_delete_by_path(
         &mut transaction,
         &delete_job_id,
         &request.session_id,
@@ -64,7 +64,7 @@ pub async fn catalog_note_attachment(
     .await
     .map_err(|error| error.to_string())?;
 
-    let updated = anlg_db_app::update_note_attachment(
+    let updated = syntheo_db_app::update_note_attachment(
         &mut transaction,
         &request.filename,
         &request.content_type,
@@ -77,7 +77,7 @@ pub async fn catalog_note_attachment(
     .await
     .map_err(|error| error.to_string())?;
 
-    let inserted = anlg_db_app::insert_note_attachment(
+    let inserted = syntheo_db_app::insert_note_attachment(
         &mut transaction,
         &metadata_id,
         &request.filename,
@@ -91,7 +91,7 @@ pub async fn catalog_note_attachment(
     .await
     .map_err(|error| error.to_string())?;
 
-    let local_state = anlg_db_app::upsert_attachment_local_state_by_path(
+    let local_state = syntheo_db_app::upsert_attachment_local_state_by_path(
         &mut transaction,
         &request.session_id,
         &relative_path,
@@ -102,7 +102,7 @@ pub async fn catalog_note_attachment(
         return Err(rollback_row_count_mismatch(transaction, 3, local_state, 1).await);
     }
 
-    anlg_db_app::enqueue_attachment_upload_by_path(
+    syntheo_db_app::enqueue_attachment_upload_by_path(
         &mut transaction,
         &upload_job_id,
         &request.session_id,
@@ -135,7 +135,7 @@ pub async fn catalog_session_audio(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::enqueue_replaced_attachment_delete_by_id(
+    syntheo_db_app::enqueue_replaced_attachment_delete_by_id(
         &mut transaction,
         &delete_job_id,
         &request.session_id,
@@ -146,7 +146,7 @@ pub async fn catalog_session_audio(
     .await
     .map_err(|error| error.to_string())?;
 
-    let updated = anlg_db_app::update_session_audio_attachment(
+    let updated = syntheo_db_app::update_session_audio_attachment(
         &mut transaction,
         &request.filename,
         &request.content_type,
@@ -158,7 +158,7 @@ pub async fn catalog_session_audio(
     .await
     .map_err(|error| error.to_string())?;
 
-    let inserted = anlg_db_app::insert_session_audio_attachment(
+    let inserted = syntheo_db_app::insert_session_audio_attachment(
         &mut transaction,
         &attachment_id,
         &request.filename,
@@ -170,7 +170,7 @@ pub async fn catalog_session_audio(
     .await
     .map_err(|error| error.to_string())?;
 
-    let local_state = anlg_db_app::upsert_attachment_local_state_by_id(
+    let local_state = syntheo_db_app::upsert_attachment_local_state_by_id(
         &mut transaction,
         &attachment_id,
         &request.session_id,
@@ -181,7 +181,7 @@ pub async fn catalog_session_audio(
         return Err(rollback_row_count_mismatch(transaction, 3, local_state, 1).await);
     }
 
-    anlg_db_app::enqueue_attachment_upload_by_id(
+    syntheo_db_app::enqueue_attachment_upload_by_id(
         &mut transaction,
         &upload_job_id,
         &request.session_id,
@@ -210,9 +210,12 @@ pub async fn mark_session_audio_transcription_complete(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::mark_session_audio_transcription_complete(&mut transaction, &request.session_id)
-        .await
-        .map_err(|error| error.to_string())?;
+    syntheo_db_app::mark_session_audio_transcription_complete(
+        &mut transaction,
+        &request.session_id,
+    )
+    .await
+    .map_err(|error| error.to_string())?;
 
     transaction
         .commit()
@@ -230,7 +233,7 @@ pub async fn set_attachment_cloud_sync_enabled(
         .await
         .map_err(|error| error.to_string())?;
 
-    let updated = anlg_db_app::set_attachment_cloud_sync_flag(
+    let updated = syntheo_db_app::set_attachment_cloud_sync_flag(
         &mut transaction,
         i64::from(request.enabled),
         &now,
@@ -241,14 +244,14 @@ pub async fn set_attachment_cloud_sync_enabled(
     .map_err(|error| error.to_string())?;
 
     if request.enabled {
-        anlg_db_app::complete_attachment_delete_jobs(
+        syntheo_db_app::complete_attachment_delete_jobs(
             &mut transaction,
             &now,
             &request.attachment_id,
         )
         .await
         .map_err(|error| error.to_string())?;
-        anlg_db_app::enqueue_attachment_upload_by_id(
+        syntheo_db_app::enqueue_attachment_upload_by_id(
             &mut transaction,
             &uuid::Uuid::new_v4().to_string(),
             &request.session_id,
@@ -256,7 +259,7 @@ pub async fn set_attachment_cloud_sync_enabled(
         )
         .await
         .map_err(|error| error.to_string())?;
-        anlg_db_app::enqueue_attachment_download_job_enabled(
+        syntheo_db_app::enqueue_attachment_download_job_enabled(
             &mut transaction,
             &uuid::Uuid::new_v4().to_string(),
             &request.attachment_id,
@@ -265,14 +268,14 @@ pub async fn set_attachment_cloud_sync_enabled(
         .await
         .map_err(|error| error.to_string())?;
     } else {
-        anlg_db_app::complete_attachment_upload_download_jobs(
+        syntheo_db_app::complete_attachment_upload_download_jobs(
             &mut transaction,
             &now,
             &request.attachment_id,
         )
         .await
         .map_err(|error| error.to_string())?;
-        anlg_db_app::enqueue_attachment_download_job_disabled(
+        syntheo_db_app::enqueue_attachment_download_job_disabled(
             &mut transaction,
             &uuid::Uuid::new_v4().to_string(),
             &request.attachment_id,
@@ -280,7 +283,7 @@ pub async fn set_attachment_cloud_sync_enabled(
         )
         .await
         .map_err(|error| error.to_string())?;
-        anlg_db_app::enqueue_attachment_delete_job_disabled(
+        syntheo_db_app::enqueue_attachment_delete_job_disabled(
             &mut transaction,
             &uuid::Uuid::new_v4().to_string(),
             &request.attachment_id,
@@ -311,7 +314,7 @@ pub async fn tombstone_session_audio(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::tombstone_session_audio_attachment(
+    syntheo_db_app::tombstone_session_audio_attachment(
         &mut transaction,
         &attachment_id,
         &request.session_id,
@@ -329,7 +332,7 @@ pub async fn mark_session_audio_absent(
     pool: &SqlitePool,
     request: SessionAudioRequest,
 ) -> Result<(), String> {
-    anlg_db_app::mark_session_audio_absent(pool, &request.session_id)
+    syntheo_db_app::mark_session_audio_absent(pool, &request.session_id)
         .await
         .map_err(|error| error.to_string())
 }

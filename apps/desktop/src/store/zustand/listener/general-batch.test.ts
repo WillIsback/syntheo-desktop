@@ -58,13 +58,13 @@ vi.mock("~/shared/notification-policy", () => ({
   shouldShowNotification: shouldShowNotificationMock,
 }));
 
-vi.mock("@anlg/plugin-notification", () => ({
+vi.mock("@syntheo/plugin-notification", () => ({
   commands: {
     showNotification: showNotificationMock,
   },
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   events: {
     transcriptionEvent: {
       listen: listenMock,

@@ -142,7 +142,7 @@ pub async fn connect_local_library(
     // for the first connection. Installing the migration alone remains safe;
     // explicitly connecting a distinct account opts into the new semantics.
     if account_user_id != binding.workspace_id {
-        sqlx::query("UPDATE _anlg_schema_compat SET min_supported_version = MAX(min_supported_version, 20260916043000) WHERE id = 0")
+        sqlx::query("UPDATE _syntheo_schema_compat SET min_supported_version = MAX(min_supported_version, 20260916043000) WHERE id = 0")
             .execute(&mut *transaction).await?;
     }
     save_connection(&mut transaction, account_user_id, &binding.workspace_id).await?;

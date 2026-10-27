@@ -1,6 +1,6 @@
 ---
 name: release-api
-description: Review Anarlog API contracts and generated clients, deploy required hosted services and database changes, and verify live release behavior.
+description: Review Syntheo API contracts and generated clients, deploy required hosted services and database changes, and verify live release behavior.
 metadata:
   internal: true
 ---
@@ -22,8 +22,8 @@ authorization from [Release a New Version](../release-new-version/SKILL.md).
 
    ```bash
    cargo test -p api gen_openapi_json
-   pnpm -F @anlg/api-client openapi
-   pnpm -F @anlg/api-client typecheck
+   pnpm -F @syntheo/api-client openapi
+   pnpm -F @syntheo/api-client typecheck
    ```
 
    Use owning generators and verify repeated generation is stable. Test hosted

@@ -1,4 +1,4 @@
-import type { CalendarProviderType } from "@anlg/plugin-calendar";
+import type { CalendarProviderType } from "@syntheo/plugin-calendar";
 
 import {
   type CalendarSyncRange,

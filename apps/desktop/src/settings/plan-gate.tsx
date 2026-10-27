@@ -6,8 +6,8 @@ import {
   useRef,
 } from "react";
 
-import { toast } from "@anlg/ui/components/ui/toast";
-import { cn } from "@anlg/utils";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { cn } from "@syntheo/utils";
 
 import { useBillingAccess } from "~/billing/billing-context";
 
@@ -21,8 +21,8 @@ export function useNotifyPlanRequired() {
     (plan: GatedPlan) => {
       const message =
         plan === "pro"
-          ? t`This requires Anarlog Pro`
-          : t`This requires Anarlog Enterprise`;
+          ? t`This requires Syntheo Pro`
+          : t`This requires Syntheo Enterprise`;
 
       toast.warning(message, {
         ...(plan === "pro"

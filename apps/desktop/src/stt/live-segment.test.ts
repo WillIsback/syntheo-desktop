@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type {
   IdentityAssignment,
   RenderTranscriptRequest,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import {
   applyRenderRequestIdentitiesToSegments,

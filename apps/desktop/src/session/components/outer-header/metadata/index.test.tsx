@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { Popover } from "@anlg/ui/components/ui/popover";
+import { Popover } from "@syntheo/ui/components/ui/popover";
 
 import { DateEditor } from "./date";
 import { MetadataPopoverContent } from "./index";
@@ -33,7 +33,7 @@ vi.mock("@lingui/react/macro", () => ({
   }),
 }));
 
-vi.mock("@anlg/plugin-opener2", () => ({
+vi.mock("@syntheo/plugin-opener2", () => ({
   commands: {
     openUrl: vi.fn(),
   },

@@ -95,7 +95,7 @@ pub async fn execute(pool: &SqlitePool) -> crate::Result<crate::LegacyCleanupRes
     )
     .bind(CLEANUP_COMPLETE_PHASE)
     .bind(&plan.latest_run_id)
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .execute(pool)
     .await?;
 
@@ -138,7 +138,7 @@ async fn build_plan(pool: &SqlitePool) -> crate::Result<CleanupPlan> {
         ));
     }
 
-    if !state.parity_verified || state.importer_version != anlg_db_app::LEGACY_IMPORTER_VERSION {
+    if !state.parity_verified || state.importer_version != syntheo_db_app::LEGACY_IMPORTER_VERSION {
         return Ok(blocked_plan(
             "SQLite migration has not passed current parity verification",
             state.latest_run_id,
@@ -152,7 +152,7 @@ async fn build_plan(pool: &SqlitePool) -> crate::Result<CleanupPlan> {
          WHERE id = ? AND importer_version = ?",
     )
     .bind(&state.latest_run_id)
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .fetch_optional(pool)
     .await?;
 
@@ -369,7 +369,7 @@ mod tests {
              (id, importer_version, source_root, dry_run, status, completed_at)
              VALUES ('verified-run', ?, ?, 0, 'completed', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
         )
-        .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+        .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
         .bind(source_root.to_string_lossy().as_ref())
         .execute(pool)
         .await
@@ -394,7 +394,7 @@ mod tests {
              SET importer_version = ?, latest_run_id = 'verified-run', parity_verified = 1
              WHERE id = 'legacy_v1'",
         )
-        .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+        .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
         .execute(pool)
         .await
         .unwrap();
@@ -402,8 +402,8 @@ mod tests {
 
     #[tokio::test]
     async fn removes_only_verified_json_and_markdown_sources() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         let vault = tempfile::tempdir().unwrap();
         let session = vault.path().join("sessions/session-1");
         std::fs::create_dir_all(session.join("attachments")).unwrap();
@@ -449,8 +449,8 @@ mod tests {
 
     #[tokio::test]
     async fn changed_source_blocks_all_cleanup() {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         let vault = tempfile::tempdir().unwrap();
         let original = b"original";
         let unchanged = b"unchanged";

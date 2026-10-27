@@ -10,8 +10,8 @@ import {
   ListChecks,
   MagnifyingGlass,
   Sparkle,
-} from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import type { ContextRef } from "~/chat/context/entities";
 import { useChatAppearance } from "~/chat/hooks/use-chat-appearance";
@@ -119,7 +119,7 @@ export function ChatBodyEmpty({
                   : "text-foreground",
               ])}
             >
-              Anarlog AI
+              Syntheo AI
             </span>
             <BetaChip isDarkAppearance={isDarkAppearance} />
           </div>
@@ -131,7 +131,7 @@ export function ChatBodyEmpty({
                 : "text-muted-foreground",
             ])}
           >
-            {t`Hi, I'm Anarlog AI. Set up a language model and I'll be ready to help.`}
+            {t`Hi, I'm Syntheo AI. Set up a language model and I'll be ready to help.`}
           </p>
           <button
             onClick={handleGoToSettings}

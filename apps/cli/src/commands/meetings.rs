@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::cli::{DocumentKind, ExportFormat, MeetingCommand, MeetingSource};
 use crate::{Args, Error, Result, db, output};
-use anlg_agent_access::{
+use syntheo_agent_access::{
     Document, Folder, FolderPage, GetMeetingInput, GetMeetingTranscriptInput,
     GetRecurringMeetingHistoryInput, ListFoldersInput, ListMeetingsInput, Meeting, MeetingExport,
     MeetingListItem, MeetingPage, TranscriptPage,
@@ -10,7 +10,7 @@ use anlg_agent_access::{
 
 // Syntheo ne lit que la base locale : aucun client hébergé, aucun repli cloud.
 pub enum DataSource {
-    Local(Arc<anlg_db_core::Db>),
+    Local(Arc<syntheo_db_core::Db>),
 }
 
 impl DataSource {
@@ -24,10 +24,10 @@ impl DataSource {
 
     async fn list_meetings(
         &self,
-        input: anlg_agent_access::ListMeetingsInput,
+        input: syntheo_agent_access::ListMeetingsInput,
     ) -> Result<MeetingPage> {
         match self {
-            Self::Local(db) => anlg_agent_access::list_meetings(db.pool(), input)
+            Self::Local(db) => syntheo_agent_access::list_meetings(db.pool(), input)
                 .await
                 .map_err(Into::into),
         }
@@ -35,7 +35,7 @@ impl DataSource {
 
     async fn list_folders(&self, input: ListFoldersInput) -> Result<FolderPage> {
         match self {
-            Self::Local(db) => anlg_agent_access::list_folders(db.pool(), input)
+            Self::Local(db) => syntheo_agent_access::list_folders(db.pool(), input)
                 .await
                 .map_err(Into::into),
         }
@@ -43,7 +43,7 @@ impl DataSource {
 
     async fn get_meeting(&self, input: GetMeetingInput) -> Result<Meeting> {
         match self {
-            Self::Local(db) => anlg_agent_access::get_meeting(db.pool(), input)
+            Self::Local(db) => syntheo_agent_access::get_meeting(db.pool(), input)
                 .await
                 .map_err(Into::into),
         }
@@ -54,7 +54,7 @@ impl DataSource {
         input: GetMeetingTranscriptInput,
     ) -> Result<TranscriptPage> {
         match self {
-            Self::Local(db) => anlg_agent_access::get_meeting_transcript(db.pool(), input)
+            Self::Local(db) => syntheo_agent_access::get_meeting_transcript(db.pool(), input)
                 .await
                 .map_err(Into::into),
         }
@@ -65,15 +65,17 @@ impl DataSource {
         input: GetRecurringMeetingHistoryInput,
     ) -> Result<MeetingPage> {
         match self {
-            Self::Local(db) => anlg_agent_access::get_recurring_meeting_history(db.pool(), input)
-                .await
-                .map_err(Into::into),
+            Self::Local(db) => {
+                syntheo_agent_access::get_recurring_meeting_history(db.pool(), input)
+                    .await
+                    .map_err(Into::into)
+            }
         }
     }
 
     async fn get_meeting_export(&self, meeting_id: String) -> Result<MeetingExport> {
         match self {
-            Self::Local(db) => anlg_agent_access::get_meeting_export(db.pool(), meeting_id)
+            Self::Local(db) => syntheo_agent_access::get_meeting_export(db.pool(), meeting_id)
                 .await
                 .map_err(Into::into),
         }
@@ -162,7 +164,7 @@ pub async fn run(source: &DataSource, command: MeetingCommand, json: bool) -> Re
                 match &source {
                     DataSource::Local(db) => output::json(
                         "meetings.get",
-                        &anlg_agent_access::local_meeting(db.pool(), meeting).await?,
+                        &syntheo_agent_access::local_meeting(db.pool(), meeting).await?,
                         None,
                     )?,
                 }
@@ -258,7 +260,7 @@ pub async fn run(source: &DataSource, command: MeetingCommand, json: bool) -> Re
         } => {
             if matches!(format, ExportFormat::Json) {
                 let DataSource::Local(db) = source;
-                let meeting = anlg_agent_access::get_local_meeting_export(db.pool(), id).await?;
+                let meeting = syntheo_agent_access::get_local_meeting_export(db.pool(), id).await?;
                 let content = if json {
                     output::json("meetings.export", &meeting, None)?
                 } else {

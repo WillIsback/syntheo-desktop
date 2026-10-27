@@ -4,7 +4,7 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 crate_dir=$(cd "$script_dir/.." && pwd)
-build_dir=$(mktemp -d "${TMPDIR:-/tmp}/anarlog-cloudsync-android.XXXXXX")
+build_dir=$(mktemp -d "${TMPDIR:-/tmp}/syntheo-cloudsync-android.XXXXXX")
 trap 'rm -rf "$build_dir"' EXIT
 source_dir="$build_dir/source"
 export ANDROID_NDK_ROOT="${ANDROID_NDK_ROOT:-${ANDROID_NDK_HOME:?Set ANDROID_NDK_HOME to the installed Android NDK}}"

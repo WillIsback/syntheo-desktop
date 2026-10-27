@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { toast } from "@anlg/ui/components/ui/toast";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import { useCaptureLifecycle } from "./capture-lifecycle";
 import {
@@ -300,7 +300,7 @@ export function useStartListeningState(
       excludedTexts: [MEETING_DISCLOSURE_MESSAGE],
       onParticipantDeclined: () => {
         toast.warning(
-          "A participant declined recording. Anarlog stopped listening.",
+          "A participant declined recording. Syntheo stopped listening.",
           { id: "meeting-consent-declined", duration: Infinity },
         );
         stop();

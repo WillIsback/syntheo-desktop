@@ -3,7 +3,7 @@ use objc2::{MainThreadOnly, define_class, msg_send};
 use objc2_app_kit::{NSColor, NSView};
 use objc2_foundation::{MainThreadMarker, NSObjectProtocol, NSRect};
 
-use anlg_overlay_kit::macos::support::{apply_continuous_corner, with_effective_appearance};
+use syntheo_overlay_kit::macos::support::{apply_continuous_corner, with_effective_appearance};
 
 #[derive(Debug, Default)]
 pub(crate) struct ContentViewIvars {}
@@ -11,7 +11,7 @@ pub(crate) struct ContentViewIvars {}
 define_class! {
     #[unsafe(super(NSView))]
     #[thread_kind = MainThreadOnly]
-    #[name = "AnarlogPermissionAssistantContentView"]
+    #[name = "SyntheoPermissionAssistantContentView"]
     #[ivars = ContentViewIvars]
     pub(crate) struct ContentView;
 

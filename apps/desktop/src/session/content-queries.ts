@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { json2md } from "@anlg/editor/markdown";
+import { json2md } from "@syntheo/editor/markdown";
 
 import { liveQueryClient } from "~/db";
 import type { AppliedTemplateSnapshot } from "~/session/queries/types";

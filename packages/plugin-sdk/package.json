@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-sdk",
+  "name": "@syntheo/plugin-sdk",
   "private": true,
   "type": "module",
   "exports": {

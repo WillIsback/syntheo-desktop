@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { verifyLinuxAudioQaRun } from "./verify-linux-audio-qa-run.mjs";
 
-const repository = "fastrepl/anarlog";
+const repository = "WillIsback/syntheo-desktop";
 const version = "1.4.0";
 const candidateSha = "0123456789abcdef0123456789abcdef01234567";
 const runId = "67890";

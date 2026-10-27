@@ -1,4 +1,4 @@
-import type { JSONContent } from "@anlg/editor/chat";
+import type { JSONContent } from "@syntheo/editor/chat";
 
 const MAX_ENTRIES = 50;
 

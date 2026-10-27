@@ -1,4 +1,4 @@
-import type { MeetingCapturedChatMessage } from "@anlg/plugin-detect";
+import type { MeetingCapturedChatMessage } from "@syntheo/plugin-detect";
 
 import { executeTransaction, liveQueryClient, useLiveQuery } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";

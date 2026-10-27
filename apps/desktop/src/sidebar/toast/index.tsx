@@ -3,8 +3,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import {
   toast as notificationToast,
   TOAST_DURATIONS,
-} from "@anlg/ui/components/ui/toast";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+} from "@syntheo/ui/components/ui/toast";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import {
   createDevtoolsToastPreview,
@@ -299,7 +299,7 @@ function NotificationToast({
 }
 
 const DAY_TOAST_SNOOZE_MS = 24 * 60 * 60 * 1_000;
-const DAY_TOAST_SNOOZE_KEY_PREFIX = "anarlog:toast:snoozed-until:";
+const DAY_TOAST_SNOOZE_KEY_PREFIX = "syntheo:toast:snoozed-until:";
 
 function hasActiveDayToastSnooze(id: string): boolean {
   try {

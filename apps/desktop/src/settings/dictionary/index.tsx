@@ -9,15 +9,15 @@ import {
   PencilSimple,
   Plus,
   X,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { Input } from "@anlg/ui/components/ui/input";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { Input } from "@syntheo/ui/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@anlg/ui/components/ui/input-group";
+} from "@syntheo/ui/components/ui/input-group";
 
 import { useBillingAccess } from "~/billing/billing-context";
 import { SettingsPageTitle } from "~/settings/page-title";

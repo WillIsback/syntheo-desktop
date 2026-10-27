@@ -1,18 +1,18 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 
-import { ArrowRight, Plus, Trash } from "@anlg/ui/components/icons";
-import { Badge } from "@anlg/ui/components/ui/badge";
-import { Button } from "@anlg/ui/components/ui/button";
+import { ArrowRight, Plus, Trash } from "@syntheo/ui/components/icons";
+import { Badge } from "@syntheo/ui/components/ui/badge";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@anlg/ui/components/ui/select";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/select";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { cn } from "@syntheo/utils";
 
 import { MarkdownExportOptionsConfig } from "./markdown-export-options";
 import { AutomationLastRunLine, MarkdownExportConfig } from "./starter-config";

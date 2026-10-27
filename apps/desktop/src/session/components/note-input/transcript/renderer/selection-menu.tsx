@@ -27,15 +27,15 @@ import {
   Trash,
   UserSwitch,
   X,
-} from "@anlg/ui/components/icons";
+} from "@syntheo/ui/components/icons";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anlg/ui/components/ui/popover";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import {
   getTranscriptRangeRects,

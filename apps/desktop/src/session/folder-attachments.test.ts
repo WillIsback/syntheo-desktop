@@ -10,14 +10,14 @@ const mocks = vi.hoisted(() => ({
   tombstoneFolderMaterial: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-session", () => ({
+vi.mock("@syntheo/plugin-session", () => ({
   commands: {
     catalogFolderMaterial: mocks.catalogFolderMaterial,
     tombstoneFolderMaterial: mocks.tombstoneFolderMaterial,
   },
 }));
 
-vi.mock("@anlg/plugin-fs-sync", () => ({
+vi.mock("@syntheo/plugin-fs-sync", () => ({
   commands: {
     folderAttachmentRemove: mocks.folderAttachmentRemove,
   },

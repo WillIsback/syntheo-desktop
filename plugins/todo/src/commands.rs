@@ -1,7 +1,7 @@
-use anlg_apple_todo::types::{
+use syntheo_apple_todo::types::{
     CreateReminderInput, Reminder, ReminderFilter, ReminderIdentifierInput, ReminderList,
 };
-use anlg_ticket_interface::{CollectionPage, TicketPage};
+use syntheo_ticket_interface::{CollectionPage, TicketPage};
 
 use tauri::Manager;
 
@@ -13,7 +13,7 @@ use crate::read_path::{ReadPath, ReadPathResult};
 pub fn authorization_status() -> Result<String, Error> {
     #[cfg(target_os = "macos")]
     {
-        let status = anlg_apple_todo::Handle::authorization_status();
+        let status = syntheo_apple_todo::Handle::authorization_status();
         Ok(format!("{:?}", status))
     }
 
@@ -28,7 +28,7 @@ pub fn authorization_status() -> Result<String, Error> {
 pub fn request_full_access() -> Result<bool, Error> {
     #[cfg(target_os = "macos")]
     {
-        Ok(anlg_apple_todo::Handle::request_full_access())
+        Ok(syntheo_apple_todo::Handle::request_full_access())
     }
 
     #[cfg(not(target_os = "macos"))]
@@ -42,7 +42,7 @@ pub fn request_full_access() -> Result<bool, Error> {
 pub fn list_todo_lists() -> Result<Vec<ReminderList>, Error> {
     #[cfg(target_os = "macos")]
     {
-        let handle = anlg_apple_todo::Handle;
+        let handle = syntheo_apple_todo::Handle;
         handle.list_reminder_lists().map_err(Into::into)
     }
 
@@ -57,7 +57,7 @@ pub fn list_todo_lists() -> Result<Vec<ReminderList>, Error> {
 pub fn fetch_todos(filter: ReminderFilter) -> Result<Vec<Reminder>, Error> {
     #[cfg(target_os = "macos")]
     {
-        let handle = anlg_apple_todo::Handle;
+        let handle = syntheo_apple_todo::Handle;
         handle.fetch_reminders(filter).map_err(Into::into)
     }
 
@@ -80,12 +80,12 @@ pub async fn read_path<R: tauri::Runtime>(
         ReadPath::Apple(path) => {
             #[cfg(target_os = "macos")]
             {
-                let handle = anlg_apple_todo::Handle;
+                let handle = syntheo_apple_todo::Handle;
                 match handle.read_path(path)? {
-                    anlg_apple_todo::ReadPathResult::Lists(items) => {
+                    syntheo_apple_todo::ReadPathResult::Lists(items) => {
                         Ok(ReadPathResult::ReminderLists(items))
                     }
-                    anlg_apple_todo::ReadPathResult::Reminders(items) => {
+                    syntheo_apple_todo::ReadPathResult::Reminders(items) => {
                         Ok(ReadPathResult::Reminders(items))
                     }
                 }
@@ -167,7 +167,7 @@ pub async fn read_path<R: tauri::Runtime>(
 pub fn create_todo(input: CreateReminderInput) -> Result<String, Error> {
     #[cfg(target_os = "macos")]
     {
-        let handle = anlg_apple_todo::Handle;
+        let handle = syntheo_apple_todo::Handle;
         handle.create_reminder_identifier(input).map_err(Into::into)
     }
 
@@ -183,7 +183,7 @@ pub fn create_todo(input: CreateReminderInput) -> Result<String, Error> {
 pub fn complete_todo(target: ReminderIdentifierInput) -> Result<(), Error> {
     #[cfg(target_os = "macos")]
     {
-        let handle = anlg_apple_todo::Handle;
+        let handle = syntheo_apple_todo::Handle;
         handle.complete_reminder(&target).map_err(Into::into)
     }
 
@@ -199,7 +199,7 @@ pub fn complete_todo(target: ReminderIdentifierInput) -> Result<(), Error> {
 pub fn delete_todo(target: ReminderIdentifierInput) -> Result<(), Error> {
     #[cfg(target_os = "macos")]
     {
-        let handle = anlg_apple_todo::Handle;
+        let handle = syntheo_apple_todo::Handle;
         handle.delete_reminder(&target).map_err(Into::into)
     }
 
@@ -264,7 +264,7 @@ pub async fn github_issue_detail(
     owner: String,
     repo: String,
     number: u64,
-) -> Result<anlg_github_issues::Issue, Error> {
+) -> Result<syntheo_github_issues::Issue, Error> {
     crate::github_state::fetch_issue_detail(&owner, &repo, number).await
 }
 
@@ -274,12 +274,12 @@ pub async fn github_issue_comments(
     owner: String,
     repo: String,
     number: u64,
-) -> Result<Vec<anlg_github_issues::IssueComment>, Error> {
+) -> Result<Vec<syntheo_github_issues::IssueComment>, Error> {
     crate::github_state::fetch_issue_comments(&owner, &repo, number).await
 }
 
 // Syntheo n'a pas de compte : les intégrations hébergées (Linear, GitHub via le
-// service Anarlog) sont retirées, seuls les Rappels Apple (locaux) restent.
+// service Syntheo) sont retirées, seuls les Rappels Apple (locaux) restent.
 fn require_access_token<R: tauri::Runtime>(_app: &tauri::AppHandle<R>) -> Result<String, Error> {
     Err(Error::Auth(
         "intégration cloud retirée de Syntheo".to_string(),

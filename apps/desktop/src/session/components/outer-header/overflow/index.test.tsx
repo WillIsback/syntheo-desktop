@@ -38,7 +38,7 @@ vi.mock("@tauri-apps/plugin-os", () => ({
   platform: platformMock,
 }));
 
-vi.mock("@anlg/ui/components/ui/button", () => ({
+vi.mock("@syntheo/ui/components/ui/button", () => ({
   Button: ({
     children,
     ...props
@@ -47,7 +47,7 @@ vi.mock("@anlg/ui/components/ui/button", () => ({
   ),
 }));
 
-vi.mock("@anlg/ui/components/ui/dropdown-menu", () => ({
+vi.mock("@syntheo/ui/components/ui/dropdown-menu", () => ({
   appFloatingMenuPanelClassName: "overflow-hidden p-1.5",
   AppFloatingPanel: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
@@ -124,7 +124,7 @@ vi.mock("~/meeting-float/host", () => ({
   openFloatingMeetingPanel: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   commands: {
     windowShow: windowShowMock,
   },

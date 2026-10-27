@@ -54,7 +54,7 @@ pub async fn update_ignored_calendar_item(
             .map_err(|error| error.to_string())?;
 
         let attempt = async {
-            let rows = anlg_db_app::list_app_setting_rows(&mut transaction, &ids)
+            let rows = syntheo_db_app::list_app_setting_rows(&mut transaction, &ids)
                 .await
                 .map_err(|error| error.to_string())?;
             let direct = rows.iter().find(|row| row.id == setting_id);
@@ -84,7 +84,7 @@ pub async fn update_ignored_calendar_item(
             );
 
             let updated = if let Some(direct) = direct {
-                anlg_db_app::update_app_setting_value(
+                syntheo_db_app::update_app_setting_value(
                     &mut transaction,
                     setting_id,
                     &next_json,
@@ -94,7 +94,7 @@ pub async fn update_ignored_calendar_item(
                 .await
                 .map_err(|error| error.to_string())?
             } else {
-                anlg_db_app::insert_app_setting(&mut transaction, setting_id, &next_json, &now)
+                syntheo_db_app::insert_app_setting(&mut transaction, setting_id, &next_json, &now)
                     .await
                     .map_err(|error| error.to_string())?
             };
@@ -129,7 +129,7 @@ fn raw_key_field(raw: &RawValue, key_field: &str) -> Option<String> {
         .map(String::from)
 }
 
-fn resolve_setting_list(rows: &[anlg_db_app::AppSettingRow], id: &str) -> Vec<Box<RawValue>> {
+fn resolve_setting_list(rows: &[syntheo_db_app::AppSettingRow], id: &str) -> Vec<Box<RawValue>> {
     if let Some(direct) = rows.iter().find(|row| row.id == id) {
         return parse_setting_list(Some(&direct.value_json));
     }
@@ -189,12 +189,12 @@ fn parse_setting_list(value: Option<&str>) -> Vec<Box<RawValue>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
     use serde_json::json;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 

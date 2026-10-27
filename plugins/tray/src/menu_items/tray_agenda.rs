@@ -6,7 +6,7 @@ use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
 
 use crate::ext::scheduled_event;
 
-const ID_PREFIX: &str = "anlg_tray_agenda_";
+const ID_PREFIX: &str = "syntheo_tray_agenda_";
 
 pub fn build_agenda_item(
     app: &AppHandle<tauri::Wry>,

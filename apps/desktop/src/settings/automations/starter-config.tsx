@@ -3,10 +3,10 @@ import { useMutation } from "@tanstack/react-query";
 import { open as selectFolder } from "@tauri-apps/plugin-dialog";
 import { type ReactNode } from "react";
 
-import { FolderOpen } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { cn, formatDistanceToNow } from "@anlg/utils";
+import { FolderOpen } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { cn, formatDistanceToNow } from "@syntheo/utils";
 
 import {
   type AutomationRunRecord,

@@ -7,7 +7,7 @@ import {
   commands as permissionsCommands,
   type PermissionStatus,
   type Result,
-} from "@anlg/plugin-permissions";
+} from "@syntheo/plugin-permissions";
 
 function unwrap<T>(result: Result<T, string>): T {
   if (result.status === "error") {

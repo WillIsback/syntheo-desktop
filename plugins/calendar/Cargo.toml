@@ -9,9 +9,9 @@ links = "tauri-plugin-calendar"
 description = ""
 
 [dependencies]
-anlg-calendar = { workspace = true, features = ["specta"] }
-anlg-calendar-interface = { workspace = true }
-anlg-db-app = { workspace = true }
+syntheo-calendar = { workspace = true, features = ["specta"] }
+syntheo-calendar-interface = { workspace = true }
+syntheo-db-app = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-db = { workspace = true }
@@ -33,6 +33,6 @@ uuid = { workspace = true, features = ["v4"] }
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
-anlg-db-core = { workspace = true }
 specta-typescript = { workspace = true }
+syntheo-db-core = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt"] }

@@ -9,7 +9,7 @@ const getOnboardingNeededMock = vi
   .fn<() => Promise<{ status: "ok"; data: boolean }>>()
   .mockResolvedValue({ status: "ok", data: false });
 
-vi.mock("@anlg/plugin-store2", () => ({
+vi.mock("@syntheo/plugin-store2", () => ({
   commands: {
     save: saveMock,
   },

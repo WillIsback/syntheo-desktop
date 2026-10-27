@@ -1,5 +1,5 @@
-import { commands as notificationCommands } from "@anlg/plugin-notification";
-import { parseEventInstant } from "@anlg/utils";
+import { commands as notificationCommands } from "@syntheo/plugin-notification";
+import { parseEventInstant } from "@syntheo/utils";
 
 import {
   AUTO_STOP_CONFIRM_TIMEOUT_SECONDS,
@@ -189,7 +189,7 @@ export async function showMeetingEndedPrompt({
     await notificationCommands.showNotification({
       key,
       title: "Did your meeting end?",
-      message: `Anarlog will stop listening in ${AUTO_STOP_CONFIRM_TIMEOUT_SECONDS} seconds.`,
+      message: `Syntheo will stop listening in ${AUTO_STOP_CONFIRM_TIMEOUT_SECONDS} seconds.`,
       timeout: { secs: AUTO_STOP_CONFIRM_TIMEOUT_SECONDS, nanos: 0 },
       source: null,
       start_time: null,

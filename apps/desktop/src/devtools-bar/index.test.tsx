@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   stopDevtoolsMetrics: vi.fn(),
-  identifier: "com.hyprnote.staging",
+  identifier: "com.syntheo.staging",
   outlinesEnabled: true,
   topComponents: [] as Array<{ name: string; count: number }>,
   session: { user: { id: "user-1" } } as object | null,
@@ -29,7 +29,7 @@ vi.mock("@tauri-apps/api/app", () => ({
   getVersion: vi.fn(() => Promise.resolve("1.2.3")),
 }));
 
-vi.mock("@anlg/plugin-misc", () => ({
+vi.mock("@syntheo/plugin-misc", () => ({
   commands: {
     getGitHash: vi
       .fn()
@@ -38,7 +38,7 @@ vi.mock("@anlg/plugin-misc", () => ({
   },
 }));
 
-vi.mock("@anlg/ui/components/ui/dropdown-menu", () => ({
+vi.mock("@syntheo/ui/components/ui/dropdown-menu", () => ({
   DropdownMenu: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
@@ -163,7 +163,7 @@ function renderBar() {
 describe("DevtoolsStatusBar", () => {
   beforeEach(() => {
     localStorage.clear();
-    mocks.identifier = "com.hyprnote.staging";
+    mocks.identifier = "com.syntheo.staging";
     vi.mocked(getIdentifier).mockImplementation(() =>
       Promise.resolve(mocks.identifier),
     );

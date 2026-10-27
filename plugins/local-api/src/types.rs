@@ -12,8 +12,8 @@ pub struct WebhookInfo {
     pub last_delivery_status: String,
 }
 
-impl From<anlg_db_app::WebhookEndpointRow> for WebhookInfo {
-    fn from(row: anlg_db_app::WebhookEndpointRow) -> Self {
+impl From<syntheo_db_app::WebhookEndpointRow> for WebhookInfo {
+    fn from(row: syntheo_db_app::WebhookEndpointRow) -> Self {
         Self {
             id: row.id,
             url: row.url,

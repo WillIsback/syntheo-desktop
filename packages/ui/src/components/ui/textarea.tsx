@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 const Textarea = React.forwardRef<
   HTMLTextAreaElement,

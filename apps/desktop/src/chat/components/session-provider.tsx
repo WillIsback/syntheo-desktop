@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { dedupeByKey, type ContextRef } from "~/chat/context/entities";
 import {
@@ -45,7 +45,7 @@ import { useTransport } from "~/chat/transport/use-transport";
 import type {
   ChatMessageSender,
   ChatSendOptions,
-  AnlgUIMessage,
+  SyntheoUIMessage,
 } from "~/chat/types";
 import { flushDatabaseWritesByPrefix } from "~/db/write-queue";
 import { useOwnerUserId } from "~/shared/owner-user";
@@ -53,9 +53,11 @@ import { id } from "~/shared/utils";
 
 export type ChatSessionRenderProps = {
   sessionId: string;
-  messages: AnlgUIMessage[];
+  messages: SyntheoUIMessage[];
   setMessages: (
-    msgs: AnlgUIMessage[] | ((prev: AnlgUIMessage[]) => AnlgUIMessage[]),
+    msgs:
+      | SyntheoUIMessage[]
+      | ((prev: SyntheoUIMessage[]) => SyntheoUIMessage[]),
   ) => void;
   sendMessage: ChatMessageSender;
   regenerate: () => void;
@@ -85,7 +87,7 @@ interface ChatSessionProps {
   children: (props: ChatSessionRenderProps) => ReactNode;
 }
 
-function areMessagesEqual(a: AnlgUIMessage[], b: AnlgUIMessage[]) {
+function areMessagesEqual(a: SyntheoUIMessage[], b: SyntheoUIMessage[]) {
   if (a.length !== b.length) {
     return false;
   }
@@ -127,7 +129,7 @@ function ChatSessionLifecycle({
   const [pendingDraftRefs, setPendingDraftRefs] = useState<ContextRef[]>([]);
   const latestChatGroupIdRef = useRef(chatGroupId);
   const latestUserIdRef = useRef(ownerUserId);
-  const initialMessagesRef = useRef<AnlgUIMessage[]>([]);
+  const initialMessagesRef = useRef<SyntheoUIMessage[]>([]);
   const submittedChatGroupIdsRef = useRef(new Map<string, string>());
   const pendingTransportPreflightsRef = useRef(
     new Map<string, GuardedChatPreflight[]>(),
@@ -214,7 +216,7 @@ function ChatSessionLifecycle({
   // instead of being baked into the memo.
   const chat = useMemo(
     () =>
-      new Chat<AnlgUIMessage>({
+      new Chat<SyntheoUIMessage>({
         id: sessionId,
         messages: initialMessagesRef.current,
         transport: guardChatTransport(
@@ -236,7 +238,7 @@ function ChatSessionLifecycle({
           const messageIndex = messages.findIndex((m) => m.id === message.id);
           const lastMessageIndex =
             messageIndex === -1 ? messages.length - 1 : messageIndex - 1;
-          let submittedUserMessage: AnlgUIMessage | undefined;
+          let submittedUserMessage: SyntheoUIMessage | undefined;
           for (let i = lastMessageIndex; i >= 0; i--) {
             if (messages[i].role === "user") {
               submittedUserMessage = messages[i];
@@ -406,7 +408,7 @@ function ChatSessionLifecycle({
     status,
     error,
     setMessages: chatSetMessages,
-  } = useChat<AnlgUIMessage>({ chat });
+  } = useChat<SyntheoUIMessage>({ chat });
   const latestChatStopRef = useRef(chatStop);
   latestChatStopRef.current = chatStop;
   const isTranscriptUnavailable =
@@ -475,11 +477,11 @@ function ChatSessionLifecycle({
   ]);
 
   const sendMessage = useCallback(
-    (message: AnlgUIMessage, options?: ChatSendOptions) => {
+    (message: SyntheoUIMessage, options?: ChatSendOptions) => {
       const targetChatGroupId =
         options?.chatGroupId ?? latestChatGroupIdRef.current;
       if (isTranscriptUnavailable && targetChatGroupId && ownerUserId) {
-        const assistantMessage: AnlgUIMessage = {
+        const assistantMessage: SyntheoUIMessage = {
           id: id(),
           role: "assistant",
           parts: [
@@ -557,7 +559,7 @@ function ChatSessionLifecycle({
         queue.push({ run: preflight, persistOnCancel: true });
         pendingTransportPreflightsRef.current.set(message.id, queue);
       }
-      // AnlgUIMessage is structurally compatible with CreateUIMessage<AnlgUIMessage>:
+      // SyntheoUIMessage is structurally compatible with CreateUIMessage<SyntheoUIMessage>:
       // no `text`/`files` so the SDK takes the `else` branch and uses message.id as the message id.
       let sending: Promise<void>;
       try {
@@ -713,7 +715,11 @@ function ChatSessionLifecycle({
   }, [chatStop]);
 
   const setMessages = useCallback(
-    (next: AnlgUIMessage[] | ((prev: AnlgUIMessage[]) => AnlgUIMessage[])) => {
+    (
+      next:
+        | SyntheoUIMessage[]
+        | ((prev: SyntheoUIMessage[]) => SyntheoUIMessage[]),
+    ) => {
       chatSetMessages(next);
       if (!chatGroupId) return;
       const resolved = typeof next === "function" ? next(messages) : next;
@@ -772,7 +778,7 @@ function ChatSessionLifecycle({
   return <div className="flex min-h-0 flex-1 flex-col">{content}</div>;
 }
 
-const unavailableChatTransport: ChatTransport<AnlgUIMessage> = {
+const unavailableChatTransport: ChatTransport<SyntheoUIMessage> = {
   sendMessages: async () => {
     throw new Error("Chat model is not ready");
   },

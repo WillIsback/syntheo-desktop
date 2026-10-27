@@ -1,6 +1,6 @@
 import { useLingui } from "@lingui/react/macro";
 
-import { Users } from "@anlg/ui/components/icons";
+import { Users } from "@syntheo/ui/components/icons";
 
 import { IconHeaderView } from "./header-shared";
 

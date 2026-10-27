@@ -3937,7 +3937,7 @@ export type SttListenStreamData = {
     path?: never;
     query?: {
         /**
-         * STT provider. Use 'anarlog' for automatic routing (default), or specify:
+         * STT provider. Use 'syntheo' for automatic routing (default), or specify:
          * deepgram, soniox, assemblyai, gladia, elevenlabs, fireworks, openai, dashscope, mistral
          */
         provider?: string;
@@ -4000,7 +4000,7 @@ export type SttListenBatchData = {
     path?: never;
     query?: {
         /**
-         * STT provider. Use 'anarlog' for automatic routing (default), or specify:
+         * STT provider. Use 'syntheo' for automatic routing (default), or specify:
          * deepgram, soniox, assemblyai, gladia, elevenlabs, fireworks, openai, dashscope, mistral
          */
         provider?: string;
@@ -4204,7 +4204,7 @@ export type DeleteAttachmentBackupErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription or backup access required
+     * Syntheo Pro subscription or backup access required
      */
     403: unknown;
     /**
@@ -4247,7 +4247,7 @@ export type CancelAttachmentBackupDeletionErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription or backup access required
+     * Syntheo Pro subscription or backup access required
      */
     403: unknown;
     /**
@@ -4286,7 +4286,7 @@ export type DownloadAttachmentBackupErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription or backup access required
+     * Syntheo Pro subscription or backup access required
      */
     403: unknown;
     /**
@@ -4329,7 +4329,7 @@ export type FinalizeAttachmentBackupErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription or backup access required
+     * Syntheo Pro subscription or backup access required
      */
     403: unknown;
     /**
@@ -4376,7 +4376,7 @@ export type PromoteAttachmentBackupErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription or backup access required
+     * Syntheo Pro subscription or backup access required
      */
     403: unknown;
     /**
@@ -4424,7 +4424,7 @@ export type ReadCurrentAttachmentBackupErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription or backup access required
+     * Syntheo Pro subscription or backup access required
      */
     403: unknown;
     /**
@@ -4463,7 +4463,7 @@ export type ReserveAttachmentBackupErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription or backup access required
+     * Syntheo Pro subscription or backup access required
      */
     403: unknown;
     /**
@@ -4506,7 +4506,7 @@ export type GrantAttachmentBackupUploadErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription or backup access required
+     * Syntheo Pro subscription or backup access required
      */
     403: unknown;
     /**
@@ -4545,7 +4545,7 @@ export type GetDevicesErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription required
+     * Syntheo Pro subscription required
      */
     403: unknown;
     /**
@@ -4585,7 +4585,7 @@ export type DeleteDeviceErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription required
+     * Syntheo Pro subscription required
      */
     403: unknown;
     /**
@@ -4625,7 +4625,7 @@ export type PatchDeviceErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription required
+     * Syntheo Pro subscription required
      */
     403: unknown;
     /**
@@ -4653,7 +4653,7 @@ export type RegisterE2EeDeviceEnrollmentData = {
         /**
          * Current device name
          */
-        'x-anarlog-device-name'?: string | null;
+        'x-syntheo-device-name'?: string | null;
     };
     path?: never;
     query?: never;
@@ -4670,7 +4670,7 @@ export type RegisterE2EeDeviceEnrollmentErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro or a free device slot is required
+     * Syntheo Pro or a free device slot is required
      */
     403: unknown;
     /**
@@ -4720,7 +4720,7 @@ export type ConsumeE2EeDeviceEnrollmentErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription required
+     * Syntheo Pro subscription required
      */
     403: unknown;
     /**
@@ -4764,7 +4764,7 @@ export type SealE2EeDeviceEnrollmentErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription required
+     * Syntheo Pro subscription required
      */
     403: unknown;
     /**
@@ -4807,7 +4807,7 @@ export type ClaimE2EeIdentityErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription required
+     * Syntheo Pro subscription required
      */
     403: unknown;
     /**
@@ -5129,7 +5129,7 @@ export type HeartbeatMeetingDeviceErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription required
+     * Syntheo Pro subscription required
      */
     403: unknown;
     /**
@@ -5157,11 +5157,11 @@ export type CreateReplicaCredentialsData = {
         /**
          * Local recovery-key identity
          */
-        'x-anarlog-e2ee-key-id': string;
+        'x-syntheo-e2ee-key-id': string;
         /**
          * Account-level member identity public key
          */
-        'x-anarlog-e2ee-member-public-key'?: string | null;
+        'x-syntheo-e2ee-member-public-key'?: string | null;
     };
     path?: never;
     query?: never;
@@ -5178,7 +5178,7 @@ export type CreateReplicaCredentialsErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription required
+     * Syntheo Pro subscription required
      */
     403: unknown;
     /**
@@ -5399,7 +5399,7 @@ export type PublishSessionShareSnapshotErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro or share-manager access required
+     * Syntheo Pro or share-manager access required
      */
     403: unknown;
     /**
@@ -5479,15 +5479,15 @@ export type CreateCredentialsData = {
         /**
          * Local recovery-key identity
          */
-        'x-anarlog-e2ee-key-id'?: string | null;
+        'x-syntheo-e2ee-key-id'?: string | null;
         /**
          * Account-level member identity public key
          */
-        'x-anarlog-e2ee-member-public-key'?: string | null;
+        'x-syntheo-e2ee-member-public-key'?: string | null;
         /**
          * Comma-separated transports the client accepts; include `replica` to allow witness-only credentials
          */
-        'x-anarlog-cloudsync-transports'?: string | null;
+        'x-syntheo-cloudsync-transports'?: string | null;
     };
     path?: never;
     query?: never;
@@ -5500,7 +5500,7 @@ export type CreateCredentialsErrors = {
      */
     401: unknown;
     /**
-     * Anarlog Pro subscription required
+     * Syntheo Pro subscription required
      */
     403: unknown;
     /**
@@ -5912,7 +5912,7 @@ export type DeleteSnapshotData = {
     body?: never;
     path: {
         /**
-         * Anarlog meeting id
+         * Syntheo meeting id
          */
         session_id: string;
     };
@@ -5930,7 +5930,7 @@ export type PublishSnapshotData = {
     body: MeetingExport;
     path: {
         /**
-         * Anarlog meeting id
+         * Syntheo meeting id
          */
         session_id: string;
     };

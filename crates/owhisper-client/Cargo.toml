@@ -8,9 +8,9 @@ license = "MIT"
 default = []
 
 [dependencies]
-anlg-language = { workspace = true }
-anlg-user-error = { workspace = true }
-anlg-ws-client = { workspace = true }
+syntheo-language = { workspace = true }
+syntheo-user-error = { workspace = true }
+syntheo-ws-client = { workspace = true }
 
 openai-transcription = { workspace = true }
 owhisper-interface = { workspace = true }
@@ -31,7 +31,7 @@ tracing = { workspace = true }
 url = { workspace = true }
 
 [dev-dependencies]
-anlg-data = { workspace = true }
+syntheo-data = { workspace = true }
 
 tokio = { workspace = true }
 tokio-stream = { workspace = true }

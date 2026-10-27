@@ -1,7 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 
-import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
+import { commands as fsSyncCommands } from "@syntheo/plugin-fs-sync";
 
 import { CONTEXT_TEXT_FIELD } from "./context-text";
 import { resolveFolderPaths, type ToolCallOptions } from "./current-session";

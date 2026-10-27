@@ -44,11 +44,11 @@ pub struct TransactionStatement {
 
 #[derive(Clone)]
 pub struct DbExecutor {
-    db: Arc<anlg_db_core::Db>,
+    db: Arc<syntheo_db_core::Db>,
 }
 
 impl DbExecutor {
-    pub fn new(db: Arc<anlg_db_core::Db>) -> Self {
+    pub fn new(db: Arc<syntheo_db_core::Db>) -> Self {
         Self { db }
     }
 

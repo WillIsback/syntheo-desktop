@@ -1,4 +1,4 @@
-import { md2json, parseJsonContent } from "@anlg/editor/markdown";
+import { md2json, parseJsonContent } from "@syntheo/editor/markdown";
 
 import type { TaskConfig } from ".";
 

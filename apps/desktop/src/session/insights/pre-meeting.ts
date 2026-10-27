@@ -9,8 +9,8 @@ import { z } from "zod";
 import {
   commands as templateCommands,
   type JsonValue,
-} from "@anlg/plugin-template";
-import { parseEventInstant } from "@anlg/utils";
+} from "@syntheo/plugin-template";
+import { parseEventInstant } from "@syntheo/utils";
 
 import systemPromptTemplate from "./pre-meeting-brief.system.md.jinja?raw";
 import userPromptTemplate from "./pre-meeting-brief.user.md.jinja?raw";

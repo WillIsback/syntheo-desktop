@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useState } from "react";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 import { ChatBody } from "./body";
 import { ChatContent } from "./content";

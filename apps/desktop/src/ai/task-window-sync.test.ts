@@ -15,7 +15,7 @@ vi.mock("@tauri-apps/api/event", () => ({
   listen: mocks.listen,
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   getCurrentWebviewWindowLabel: () => mocks.currentLabel,
 }));
 
@@ -40,7 +40,7 @@ const autoEnhanceRequest = {
   sessionId: "session-1",
   mode: "regenerate" as const,
 };
-const RESULT_EVENT = "anlg:ai-task-auto-enhance-result";
+const RESULT_EVENT = "syntheo:ai-task-auto-enhance-result";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -153,7 +153,7 @@ describe("requestMainAutoEnhance", () => {
     await vi.waitFor(() =>
       expect(mocks.emitTo).toHaveBeenCalledWith(
         "main",
-        "anlg:ai-task-auto-enhance-request",
+        "syntheo:ai-task-auto-enhance-request",
         autoEnhanceRequest,
       ),
     );

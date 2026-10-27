@@ -9,7 +9,7 @@ use super::MenuItemHandler;
 pub struct TrayQuitCompletely;
 
 impl MenuItemHandler for TrayQuitCompletely {
-    const ID: &'static str = "anlg_tray_quit_completely";
+    const ID: &'static str = "syntheo_tray_quit_completely";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
         let item = MenuItem::with_id(app, Self::ID, "Quit Completely…", true, None::<&str>)?;
@@ -37,6 +37,6 @@ impl MenuItemHandler for TrayQuitCompletely {
 
 pub fn quit_completely(app: &AppHandle<tauri::Wry>) {
     // Skip the frontend exit flush so the process terminates immediately.
-    anlg_intercept::set_force_quit();
+    syntheo_intercept::set_force_quit();
     app.exit(0);
 }

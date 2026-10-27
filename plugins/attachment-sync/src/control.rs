@@ -1,1 +1,1 @@
-pub(crate) use anlg_attachment_sync_core::{DownloadControl, DownloadOperation};
+pub(crate) use syntheo_attachment_sync_core::{DownloadControl, DownloadOperation};

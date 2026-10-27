@@ -56,9 +56,9 @@ fn write_atomic(
 }
 
 pub fn decode_to_wav(mp3_path: &Path, wav_path: &Path) -> Result<(), Error> {
-    use anlg_audio_utils::Source;
+    use syntheo_audio_utils::Source;
 
-    let source = anlg_audio_utils::source_from_path(mp3_path)?;
+    let source = syntheo_audio_utils::source_from_path(mp3_path)?;
     let channels: u16 = source.channels().into();
     let sample_rate: u32 = source.sample_rate().into();
 

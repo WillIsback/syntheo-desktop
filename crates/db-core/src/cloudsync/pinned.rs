@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use anlg_cloudsync::{OwnedSqliteConnection, ReservedConnection};
 use sqlx::pool::PoolConnection;
 use sqlx::{Sqlite, SqliteConnection, SqlitePool};
+use syntheo_cloudsync::{OwnedSqliteConnection, ReservedConnection};
 use tokio::sync::{Mutex, OwnedMutexGuard};
 
 pub(crate) struct PinnedCloudsyncConnection {
@@ -39,7 +39,7 @@ impl OwnedSqliteConnection for PinnedCloudsyncConnection {
 pub(crate) async fn reserve_pinned_connection(
     pool: &SqlitePool,
     slot: &Arc<Mutex<Option<PoolConnection<Sqlite>>>>,
-) -> Result<ReservedConnection<PinnedCloudsyncConnection>, anlg_cloudsync::Error> {
+) -> Result<ReservedConnection<PinnedCloudsyncConnection>, syntheo_cloudsync::Error> {
     let mut pinned = Arc::clone(slot).lock_owned().await;
     if pinned.is_none() {
         *pinned = Some(pool.acquire().await?);

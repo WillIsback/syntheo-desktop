@@ -35,20 +35,20 @@ impl E2eeWitnessClient {
     ) -> io::Result<()> {
         if page.accepted {
             if page.head_sequence
-                < anlg_db_app::e2ee_cloud_accepted_head(pool, &self.workspace_id)
+                < syntheo_db_app::e2ee_cloud_accepted_head(pool, &self.workspace_id)
                     .await
                     .map_err(replica_error)?
             {
                 return Err(rollback_error());
             }
-            anlg_db_app::configure_e2ee_cloud_authority(
+            syntheo_db_app::configure_e2ee_cloud_authority(
                 pool,
                 &self.workspace_id,
                 page.cloud_authority_after,
             )
             .await
             .map_err(replica_error)
-        } else if anlg_db_app::e2ee_cloud_authority_enabled(pool, &self.workspace_id)
+        } else if syntheo_db_app::e2ee_cloud_authority_enabled(pool, &self.workspace_id)
             .await
             .map_err(replica_error)?
         {
@@ -63,28 +63,33 @@ impl E2eeWitnessClient {
     pub(super) async fn publish_accepted(
         &self,
         pool: &sqlx::SqlitePool,
-        keyring: &anlg_e2ee::WorkspaceKeyring,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
         initialize: bool,
         cancellation: &E2eeWitnessCancellation,
     ) -> io::Result<()> {
         let mut conflicts = 0;
         loop {
             cancellation.check()?;
-            anlg_db_app::rebase_e2ee_cloud_documents(pool, &self.workspace_id, keyring)
+            syntheo_db_app::rebase_e2ee_cloud_documents(pool, &self.workspace_id, keyring)
                 .await
                 .map_err(replica_error)?;
             cancellation.check()?;
             let Some(batch) =
-                anlg_db_app::pending_e2ee_cloud_batch(pool, &self.workspace_id, initialize)
+                syntheo_db_app::pending_e2ee_cloud_batch(pool, &self.workspace_id, initialize)
                     .await
                     .map_err(replica_error)?
             else {
                 return Ok(());
             };
             cancellation.check()?;
-            anlg_db_app::preserve_e2ee_cloud_conflicts(pool, &self.workspace_id, keyring, &batch)
-                .await
-                .map_err(replica_error)?;
+            syntheo_db_app::preserve_e2ee_cloud_conflicts(
+                pool,
+                &self.workspace_id,
+                keyring,
+                &batch,
+            )
+            .await
+            .map_err(replica_error)?;
             cancellation.check()?;
             let response = self
                 .send_with_rate_limit_retry(
@@ -103,9 +108,13 @@ impl E2eeWitnessClient {
                 && serde_json::from_slice::<serde_json::Value>(&bytes)
                     .is_ok_and(|v| v["error"]["code"] == "e2ee_replica_base_changed")
             {
-                anlg_db_app::reject_e2ee_cloud_batch(pool, &self.workspace_id, &batch.mutation_id)
-                    .await
-                    .map_err(replica_error)?;
+                syntheo_db_app::reject_e2ee_cloud_batch(
+                    pool,
+                    &self.workspace_id,
+                    &batch.mutation_id,
+                )
+                .await
+                .map_err(replica_error)?;
                 self.refresh_keyring_cancellable(pool, keyring, cancellation)
                     .await?;
                 conflicts += 1;
@@ -164,7 +173,7 @@ impl E2eeWitnessClient {
                 ));
             }
             cancellation.check()?;
-            anlg_db_app::configure_e2ee_cloud_authority(
+            syntheo_db_app::configure_e2ee_cloud_authority(
                 pool,
                 &self.workspace_id,
                 Some(receipt.cloud_authority_after),
@@ -180,7 +189,7 @@ impl E2eeWitnessClient {
                         .iter()
                         .find(|e| e.record_id == r.record_id)
                         .expect("validated receipt");
-                    anlg_db_app::E2eeWitnessEvent {
+                    syntheo_db_app::E2eeWitnessEvent {
                         sequence: r.sequence,
                         record_id: r.record_id,
                         workspace_id: self.workspace_id.clone(),
@@ -189,7 +198,7 @@ impl E2eeWitnessClient {
                     }
                 })
                 .collect::<Vec<_>>();
-            anlg_db_app::merge_e2ee_witness_events_with_keyring_cancellable(
+            syntheo_db_app::merge_e2ee_witness_events_with_keyring_cancellable(
                 pool,
                 keyring,
                 &self.workspace_id,
@@ -199,7 +208,7 @@ impl E2eeWitnessClient {
             .await
             .map_err(replica_error)?;
             cancellation.check()?;
-            anlg_db_app::acknowledge_e2ee_cloud_batch(pool, &self.workspace_id, &batch)
+            syntheo_db_app::acknowledge_e2ee_cloud_batch(pool, &self.workspace_id, &batch)
                 .await
                 .map_err(replica_error)?;
             self.refresh_keyring_cancellable(pool, keyring, cancellation)

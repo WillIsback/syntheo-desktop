@@ -5,7 +5,7 @@ import { type BillingAccess, BillingContext } from "./billing-context";
 // Syntheo Desktop n'a ni compte ni abonnement : toutes les fonctionnalités sont
 // disponibles, sans aucune requête réseau.
 export const UNLOCKED_BILLING: BillingAccess = {
-  entitlements: ["hyprnote_pro"],
+  entitlements: ["syntheo_pro"],
   subscriptionStatus: null,
   isPro: true,
   isLite: false,

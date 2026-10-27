@@ -1,6 +1,6 @@
 import levenshtein from "js-levenshtein-esm";
 
-import { md2json, parseJsonContent } from "@anlg/editor/markdown";
+import { md2json, parseJsonContent } from "@syntheo/editor/markdown";
 import {
   commands as templateCommands,
   type Participant,
@@ -8,12 +8,12 @@ import {
   type Session,
   type TemplateSection,
   type Transcript,
-} from "@anlg/plugin-template";
+} from "@syntheo/plugin-template";
 import {
   commands as transcriptionCommands,
   type RenderedTranscriptSegment,
-} from "@anlg/plugin-transcription";
-import { sessionEventSchema } from "@anlg/store";
+} from "@syntheo/plugin-transcription";
+import { sessionEventSchema } from "@syntheo/store";
 
 import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
 import { collectEnhanceImageContext } from "./enhance-images";

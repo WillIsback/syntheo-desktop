@@ -1,11 +1,11 @@
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo } from "react";
 
-import { CheckCircle, PencilSimple } from "@anlg/ui/components/icons";
-import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
-import { Spinner } from "@anlg/ui/components/ui/spinner";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { cn } from "@anlg/utils";
+import { CheckCircle, PencilSimple } from "@syntheo/ui/components/icons";
+import { DancingSticks } from "@syntheo/ui/components/ui/dancing-sticks";
+import { Spinner } from "@syntheo/ui/components/ui/spinner";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { cn } from "@syntheo/utils";
 
 import { IconHeaderView, copyTextToClipboard } from "./header-shared";
 import { TranscriptAudioIcon } from "./header-transcript-icon";

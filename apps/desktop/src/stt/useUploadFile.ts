@@ -7,8 +7,8 @@ import { useCallback } from "react";
 import {
   commands as fsSyncCommands,
   events as fsSyncEvents,
-} from "@anlg/plugin-fs-sync";
-import { commands as listener2Commands } from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-fs-sync";
+import { commands as listener2Commands } from "@syntheo/plugin-transcription";
 
 import { estimateUploadedAudioSessionCreatedAt } from "./audio-note-date";
 import { useListener } from "./contexts";

@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
-use anlg_calendar_interface::{CalendarListItem, CalendarProviderType};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use sqlx::SqlitePool;
+use syntheo_calendar_interface::{CalendarListItem, CalendarProviderType};
 
 use super::transaction_utils::{js_iso8601_timestamp, rollback_error};
 use indexmap::IndexMap;
@@ -54,11 +54,11 @@ async fn run(
     request: &ApplyCalendarInventoryRequest,
     provider: &str,
 ) -> Result<(), String> {
-    let existing = anlg_db_app::list_provider_calendars(transaction, provider)
+    let existing = syntheo_db_app::list_provider_calendars(transaction, provider)
         .await
         .map_err(|error| error.to_string())?;
 
-    let mut existing_by_tracking_key: IndexMap<String, &anlg_db_app::CalendarSyncRow> =
+    let mut existing_by_tracking_key: IndexMap<String, &syntheo_db_app::CalendarSyncRow> =
         IndexMap::new();
     for calendar in &existing {
         let key = tracking_key(
@@ -113,7 +113,7 @@ async fn run(
             successful.contains(calendar.connection_id.as_str()) && !incoming_keys.contains(&key);
 
         if disconnected || missing_from_successful_refresh {
-            anlg_db_app::soft_delete_calendar(transaction, &now, &calendar.id)
+            syntheo_db_app::soft_delete_calendar(transaction, &now, &calendar.id)
                 .await
                 .map_err(|error| error.to_string())?;
             if clear_seen.insert(calendar.id.clone()) {
@@ -125,7 +125,7 @@ async fn run(
     }
 
     if !calendar_ids_to_clear.is_empty() {
-        anlg_db_app::tombstone_events_for_calendars(transaction, &now, &calendar_ids_to_clear)
+        syntheo_db_app::tombstone_events_for_calendars(transaction, &now, &calendar_ids_to_clear)
             .await
             .map_err(|error| error.to_string())?;
     }
@@ -142,7 +142,7 @@ async fn run(
             let calendar_id = stored
                 .map(|row| row.id.clone())
                 .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-            anlg_db_app::upsert_inventory_calendar(
+            syntheo_db_app::upsert_inventory_calendar(
                 transaction,
                 &calendar_id,
                 &calendar.id,
@@ -165,11 +165,11 @@ async fn run(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_db_core::Db;
+    use syntheo_db_core::Db;
 
     async fn test_db() -> Db {
         let db = Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 

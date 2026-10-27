@@ -32,7 +32,7 @@ vi.mock("~/settings/queries", () => ({
   setSettingValue: mocks.setSettingValue,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: {
     error: mocks.toastError,
     success: mocks.toastSuccess,

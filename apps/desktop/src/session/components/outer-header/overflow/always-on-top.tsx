@@ -2,9 +2,9 @@ import { Trans } from "@lingui/react/macro";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useState } from "react";
 
-import { Check, PushPin } from "@anlg/ui/components/icons";
-import { DropdownMenuItem } from "@anlg/ui/components/ui/dropdown-menu";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { Check, PushPin } from "@syntheo/ui/components/icons";
+import { DropdownMenuItem } from "@syntheo/ui/components/ui/dropdown-menu";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 let requestedAlwaysOnTop: boolean | null = null;
 

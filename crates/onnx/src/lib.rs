@@ -70,7 +70,7 @@ fn accelerator_cache_dir() -> std::path::PathBuf {
         .unwrap_or_default()
         .hash(&mut hasher);
     std::env::temp_dir()
-        .join("anlg-onnx-coreml-cache")
+        .join("syntheo-onnx-coreml-cache")
         .join(format!("{:016x}", hasher.finish()))
 }
 

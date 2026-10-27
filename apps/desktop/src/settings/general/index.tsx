@@ -3,8 +3,8 @@ import { Trans } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 
-import { commands as listenerCommands } from "@anlg/plugin-transcription";
-import { CircleNotch } from "@anlg/ui/components/icons";
+import { commands as listenerCommands } from "@syntheo/plugin-transcription";
+import { CircleNotch } from "@syntheo/ui/components/icons";
 
 import { AccountProfile } from "./account-profile";
 import { AppSettingsView } from "./app-settings";

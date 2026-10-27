@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { commands as listenerCommands } from "@anlg/plugin-transcription";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { commands as listenerCommands } from "@syntheo/plugin-transcription";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import {
   hasPendingZeroRetentionAudio,

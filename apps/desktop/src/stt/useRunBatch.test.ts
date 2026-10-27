@@ -1,7 +1,10 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { beginCloudsyncActivity, endCloudsyncActivity } from "@anlg/plugin-db";
+import {
+  beginCloudsyncActivity,
+  endCloudsyncActivity,
+} from "@syntheo/plugin-db";
 
 import { BatchResponseProcessingError } from "./batch-response-processing-error";
 import { completeCaptureTranscript } from "./capture-completion";
@@ -56,7 +59,7 @@ const {
   platformMock: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     saveBatchTranscript: saveBatchTranscriptMock,
     reconcileRefinedSpeakerClusters: reconcileRefinedSpeakerClustersMock,
@@ -81,7 +84,7 @@ vi.mock("./useSTTConnection", () => ({
   useSTTConnection: useSTTConnectionMock,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: {
     warning: toastWarningMock,
   },

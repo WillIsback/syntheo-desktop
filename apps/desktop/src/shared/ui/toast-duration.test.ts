@@ -8,7 +8,11 @@ import {
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { toast, Toaster, TOAST_DURATIONS } from "@anlg/ui/components/ui/toast";
+import {
+  toast,
+  Toaster,
+  TOAST_DURATIONS,
+} from "@syntheo/ui/components/ui/toast";
 
 beforeEach(() => {
   vi.useFakeTimers();

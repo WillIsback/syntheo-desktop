@@ -9,8 +9,8 @@ import {
   useState,
 } from "react";
 
-import type { FileHandlerConfig } from "@anlg/editor/note";
-import { toast } from "@anlg/ui/components/ui/toast";
+import type { FileHandlerConfig } from "@syntheo/editor/note";
+import { toast } from "@syntheo/ui/components/ui/toast";
 
 import { useFileUpload } from "~/shared/hooks/useFileUpload";
 import { isAudioUploadFile, useUploadFile } from "~/stt/useUploadFile";

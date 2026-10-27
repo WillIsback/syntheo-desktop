@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@anlg/design-system/tokens.css";
+@import "@syntheo/design-system/tokens.css";
 @import "./corners.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -7,7 +7,7 @@
 @theme {
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
-  --animate-anarlog-dancing-stick: anarlog-dancing-stick 1s ease-in-out
+  --animate-syntheo-dancing-stick: syntheo-dancing-stick 1s ease-in-out
     infinite;
   --animate-ios-opacity-spin: ios-opacity-spin 1s linear infinite;
 
@@ -153,7 +153,7 @@
     }
   }
 
-  @keyframes anarlog-dancing-stick {
+  @keyframes syntheo-dancing-stick {
     0%,
     100% {
       transform: scaleY(0.2);

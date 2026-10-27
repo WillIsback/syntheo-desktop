@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { RenderTranscriptRequest } from "@anlg/plugin-transcription";
+import type { RenderTranscriptRequest } from "@syntheo/plugin-transcription";
 
 import {
   type TranscriptRecord,

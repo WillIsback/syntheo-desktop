@@ -1,6 +1,7 @@
 (function () {
   // Fast path before React boots. `main.tsx` re-reads settings.json and syncs this key.
   var stored =
+    localStorage.getItem("syntheo-theme") ??
     localStorage.getItem("anarlog-theme") ??
     localStorage.getItem("hypr-theme");
   var theme =

@@ -4,7 +4,7 @@ import type { StoreApi } from "zustand";
 import type {
   DegradedError,
   CaptureStatusEvent,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 export type LiveSessionStatus = "inactive" | "active" | "finalizing";
 export type SessionMode = LiveSessionStatus | "running_batch";

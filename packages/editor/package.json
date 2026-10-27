@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/editor",
+  "name": "@syntheo/editor",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -22,10 +22,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@anlg/plugin-opener2": "workspace:*",
-    "@anlg/store": "workspace:*",
-    "@anlg/ui": "workspace:^",
-    "@anlg/utils": "workspace:^",
+    "@syntheo/plugin-opener2": "workspace:*",
+    "@syntheo/store": "workspace:*",
+    "@syntheo/ui": "workspace:^",
+    "@syntheo/utils": "workspace:^",
     "@floating-ui/dom": "^1.7.6",
     "@handlewithcare/react-prosemirror": "^3.2.6",
     "facehash": "^0.0.7",

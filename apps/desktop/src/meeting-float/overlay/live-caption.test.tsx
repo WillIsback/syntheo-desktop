@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { LiveCaptionState } from "@anlg/plugin-windows";
+import type { LiveCaptionState } from "@syntheo/plugin-windows";
 
 import { LiveCaptionOverlay } from "./live-caption";
 

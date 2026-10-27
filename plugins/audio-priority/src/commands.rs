@@ -1,5 +1,5 @@
 use crate::AudioPriorityPluginExt;
-use anlg_audio_device::AudioDevice;
+use syntheo_audio_device::AudioDevice;
 
 #[tauri::command]
 #[specta::specta]

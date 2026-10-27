@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { Permission, PermissionStatus } from "@anlg/plugin-permissions";
+import type { Permission, PermissionStatus } from "@syntheo/plugin-permissions";
 
 const mocks = vi.hoisted(() => ({
   currentPlatform: "macos",
@@ -105,7 +105,7 @@ describe("Permissions", () => {
     const accessibility = renderPermissions("neverRequested");
 
     expect(
-      screen.getByText(/guides you to add Anarlog to the Accessibility list/),
+      screen.getByText(/guides you to add Syntheo to the Accessibility list/),
     ).toBeTruthy();
 
     fireEvent.click(

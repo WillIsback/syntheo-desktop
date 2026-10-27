@@ -26,8 +26,8 @@ fn create_index_writer(index: &Index) -> tantivy::Result<tantivy::IndexWriter> {
     )
 }
 
-pub fn detect_language(text: &str) -> anlg_language::Language {
-    anlg_language::detect(text)
+pub fn detect_language(text: &str) -> syntheo_language::Language {
+    syntheo_language::detect(text)
 }
 
 fn parse_query_parts(query: &str) -> (Vec<&str>, Vec<&str>) {

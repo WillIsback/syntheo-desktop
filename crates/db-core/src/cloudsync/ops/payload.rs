@@ -1,6 +1,6 @@
 use sqlx::SqliteConnection;
 
-use anlg_cloudsync::{OwnedSqliteConnection, ReservedConnection};
+use syntheo_cloudsync::{OwnedSqliteConnection, ReservedConnection};
 
 use super::super::CloudsyncInterruptHandle;
 
@@ -11,10 +11,10 @@ pub const CLOUDSYNC_MAX_OUTBOUND_BYTES: u64 = 32 * 1024 * 1024;
 pub(crate) async fn ensure_pending_payload_fits<C: OwnedSqliteConnection>(
     connection: &mut ReservedConnection<C>,
     interrupt: &CloudsyncInterruptHandle,
-) -> Result<anlg_cloudsync::PendingPayloadBatch, anlg_cloudsync::Error> {
+) -> Result<syntheo_cloudsync::PendingPayloadBatch, syntheo_cloudsync::Error> {
     let batch = interruptible_pending_payload_batch(connection, interrupt).await?;
     if !batch.fits {
-        return Err(anlg_cloudsync::Error::OutboundPayloadTooLarge {
+        return Err(syntheo_cloudsync::Error::OutboundPayloadTooLarge {
             chunks: batch.chunks,
             rows: batch.rows,
             bytes: batch.bytes,
@@ -29,7 +29,7 @@ pub(crate) async fn ensure_pending_payload_fits<C: OwnedSqliteConnection>(
 pub(super) async fn interruptible_pending_payload_batch<C: OwnedSqliteConnection>(
     connection: &mut ReservedConnection<C>,
     interrupt: &CloudsyncInterruptHandle,
-) -> Result<anlg_cloudsync::PendingPayloadBatch, anlg_cloudsync::Error> {
+) -> Result<syntheo_cloudsync::PendingPayloadBatch, syntheo_cloudsync::Error> {
     let registration = interrupt.register(connection.connection().await?).await?;
     let result = pending_payload_batch_on(connection.connection().await?).await;
     registration.finish(connection.connection().await?).await?;
@@ -38,8 +38,8 @@ pub(super) async fn interruptible_pending_payload_batch<C: OwnedSqliteConnection
 
 async fn pending_payload_batch_on(
     connection: &mut SqliteConnection,
-) -> Result<anlg_cloudsync::PendingPayloadBatch, anlg_cloudsync::Error> {
-    anlg_cloudsync::pending_payload_batch(
+) -> Result<syntheo_cloudsync::PendingPayloadBatch, syntheo_cloudsync::Error> {
+    syntheo_cloudsync::pending_payload_batch(
         connection,
         CLOUDSYNC_MAX_OUTBOUND_CHUNKS,
         CLOUDSYNC_MAX_OUTBOUND_ROWS,

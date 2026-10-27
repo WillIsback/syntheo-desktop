@@ -1,4 +1,4 @@
-import type { FloatingDictationState } from "@anlg/plugin-windows";
+import type { FloatingDictationState } from "@syntheo/plugin-windows";
 
 import {
   DEFAULT_FLOATING_OVERLAY_SETTINGS,

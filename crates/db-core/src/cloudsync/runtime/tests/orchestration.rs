@@ -1,14 +1,14 @@
 use super::super::*;
 use super::{db_with_cloudsync_items_table, test_cloudsync_config};
-use anlg_cloudsync::ReservedConnection;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use syntheo_cloudsync::ReservedConnection;
 
 #[test]
 fn background_sync_starts_immediately_and_continues_incomplete_receive_promptly() {
     let interval = Duration::from_secs(30);
     let incomplete = CloudsyncNetworkResult {
         send: None,
-        receive: Some(anlg_cloudsync::NetworkReceiveResult {
+        receive: Some(syntheo_cloudsync::NetworkReceiveResult {
             rows: 1,
             tables: vec!["e2ee_records".to_string()],
             chunks: 1,
@@ -26,7 +26,7 @@ fn background_sync_starts_immediately_and_continues_incomplete_receive_promptly(
     );
 
     let send_in_progress = CloudsyncNetworkResult {
-        send: Some(anlg_cloudsync::NetworkSendResult {
+        send: Some(syntheo_cloudsync::NetworkSendResult {
             status: "syncing".to_string(),
             local_version: 3,
             server_version: 2,
@@ -34,7 +34,7 @@ fn background_sync_starts_immediately_and_continues_incomplete_receive_promptly(
             bytes: 1024,
             last_failure: None,
         }),
-        receive: Some(anlg_cloudsync::NetworkReceiveResult {
+        receive: Some(syntheo_cloudsync::NetworkReceiveResult {
             rows: 0,
             tables: Vec::new(),
             chunks: 0,
@@ -50,7 +50,7 @@ fn background_sync_starts_immediately_and_continues_incomplete_receive_promptly(
     );
 
     let settled = CloudsyncNetworkResult {
-        send: Some(anlg_cloudsync::NetworkSendResult {
+        send: Some(syntheo_cloudsync::NetworkSendResult {
             status: "synced".to_string(),
             local_version: 3,
             server_version: 3,
@@ -58,7 +58,7 @@ fn background_sync_starts_immediately_and_continues_incomplete_receive_promptly(
             bytes: 0,
             last_failure: None,
         }),
-        receive: Some(anlg_cloudsync::NetworkReceiveResult {
+        receive: Some(syntheo_cloudsync::NetworkReceiveResult {
             rows: 0,
             tables: Vec::new(),
             chunks: 0,
@@ -74,7 +74,7 @@ fn background_sync_starts_immediately_and_continues_incomplete_receive_promptly(
     );
 
     let uploaded = CloudsyncNetworkResult {
-        send: Some(anlg_cloudsync::NetworkSendResult {
+        send: Some(syntheo_cloudsync::NetworkSendResult {
             status: "synced".to_string(),
             local_version: 4,
             server_version: 4,
@@ -242,7 +242,7 @@ async fn activity_pause_precedes_an_existing_native_pending_batch() {
     let hook: Arc<dyn crate::CloudsyncSyncHook> = recording_hook.clone();
     let hook = Mutex::new(Some(hook));
     let last_sync = CloudsyncNetworkResult {
-        send: Some(anlg_cloudsync::NetworkSendResult {
+        send: Some(syntheo_cloudsync::NetworkSendResult {
             status: "synced".to_string(),
             local_version: 4,
             server_version: 4,
@@ -390,7 +390,7 @@ async fn paused_manual_sync_preserves_the_last_result_and_error() {
         .unwrap();
     let last_sync = CloudsyncNetworkResult {
         send: None,
-        receive: Some(anlg_cloudsync::NetworkReceiveResult {
+        receive: Some(syntheo_cloudsync::NetworkReceiveResult {
             rows: 3,
             tables: vec!["sessions".to_string()],
             chunks: 1,
@@ -520,10 +520,10 @@ fn requested_sync_retries_promptly_when_another_sync_is_busy() {
     assert_eq!(cloudsync_busy_delay(false, interval), interval);
 }
 
-fn table_change(table: &str, seq: u64) -> anlg_db_change::TableChange {
-    anlg_db_change::TableChange {
+fn table_change(table: &str, seq: u64) -> syntheo_db_change::TableChange {
+    syntheo_db_change::TableChange {
         table: table.to_string(),
-        kind: anlg_db_change::TableChangeKind::Insert,
+        kind: syntheo_db_change::TableChangeKind::Insert,
         seq,
     }
 }
@@ -593,7 +593,7 @@ async fn lagged_change_subscription_wakes_conservatively() {
 
 #[tokio::test]
 async fn closed_change_subscription_never_wakes() {
-    let (tx, mut rx) = tokio::sync::broadcast::channel::<anlg_db_change::TableChange>(1);
+    let (tx, mut rx) = tokio::sync::broadcast::channel::<syntheo_db_change::TableChange>(1);
     let synced = std::collections::HashSet::from(["sessions".to_string()]);
     let mut closed = false;
     drop(tx);

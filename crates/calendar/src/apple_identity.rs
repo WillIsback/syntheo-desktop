@@ -1,5 +1,5 @@
-use anlg_apple_calendar::types::AppleEvent;
 use chrono::SecondsFormat;
+use syntheo_apple_calendar::types::AppleEvent;
 
 use crate::convert::local_date_string;
 
@@ -229,7 +229,7 @@ mod tests {
         let mut newer = original.clone();
         newer.event_identifier = "other-store:meeting-uid".into();
         newer.last_modified_date = Some(original.start_date);
-        newer.status = anlg_apple_calendar::types::EventStatus::Canceled;
+        newer.status = syntheo_apple_calendar::types::EventStatus::Canceled;
         for source in [
             vec![original.clone(), newer.clone()],
             vec![newer.clone(), original.clone()],
@@ -238,7 +238,7 @@ mod tests {
             assert_eq!(converted.len(), 1);
             assert_eq!(
                 converted[0].status,
-                anlg_calendar_interface::EventStatus::Cancelled
+                syntheo_calendar_interface::EventStatus::Cancelled
             );
             assert!(
                 converted[0]

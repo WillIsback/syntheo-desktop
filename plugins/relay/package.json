@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-relay",
+  "name": "@syntheo/plugin-relay",
   "private": true,
   "type": "module",
   "exports": {

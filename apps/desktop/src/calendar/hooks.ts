@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { useMemo, useSyncExternalStore } from "react";
 
-import { parseEventInstant, safeParseDate, TZDate } from "@anlg/utils";
+import { parseEventInstant, safeParseDate, TZDate } from "@syntheo/utils";
 
 import { eventCalendarDay } from "./event-day";
 import { useIgnoredEvents } from "./ignored-events";

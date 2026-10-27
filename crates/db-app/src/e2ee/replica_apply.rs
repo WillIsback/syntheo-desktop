@@ -1,9 +1,9 @@
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
-use anlg_e2ee::WorkspaceKeyring;
 use serde_json::{Value, json};
 use sqlx::{QueryBuilder, Sqlite, SqlitePool, Transaction};
+use syntheo_e2ee::WorkspaceKeyring;
 
 use super::chunks::{
     ChunkPart, chunk_count_field, chunk_field, chunk_size_for, join_chunks, parse_array,
@@ -550,7 +550,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             {
                 return Err(E2eeReplicaError::InvalidField);
             }
-            let payload_hash = anlg_e2ee::payload_hash(&record.payload);
+            let payload_hash = syntheo_e2ee::payload_hash(&record.payload);
             check_e2ee_apply_cancellation(is_cancelled)?;
             let field_name = field.field.clone();
             let candidate = DecryptedRecord {
@@ -1290,7 +1290,7 @@ async fn load_remaining_chunk_records(
             unwitnessed_fields.insert(field.field);
             continue;
         }
-        let payload_hash = anlg_e2ee::payload_hash(&record.payload);
+        let payload_hash = syntheo_e2ee::payload_hash(&record.payload);
         records_by_field
             .entry(field.field.clone())
             .or_insert(DecryptedRecord {
@@ -1527,7 +1527,7 @@ async fn apply_chunked_column(
 }
 
 fn local_state_for_record(
-    key: &anlg_e2ee::WorkspaceKey,
+    key: &syntheo_e2ee::WorkspaceKey,
     table: &str,
     row_id: &str,
     record: &DecryptedRecord,

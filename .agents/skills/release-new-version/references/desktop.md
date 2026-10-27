@@ -96,7 +96,7 @@ Commit `release-version.json` with the release preparation changes.
 
 ```bash
 gh release list --limit 20
-gh api repos/fastrepl/anarlog/compare/<latest-desktop-tag>...main
+gh api repos/WillIsback/syntheo-desktop/compare/<latest-desktop-tag>...main
 git log --oneline <latest-desktop-tag>..<candidate-sha>
 ```
 
@@ -228,7 +228,7 @@ The publish workflow calls `desktop_store_publish.yaml` with
 the resulting submission separately from GitHub/CrabNebula publication. For
 Linux, the workflow waits for the generated package metadata PR's checks,
 merges that exact PR head, calls `web_cd.yaml` with the merged commit, and
-verifies the live signed APT metadata for both architectures on `anarlog.so`.
+verifies the live signed APT metadata for both architectures on `github.com/WillIsback/syntheo-desktop`.
 Require `linux-package-bump`, `linux-apt-deploy`, and `linux-apt-verify` to succeed;
 a metadata PR or successful merge alone is not APT publication. Failed checks
 leave the PR open and fail the release workflow for follow-up. Arch `PKGBUILD`

@@ -82,7 +82,7 @@ export function isUserErrorEvent(event) {
         ? Object.values(tags)
         : undefined,
       typeof contexts === "object" && contexts !== null
-        ? Reflect.get(contexts, "anarlog.operation")
+        ? Reflect.get(contexts, "syntheo.operation")
         : undefined,
     ].some(isUserError) ||
     (Array.isArray(exceptionValues) &&

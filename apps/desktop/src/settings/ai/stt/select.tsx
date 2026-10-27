@@ -2,19 +2,19 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
-import type { AIProviderStorage } from "@anlg/store";
-import { Warning } from "@anlg/ui/components/icons";
-import { Input } from "@anlg/ui/components/ui/input";
+import type { AIProviderStorage } from "@syntheo/store";
+import { Warning } from "@syntheo/ui/components/icons";
+import { Input } from "@syntheo/ui/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@anlg/ui/components/ui/select";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/select";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import { HealthStatusIndicator, useConnectionHealth } from "./health";
 import {
@@ -277,7 +277,7 @@ const TRANSCRIPTION_LANGUAGE_WARNING_TOAST_ID =
   "transcription-language-warning";
 const MAX_DISMISSED_TRANSCRIPTION_LANGUAGE_WARNINGS = 128;
 const DISMISSED_TRANSCRIPTION_LANGUAGE_WARNINGS_KEY =
-  "anarlog:dismissed-transcription-language-warnings";
+  "syntheo:dismissed-transcription-language-warnings";
 
 function rememberDismissedTranscriptionLanguageWarning(warningKey: string) {
   try {

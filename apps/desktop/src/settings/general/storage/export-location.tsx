@@ -3,9 +3,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { downloadDir, homeDir } from "@tauri-apps/api/path";
 import { open as selectFolder } from "@tauri-apps/plugin-dialog";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { CircleNotch, FolderSimple } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+import { commands as openerCommands } from "@syntheo/plugin-opener2";
+import { CircleNotch, FolderSimple } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 
 import { displayPath } from "./path-utils";
 

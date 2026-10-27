@@ -18,11 +18,11 @@ use std::pin::Pin;
 use std::str::FromStr;
 use std::time::Duration;
 
-use anlg_ws_client::client::Message;
 use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
 use owhisper_interface::batch_stream::BatchStreamEvent;
 use owhisper_interface::stream::StreamResponse;
+use syntheo_ws_client::client::Message;
 
 use crate::error::Error;
 
@@ -48,13 +48,13 @@ fn canonical_menu_language_code(code: &str) -> Option<String> {
         _ => language.as_str(),
     };
 
-    anlg_language::ISO639::from_str(language)
+    syntheo_language::ISO639::from_str(language)
         .ok()
         .map(|code| code.code().to_string())
 }
 
 fn whisper_language_codes() -> Vec<String> {
-    anlg_language::whisper_multilingual()
+    syntheo_language::whisper_multilingual()
         .iter()
         .map(|language| language.iso639_code().to_string())
         .collect()
@@ -95,7 +95,7 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
 
     fn is_supported_languages(
         &self,
-        languages: &[anlg_language::Language],
+        languages: &[syntheo_language::Language],
         model: Option<&str>,
     ) -> bool;
 
@@ -147,7 +147,7 @@ pub trait BatchSttAdapter: Clone + Default + Send + Sync + 'static {
 
     fn is_supported_languages(
         &self,
-        languages: &[anlg_language::Language],
+        languages: &[syntheo_language::Language],
         model: Option<&str>,
     ) -> bool;
 
@@ -199,7 +199,9 @@ pub fn append_path_if_missing(url: &mut url::Url, suffix: &str) {
     }
 }
 
-pub fn normalize_languages(languages: &[anlg_language::Language]) -> Vec<anlg_language::Language> {
+pub fn normalize_languages(
+    languages: &[syntheo_language::Language],
+) -> Vec<syntheo_language::Language> {
     let mut seen = HashSet::new();
     let mut result = Vec::with_capacity(languages.len());
 
@@ -266,7 +268,7 @@ impl AdapterKind {
     /// faster-whisper-server.
     pub fn from_url_and_languages(
         base_url: &str,
-        _languages: &[anlg_language::Language],
+        _languages: &[syntheo_language::Language],
         _model: Option<&str>,
     ) -> Self {
         if let Ok(url) = url::Url::parse(base_url)
@@ -307,7 +309,7 @@ impl AdapterKind {
 
     pub fn language_support_live(
         &self,
-        languages: &[anlg_language::Language],
+        languages: &[syntheo_language::Language],
         model: Option<&str>,
     ) -> LanguageSupport {
         match self {
@@ -318,7 +320,7 @@ impl AdapterKind {
 
     pub fn language_support_batch(
         &self,
-        languages: &[anlg_language::Language],
+        languages: &[syntheo_language::Language],
         _model: Option<&str>,
     ) -> LanguageSupport {
         match self {
@@ -329,7 +331,7 @@ impl AdapterKind {
 
     pub fn is_supported_languages_live(
         &self,
-        languages: &[anlg_language::Language],
+        languages: &[syntheo_language::Language],
         model: Option<&str>,
     ) -> bool {
         self.language_support_live(languages, model).is_supported()
@@ -337,7 +339,7 @@ impl AdapterKind {
 
     pub fn is_supported_languages_batch(
         &self,
-        languages: &[anlg_language::Language],
+        languages: &[syntheo_language::Language],
         model: Option<&str>,
     ) -> bool {
         self.language_support_batch(languages, model).is_supported()

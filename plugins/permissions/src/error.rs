@@ -10,7 +10,7 @@ pub enum Error {
     #[error(transparent)]
     PluginInvoke(#[from] tauri::plugin::mobile::PluginInvokeError),
     #[error(transparent)]
-    Audio(#[from] anlg_audio::Error),
+    Audio(#[from] syntheo_audio::Error),
     #[error("audio provider not configured")]
     NoAudioProvider,
     #[error("permission assistant: {0}")]

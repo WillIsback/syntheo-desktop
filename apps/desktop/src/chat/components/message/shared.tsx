@@ -1,7 +1,7 @@
 import { createContext, type ReactNode, useContext } from "react";
 
-import { CaretRight, CircleNotch } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+import { CaretRight, CircleNotch } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { useChatAppearance } from "~/chat/hooks/use-chat-appearance";
 

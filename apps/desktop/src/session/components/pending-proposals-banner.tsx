@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 
-import { Button } from "@anlg/ui/components/ui/button";
+import { Button } from "@syntheo/ui/components/ui/button";
 
 import {
   openProposalReview,

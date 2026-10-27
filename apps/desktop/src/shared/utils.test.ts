@@ -19,7 +19,7 @@ describe("getScheme", () => {
   it.each([
     ["fr.willisback.syntheo", "syntheo"],
     ["fr.willisback.syntheo.dev", "syntheo-dev"],
-    ["com.hyprnote.stable", "syntheo"],
+    ["com.syntheo.stable", "syntheo"],
     ["unknown", "syntheo"],
   ])("maps %s to %s", async (identifier, scheme) => {
     mocks.getIdentifier.mockResolvedValue(identifier);

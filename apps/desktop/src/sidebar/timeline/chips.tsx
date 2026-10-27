@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-import { ArrowDown, ArrowUp, Sun } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { cn } from "@anlg/utils";
+import { ArrowDown, ArrowUp, Sun } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { cn } from "@syntheo/utils";
 
 export function UpcomingMeetingChip({
   ariaLabel,

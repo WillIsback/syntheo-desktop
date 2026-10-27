@@ -6,8 +6,8 @@ const NINE_AM: i64 = EIGHT_AM + 3_600_000;
 const TEN_AM: i64 = NINE_AM + 3_600_000;
 
 async fn seed_base_session(
-    workspace_keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
-) -> (anlg_db_core::Db, anlg_db_core::Db) {
+    workspace_keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
+) -> (syntheo_db_core::Db, syntheo_db_core::Db) {
     let a = test_db().await;
     let b = test_db().await;
     sqlx::query(
@@ -28,7 +28,7 @@ async fn seed_base_session(
     (a, b)
 }
 
-async fn edit_title(db: &anlg_db_core::Db, title: &str, edited_at_ms: i64) {
+async fn edit_title(db: &syntheo_db_core::Db, title: &str, edited_at_ms: i64) {
     sqlx::query("UPDATE sessions SET title = ? WHERE id = 'session-1'")
         .bind(title)
         .execute(db.pool())
@@ -41,7 +41,7 @@ async fn edit_title(db: &anlg_db_core::Db, title: &str, edited_at_ms: i64) {
         .unwrap();
 }
 
-async fn title(db: &anlg_db_core::Db) -> String {
+async fn title(db: &syntheo_db_core::Db) -> String {
     sqlx::query_scalar("SELECT title FROM sessions WHERE id = 'session-1'")
         .fetch_one(db.pool())
         .await
@@ -49,8 +49,8 @@ async fn title(db: &anlg_db_core::Db) -> String {
 }
 
 async fn title_revision(
-    db: &anlg_db_core::Db,
-    workspace_keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+    db: &syntheo_db_core::Db,
+    workspace_keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
 ) -> (u64, Value, Option<u64>) {
     let key = &workspace_keys["workspace-a"];
     let record_id = key.blind_field_id("sessions", "session-1", "title");

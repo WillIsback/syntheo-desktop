@@ -40,34 +40,34 @@ pub trait MenuItemHandler {
 macro_rules! menu_items {
     ($($variant:ident => $item:ty),* $(,)?) => {
         #[derive(Debug, Clone, Copy)]
-        pub enum AnlgMenuItem {
+        pub enum SyntheoMenuItem {
             $($variant),*
         }
 
-        impl From<AnlgMenuItem> for tauri::menu::MenuId {
-            fn from(value: AnlgMenuItem) -> Self {
+        impl From<SyntheoMenuItem> for tauri::menu::MenuId {
+            fn from(value: SyntheoMenuItem) -> Self {
                 match value {
-                    $(AnlgMenuItem::$variant => <$item as MenuItemHandler>::ID),*
+                    $(SyntheoMenuItem::$variant => <$item as MenuItemHandler>::ID),*
                 }.into()
             }
         }
 
-        impl TryFrom<tauri::menu::MenuId> for AnlgMenuItem {
+        impl TryFrom<tauri::menu::MenuId> for SyntheoMenuItem {
             type Error = ();
 
             fn try_from(id: tauri::menu::MenuId) -> std::result::Result<Self, Self::Error> {
                 let id = id.0.as_str();
                 match id {
-                    $(<$item as MenuItemHandler>::ID => Ok(AnlgMenuItem::$variant),)*
+                    $(<$item as MenuItemHandler>::ID => Ok(SyntheoMenuItem::$variant),)*
                     _ => Err(()),
                 }
             }
         }
 
-        impl AnlgMenuItem {
+        impl SyntheoMenuItem {
             pub fn handle(self, app: &AppHandle<tauri::Wry>) {
                 match self {
-                    $(AnlgMenuItem::$variant => <$item>::handle(app)),*
+                    $(SyntheoMenuItem::$variant => <$item>::handle(app)),*
                 }
             }
         }

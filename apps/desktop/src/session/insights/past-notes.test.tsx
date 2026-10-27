@@ -24,7 +24,7 @@ vi.mock("ai", async (importOriginal) => ({
   generateText: hoisted.generateText,
 }));
 
-vi.mock("@anlg/plugin-template", () => ({
+vi.mock("@syntheo/plugin-template", () => ({
   commands: {
     renderCustom: vi.fn(async (template: string) => ({
       status: "ok",
@@ -33,7 +33,7 @@ vi.mock("@anlg/plugin-template", () => ({
   },
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { error: hoisted.toastError },
 }));
 

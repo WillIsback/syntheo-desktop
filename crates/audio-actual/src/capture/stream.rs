@@ -7,16 +7,18 @@ use std::sync::{
 use std::task::{Context, Poll};
 use std::{panic::AssertUnwindSafe, panic::catch_unwind};
 
-use anlg_aec::AEC;
-use anlg_audio_sync::{SyncProbe, SyncProbeConfig, SyncProbeEvent, SyncProbeState};
-use anlg_resampler::ResampleExtDynamicNew;
 use futures_util::{Stream, StreamExt};
+use syntheo_aec::AEC;
+use syntheo_audio_sync::{SyncProbe, SyncProbeConfig, SyncProbeEvent, SyncProbeState};
+use syntheo_resampler::ResampleExtDynamicNew;
 use tokio::task::JoinHandle;
 use tokio_stream::wrappers::ReceiverStream;
 use tokio_util::sync::CancellationToken;
 
 use super::recovery::{ChannelItem, OpenedChannel, run_channel};
-use anlg_audio::{CaptureChannel, CaptureConfig, CaptureEvent, CaptureFrame, CaptureStream, Error};
+use syntheo_audio::{
+    CaptureChannel, CaptureConfig, CaptureEvent, CaptureFrame, CaptureStream, Error,
+};
 
 use crate::mic::MicInput;
 use crate::speaker::SpeakerInput;
@@ -24,7 +26,7 @@ use crate::speaker::SpeakerInput;
 use super::joiner::Joiner;
 
 pub(crate) type ChunkStream =
-    Pin<Box<dyn Stream<Item = Result<Vec<f32>, anlg_resampler::Error>> + Send>>;
+    Pin<Box<dyn Stream<Item = Result<Vec<f32>, syntheo_resampler::Error>> + Send>>;
 
 const AUDIO_SYNC_PROBE_ENV: &str = "AUDIO_SYNC_PROBE";
 const AEC_MAX_REFERENCE_LAG_MS: u32 = 600;

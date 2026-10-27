@@ -1,6 +1,6 @@
-import { json2md, parseJsonContent } from "@anlg/editor/markdown";
-import { toast } from "@anlg/ui/components/ui/toast";
-import { cn } from "@anlg/utils";
+import { json2md, parseJsonContent } from "@syntheo/editor/markdown";
+import { toast } from "@syntheo/ui/components/ui/toast";
+import { cn } from "@syntheo/utils";
 
 export function getStoredNoteMarkdown(content: string | undefined) {
   const trimmed = content?.trim() ?? "";

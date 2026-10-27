@@ -27,9 +27,9 @@ import {
   TextItalic,
   TextStrikethrough,
   TextUnderline,
-} from "@anlg/ui/components/icons";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import { schema } from "../note/schema";
 

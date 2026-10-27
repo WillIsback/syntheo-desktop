@@ -12,12 +12,12 @@ common_event_derives! {
         #[serde(rename = "micDetected")]
         MicDetected {
             key: String,
-            apps: Vec<anlg_detect::InstalledApp>,
+            apps: Vec<syntheo_detect::InstalledApp>,
             duration_secs: u64,
         },
         #[serde(rename = "micStopped")]
         MicStopped {
-            apps: Vec<anlg_detect::InstalledApp>,
+            apps: Vec<syntheo_detect::InstalledApp>,
         },
         #[serde(rename = "micMuted")]
         MicMuteStateChanged { value: bool },

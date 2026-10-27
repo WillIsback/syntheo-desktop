@@ -18,13 +18,13 @@ import {
   Users,
   X,
   type Icon,
-} from "@anlg/ui/components/icons";
+} from "@syntheo/ui/components/icons";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
-} from "@anlg/ui/components/ui/dialog";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dialog";
+import { cn } from "@syntheo/utils";
 
 import { useBillingAccess } from "~/billing/billing-context";
 import { useSessionSummaries } from "~/session/queries";
@@ -324,7 +324,7 @@ export function OpenNoteDialog({
           ) : null}
           {page.requiresPro && !isPro ? (
             <Lock
-              aria-label={t`Requires Anarlog Pro`}
+              aria-label={t`Requires Syntheo Pro`}
               className="h-3.5 w-3.5 shrink-0"
             />
           ) : null}

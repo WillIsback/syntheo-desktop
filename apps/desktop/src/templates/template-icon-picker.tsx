@@ -3,14 +3,14 @@ import { useLingui } from "@lingui/react/macro";
 import { useMemo, useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
-import { Check, MagnifyingGlass, X } from "@anlg/ui/components/icons";
+import { Check, MagnifyingGlass, X } from "@syntheo/ui/components/icons";
 import {
   AppFloatingPanel,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anlg/ui/components/ui/popover";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/popover";
+import { cn } from "@syntheo/utils";
 
 import {
   DEFAULT_TEMPLATE_ICON,
@@ -68,7 +68,7 @@ const FREQUENT_EMOJI_IDS = [
   "question",
 ];
 
-const RECENT_EMOJIS_KEY = "anarlog.template-picker.recent-emojis";
+const RECENT_EMOJIS_KEY = "syntheo.template-picker.recent-emojis";
 const data = emojiData as EmojiMartData;
 
 type EmojiItem = {

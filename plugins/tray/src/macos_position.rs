@@ -124,16 +124,16 @@ mod tests {
     #[test]
     fn position_keys_follow_appkit_defaults_and_seed_key_stays_outside() {
         assert_eq!(
-            preferred_position_key("anlg-tray"),
-            "NSStatusItem Preferred Position anlg-tray"
+            preferred_position_key("syntheo-tray"),
+            "NSStatusItem Preferred Position syntheo-tray"
         );
         assert_eq!(
-            visibility_key("anlg-tray"),
-            "NSStatusItem Visible anlg-tray"
+            visibility_key("syntheo-tray"),
+            "NSStatusItem Visible syntheo-tray"
         );
         assert_eq!(
-            seed_version_key("anlg-tray"),
-            "anlg-tray position seed version"
+            seed_version_key("syntheo-tray"),
+            "syntheo-tray position seed version"
         );
     }
 

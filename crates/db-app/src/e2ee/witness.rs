@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use anlg_e2ee::{OpenedField, WorkspaceKey, WorkspaceKeyring};
 use sqlx::{QueryBuilder, Sqlite, SqlitePool, Transaction};
+use syntheo_e2ee::{OpenedField, WorkspaceKey, WorkspaceKeyring};
 
 use super::replica_storage::{
     normalize_replica_payload_hashes, prune_ciphertext_archive, retain_ciphertext,
@@ -1071,7 +1071,7 @@ fn validate_witness_payload(
     revision: i64,
     writer_id: &str,
 ) -> E2eeReplicaResult<()> {
-    if anlg_e2ee::payload_hash(payload) != payload_hash {
+    if syntheo_e2ee::payload_hash(payload) != payload_hash {
         return Err(E2eeReplicaError::RollbackDetected);
     }
     let field = key.open_field(workspace_id, record_id, payload)?;
@@ -1087,7 +1087,7 @@ fn validate_witness_payload_with_keyring(
     revision: i64,
     writer_id: &str,
 ) -> E2eeReplicaResult<()> {
-    if anlg_e2ee::payload_hash(payload) != payload_hash {
+    if syntheo_e2ee::payload_hash(payload) != payload_hash {
         return Err(E2eeReplicaError::RollbackDetected);
     }
     let field = keyring.open_field(workspace_id, record_id, payload)?;
@@ -1104,7 +1104,7 @@ fn validate_opened_witness_field(
     if !E2EE_DOMAIN_TABLES.contains(&field.table.as_str())
         || i64::try_from(field.revision).ok() != Some(revision)
         || field.writer_id != writer_id
-        || anlg_e2ee::payload_hash(payload) != payload_hash
+        || syntheo_e2ee::payload_hash(payload) != payload_hash
     {
         return Err(E2eeReplicaError::RollbackDetected);
     }

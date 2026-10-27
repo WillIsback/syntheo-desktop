@@ -2,17 +2,17 @@ import { useQuery } from "@tanstack/react-query";
 import { getIdentifier, getVersion } from "@tauri-apps/api/app";
 import { useReducer, useState } from "react";
 
-import { commands as miscCommands } from "@anlg/plugin-misc";
-import { Copy, Minus } from "@anlg/ui/components/icons";
+import { commands as miscCommands } from "@syntheo/plugin-misc";
+import { Copy, Minus } from "@syntheo/ui/components/icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import {
   DEVTOOLS_MENU,
@@ -65,7 +65,7 @@ const CHANNEL_TEXT: Record<BuildChannel, string> = {
   stable: "text-neutral-200",
 };
 
-const COLLAPSED_STORAGE_KEY = "anarlog:devtools-bar:collapsed";
+const COLLAPSED_STORAGE_KEY = "syntheo:devtools-bar:collapsed";
 
 const ITEM_CLASS = "flex items-center gap-1.5 px-2";
 const BUTTON_CLASS = cn([

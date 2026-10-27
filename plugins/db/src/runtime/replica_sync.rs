@@ -1,1 +1,1 @@
-pub(super) use anlg_db_sync::{ReplicaSyncTask, spawn_replica_sync};
+pub(super) use syntheo_db_sync::{ReplicaSyncTask, spawn_replica_sync};

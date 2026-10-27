@@ -1,8 +1,8 @@
 use std::process::ExitCode;
 
-use anarlog_cli::Args;
 use clap::Parser;
 use clap::error::ErrorKind;
+use syntheo_cli::Args;
 
 #[tokio::main]
 async fn main() -> ExitCode {
@@ -21,7 +21,7 @@ async fn main() -> ExitCode {
                 eprintln!(
                     "{}",
                     serde_json::to_string_pretty(&serde_json::json!({
-                        "schema_version": anarlog_cli::JSON_SCHEMA_VERSION,
+                        "schema_version": syntheo_cli::JSON_SCHEMA_VERSION,
                         "error": {
                             "code": "invalid_arguments",
                             "message": error.to_string(),
@@ -35,7 +35,7 @@ async fn main() -> ExitCode {
         }
     };
 
-    let result = anarlog_cli::run(args).await;
+    let result = syntheo_cli::run(args).await;
 
     match result {
         Ok(code) => ExitCode::from(code),

@@ -5,8 +5,8 @@ import {
   NotePencil,
   Sidebar,
   SidebarSimple,
-} from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { SidebarNoteFilterMenu } from "~/sidebar/note-filter-menu";
 import { useSidebarUpcomingMeetingStatus } from "~/sidebar/timeline/upcoming-meeting";

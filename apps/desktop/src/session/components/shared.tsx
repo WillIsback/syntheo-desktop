@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { computeCurrentNoteTab } from "@anlg/utils/session";
+import { computeCurrentNoteTab } from "@syntheo/utils/session";
 
 import { extractPlainText } from "~/search/contexts/engine/utils";
 import { useEnhancedNotes } from "~/session/hooks/useEnhancedNotes";

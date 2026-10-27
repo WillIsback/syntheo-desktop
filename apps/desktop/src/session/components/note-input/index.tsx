@@ -11,8 +11,8 @@ import {
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import type { JSONContent, NoteEditorRef } from "@anlg/editor/note";
-import { cn } from "@anlg/utils";
+import type { JSONContent, NoteEditorRef } from "@syntheo/editor/note";
+import { cn } from "@syntheo/utils";
 
 import { Enhanced } from "./enhanced";
 import { Header, SessionViewSwitcher, useEditorTabs } from "./header";

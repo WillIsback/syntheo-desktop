@@ -1,9 +1,9 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useCallback, useState } from "react";
 
-import { Lock, MagnifyingGlass, X } from "@anlg/ui/components/icons";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { cn } from "@anlg/utils";
+import { Lock, MagnifyingGlass, X } from "@syntheo/ui/components/icons";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { cn } from "@syntheo/utils";
 
 import { CustomSidebarHeader } from "./custom-sidebar-header";
 import { useSettingsNavGroups } from "./settings-nav-groups";
@@ -149,7 +149,7 @@ export function SettingsNav() {
                         </span>
                         {requiresPro ? (
                           <Lock
-                            aria-label={t`Requires Anarlog Pro`}
+                            aria-label={t`Requires Syntheo Pro`}
                             className="size-3.5 shrink-0"
                           />
                         ) : null}

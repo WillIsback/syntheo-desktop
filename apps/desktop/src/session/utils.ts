@@ -1,4 +1,4 @@
-import type { SessionEvent } from "@anlg/store";
+import type { SessionEvent } from "@syntheo/store";
 
 export function getSessionEvent(session: {
   event_json?: string | null;

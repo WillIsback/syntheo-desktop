@@ -21,7 +21,7 @@ pub async fn resolve_session_conflicts(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::resolve_session_note_conflicts(&mut transaction, &request.session_id)
+    syntheo_db_app::resolve_session_note_conflicts(&mut transaction, &request.session_id)
         .await
         .map_err(|error| error.to_string())?;
 
@@ -40,7 +40,7 @@ pub async fn resolve_session_conflict(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::resolve_session_conflict(&mut transaction, &request.conflict_id)
+    syntheo_db_app::resolve_session_conflict(&mut transaction, &request.conflict_id)
         .await
         .map_err(|error| error.to_string())?;
 

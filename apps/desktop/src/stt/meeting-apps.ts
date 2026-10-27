@@ -1,6 +1,6 @@
 import { resolveResource } from "@tauri-apps/api/path";
 
-import type { NotificationIcon } from "@anlg/plugin-notification";
+import type { NotificationIcon } from "@syntheo/plugin-notification";
 
 import type { NearbyCalendarEvent } from "~/calendar/queries";
 

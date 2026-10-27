@@ -9,11 +9,11 @@ links = "tauri-plugin-todo"
 description = ""
 
 [dependencies]
-anlg-api-client = { workspace = true }
-anlg-apple-todo = { workspace = true, features = ["specta"] }
-anlg-github-issues = { workspace = true, features = ["specta"] }
-anlg-http = { workspace = true }
-anlg-ticket-interface = { workspace = true }
+syntheo-api-client = { workspace = true }
+syntheo-apple-todo = { workspace = true, features = ["specta"] }
+syntheo-github-issues = { workspace = true, features = ["specta"] }
+syntheo-http = { workspace = true }
+syntheo-ticket-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }

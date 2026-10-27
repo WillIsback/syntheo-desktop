@@ -12,7 +12,7 @@ describe("getDefaultSttModel", () => {
   test.each([
     ["nvidia", "nemotron-asr-streaming"],
     ["openai", undefined],
-    ["anarlog", undefined],
+    ["syntheo", undefined],
   ])("defaults %s to %s", (provider, model) => {
     expect(getDefaultSttModel(provider)).toBe(model);
   });
@@ -107,8 +107,8 @@ describe("getDefaultSttSelection", () => {
 
   test("skips configured providers that have no available model", () => {
     expect(
-      getDefaultSttSelection(["anarlog", "deepgram"], {
-        anarlog: {
+      getDefaultSttSelection(["syntheo", "deepgram"], {
+        syntheo: {
           configured: true,
           models: [{ id: "cloud", isDownloaded: false }],
         },
@@ -122,8 +122,8 @@ describe("getDefaultSttSelection", () => {
 
   test("returns no selection when nothing is available", () => {
     expect(
-      getDefaultSttSelection(["anarlog"], {
-        anarlog: {
+      getDefaultSttSelection(["syntheo"], {
+        syntheo: {
           configured: true,
           models: [{ id: "cloud", isDownloaded: false }],
         },

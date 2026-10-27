@@ -2,7 +2,7 @@ import { I18nProvider } from "@lingui/react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { type ReactNode } from "react";
 
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { createI18n } from "./catalogs";
 import { resolveDisplayLocale } from "./locales";

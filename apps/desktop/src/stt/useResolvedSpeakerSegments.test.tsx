@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   RenderTranscriptRequest,
   RenderedTranscriptSegment,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import type { Segment, SegmentWord } from "./live-segment";
 import { useResolvedSpeakerSegments } from "./useResolvedSpeakerSegments";
@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
   renderTranscriptSegments: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-transcription", () => ({
+vi.mock("@syntheo/plugin-transcription", () => ({
   commands: {
     renderTranscriptSegments: mocks.renderTranscriptSegments,
   },

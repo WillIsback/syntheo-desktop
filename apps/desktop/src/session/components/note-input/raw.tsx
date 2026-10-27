@@ -2,15 +2,15 @@ import { useLingui } from "@lingui/react/macro";
 import type { EditorView } from "prosemirror-view";
 import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
 
-import { parseJsonContent } from "@anlg/editor/markdown";
+import { parseJsonContent } from "@syntheo/editor/markdown";
 import {
   NoteEditor,
   type JSONContent,
   type NoteEditorRef,
   normalizePortableAttachmentUrls,
-} from "@anlg/editor/note";
-import { Plus } from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+} from "@syntheo/editor/note";
+import { Plus } from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { AudioDropTarget } from "./audio-drop-target";
 import { CreateBriefSuggestion } from "./create-brief-suggestion";

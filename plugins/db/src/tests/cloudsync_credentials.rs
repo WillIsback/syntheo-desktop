@@ -7,7 +7,7 @@ use super::support::{
 #[tokio::test]
 async fn account_binding_is_durable_without_rekeying_local_rows() {
     let (_dir, runtime) = setup_runtime().await;
-    let local_workspace = anlg_db_app::ensure_cloudsync_workspace_binding(runtime.pool())
+    let local_workspace = syntheo_db_app::ensure_cloudsync_workspace_binding(runtime.pool())
         .await
         .unwrap();
     sqlx::query(
@@ -89,7 +89,7 @@ async fn account_binding_is_durable_without_rekeying_local_rows() {
 #[tokio::test]
 async fn token_configuration_rejects_local_only_runtime_before_rekeying() {
     let (_dir, runtime) = setup_runtime().await;
-    let local_workspace = anlg_db_app::ensure_cloudsync_workspace_binding(runtime.pool())
+    let local_workspace = syntheo_db_app::ensure_cloudsync_workspace_binding(runtime.pool())
         .await
         .unwrap();
     sqlx::query(
@@ -128,7 +128,7 @@ async fn token_configuration_rejects_local_only_runtime_before_rekeying() {
 
     assert!(matches!(
         error,
-        crate::Error::Cloudsync(anlg_db_core::CloudsyncRuntimeError::Unavailable)
+        crate::Error::Cloudsync(syntheo_db_core::CloudsyncRuntimeError::Unavailable)
     ));
     assert_eq!(binding, (local_workspace.clone(), None));
     assert_eq!(session, (local_workspace.clone(), local_workspace));
@@ -155,7 +155,7 @@ async fn invalid_projection_does_not_claim_an_unbound_database() {
             "managed-database-id".to_string(),
             "token".to_string(),
             "user-a".to_string(),
-            Some(anlg_db_app::CloudsyncWorkspaceProjection {
+            Some(syntheo_db_app::CloudsyncWorkspaceProjection {
                 account_user_id: "user-a".to_string(),
                 personal_workspace_id: "user-a".to_string(),
                 workspaces: vec![],
@@ -180,7 +180,7 @@ async fn invalid_projection_does_not_claim_an_unbound_database() {
     assert!(matches!(
         error,
         crate::Error::CloudsyncWorkspace(
-            anlg_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection
+            syntheo_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection
         )
     ));
     assert_eq!(binding_count, 0);
@@ -191,7 +191,7 @@ async fn invalid_projection_does_not_claim_an_unbound_database() {
 async fn token_configuration_claims_workspace_and_can_be_suspended() {
     let (_dir, runtime) = setup_enabled_cloudsync_runtime().await;
     let (_witness_server, witness) = setup_witness("user-a").await;
-    let local_workspace = anlg_db_app::ensure_cloudsync_workspace_binding(runtime.pool())
+    let local_workspace = syntheo_db_app::ensure_cloudsync_workspace_binding(runtime.pool())
         .await
         .unwrap();
     sqlx::query(
@@ -247,7 +247,7 @@ async fn token_configuration_claims_workspace_and_can_be_suspended() {
 async fn token_refresh_restarts_pending_full_resync_with_new_credentials() {
     let (_dir, runtime) = setup_enabled_cloudsync_runtime().await;
     let (_witness_server, witness) = setup_witness("user-a").await;
-    let local_workspace = anlg_db_app::ensure_cloudsync_workspace_binding(runtime.pool())
+    let local_workspace = syntheo_db_app::ensure_cloudsync_workspace_binding(runtime.pool())
         .await
         .unwrap();
     sqlx::query(
@@ -265,10 +265,10 @@ async fn token_refresh_restarts_pending_full_resync_with_new_credentials() {
             .await
             .unwrap()
     );
-    let projection = anlg_db_app::CloudsyncWorkspaceProjection {
+    let projection = syntheo_db_app::CloudsyncWorkspaceProjection {
         account_user_id: "user-a".to_string(),
         personal_workspace_id: "user-a".to_string(),
-        workspaces: vec![anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+        workspaces: vec![syntheo_db_app::CloudsyncWorkspaceProjectionEntry {
             id: "user-a".to_string(),
             owner_user_id: "user-a".to_string(),
             kind: "personal".to_string(),
@@ -298,7 +298,7 @@ async fn token_refresh_restarts_pending_full_resync_with_new_credentials() {
     let (generation, auth) = runtime.cloudsync_full_resync_task_snapshot().await.unwrap();
     assert_eq!(
         auth,
-        anlg_db_core::CloudsyncAuth::Token {
+        syntheo_db_core::CloudsyncAuth::Token {
             token: "initial-token".to_string(),
         }
     );
@@ -321,7 +321,7 @@ async fn token_refresh_restarts_pending_full_resync_with_new_credentials() {
     assert_eq!(refreshed_generation, generation);
     assert_eq!(
         refreshed_auth,
-        anlg_db_core::CloudsyncAuth::Token {
+        syntheo_db_core::CloudsyncAuth::Token {
             token: "refreshed-token".to_string(),
         }
     );
@@ -340,11 +340,11 @@ async fn token_configuration_projects_server_workspaces_after_account_claim() {
             .unwrap()
     );
 
-    let projection = anlg_db_app::CloudsyncWorkspaceProjection {
+    let projection = syntheo_db_app::CloudsyncWorkspaceProjection {
         account_user_id: "user-a".to_string(),
         personal_workspace_id: "user-a".to_string(),
         workspaces: vec![
-            anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+            syntheo_db_app::CloudsyncWorkspaceProjectionEntry {
                 id: "user-a".to_string(),
                 owner_user_id: "user-a".to_string(),
                 kind: "personal".to_string(),
@@ -356,7 +356,7 @@ async fn token_configuration_projects_server_workspaces_after_account_claim() {
                 created_at: "2026-07-01T00:00:00Z".to_string(),
                 updated_at: "2026-07-16T00:00:00Z".to_string(),
             },
-            anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+            syntheo_db_app::CloudsyncWorkspaceProjectionEntry {
                 id: "workspace-shared".to_string(),
                 owner_user_id: "user-b".to_string(),
                 kind: "shared".to_string(),
@@ -430,7 +430,7 @@ async fn token_configuration_projects_server_workspaces_after_account_claim() {
     );
     assert_eq!(writable_workspace_ids, vec!["user-a".to_string()]);
     assert!(
-        anlg_db_app::cloudsync_write_filter_installed(runtime.pool(), "user-a")
+        syntheo_db_app::cloudsync_write_filter_installed(runtime.pool(), "user-a")
             .await
             .unwrap()
     );
@@ -446,12 +446,12 @@ async fn token_configuration_account_mismatch_preserves_workspace_projection() {
             .await
             .unwrap()
     );
-    anlg_db_app::replace_cloudsync_workspace_projection(
+    syntheo_db_app::replace_cloudsync_workspace_projection(
         runtime.pool(),
-        &anlg_db_app::CloudsyncWorkspaceProjection {
+        &syntheo_db_app::CloudsyncWorkspaceProjection {
             account_user_id: "user-a".to_string(),
             personal_workspace_id: "user-a".to_string(),
-            workspaces: vec![anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+            workspaces: vec![syntheo_db_app::CloudsyncWorkspaceProjectionEntry {
                 id: "user-a".to_string(),
                 owner_user_id: "user-a".to_string(),
                 kind: "personal".to_string(),
@@ -473,10 +473,10 @@ async fn token_configuration_account_mismatch_preserves_workspace_projection() {
             "managed-database-id".to_string(),
             "token".to_string(),
             "user-a".to_string(),
-            Some(anlg_db_app::CloudsyncWorkspaceProjection {
+            Some(syntheo_db_app::CloudsyncWorkspaceProjection {
                 account_user_id: "user-b".to_string(),
                 personal_workspace_id: "user-b".to_string(),
-                workspaces: vec![anlg_db_app::CloudsyncWorkspaceProjectionEntry {
+                workspaces: vec![syntheo_db_app::CloudsyncWorkspaceProjectionEntry {
                     id: "user-b".to_string(),
                     owner_user_id: "user-b".to_string(),
                     kind: "personal".to_string(),
@@ -502,7 +502,7 @@ async fn token_configuration_account_mismatch_preserves_workspace_projection() {
     assert!(matches!(
         error,
         crate::Error::CloudsyncWorkspace(
-            anlg_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection
+            syntheo_db_app::CloudsyncWorkspaceError::InvalidWorkspaceProjection
         )
     ));
     assert_eq!(

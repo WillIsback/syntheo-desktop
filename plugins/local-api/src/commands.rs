@@ -20,7 +20,7 @@ pub async fn list_webhooks<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<WebhookInfo>, String> {
     let pool = pool(&app)?;
-    Ok(anlg_db_app::list_webhook_endpoints(&pool)
+    Ok(syntheo_db_app::list_webhook_endpoints(&pool)
         .await
         .map_err(|e| e.to_string())?
         .into_iter()
@@ -46,7 +46,7 @@ pub async fn delete_webhook<R: tauri::Runtime>(
     id: String,
 ) -> Result<bool, String> {
     let pool = pool(&app)?;
-    anlg_db_app::delete_webhook_endpoint(&pool, &id)
+    syntheo_db_app::delete_webhook_endpoint(&pool, &id)
         .await
         .map_err(|e| e.to_string())
 }
@@ -59,7 +59,7 @@ pub async fn set_webhook_active<R: tauri::Runtime>(
     active: bool,
 ) -> Result<WebhookInfo, String> {
     let pool = pool(&app)?;
-    anlg_db_app::set_webhook_endpoint_active(&pool, &id, active)
+    syntheo_db_app::set_webhook_endpoint_active(&pool, &id, active)
         .await
         .map_err(|e| e.to_string())?
         .map(WebhookInfo::from)
@@ -73,7 +73,7 @@ pub async fn test_webhook<R: tauri::Runtime>(
     id: String,
 ) -> Result<WebhookDelivery, String> {
     let pool = pool(&app)?;
-    let endpoint = anlg_db_app::get_webhook_endpoint(&pool, &id)
+    let endpoint = syntheo_db_app::get_webhook_endpoint(&pool, &id)
         .await
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("webhook '{id}' not found"))?;
@@ -118,7 +118,8 @@ pub(crate) async fn run_markdown_export_automation(pool: &sqlx::SqlitePool, meet
         return;
     }
 
-    let result = match anlg_agent_access::get_meeting_export(pool, meeting_id.to_string()).await {
+    let result = match syntheo_agent_access::get_meeting_export(pool, meeting_id.to_string()).await
+    {
         Ok(export) => write_markdown_export(std::path::Path::new(&directory), &export),
         Err(error) => Err(error.to_string()),
     };
@@ -182,7 +183,7 @@ pub async fn export_meeting_markdown<R: tauri::Runtime>(
         return Err("export directory is not set".to_string());
     }
     let pool = pool(&app)?;
-    let export = anlg_agent_access::get_meeting_export(&pool, meeting_id)
+    let export = syntheo_agent_access::get_meeting_export(&pool, meeting_id)
         .await
         .map_err(|error| error.to_string())?;
     let path = write_markdown_export_with_options(
@@ -231,12 +232,12 @@ fn sha256_hex(content: &[u8]) -> String {
         .collect()
 }
 
-pub(crate) fn markdown_export_filename(meeting: &anlg_agent_access::Meeting) -> String {
+pub(crate) fn markdown_export_filename(meeting: &syntheo_agent_access::Meeting) -> String {
     configured_markdown_filename(meeting, &MarkdownExportOptions::default())
 }
 
 pub(crate) fn configured_markdown_filename(
-    meeting: &anlg_agent_access::Meeting,
+    meeting: &syntheo_agent_access::Meeting,
     options: &MarkdownExportOptions,
 ) -> String {
     let title = meeting.title.trim();
@@ -311,14 +312,14 @@ fn sanitize_filename_part(value: &str) -> String {
 
 pub(crate) fn write_markdown_export(
     directory: &std::path::Path,
-    export: &anlg_agent_access::MeetingExport,
+    export: &syntheo_agent_access::MeetingExport,
 ) -> Result<std::path::PathBuf, String> {
     write_markdown_export_with_options(directory, export, None)
 }
 
 pub(crate) fn write_markdown_export_with_options(
     directory: &std::path::Path,
-    export: &anlg_agent_access::MeetingExport,
+    export: &syntheo_agent_access::MeetingExport,
     options: Option<&MarkdownExportOptions>,
 ) -> Result<std::path::PathBuf, String> {
     use std::io::Write;
@@ -403,7 +404,7 @@ pub(crate) fn persist_markdown_export(
         .parent()
         .ok_or_else(|| std::io::Error::other("export has no parent folder"))?;
     let mut temporary = tempfile::Builder::new()
-        .prefix(".anlg-export-")
+        .prefix(".syntheo-export-")
         .tempfile_in(directory)?;
     write(temporary.as_file_mut())?;
     if replace_existing {
@@ -427,7 +428,7 @@ pub(crate) fn persist_markdown_export(
 }
 
 fn legacy_export_prefix(meeting_id: &str) -> String {
-    format!("<!-- anarlog:legacy-markdown-export {meeting_id:?} -->\n\n")
+    format!("<!-- syntheo:legacy-markdown-export {meeting_id:?} -->\n\n")
 }
 
 // Only remove files explicitly owned by the legacy exporter. Unmarked files
@@ -464,14 +465,14 @@ pub async fn get_cloud_snapshot<R: tauri::Runtime>(
     meeting_id: String,
 ) -> Result<serde_json::Value, String> {
     let pool = pool(&app)?;
-    let export = anlg_agent_access::get_meeting_export(&pool, meeting_id)
+    let export = syntheo_agent_access::get_meeting_export(&pool, meeting_id)
         .await
         .map_err(|error| error.to_string())?;
     prepare_cloud_snapshot(export)
 }
 
 pub(crate) fn prepare_cloud_snapshot(
-    mut export: anlg_agent_access::MeetingExport,
+    mut export: syntheo_agent_access::MeetingExport,
 ) -> Result<serde_json::Value, String> {
     let snapshot = serde_json::to_value(&export).map_err(|error| error.to_string())?;
     if cloud_snapshot_jsonb_len(&snapshot)? <= MAX_CLOUD_SNAPSHOT_BYTES {
@@ -543,13 +544,13 @@ pub async fn list_cloud_snapshot_ids<R: tauri::Runtime>(
     let mut offset = 0;
     let mut ids = Vec::new();
     loop {
-        let page = anlg_agent_access::list_meetings(
+        let page = syntheo_agent_access::list_meetings(
             &pool,
-            anlg_agent_access::ListMeetingsInput {
+            syntheo_agent_access::ListMeetingsInput {
                 query: None,
                 series_id: None,
                 folder_path: None,
-                limit: Some(anlg_agent_access::MAX_LIST_LIMIT),
+                limit: Some(syntheo_agent_access::MAX_LIST_LIMIT),
                 offset: Some(offset),
             },
         )
@@ -570,14 +571,14 @@ pub async fn prepare_drive_markdown<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     meeting_id: String,
 ) -> Result<crate::types::DriveMarkdownExport, String> {
-    let export = anlg_agent_access::get_meeting_export(&pool(&app)?, meeting_id)
+    let export = syntheo_agent_access::get_meeting_export(&pool(&app)?, meeting_id)
         .await
         .map_err(|error| error.to_string())?;
     drive_markdown(export)
 }
 
 pub(crate) fn drive_markdown(
-    mut export: anlg_agent_access::MeetingExport,
+    mut export: syntheo_agent_access::MeetingExport,
 ) -> Result<crate::types::DriveMarkdownExport, String> {
     if !export
         .meeting

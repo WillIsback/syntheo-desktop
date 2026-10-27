@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use anlg_transcript::{
+use serde_json::Value;
+use syntheo_transcript::{
     ChannelProfile, IdentityAssignment, IdentityScope, RenderTranscriptHuman,
     RenderTranscriptInput, RenderTranscriptRequest, RenderTranscriptWordInput, SpeakerContext,
     render_transcript_segments,
 };
-use serde_json::Value;
 
 use crate::{MeetingExport, Transcript};
 
@@ -150,7 +150,8 @@ fn parse_speaker_context(value: &Value) -> Option<SpeakerContext> {
     let intervals = intervals
         .iter()
         .filter_map(|interval| {
-            serde_json::from_value::<anlg_transcript::SpeakerContextInterval>(interval.clone()).ok()
+            serde_json::from_value::<syntheo_transcript::SpeakerContextInterval>(interval.clone())
+                .ok()
         })
         .filter(|interval| interval.start_ms < interval.end_ms)
         .collect::<Vec<_>>();
@@ -182,7 +183,9 @@ fn normalize_transcript(transcript: &Transcript) -> Option<RenderTranscriptInput
                 .map(|channel| channel as i32)
                 .unwrap_or(0),
             speaker_index: None,
-            synthetic_timing: anlg_transcript::synthetic_timing_from_metadata(word.get("metadata")),
+            synthetic_timing: syntheo_transcript::synthetic_timing_from_metadata(
+                word.get("metadata"),
+            ),
         });
     }
 

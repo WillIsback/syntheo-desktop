@@ -7,7 +7,7 @@ pub enum Error {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
-    AnlgAudioError(#[from] anlg_audio::Error),
+    SyntheoAudioError(#[from] syntheo_audio::Error),
 
     #[error("no session")]
     NoneSession,

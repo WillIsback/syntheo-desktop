@@ -24,4 +24,4 @@ pub use error::{Error, Result};
 pub use layout::{SHARED_PREVIEW_SCOPE_PREFIX, TransferPaths};
 pub use private_transfer::seal_attachment_to_cache;
 
-pub const MAX_PLAINTEXT_BYTES: u64 = anlg_e2ee::ATTACHMENT_BLOB_MAX_PLAINTEXT_BYTES;
+pub const MAX_PLAINTEXT_BYTES: u64 = syntheo_e2ee::ATTACHMENT_BLOB_MAX_PLAINTEXT_BYTES;

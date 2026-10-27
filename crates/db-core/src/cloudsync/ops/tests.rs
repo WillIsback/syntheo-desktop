@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
-use anlg_cloudsync::ReservedConnection;
+use syntheo_cloudsync::ReservedConnection;
 
 use super::*;
 
@@ -42,10 +42,10 @@ async fn db_with_oversized_pending_payload() -> Db {
     db
 }
 
-fn assert_outbound_payload_too_large(error: anlg_cloudsync::Error) {
+fn assert_outbound_payload_too_large(error: syntheo_cloudsync::Error) {
     assert!(matches!(
         error,
-        anlg_cloudsync::Error::OutboundPayloadTooLarge {
+        syntheo_cloudsync::Error::OutboundPayloadTooLarge {
             chunks,
             max_chunks: CLOUDSYNC_MAX_OUTBOUND_CHUNKS,
             ..
@@ -549,7 +549,7 @@ async fn pending_payload_interrupt_drains_before_local_write() {
 
 #[test]
 fn reconciled_send_reports_the_exact_preflighted_batch() {
-    let batch = anlg_cloudsync::PendingPayloadBatch {
+    let batch = syntheo_cloudsync::PendingPayloadBatch {
         start_db_version: 4,
         watermark_db_version: Some(9),
         chunks: 2,
@@ -560,11 +560,11 @@ fn reconciled_send_reports_the_exact_preflighted_batch() {
         remaining: false,
         local_db_versions: 2,
     };
-    let status = anlg_cloudsync::NetworkStatus {
+    let status = syntheo_cloudsync::NetworkStatus {
         last_optimistic_version: 12,
         last_confirmed_version: 12,
         gaps: Vec::new(),
-        failures: anlg_cloudsync::NetworkStatusFailures::default(),
+        failures: syntheo_cloudsync::NetworkStatusFailures::default(),
     };
 
     let result = reconciled_send_result(batch, &status, false);
@@ -576,7 +576,7 @@ fn reconciled_send_reports_the_exact_preflighted_batch() {
     assert_eq!(send.chunks, 2);
     assert_eq!(send.bytes, 4096);
     let partial = reconciled_send_result(
-        anlg_cloudsync::PendingPayloadBatch {
+        syntheo_cloudsync::PendingPayloadBatch {
             remaining: true,
             ..batch
         },
@@ -588,7 +588,7 @@ fn reconciled_send_reports_the_exact_preflighted_batch() {
     assert_eq!(late_write.send.unwrap().status, "syncing");
     let confirmed_prefix = reconciled_send_result(
         batch,
-        &anlg_cloudsync::NetworkStatus {
+        &syntheo_cloudsync::NetworkStatus {
             last_optimistic_version: 7,
             last_confirmed_version: 7,
             ..status
@@ -606,7 +606,7 @@ fn reconciled_send_reports_the_exact_preflighted_batch() {
 
 #[test]
 fn cancelled_send_never_starts_status_reconciliation() {
-    let batch = anlg_cloudsync::PendingPayloadBatch {
+    let batch = syntheo_cloudsync::PendingPayloadBatch {
         start_db_version: 4,
         watermark_db_version: Some(9),
         chunks: 2,
@@ -617,7 +617,7 @@ fn cancelled_send_never_starts_status_reconciliation() {
         remaining: false,
         local_db_versions: 2,
     };
-    let error = anlg_cloudsync::Error::Io(std::io::Error::new(
+    let error = syntheo_cloudsync::Error::Io(std::io::Error::new(
         std::io::ErrorKind::TimedOut,
         "interrupted upload",
     ));
@@ -738,14 +738,14 @@ async fn confirmed_send_recovery_preserves_later_local_edits() {
         .execute(connection.connection().await.unwrap())
         .await
         .unwrap();
-    let status = anlg_cloudsync::NetworkStatus {
+    let status = syntheo_cloudsync::NetworkStatus {
         last_optimistic_version: 100,
         last_confirmed_version: 100,
         gaps: Vec::new(),
-        failures: anlg_cloudsync::NetworkStatusFailures::default(),
+        failures: syntheo_cloudsync::NetworkStatusFailures::default(),
     };
     assert!(
-        anlg_cloudsync::reconcile_confirmed_pending_payload(
+        syntheo_cloudsync::reconcile_confirmed_pending_payload(
             connection.connection().await.unwrap(),
             batch,
             &status,
@@ -769,8 +769,8 @@ async fn confirmed_send_recovery_preserves_later_local_edits() {
 
 #[test]
 fn bounded_sync_preserves_the_send_and_single_receive_results() {
-    let send = anlg_cloudsync::NetworkResult {
-        send: Some(anlg_cloudsync::NetworkSendResult {
+    let send = syntheo_cloudsync::NetworkResult {
+        send: Some(syntheo_cloudsync::NetworkSendResult {
             status: "synced".to_string(),
             local_version: 9,
             server_version: 9,
@@ -780,9 +780,9 @@ fn bounded_sync_preserves_the_send_and_single_receive_results() {
         }),
         receive: None,
     };
-    let receive = anlg_cloudsync::NetworkResult {
+    let receive = syntheo_cloudsync::NetworkResult {
         send: None,
-        receive: Some(anlg_cloudsync::NetworkReceiveResult {
+        receive: Some(syntheo_cloudsync::NetworkReceiveResult {
             rows: 3,
             tables: vec!["items".to_string()],
             chunks: 1,

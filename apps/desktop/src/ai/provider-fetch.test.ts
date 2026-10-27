@@ -1,7 +1,7 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { verifyProviderCredentials } from "@anlg/provider-validation";
+import { verifyProviderCredentials } from "@syntheo/provider-validation";
 
 import { providerFetch } from "./provider-fetch";
 

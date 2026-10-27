@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-calendar",
+  "name": "@syntheo/plugin-calendar",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

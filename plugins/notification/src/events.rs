@@ -10,22 +10,22 @@ common_event_derives! {
     #[serde(tag = "type")]
     pub enum NotificationEvent {
         #[serde(rename = "notification_confirm")]
-        Confirm { key: String, source: Option<anlg_notification::NotificationSource> },
+        Confirm { key: String, source: Option<syntheo_notification::NotificationSource> },
         #[serde(rename = "notification_accept")]
-        Accept { key: String, source: Option<anlg_notification::NotificationSource> },
+        Accept { key: String, source: Option<syntheo_notification::NotificationSource> },
         #[serde(rename = "notification_action")]
         Action {
             key: String,
-            source: Option<anlg_notification::NotificationSource>,
-            action: anlg_notification::NotificationAction,
+            source: Option<syntheo_notification::NotificationSource>,
+            action: syntheo_notification::NotificationAction,
         },
         #[serde(rename = "notification_dismiss")]
-        Dismiss { key: String, source: Option<anlg_notification::NotificationSource> },
+        Dismiss { key: String, source: Option<syntheo_notification::NotificationSource> },
         #[serde(rename = "notification_timeout")]
-        Timeout { key: String, source: Option<anlg_notification::NotificationSource> },
+        Timeout { key: String, source: Option<syntheo_notification::NotificationSource> },
         #[serde(rename = "notification_option_selected")]
-        OptionSelected { key: String, source: Option<anlg_notification::NotificationSource>, selected_index: i32 },
+        OptionSelected { key: String, source: Option<syntheo_notification::NotificationSource>, selected_index: i32 },
         #[serde(rename = "notification_footer_action")]
-        FooterAction { key: String, source: Option<anlg_notification::NotificationSource> },
+        FooterAction { key: String, source: Option<syntheo_notification::NotificationSource> },
     }
 }

@@ -81,7 +81,7 @@ pub struct ListFoldersInput {
 )]
 #[serde(rename_all = "snake_case")]
 pub struct GetMeetingInput {
-    #[schemars(description = "Anarlog meeting id")]
+    #[schemars(description = "Syntheo meeting id")]
     pub meeting_id: String,
 }
 
@@ -90,7 +90,7 @@ pub struct GetMeetingInput {
 )]
 #[serde(rename_all = "snake_case")]
 pub struct GetMeetingTranscriptInput {
-    #[schemars(description = "Anarlog meeting id")]
+    #[schemars(description = "Syntheo meeting id")]
     pub meeting_id: String,
     #[schemars(description = "Word offset; defaults to 0")]
     pub offset: Option<u32>,
@@ -328,9 +328,9 @@ pub async fn list_meetings(pool: &SqlitePool, input: ListMeetingsInput) -> Resul
         })
         .transpose()?
         .filter(|path| !path.is_empty());
-    let mut meetings = anlg_db_app::list_sessions(
+    let mut meetings = syntheo_db_app::list_sessions(
         pool,
-        anlg_db_app::ListSessions {
+        syntheo_db_app::ListSessions {
             query: input.query.as_deref(),
             series_id: input.series_id.as_deref(),
             folder_path: folder_path.as_deref(),
@@ -369,7 +369,7 @@ pub async fn list_folders(pool: &SqlitePool, input: ListFoldersInput) -> Result<
         .map(str::trim)
         .unwrap_or_default()
         .to_lowercase();
-    let stored = anlg_db_app::list_folder_paths(pool)
+    let stored = syntheo_db_app::list_folder_paths(pool)
         .await
         .map_err(|source| Error::Database {
             action: "list folders",
@@ -406,11 +406,11 @@ pub async fn list_folders(pool: &SqlitePool, input: ListFoldersInput) -> Result<
 pub async fn get_meeting(pool: &SqlitePool, input: GetMeetingInput) -> Result<Meeting> {
     let meeting_id = input.meeting_id;
     let (session, note, documents, participants, action_items) = tokio::try_join!(
-        anlg_db_app::get_session(pool, &meeting_id),
-        anlg_db_app::get_session_note(pool, &meeting_id),
-        anlg_db_app::list_session_documents(pool, &meeting_id),
-        anlg_db_app::list_session_participants(pool, &meeting_id),
-        anlg_db_app::list_session_action_items(pool, &meeting_id),
+        syntheo_db_app::get_session(pool, &meeting_id),
+        syntheo_db_app::get_session_note(pool, &meeting_id),
+        syntheo_db_app::list_session_documents(pool, &meeting_id),
+        syntheo_db_app::list_session_participants(pool, &meeting_id),
+        syntheo_db_app::list_session_action_items(pool, &meeting_id),
     )
     .map_err(|source| Error::Database {
         action: "load meeting",
@@ -448,7 +448,7 @@ pub async fn get_meeting_transcript(
     pool: &SqlitePool,
     input: GetMeetingTranscriptInput,
 ) -> Result<TranscriptPage> {
-    let exists = anlg_db_app::get_session(pool, &input.meeting_id)
+    let exists = syntheo_db_app::get_session(pool, &input.meeting_id)
         .await
         .map_err(|source| Error::Database {
             action: "load meeting",
@@ -475,7 +475,7 @@ pub async fn get_recurring_meeting_history(
     pool: &SqlitePool,
     input: GetRecurringMeetingHistoryInput,
 ) -> Result<MeetingPage> {
-    let meeting = anlg_db_app::get_session(pool, &input.meeting_id)
+    let meeting = syntheo_db_app::get_session(pool, &input.meeting_id)
         .await
         .map_err(|source| Error::Database {
             action: "load meeting",
@@ -529,7 +529,7 @@ pub async fn get_local_meeting_export(
     meeting_id: String,
 ) -> Result<LocalMeetingExport> {
     let export = get_meeting_export(pool, meeting_id.clone()).await?;
-    let session = anlg_db_app::get_session(pool, &meeting_id)
+    let session = syntheo_db_app::get_session(pool, &meeting_id)
         .await
         .map_err(|source| Error::Database {
             action: "load local meeting metadata",
@@ -759,8 +759,8 @@ impl MeetingExport {
     }
 }
 
-impl From<anlg_db_app::SessionListItem> for MeetingListItem {
-    fn from(value: anlg_db_app::SessionListItem) -> Self {
+impl From<syntheo_db_app::SessionListItem> for MeetingListItem {
+    fn from(value: syntheo_db_app::SessionListItem) -> Self {
         Self {
             id: value.id,
             title: value.title,
@@ -829,8 +829,8 @@ fn normalize_folder_path(path: &str) -> Option<String> {
     Some(path.to_string())
 }
 
-impl From<anlg_db_app::SessionDocumentRow> for Document {
-    fn from(value: anlg_db_app::SessionDocumentRow) -> Self {
+impl From<syntheo_db_app::SessionDocumentRow> for Document {
+    fn from(value: syntheo_db_app::SessionDocumentRow) -> Self {
         Self {
             id: value.id,
             kind: value.kind,
@@ -844,8 +844,8 @@ impl From<anlg_db_app::SessionDocumentRow> for Document {
     }
 }
 
-impl From<anlg_db_app::SessionParticipantRow> for Participant {
-    fn from(value: anlg_db_app::SessionParticipantRow) -> Self {
+impl From<syntheo_db_app::SessionParticipantRow> for Participant {
+    fn from(value: syntheo_db_app::SessionParticipantRow) -> Self {
         Self {
             human_id: value.human_id,
             display_name: value.display_name,
@@ -858,8 +858,8 @@ impl From<anlg_db_app::SessionParticipantRow> for Participant {
     }
 }
 
-impl From<anlg_db_app::SessionActionItemRow> for ActionItem {
-    fn from(value: anlg_db_app::SessionActionItemRow) -> Self {
+impl From<syntheo_db_app::SessionActionItemRow> for ActionItem {
+    fn from(value: syntheo_db_app::SessionActionItemRow) -> Self {
         Self {
             id: value.id,
             assignee_human_id: value.assignee_human_id,
@@ -871,8 +871,8 @@ impl From<anlg_db_app::SessionActionItemRow> for ActionItem {
     }
 }
 
-impl From<anlg_db_app::SessionTranscriptRow> for Transcript {
-    fn from(value: anlg_db_app::SessionTranscriptRow) -> Self {
+impl From<syntheo_db_app::SessionTranscriptRow> for Transcript {
+    fn from(value: syntheo_db_app::SessionTranscriptRow) -> Self {
         let words = json_array(&value.words_json);
         let text = transcript_text(&words);
         Self {
@@ -900,8 +900,8 @@ async fn load_transcripts(pool: &SqlitePool, meeting_id: &str) -> Result<Vec<Tra
 async fn load_transcript_rows(
     pool: &SqlitePool,
     meeting_id: &str,
-) -> Result<Vec<anlg_db_app::SessionTranscriptRow>> {
-    anlg_db_app::list_session_transcripts(pool, meeting_id)
+) -> Result<Vec<syntheo_db_app::SessionTranscriptRow>> {
+    syntheo_db_app::list_session_transcripts(pool, meeting_id)
         .await
         .map_err(|source| Error::Database {
             action: "load transcript",
@@ -959,7 +959,7 @@ fn body_to_markdown(body: &str, format: &str) -> String {
     }
     serde_json::from_str(body)
         .ok()
-        .and_then(|value| anlg_tiptap::tiptap_json_to_md(&value).ok())
+        .and_then(|value| syntheo_tiptap::tiptap_json_to_md(&value).ok())
         .map(|markdown| markdown.trim_end().to_string())
         .unwrap_or_else(|| body.to_string())
 }
@@ -1032,9 +1032,9 @@ pub(crate) fn pagination(
 mod tests {
     use super::*;
 
-    async fn test_db() -> anlg_db_core::Db {
-        let db = anlg_db_core::Db::connect_memory_plain().await.unwrap();
-        anlg_db_app::prepare_schema(&db).await.unwrap();
+    async fn test_db() -> syntheo_db_core::Db {
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
         db
     }
 

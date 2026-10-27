@@ -1,20 +1,20 @@
 ---
 name: create-prs
-description: Use only in the Anarlog repository when the active checkout branch is exactly gitbutler/workspace. Create missing pull requests for branches in the current GitButler workspace, preserving stack bases and skipping existing PRs. Use when asked to open or publish workspace PRs that do not exist yet.
+description: Use only in the Syntheo repository when the active checkout branch is exactly gitbutler/workspace. Create missing pull requests for branches in the current GitButler workspace, preserving stack bases and skipping existing PRs. Use when asked to open or publish workspace PRs that do not exist yet.
 ---
 
 # Create missing GitButler PRs
 
 ## Applicability
 
-Use only in the Anarlog repository or its checkouts/worktrees when the active
+Use only in the Syntheo repository or its checkouts/worktrees when the active
 checkout branch is exactly `gitbutler/workspace`. Before running this workflow,
 check with `git symbolic-ref --quiet --short HEAD` (a read-only branch check).
 On any other branch or detached HEAD, skip this skill and use the normal Git
 workflow. Do not initialize GitButler or switch branches to activate the skill.
 Use this checkout's skills, not a global copy or another checkout's skills.
 
-Use this skill when asked to create missing PRs for branches in the Anarlog GitButler
+Use this skill when asked to create missing PRs for branches in the Syntheo GitButler
 workspace.
 
 Read the repository-local [but](../gitbutler/SKILL.md) skill and the active repository's AGENTS.md and workflow

@@ -5,7 +5,7 @@ vi.mock("./render-tracker", () => ({
   tickRenderTracker: vi.fn(() => 0),
 }));
 
-vi.mock("@anlg/plugin-misc", () => ({
+vi.mock("@syntheo/plugin-misc", () => ({
   commands: {
     getProcessMemoryBytes: vi.fn(() => Promise.resolve({ status: "error" })),
   },
@@ -44,7 +44,7 @@ describe("installTrafficCounters", () => {
     void fetch("ipc://localhost/plugin%3Amisc%7Cget_git_hash", {
       method: "POST",
     });
-    void fetch("https://api.anarlog.so/v1");
+    void fetch("https://api.example.com/v1");
     callbacks.set(1, () => {});
     callbacks.get(1);
     callbacks.get(2);

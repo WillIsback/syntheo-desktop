@@ -11,7 +11,7 @@ fn delete_guard_test_inputs(directory: &Path, canonical: &[u8]) -> DeleteGuardTe
     let source_path = directory.join("source.bin");
     std::fs::write(&source_path, canonical).unwrap();
 
-    let key = anlg_e2ee::RecoveryKey::generate()
+    let key = syntheo_e2ee::RecoveryKey::generate()
         .unwrap()
         .workspace_key("workspace-a")
         .unwrap();
@@ -104,7 +104,7 @@ fn exact_remote_dependency_blocks_delete_commit() {
 
 #[test]
 fn delete_backup_refs_are_stable_for_persisted_job_metadata() {
-    let key = anlg_e2ee::RecoveryKey::generate()
+    let key = syntheo_e2ee::RecoveryKey::generate()
         .unwrap()
         .workspace_key("workspace-1")
         .unwrap();

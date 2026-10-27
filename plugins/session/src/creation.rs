@@ -63,7 +63,7 @@ pub async fn create_session(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::insert_session(
+    syntheo_db_app::insert_session(
         &mut transaction,
         &session_id,
         &request.title,
@@ -74,13 +74,13 @@ pub async fn create_session(
     )
     .await
     .map_err(|error| error.to_string())?;
-    anlg_db_app::insert_empty_session_note(&mut transaction, &session_id, &request.raw_md, &now)
+    syntheo_db_app::insert_empty_session_note(&mut transaction, &session_id, &request.raw_md, &now)
         .await
         .map_err(|error| error.to_string())?;
-    anlg_db_app::upsert_session_owner_human(&mut transaction, &session_id, &now)
+    syntheo_db_app::upsert_session_owner_human(&mut transaction, &session_id, &now)
         .await
         .map_err(|error| error.to_string())?;
-    anlg_db_app::insert_owner_session_participant(
+    syntheo_db_app::insert_owner_session_participant(
         &mut transaction,
         &participant_id,
         &session_id,
@@ -106,7 +106,7 @@ pub async fn create_session_for_event(
         .await
         .map_err(|error| error.to_string())?;
 
-    let Some(event) = anlg_db_app::load_event_session_row(&mut transaction, &request.event_id)
+    let Some(event) = syntheo_db_app::load_event_session_row(&mut transaction, &request.event_id)
         .await
         .map_err(|error| error.to_string())?
     else {
@@ -117,7 +117,7 @@ pub async fn create_session_for_event(
         return Ok(None);
     };
 
-    if let Some(existing_session_id) = anlg_db_app::find_session_id_for_event(
+    if let Some(existing_session_id) = syntheo_db_app::find_session_id_for_event(
         &mut transaction,
         &event.id,
         &event.tracking_id_event,
@@ -129,7 +129,7 @@ pub async fn create_session_for_event(
     .map_err(|error| error.to_string())?
     {
         let now = js_iso8601_timestamp();
-        anlg_db_app::relink_session_to_event(
+        syntheo_db_app::relink_session_to_event(
             &mut transaction,
             &existing_session_id,
             &event.id,
@@ -172,7 +172,7 @@ pub async fn create_session_for_event(
     let event_json = serde_json::to_string(&session_event).map_err(|error| error.to_string())?;
     let title = request.title.clone().unwrap_or_else(|| event.title.clone());
 
-    let inserted = anlg_db_app::insert_event_session(
+    let inserted = syntheo_db_app::insert_event_session(
         &mut transaction,
         &session_id,
         &request.user_id,
@@ -183,12 +183,12 @@ pub async fn create_session_for_event(
     )
     .await
     .map_err(|error| error.to_string())?;
-    anlg_db_app::insert_empty_session_note(&mut transaction, &session_id, "", &now)
+    syntheo_db_app::insert_empty_session_note(&mut transaction, &session_id, "", &now)
         .await
         .map_err(|error| error.to_string())?;
     run_event_participants(&mut transaction, &session_id, &request.participants, &now).await?;
 
-    let created_session_id = anlg_db_app::find_session_id_for_event(
+    let created_session_id = syntheo_db_app::find_session_id_for_event(
         &mut transaction,
         &event.id,
         &event.tracking_id_event,
@@ -224,7 +224,7 @@ async fn run_event_participants(
         .filter(|email| seen.insert(email.clone()))
         .collect();
     let mut humans_by_email: HashMap<String, String> = HashMap::new();
-    for row in anlg_db_app::find_human_ids_by_email(&mut *conn, &emails)
+    for row in syntheo_db_app::find_human_ids_by_email(&mut *conn, &emails)
         .await
         .map_err(|error| error.to_string())?
     {
@@ -239,7 +239,7 @@ async fn run_event_participants(
             .cloned()
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
         let company_name = participant.company_name.as_deref().unwrap_or("");
-        let human = anlg_db_app::EventHumanInsert {
+        let human = syntheo_db_app::EventHumanInsert {
             human_id: &human_id,
             name: &participant.name,
             email: &participant.email,
@@ -250,9 +250,9 @@ async fn run_event_participants(
 
         if !known {
             if let Some(company) = &participant.company_name {
-                anlg_db_app::insert_new_participant_organization(
+                syntheo_db_app::insert_new_participant_organization(
                     &mut *conn,
-                    &anlg_db_app::EventParticipantInsert {
+                    &syntheo_db_app::EventParticipantInsert {
                         organization_id: &uuid::Uuid::new_v4().to_string(),
                         company_name: company,
                         now,
@@ -264,14 +264,14 @@ async fn run_event_participants(
                 .await
                 .map_err(|error| error.to_string())?;
             }
-            anlg_db_app::insert_event_human(&mut *conn, &human)
+            syntheo_db_app::insert_event_human(&mut *conn, &human)
                 .await
                 .map_err(|error| error.to_string())?;
         } else {
             if let Some(company) = &participant.company_name {
-                anlg_db_app::insert_existing_participant_organization(
+                syntheo_db_app::insert_existing_participant_organization(
                     &mut *conn,
-                    &anlg_db_app::EventParticipantInsert {
+                    &syntheo_db_app::EventParticipantInsert {
                         organization_id: &uuid::Uuid::new_v4().to_string(),
                         company_name: company,
                         now,
@@ -283,12 +283,12 @@ async fn run_event_participants(
                 .await
                 .map_err(|error| error.to_string())?;
             }
-            anlg_db_app::update_event_human(&mut *conn, &human)
+            syntheo_db_app::update_event_human(&mut *conn, &human)
                 .await
                 .map_err(|error| error.to_string())?;
         }
 
-        anlg_db_app::insert_event_session_participant(
+        syntheo_db_app::insert_event_session_participant(
             &mut *conn,
             &uuid::Uuid::new_v4().to_string(),
             &human,

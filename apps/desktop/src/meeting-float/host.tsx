@@ -3,8 +3,8 @@ import { useRef } from "react";
 import {
   commands as windowsCommands,
   events as windowsEvents,
-} from "@anlg/plugin-windows";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+} from "@syntheo/plugin-windows";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import {
   createMeetingFloatLabelContext,

@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   renderTemplate: vi.fn(),
 }));
 
-vi.mock("@anlg/plugin-template", () => ({
+vi.mock("@syntheo/plugin-template", () => ({
   commands: { render: mocks.renderTemplate },
 }));
 

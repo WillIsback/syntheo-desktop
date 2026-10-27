@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/plugin-attachment-sync",
+  "name": "@syntheo/plugin-attachment-sync",
   "private": true,
   "main": "./js/index.ts",
   "scripts": {

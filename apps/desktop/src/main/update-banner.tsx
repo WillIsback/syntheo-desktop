@@ -5,8 +5,8 @@ import {
   commands as updaterCommands,
   events as updaterEvents,
   type Result,
-} from "@anlg/plugin-updater2";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+} from "@syntheo/plugin-updater2";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { isAppStoreBuild } from "~/shared/app-store";
 import { useDevtoolsOtaPreview } from "~/store/zustand/devtools-ota-preview";

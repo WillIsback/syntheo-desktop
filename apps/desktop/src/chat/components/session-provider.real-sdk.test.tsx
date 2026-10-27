@@ -2,7 +2,10 @@ import { cleanup, render, waitFor } from "@testing-library/react";
 import type { UIMessageChunk } from "ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { beginCloudsyncActivity, endCloudsyncActivity } from "@anlg/plugin-db";
+import {
+  beginCloudsyncActivity,
+  endCloudsyncActivity,
+} from "@syntheo/plugin-db";
 
 import { ChatSessionHost } from "./chat-panel";
 import { ChatSession, type ChatSessionRenderProps } from "./session-provider";
@@ -11,7 +14,7 @@ import { useChatContext } from "~/chat/state/chat-context";
 import { CHAT_CLOUDSYNC_RELEASE_DELAY_MS } from "~/chat/store/cloudsync-activity";
 import type { PersistedChatMessage } from "~/chat/store/persisted-messages";
 import { useChatActions } from "~/chat/store/use-chat-actions";
-import type { AnlgUIMessage } from "~/chat/types";
+import type { SyntheoUIMessage } from "~/chat/types";
 import { MainShellScaffold } from "~/shared/main/shell-scaffold";
 
 const mocks = vi.hoisted(() => ({
@@ -86,7 +89,7 @@ vi.mock("~/ai/hooks", () => ({
   useLanguageModel: () => undefined,
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: { error: vi.fn() },
 }));
 
@@ -140,7 +143,7 @@ function deferredVoid() {
   return { promise, reject, resolve };
 }
 
-const userMessage: AnlgUIMessage = {
+const userMessage: SyntheoUIMessage = {
   id: "user-1",
   role: "user",
   parts: [{ type: "text", text: "Question" }],

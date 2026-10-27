@@ -1,12 +1,12 @@
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 
-use anlg_e2ee::WorkspaceKeyring;
 use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use serde_json::{Value, json};
 use sqlx::sqlite::SqliteRow;
 use sqlx::{QueryBuilder, Row, Sqlite, SqlitePool, Transaction, TypeInfo, ValueRef};
+use syntheo_e2ee::WorkspaceKeyring;
 
 use super::chunks::{chunk_size_for, chunk_value, parse_array, parse_chunk_field, split_chunks};
 use super::library::LibraryIdentity;
@@ -72,7 +72,7 @@ pub(super) async fn normalize_replica_payload_hashes(
                 transaction.rollback().await?;
                 return Err(error);
             }
-            let payload_hash = anlg_e2ee::payload_hash(&payload);
+            let payload_hash = syntheo_e2ee::payload_hash(&payload);
             upsert_replica_payload_hash(
                 &mut transaction,
                 &workspace_id,
@@ -98,7 +98,7 @@ pub(super) async fn upsert_replica_payload_hash(
     if workspace_id.is_empty()
         || record_id.is_empty()
         || payload.is_empty()
-        || anlg_e2ee::payload_hash(payload) != payload_hash
+        || syntheo_e2ee::payload_hash(payload) != payload_hash
     {
         return Err(E2eeReplicaError::RollbackDetected);
     }
@@ -313,7 +313,7 @@ pub(super) async fn retain_ciphertext(
         || record_id.is_empty()
         || payload_hash.is_empty()
         || payload.is_empty()
-        || anlg_e2ee::payload_hash(payload) != payload_hash
+        || syntheo_e2ee::payload_hash(payload) != payload_hash
     {
         return Err(E2eeReplicaError::RollbackDetected);
     }
@@ -657,7 +657,8 @@ pub(super) async fn restore_local_payload(
     transaction: &mut Transaction<'_, Sqlite>,
     state: &LocalState,
 ) -> E2eeReplicaResult<()> {
-    if state.payload.is_empty() || anlg_e2ee::payload_hash(&state.payload) != state.payload_hash {
+    if state.payload.is_empty() || syntheo_e2ee::payload_hash(&state.payload) != state.payload_hash
+    {
         return Err(E2eeReplicaError::RollbackDetected);
     }
     sqlx::query(
@@ -884,7 +885,7 @@ pub(super) fn sqlite_value(row: &SqliteRow, index: usize) -> E2eeReplicaResult<V
         "REAL" => Ok(json!(row.try_get::<f64, _>(index)?)),
         "TEXT" => Ok(json!(row.try_get::<String, _>(index)?)),
         "BLOB" => Ok(json!({
-            "$anarlog_blob": URL_SAFE_NO_PAD.encode(row.try_get::<Vec<u8>, _>(index)?)
+            "$syntheo_blob": URL_SAFE_NO_PAD.encode(row.try_get::<Vec<u8>, _>(index)?)
         })),
         _ => Err(E2eeReplicaError::UnsupportedValue),
     }
@@ -910,9 +911,9 @@ fn push_json_bind(query: &mut QueryBuilder<Sqlite>, value: &Value) -> E2eeReplic
         Value::String(value) => {
             query.push_bind(value);
         }
-        Value::Object(value) if value.len() == 1 && value.contains_key("$anarlog_blob") => {
+        Value::Object(value) if value.len() == 1 && value.contains_key("$syntheo_blob") => {
             let bytes = value
-                .get("$anarlog_blob")
+                .get("$syntheo_blob")
                 .and_then(Value::as_str)
                 .ok_or(E2eeReplicaError::UnsupportedValue)
                 .and_then(|value| {

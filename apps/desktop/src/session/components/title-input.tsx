@@ -13,7 +13,7 @@ import {
 } from "react";
 import { useResizeObserver } from "usehooks-ts";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 import { useTitleGenerating } from "~/ai/hooks";
 import { useSession, useUpdateSession } from "~/session/queries";

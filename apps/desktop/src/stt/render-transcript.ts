@@ -1,5 +1,5 @@
-import type { TranscriptSpeakerHint } from "@anlg/plugin-fs-sync";
-import { commands as listenerCommands } from "@anlg/plugin-transcription";
+import type { TranscriptSpeakerHint } from "@syntheo/plugin-fs-sync";
+import { commands as listenerCommands } from "@syntheo/plugin-transcription";
 import type {
   IdentityAssignment,
   SpeakerContext,
@@ -7,7 +7,7 @@ import type {
   RenderTranscriptInput,
   RenderTranscriptRequest,
   RenderedTranscriptSegment,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import type { SegmentWord } from "~/stt/live-segment";
 import type { TranscriptWordMetadata } from "~/stt/timing";

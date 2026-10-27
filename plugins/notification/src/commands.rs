@@ -4,7 +4,7 @@ use crate::NotificationPluginExt;
 #[specta::specta]
 pub(crate) async fn show_notification<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    v: anlg_notification::Notification,
+    v: syntheo_notification::Notification,
 ) -> Result<(), String> {
     app.notification().show(v).map_err(|e| e.to_string())
 }

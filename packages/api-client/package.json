@@ -1,5 +1,5 @@
 {
-  "name": "@anlg/api-client",
+  "name": "@syntheo/api-client",
   "exports": {
     ".": "./src/generated/index.ts",
     "./client": "./src/generated/client/index.ts"

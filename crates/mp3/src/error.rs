@@ -36,5 +36,5 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error(transparent)]
-    AudioUtils(#[from] anlg_audio_utils::Error),
+    AudioUtils(#[from] syntheo_audio_utils::Error),
 }

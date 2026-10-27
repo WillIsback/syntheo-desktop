@@ -5,7 +5,7 @@ import type {
   RenderedTranscriptSegment,
   SegmentKey as BoundSegmentKey,
   SegmentWord as BoundSegmentWord,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import type { TranscriptWordMetadata } from "~/stt/timing";
 

@@ -1,9 +1,9 @@
-use anlg_overlay_kit::layout::{
+use syntheo_overlay_kit::layout::{
     Alignment, Anchor, Dimension, LayoutNode, LayoutSpec, OverlayChild,
 };
 use objc2_foundation::NSRect;
 
-use anlg_overlay_kit::macos::support::rect;
+use syntheo_overlay_kit::macos::support::rect;
 
 // Overlay panel geometry. Side margins keep a small native-looking gap between
 // the panel border and the content pane edges (matching the gap macOS leaves

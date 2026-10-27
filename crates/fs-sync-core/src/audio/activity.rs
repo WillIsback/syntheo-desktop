@@ -1,10 +1,10 @@
 use std::{io, path::Path};
 
-use anlg_audio_utils::Source;
-use anlg_vad::earshot::{FRAME_10MS, VoiceActivityDetector};
+use syntheo_audio_utils::Source;
+use syntheo_vad::earshot::{FRAME_10MS, VoiceActivityDetector};
 
 pub fn has_speech(path: &Path) -> io::Result<bool> {
-    let source = anlg_audio_utils::source_from_path(path).map_err(io::Error::other)?;
+    let source = syntheo_audio_utils::source_from_path(path).map_err(io::Error::other)?;
     source_has_speech(source)
 }
 
@@ -69,8 +69,8 @@ mod tests {
     #[test]
     fn speech_is_kept_in_wav_and_compressed_audio() {
         for path in [
-            anlg_data::english_1::AUDIO_PATH,
-            anlg_data::english_1::AUDIO_MP3_PATH,
+            syntheo_data::english_1::AUDIO_PATH,
+            syntheo_data::english_1::AUDIO_MP3_PATH,
         ] {
             assert!(has_speech(Path::new(path)).unwrap());
         }
@@ -79,7 +79,7 @@ mod tests {
     #[test]
     fn opposite_phase_channels_do_not_cancel_speech() {
         let samples: Vec<f32> =
-            anlg_audio_utils::source_from_path(anlg_data::english_1::AUDIO_PATH)
+            syntheo_audio_utils::source_from_path(syntheo_data::english_1::AUDIO_PATH)
                 .unwrap()
                 .take(160_000)
                 .collect();

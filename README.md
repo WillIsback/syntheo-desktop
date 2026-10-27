@@ -11,7 +11,7 @@
 
 </div>
 
-> **Statut** : en cours de construction. Le code de départ est celui d'Anarlog
+> **Statut** : en cours de construction. Le code de départ est celui d'Syntheo
 > (voir [Origine](#origine)) ; la transformation en Syntheo Desktop suit le
 > [plan de migration](docs/superpowers/specs/2026-10-24-syntheo-desktop-migration-design.md).
 

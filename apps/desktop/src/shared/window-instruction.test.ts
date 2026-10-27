@@ -15,7 +15,7 @@ vi.mock("../../../../plugins/windows/js/bindings.gen", () => ({
 import {
   dismissInstruction,
   openUrlWithInstruction,
-} from "@anlg/plugin-windows";
+} from "@syntheo/plugin-windows";
 
 describe("openUrlWithInstruction", () => {
   beforeEach(() => {

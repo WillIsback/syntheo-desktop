@@ -1,12 +1,12 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use anlg_db_app::{
+use serde_json::Value;
+use syntheo_db_app::{
     LegacyActionItem, LegacyAppSetting, LegacyChatGroup, LegacyChatMessage, LegacyDailyNote,
     LegacyHuman, LegacyImportBatch, LegacyImportRow, LegacyOrganization,
 };
-use anlg_fs_sync_core::frontmatter::ParsedDocument;
-use serde_json::Value;
+use syntheo_fs_sync_core::frontmatter::ParsedDocument;
 
 use super::source_format::{
     append_warning, file_stem, json_field, parse_json_object, stable_id, value_bool, value_i64,

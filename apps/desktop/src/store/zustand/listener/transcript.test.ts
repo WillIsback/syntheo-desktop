@@ -4,7 +4,7 @@ import { createStore } from "zustand";
 import type {
   LiveTranscriptDelta,
   LiveTranscriptSegment,
-} from "@anlg/plugin-transcription";
+} from "@syntheo/plugin-transcription";
 
 import {
   createTranscriptSlice,

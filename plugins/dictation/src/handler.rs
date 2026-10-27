@@ -10,7 +10,7 @@ pub use self::desktop::Handler;
 mod macos {
     use std::sync::Mutex;
 
-    use anlg_dictation_ui_macos as ui;
+    use syntheo_dictation_ui_macos as ui;
 
     use super::{Error, Phase};
 
@@ -161,7 +161,7 @@ mod desktop {
             .initialization_script(format!(
                 "window.addEventListener('DOMContentLoaded', () => {{ document.body.dataset.phase = '{phase}'; }});",
             ))
-            .title("Anarlog Dictation")
+            .title("Syntheo Dictation")
             .inner_size(240.0, 52.0)
             .decorations(false)
             .focused(false)

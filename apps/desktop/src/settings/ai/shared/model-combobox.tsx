@@ -8,8 +8,8 @@ import {
   Eye,
   EyeSlash,
   PlusCircle,
-} from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
+} from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -17,21 +17,21 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@anlg/ui/components/ui/command";
+} from "@syntheo/ui/components/ui/command";
 import {
   AppFloatingPanel,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anlg/ui/components/ui/popover";
+} from "@syntheo/ui/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anlg/ui/components/ui/tooltip";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { chipSquircle } from "@anlg/ui/lib/squircle";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/tooltip";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { chipSquircle } from "@syntheo/ui/lib/squircle";
+import { cn } from "@syntheo/utils";
 
 import type { ListModelsResult, ModelIgnoreReason } from "./list-common";
 import { displayLlmModelId } from "./model-display";

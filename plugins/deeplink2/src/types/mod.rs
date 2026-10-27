@@ -15,13 +15,13 @@ use specta::Type;
 use std::str::FromStr;
 
 const SHARE_OPEN_PREFIXES: [&str; 8] = [
-    "anarlog://share/open",
-    "anarlog-staging://share/open",
-    "anarlog-nightly://share/open",
-    "anarlog-dev://share/open",
-    "hyprnote://share/open",
-    "hyprnote-staging://share/open",
-    "hyprnote-nightly://share/open",
+    "syntheo://share/open",
+    "syntheo-staging://share/open",
+    "syntheo-nightly://share/open",
+    "syntheo-dev://share/open",
+    "syntheo://share/open",
+    "syntheo-staging://share/open",
+    "syntheo-nightly://share/open",
     "hypr://share/open",
 ];
 const MAX_SHARE_OPEN_URL_BYTES: usize = 512;
@@ -146,7 +146,7 @@ mod tests {
     #[test]
     fn parses_onboarding_demo_completion() {
         assert!(matches!(
-            DeepLink::from_str("anarlog://onboarding-demo/complete").unwrap(),
+            DeepLink::from_str("syntheo://onboarding-demo/complete").unwrap(),
             DeepLink::OnboardingDemoComplete(_)
         ));
     }
@@ -160,7 +160,7 @@ mod tests {
                 "s1",
             ),
             (
-                "anarlog://auth/callback?code=ac_nf5hq&state=xYc5ZmNlqtWTu3BIbfbVQg",
+                "syntheo://auth/callback?code=ac_nf5hq&state=xYc5ZmNlqtWTu3BIbfbVQg",
                 "ac_nf5hq",
                 "xYc5ZmNlqtWTu3BIbfbVQg",
             ),

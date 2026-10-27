@@ -1,11 +1,11 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
-import type { PermissionStatus } from "@anlg/plugin-permissions";
-import { ArrowRight, Check, WarningCircle } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { cn } from "@anlg/utils";
+import type { PermissionStatus } from "@syntheo/plugin-permissions";
+import { ArrowRight, Check, WarningCircle } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { cn } from "@syntheo/utils";
 
 import {
   closePermissionAssistant,
@@ -189,7 +189,7 @@ function MacOSPermissions() {
         title={t`Accessibility`}
         description={
           accessibilityGuidance
-            ? t`Opens System Settings and guides you to add Anarlog to the ${accessibilityGuidance.paneTitle ?? "Privacy"} list.`
+            ? t`Opens System Settings and guides you to add Syntheo to the ${accessibilityGuidance.paneTitle ?? "Privacy"} list.`
             : t`Read meeting controls and visible chat.`
         }
         status={accessibility.status}
@@ -203,7 +203,7 @@ function MacOSPermissions() {
         <PermissionRow
           permission="calendar"
           title={t`Calendar`}
-          description={t`Show Apple Calendar events in Anarlog.`}
+          description={t`Show Apple Calendar events in Syntheo.`}
           status={calendar.status}
           isPending={calendar.isPending}
           onRequest={calendar.request}

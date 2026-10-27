@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from "react";
 
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
+import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
 import {
   AVATAR_RASTER_SIZE,
   avatarFallbackGradient,
@@ -10,9 +10,9 @@ import {
   createAvatarPixels,
   type AvatarRecipe,
   type AvatarRenderStyle,
-} from "@anlg/ui/lib/avatar";
+} from "@syntheo/ui/lib/avatar";
 
-export type { AvatarRenderStyle } from "@anlg/ui/lib/avatar";
+export type { AvatarRenderStyle } from "@syntheo/ui/lib/avatar";
 
 export type AvatarProps = Readonly<{
   seed: string;

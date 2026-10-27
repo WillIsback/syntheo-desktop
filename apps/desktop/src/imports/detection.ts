@@ -1,4 +1,4 @@
-import { commands as detectCommands } from "@anlg/plugin-detect";
+import { commands as detectCommands } from "@syntheo/plugin-detect";
 
 import { detectMeetingImportProviders } from "./providers";
 

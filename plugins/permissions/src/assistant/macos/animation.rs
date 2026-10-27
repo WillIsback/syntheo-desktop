@@ -1,7 +1,7 @@
 use objc2::Message;
 use objc2_app_kit::{NSAnimatablePropertyContainer, NSPanel};
 
-pub(crate) use anlg_overlay_kit::macos::animation::{
+pub(crate) use syntheo_overlay_kit::macos::animation::{
     APPEAR_DURATION, APPEAR_TRANSLATE_Y, DISMISS_DURATION, animate, animate_layer_background_color,
     animate_layer_scalar, animate_with_completion, fade_layer, fade_layer_with_completion,
     frame_delta, prepare_panel_for_reveal,

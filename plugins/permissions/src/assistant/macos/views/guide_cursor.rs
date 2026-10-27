@@ -12,7 +12,7 @@ use objc2_quartz_core::{
     CABasicAnimation, CALayer, CAMediaTiming, CAMediaTimingFunction, kCAMediaTimingFunctionEaseOut,
 };
 
-use anlg_overlay_kit::macos::support::{rect, with_effective_appearance};
+use syntheo_overlay_kit::macos::support::{rect, with_effective_appearance};
 
 use super::super::animation::{self, ANIM_GUIDE_VISIBILITY, FADE_DURATION};
 
@@ -25,7 +25,7 @@ pub(crate) struct GuideCursorViewIvars {
 define_class! {
     #[unsafe(super(NSView))]
     #[thread_kind = MainThreadOnly]
-    #[name = "AnarlogPermissionAssistantGuideCursorView"]
+    #[name = "SyntheoPermissionAssistantGuideCursorView"]
     #[ivars = GuideCursorViewIvars]
     pub(crate) struct GuideCursorView;
 

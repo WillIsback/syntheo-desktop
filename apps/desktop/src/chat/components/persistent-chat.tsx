@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 import { ChatPanelFrame } from "./chat-panel";
 

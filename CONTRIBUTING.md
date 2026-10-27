@@ -6,8 +6,8 @@
    d'intégration cloud (agenda, messagerie, CRM…), pas de télémétrie.
 2. **Aucun audio sur disque**, même temporairement.
 3. **Texte d'interface en français d'abord.**
-4. Pas de code issu de `enterprise/` d'Anarlog (licence commerciale).
-   Un correctif porté depuis Anarlog (MIT) est signalé dans la PR et dans
+4. Pas de code issu de `enterprise/` d'Syntheo (licence commerciale).
+   Un correctif porté depuis Syntheo (MIT) est signalé dans la PR et dans
    [NOTICE.md](NOTICE.md).
 
 ## Flux de travail

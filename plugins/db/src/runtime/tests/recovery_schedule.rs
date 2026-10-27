@@ -32,7 +32,7 @@ fn recovery_reports_embedded_receive_failures_without_marking_progress() {
         let result = serde_json::from_value(serde_json::json!({"receive": receive})).unwrap();
 
         assert_eq!(
-            anlg_db_core::cloudsync_receive_error(&result).as_deref(),
+            syntheo_db_core::cloudsync_receive_error(&result).as_deref(),
             Some(expected)
         );
         assert!(!cloudsync_recovery_snapshot_ready(true, &result));
@@ -47,7 +47,7 @@ fn recovery_does_not_report_healthy_partial_or_empty_receives_as_errors() {
         receive_result(0, true),
         receive_result(1, true),
     ] {
-        assert_eq!(anlg_db_core::cloudsync_receive_error(&result), None);
+        assert_eq!(syntheo_db_core::cloudsync_receive_error(&result), None);
     }
 }
 
@@ -69,7 +69,7 @@ fn recovery_waits_longer_without_progress() {
 
 #[test]
 fn cloudsync_completion_requires_confirmed_send_and_receive() {
-    let completed: anlg_db_core::CloudsyncNetworkResult =
+    let completed: syntheo_db_core::CloudsyncNetworkResult =
         serde_json::from_value(serde_json::json!({
             "send": {
                 "status": "synced",
@@ -83,7 +83,7 @@ fn cloudsync_completion_requires_confirmed_send_and_receive() {
             }
         }))
         .unwrap();
-    let unconfirmed_send: anlg_db_core::CloudsyncNetworkResult =
+    let unconfirmed_send: syntheo_db_core::CloudsyncNetworkResult =
         serde_json::from_value(serde_json::json!({
             "send": {
                 "status": "syncing",
@@ -92,7 +92,7 @@ fn cloudsync_completion_requires_confirmed_send_and_receive() {
             }
         }))
         .unwrap();
-    let incomplete_receive: anlg_db_core::CloudsyncNetworkResult =
+    let incomplete_receive: syntheo_db_core::CloudsyncNetworkResult =
         serde_json::from_value(serde_json::json!({
             "send": {
                 "status": "synced",
@@ -106,7 +106,7 @@ fn cloudsync_completion_requires_confirmed_send_and_receive() {
             }
         }))
         .unwrap();
-    let send_only: anlg_db_core::CloudsyncNetworkResult =
+    let send_only: syntheo_db_core::CloudsyncNetworkResult =
         serde_json::from_value(serde_json::json!({
             "send": {
                 "status": "synced",
@@ -115,7 +115,7 @@ fn cloudsync_completion_requires_confirmed_send_and_receive() {
             }
         }))
         .unwrap();
-    let receive_only: anlg_db_core::CloudsyncNetworkResult =
+    let receive_only: syntheo_db_core::CloudsyncNetworkResult =
         serde_json::from_value(serde_json::json!({
             "receive": {
                 "rows": 0,
@@ -124,7 +124,7 @@ fn cloudsync_completion_requires_confirmed_send_and_receive() {
             }
         }))
         .unwrap();
-    let delivered_final: anlg_db_core::CloudsyncNetworkResult =
+    let delivered_final: syntheo_db_core::CloudsyncNetworkResult =
         serde_json::from_value(serde_json::json!({
             "receive": {
                 "rows": 1,
@@ -134,7 +134,7 @@ fn cloudsync_completion_requires_confirmed_send_and_receive() {
             }
         }))
         .unwrap();
-    let delivered_non_final: anlg_db_core::CloudsyncNetworkResult =
+    let delivered_non_final: syntheo_db_core::CloudsyncNetworkResult =
         serde_json::from_value(serde_json::json!({
             "receive": {
                 "rows": 1,
@@ -144,7 +144,7 @@ fn cloudsync_completion_requires_confirmed_send_and_receive() {
             }
         }))
         .unwrap();
-    let failed_receive: anlg_db_core::CloudsyncNetworkResult =
+    let failed_receive: syntheo_db_core::CloudsyncNetworkResult =
         serde_json::from_value(serde_json::json!({
             "send": {
                 "status": "synced",
@@ -159,7 +159,7 @@ fn cloudsync_completion_requires_confirmed_send_and_receive() {
             }
         }))
         .unwrap();
-    let failed_after_chunks: anlg_db_core::CloudsyncNetworkResult =
+    let failed_after_chunks: syntheo_db_core::CloudsyncNetworkResult =
         serde_json::from_value(serde_json::json!({
             "receive": {
                 "rows": 1,
@@ -197,7 +197,7 @@ fn cloudsync_completion_requires_confirmed_send_and_receive() {
         &failed_after_chunks
     ));
     assert!(!cloudsync_send_completed(
-        &anlg_db_core::CloudsyncNetworkResult::default()
+        &syntheo_db_core::CloudsyncNetworkResult::default()
     ));
 }
 
@@ -278,8 +278,8 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
         130
     };
     let db = std::sync::Arc::new(Db::connect_memory().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
-    anlg_db_app::claim_cloudsync_workspace(db.pool(), "workspace-1")
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::claim_cloudsync_workspace(db.pool(), "workspace-1")
         .await
         .unwrap();
     sqlx::query(
@@ -293,7 +293,7 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
     .unwrap();
     db.cloudsync_init("sync_probe", None, None).await.unwrap();
     let runtime = std::sync::Arc::new(PluginDbRuntime::new(std::sync::Arc::clone(&db)));
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -360,9 +360,9 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
             stream.flush().unwrap();
         }
     });
-    let config = anlg_db_core::CloudsyncRuntimeConfig {
+    let config = syntheo_db_core::CloudsyncRuntimeConfig {
         connection_string: "test-database".to_string(),
-        auth: anlg_db_core::CloudsyncAuth::None,
+        auth: syntheo_db_core::CloudsyncAuth::None,
         tables: vec![],
         sync_interval_ms: DEFAULT_CLOUDSYNC_INTERVAL_MS,
         wait_ms: Some(5_000),
@@ -379,10 +379,10 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
         .unwrap();
 
     let generation =
-        anlg_db_app::stage_cloudsync_poison_recovery(db.pool(), "workspace-1", "workspace-1")
+        syntheo_db_app::stage_cloudsync_poison_recovery(db.pool(), "workspace-1", "workspace-1")
             .await
             .unwrap();
-    anlg_db_app::ensure_cloudsync_recovery_state(
+    syntheo_db_app::ensure_cloudsync_recovery_state(
         db.pool(),
         &generation,
         "workspace-1",
@@ -393,24 +393,24 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
     .unwrap();
     for (from, to) in [
         (
-            anlg_db_app::CloudsyncRecoveryPhase::NeedFirstLogout,
-            anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedFirstLogout,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
         ),
         (
-            anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
-            anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm,
         ),
         (
-            anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm,
-            anlg_db_app::CloudsyncRecoveryPhase::NeedCleanReceive,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedCleanReceive,
         ),
         (
-            anlg_db_app::CloudsyncRecoveryPhase::NeedCleanReceive,
-            anlg_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedCleanReceive,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair,
         ),
     ] {
         assert!(
-            anlg_db_app::advance_cloudsync_recovery_phase(db.pool(), &generation, from, to)
+            syntheo_db_app::advance_cloudsync_recovery_phase(db.pool(), &generation, from, to)
                 .await
                 .unwrap()
         );
@@ -430,11 +430,11 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
                     serde_json::json!(true),
                 )
                 .unwrap();
-            anlg_db_app::E2eeWitnessEvent {
+            syntheo_db_app::E2eeWitnessEvent {
                 sequence: u64::try_from(index + 1).unwrap(),
                 record_id: sealed.record_id,
                 workspace_id: "workspace-1".to_string(),
-                payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+                payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
                 payload: sealed.payload,
             }
         })
@@ -454,15 +454,15 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
                     serde_json::json!(title),
                 )
                 .unwrap();
-            let event = anlg_db_app::E2eeWitnessEvent {
+            let event = syntheo_db_app::E2eeWitnessEvent {
                 sequence: 130 + revision,
                 record_id: sealed.record_id,
                 workspace_id: "workspace-1".to_string(),
-                payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+                payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
                 payload: sealed.payload,
             };
             if revision == 1 {
-                anlg_db_app::merge_e2ee_witness_events(
+                syntheo_db_app::merge_e2ee_witness_events(
                     db.pool(),
                     &workspace_key,
                     "workspace-1",
@@ -470,7 +470,7 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
                 )
                 .await
                 .unwrap();
-                anlg_db_app::repair_e2ee_replica_from_witness_bounded(
+                syntheo_db_app::repair_e2ee_replica_from_witness_bounded(
                     db.pool(),
                     &keys,
                     true,
@@ -479,7 +479,7 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
                 )
                 .await
                 .unwrap();
-                anlg_db_app::apply_e2ee_replica_changes_with_witness(db.pool(), &keys)
+                syntheo_db_app::apply_e2ee_replica_changes_with_witness(db.pool(), &keys)
                     .await
                     .unwrap();
                 sqlx::query("UPDATE sessions SET title = 'Local edit' WHERE id = 'session-000'")
@@ -511,15 +511,15 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
                     value,
                 )
                 .unwrap();
-            events.push(anlg_db_app::E2eeWitnessEvent {
+            events.push(syntheo_db_app::E2eeWitnessEvent {
                 sequence: 131 + index as u64,
                 record_id: sealed.record_id,
                 workspace_id: "workspace-1".to_string(),
-                payload_hash: anlg_e2ee::payload_hash(&sealed.payload),
+                payload_hash: syntheo_e2ee::payload_hash(&sealed.payload),
                 payload: sealed.payload,
             });
         }
-        anlg_db_app::merge_e2ee_witness_events(
+        syntheo_db_app::merge_e2ee_witness_events(
             db.pool(),
             &workspace_key,
             "workspace-1",
@@ -527,7 +527,7 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
         )
         .await
         .unwrap();
-        anlg_db_app::apply_e2ee_replica_changes_with_witness(db.pool(), &keys)
+        syntheo_db_app::apply_e2ee_replica_changes_with_witness(db.pool(), &keys)
             .await
             .unwrap();
         sqlx::query(
@@ -537,10 +537,10 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
         .await
         .unwrap();
     }
-    anlg_db_app::merge_e2ee_witness_events(db.pool(), &workspace_key, "workspace-1", &events)
+    syntheo_db_app::merge_e2ee_witness_events(db.pool(), &workspace_key, "workspace-1", &events)
         .await
         .unwrap();
-    anlg_db_app::advance_e2ee_witness_cursor(db.pool(), "workspace-1", head_sequence)
+    syntheo_db_app::advance_e2ee_witness_cursor(db.pool(), "workspace-1", head_sequence)
         .await
         .unwrap();
 
@@ -593,7 +593,7 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
                 .await
                 .unwrap();
             let local_pending = local_edit
-                && anlg_db_app::has_pending_e2ee_dirty_rows_deferring_active_captures(
+                && syntheo_db_app::has_pending_e2ee_dirty_rows_deferring_active_captures(
                     db.pool(),
                     &keys,
                 )
@@ -624,7 +624,7 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
             .fetch_one(db.pool())
             .await
             .unwrap();
-        let phase = anlg_db_app::cloudsync_recovery_state(db.pool())
+        let phase = syntheo_db_app::cloudsync_recovery_state(db.pool())
             .await
             .unwrap()
             .map(|state| state.phase);
@@ -671,17 +671,20 @@ async fn run_witness_repair(scenario: WitnessRepairScenario) {
 
     if incomplete_transcript {
         assert_eq!(
-            anlg_db_app::cloudsync_recovery_state(db.pool())
+            syntheo_db_app::cloudsync_recovery_state(db.pool())
                 .await
                 .unwrap()
                 .map(|state| state.phase),
-            Some(anlg_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair),
+            Some(syntheo_db_app::CloudsyncRecoveryPhase::NeedWitnessRepair),
             "recovery must not finish with a missing transcript chunk",
         );
-        let apply =
-            anlg_db_app::apply_received_e2ee_replica_changes_with_witness(db.pool(), &keys, false)
-                .await
-                .unwrap();
+        let apply = syntheo_db_app::apply_received_e2ee_replica_changes_with_witness(
+            db.pool(),
+            &keys,
+            false,
+        )
+        .await
+        .unwrap();
         assert!(apply.remaining_replica_changes);
         assert!(apply.skipped_local_changes > 0);
         assert_eq!(apply.incomplete_chunk_columns, 1);
@@ -777,15 +780,15 @@ async fn activity_drains_stalled_full_resync_before_immediate_local_write() {
     });
 
     let db = std::sync::Arc::new(Db::connect_memory().await.unwrap());
-    anlg_db_app::prepare_schema(db.as_ref()).await.unwrap();
-    anlg_db_app::claim_cloudsync_workspace(db.pool(), "workspace-1")
+    syntheo_db_app::prepare_schema(db.as_ref()).await.unwrap();
+    syntheo_db_app::claim_cloudsync_workspace(db.pool(), "workspace-1")
         .await
         .unwrap();
     db.cloudsync_init(CLOUDSYNC_REPLICA_TABLE, None, None)
         .await
         .unwrap();
     let runtime = std::sync::Arc::new(PluginDbRuntime::new(std::sync::Arc::clone(&db)));
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -799,10 +802,10 @@ async fn activity_drains_stalled_full_resync_before_immediate_local_write() {
         .set_witness(configured_hook.witness().unwrap());
 
     let generation =
-        anlg_db_app::stage_cloudsync_poison_recovery(db.pool(), "workspace-1", "workspace-1")
+        syntheo_db_app::stage_cloudsync_poison_recovery(db.pool(), "workspace-1", "workspace-1")
             .await
             .unwrap();
-    let state = anlg_db_app::ensure_cloudsync_recovery_state(
+    let state = syntheo_db_app::ensure_cloudsync_recovery_state(
         db.pool(),
         &generation,
         "workspace-1",
@@ -812,34 +815,34 @@ async fn activity_drains_stalled_full_resync_before_immediate_local_write() {
     .await
     .unwrap();
     assert!(
-        anlg_db_app::advance_cloudsync_recovery_phase(
+        syntheo_db_app::advance_cloudsync_recovery_phase(
             db.pool(),
             &generation,
-            anlg_db_app::CloudsyncRecoveryPhase::NeedFirstLogout,
-            anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedFirstLogout,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
         )
         .await
         .unwrap()
     );
     assert!(
-        anlg_db_app::insert_cloudsync_recovery_barrier(db.pool(), &state, &key)
+        syntheo_db_app::insert_cloudsync_recovery_barrier(db.pool(), &state, &key)
             .await
             .unwrap()
     );
     assert!(
-        anlg_db_app::advance_cloudsync_recovery_phase(
+        syntheo_db_app::advance_cloudsync_recovery_phase(
             db.pool(),
             &generation,
-            anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
-            anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierInsert,
+            syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm,
         )
         .await
         .unwrap()
     );
 
-    let config = anlg_db_core::CloudsyncRuntimeConfig {
+    let config = syntheo_db_core::CloudsyncRuntimeConfig {
         connection_string: "test-database".to_string(),
-        auth: anlg_db_core::CloudsyncAuth::None,
+        auth: syntheo_db_core::CloudsyncAuth::None,
         tables: vec![],
         sync_interval_ms: DEFAULT_CLOUDSYNC_INTERVAL_MS,
         wait_ms: Some(5_000),
@@ -891,12 +894,12 @@ async fn activity_drains_stalled_full_resync_before_immediate_local_write() {
     .unwrap();
 
     assert_eq!(
-        anlg_db_app::cloudsync_recovery_state(db.pool())
+        syntheo_db_app::cloudsync_recovery_state(db.pool())
             .await
             .unwrap()
             .unwrap()
             .phase,
-        anlg_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm
+        syntheo_db_app::CloudsyncRecoveryPhase::NeedBarrierConfirm
     );
     assert!(
         runtime

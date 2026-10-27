@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { computeCurrentNoteTab } from "@anlg/utils/session";
+import { computeCurrentNoteTab } from "@syntheo/utils/session";
 
 import { FloatingActionButton } from "./components/floating";
 import { NoteConflictBanner } from "./components/note-conflict-banner";

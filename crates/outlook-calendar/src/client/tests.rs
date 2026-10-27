@@ -7,7 +7,7 @@ struct FixtureHttp {
 }
 
 impl HttpClient for FixtureHttp {
-    async fn get(&self, path: &str) -> Result<Vec<u8>, anlg_http::Error> {
+    async fn get(&self, path: &str) -> Result<Vec<u8>, syntheo_http::Error> {
         self.pages
             .get(path)
             .expect("unexpected pagination URL")
@@ -15,16 +15,16 @@ impl HttpClient for FixtureHttp {
             .map_err(Into::into)
     }
 
-    async fn post(&self, _: &str, _: Vec<u8>, _: &str) -> Result<Vec<u8>, anlg_http::Error> {
+    async fn post(&self, _: &str, _: Vec<u8>, _: &str) -> Result<Vec<u8>, syntheo_http::Error> {
         unreachable!()
     }
-    async fn put(&self, _: &str, _: Vec<u8>) -> Result<Vec<u8>, anlg_http::Error> {
+    async fn put(&self, _: &str, _: Vec<u8>) -> Result<Vec<u8>, syntheo_http::Error> {
         unreachable!()
     }
-    async fn patch(&self, _: &str, _: Vec<u8>) -> Result<Vec<u8>, anlg_http::Error> {
+    async fn patch(&self, _: &str, _: Vec<u8>) -> Result<Vec<u8>, syntheo_http::Error> {
         unreachable!()
     }
-    async fn delete(&self, _: &str) -> Result<Vec<u8>, anlg_http::Error> {
+    async fn delete(&self, _: &str) -> Result<Vec<u8>, syntheo_http::Error> {
         unreachable!()
     }
 }

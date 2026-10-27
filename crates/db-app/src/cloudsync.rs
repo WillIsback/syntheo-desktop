@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use anlg_db_core::CloudsyncTableSpec;
+use syntheo_db_core::CloudsyncTableSpec;
 
 mod binding;
 mod library;
@@ -44,7 +44,7 @@ const CLOUDSYNC_FULL_RESYNC_RESET_APPLIED_ID: &str = "cloudsync_full_resync_rese
 const CLOUDSYNC_FULL_RESYNC_RECEIVE_ONLY_RESET_APPLIED_ID: &str =
     "cloudsync_full_resync_receive_only_reset_applied";
 const CLOUDSYNC_RECOVERY_PROTOCOL_VERSION: u32 = 1;
-const CLOUDSYNC_RECOVERY_BARRIER_TABLE: &str = "__anarlog_cloudsync_control";
+const CLOUDSYNC_RECOVERY_BARRIER_TABLE: &str = "__syntheo_cloudsync_control";
 const CLOUDSYNC_RECOVERY_BARRIER_FIELD: &str = "$snapshot_barrier";
 
 #[derive(Debug)]

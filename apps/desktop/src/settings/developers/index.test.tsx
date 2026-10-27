@@ -42,7 +42,7 @@ vi.mock("~/types/tauri.gen", () => ({
   },
 }));
 
-vi.mock("@anlg/ui/components/ui/dropdown-menu", () => ({
+vi.mock("@syntheo/ui/components/ui/dropdown-menu", () => ({
   appFloatingMenuPanelClassName: "overflow-hidden p-1.5",
   AppFloatingPanel: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
@@ -67,11 +67,11 @@ vi.mock("@anlg/ui/components/ui/dropdown-menu", () => ({
   ),
 }));
 
-vi.mock("@anlg/plugin-opener2", () => ({
+vi.mock("@syntheo/plugin-opener2", () => ({
   commands: { openUrl: mocks.openUrl },
 }));
 
-vi.mock("@anlg/plugin-local-api", () => ({
+vi.mock("@syntheo/plugin-local-api", () => ({
   commands: {
     listWebhooks: vi.fn().mockResolvedValue({ status: "ok", data: [] }),
   },
@@ -87,7 +87,7 @@ vi.mock("~/cloud-api/client", () => ({
   revokeCloudApiKey: vi.fn(),
 }));
 
-vi.mock("@anlg/ui/components/ui/toast", () => ({
+vi.mock("@syntheo/ui/components/ui/toast", () => ({
   toast: {
     error: mocks.toastError,
     success: mocks.toastSuccess,
@@ -104,13 +104,13 @@ import {
 describe("buildMcpConfiguration", () => {
   it("uses the exact installed CLI path", () => {
     const configuration = JSON.parse(
-      buildMcpConfiguration("/Users/test/.local/bin/anarlog"),
+      buildMcpConfiguration("/Users/test/.local/bin/syntheo"),
     );
 
     expect(configuration).toEqual({
       mcpServers: {
-        anarlog: {
-          command: "/Users/test/.local/bin/anarlog",
+        syntheo: {
+          command: "/Users/test/.local/bin/syntheo",
           args: ["mcp"],
         },
       },
@@ -123,12 +123,12 @@ describe("getCliInstallNotification", () => {
     expect(
       getCliInstallNotification({
         supported: true,
-        commandName: "anarlog",
-        installPath: "/Users/test/.local/bin/anarlog",
+        commandName: "syntheo",
+        installPath: "/Users/test/.local/bin/syntheo",
         state: "installed",
         details: "Installed.",
       }),
-    ).toEqual({ type: "success", message: "anarlog is ready to use" });
+    ).toEqual({ type: "success", message: "syntheo is ready to use" });
   });
 
   it.each(["resource_missing", "unsupported"] as const)(
@@ -137,8 +137,8 @@ describe("getCliInstallNotification", () => {
       expect(
         getCliInstallNotification({
           supported: false,
-          commandName: "anarlog",
-          installPath: "/Users/test/.local/bin/anarlog",
+          commandName: "syntheo",
+          installPath: "/Users/test/.local/bin/syntheo",
           state,
           details: "The CLI is unavailable in this build.",
         }),
@@ -189,11 +189,11 @@ describe("SettingsDevelopers", () => {
       status: "ok",
       data: {
         supported: true,
-        commandName: "anarlog",
-        installPath: "/Users/test/.local/bin/anarlog",
+        commandName: "syntheo",
+        installPath: "/Users/test/.local/bin/syntheo",
         state: "installed",
         details:
-          "Installed at /Users/test/.local/bin/anarlog and managed by Anarlog.",
+          "Installed at /Users/test/.local/bin/syntheo and managed by Syntheo.",
       },
     });
 
@@ -210,18 +210,18 @@ describe("SettingsDevelopers", () => {
     expect(screen.getByLabelText("Installed")).toBeTruthy();
     expect(screen.queryByText("Installed")).toBeNull();
     expect(
-      screen.queryByText(/\/Users\/test\/\.local\/bin\/anarlog/),
+      screen.queryByText(/\/Users\/test\/\.local\/bin\/syntheo/),
     ).toBeNull();
-    expect(screen.queryByText("anarlog --json meetings list")).toBeNull();
-    expect(screen.queryByText("anarlog mcp")).toBeNull();
+    expect(screen.queryByText("syntheo --json meetings list")).toBeNull();
+    expect(screen.queryByText("syntheo mcp")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Copy config" }));
 
     await waitFor(() => expect(writeText).toHaveBeenCalledOnce());
     expect(JSON.parse(writeText.mock.calls[0][0])).toEqual({
       mcpServers: {
-        anarlog: {
-          command: "/Users/test/.local/bin/anarlog",
+        syntheo: {
+          command: "/Users/test/.local/bin/syntheo",
           args: ["mcp"],
         },
       },
@@ -233,8 +233,8 @@ describe("SettingsDevelopers", () => {
       status: "ok",
       data: {
         supported: false,
-        commandName: "anarlog-dev",
-        installPath: "/Users/test/.local/bin/anarlog-dev",
+        commandName: "syntheo-dev",
+        installPath: "/Users/test/.local/bin/syntheo-dev",
         state: "unsupported",
         details: "Bundled CLI installation is currently available on macOS.",
       },
@@ -254,7 +254,7 @@ describe("SettingsDevelopers", () => {
     });
     expect(copyButton.hasAttribute("disabled")).toBe(true);
     expect(
-      screen.queryByText(/\/Users\/test\/\.local\/bin\/anarlog-dev/),
+      screen.queryByText(/\/Users\/test\/\.local\/bin\/syntheo-dev/),
     ).toBeNull();
   });
 
@@ -263,8 +263,8 @@ describe("SettingsDevelopers", () => {
       status: "ok",
       data: {
         supported: false,
-        commandName: "anarlog",
-        installPath: "/Users/test/.local/bin/anarlog",
+        commandName: "syntheo",
+        installPath: "/Users/test/.local/bin/syntheo",
         state: "unsupported",
         details: "Unavailable.",
       },
@@ -277,28 +277,28 @@ describe("SettingsDevelopers", () => {
           displayName: "Claude Code",
           detected: true,
           installed: true,
-          skillPath: "/Users/test/.claude/skills/anarlog",
+          skillPath: "/Users/test/.claude/skills/syntheo",
         },
         {
           agent: "codex",
           displayName: "Codex",
           detected: true,
           installed: false,
-          skillPath: "/Users/test/.codex/skills/anarlog",
+          skillPath: "/Users/test/.codex/skills/syntheo",
         },
         {
           agent: "cursor",
           displayName: "Cursor",
           detected: false,
           installed: false,
-          skillPath: "/Users/test/.cursor/skills/anarlog",
+          skillPath: "/Users/test/.cursor/skills/syntheo",
         },
         {
           agent: "opencode",
           displayName: "OpenCode",
           detected: true,
           installed: false,
-          skillPath: "/Users/test/.config/opencode/skills/anarlog",
+          skillPath: "/Users/test/.config/opencode/skills/syntheo",
         },
       ],
     });
@@ -354,7 +354,7 @@ describe("SettingsDevelopers", () => {
     expect(mocks.installAgentSkill).not.toHaveBeenCalledWith("cursor");
     await waitFor(() =>
       expect(mocks.toastSuccess).toHaveBeenCalledWith(
-        "Anarlog skill added to 3 agents",
+        "Syntheo skill added to 3 agents",
       ),
     );
   });
@@ -364,8 +364,8 @@ describe("SettingsDevelopers", () => {
       status: "ok",
       data: {
         supported: false,
-        commandName: "anarlog",
-        installPath: "/Users/test/.local/bin/anarlog",
+        commandName: "syntheo",
+        installPath: "/Users/test/.local/bin/syntheo",
         state: "unsupported",
         details: "Unavailable.",
       },
@@ -378,7 +378,7 @@ describe("SettingsDevelopers", () => {
           displayName: "Codex",
           detected: true,
           installed: false,
-          skillPath: "/Users/test/.codex/skills/anarlog",
+          skillPath: "/Users/test/.codex/skills/syntheo",
         },
       ],
     });
@@ -389,7 +389,7 @@ describe("SettingsDevelopers", () => {
         displayName: "Codex",
         detected: true,
         installed: true,
-        skillPath: "/Users/test/.codex/skills/anarlog",
+        skillPath: "/Users/test/.codex/skills/syntheo",
       },
     });
 
@@ -409,7 +409,7 @@ describe("SettingsDevelopers", () => {
     );
     await waitFor(() =>
       expect(mocks.toastSuccess).toHaveBeenCalledWith(
-        "Anarlog skill added to Codex",
+        "Syntheo skill added to Codex",
       ),
     );
   });

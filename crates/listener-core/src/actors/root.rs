@@ -13,7 +13,7 @@ use crate::actors::{
     spawn_session_supervisor,
 };
 use crate::{ListenerRuntime, SessionLifecycleEvent, Snapshot, StartSessionError, State};
-use anlg_audio::AudioProvider;
+use syntheo_audio::AudioProvider;
 
 pub enum RootMsg {
     RetryCleanup,
@@ -479,15 +479,15 @@ fn handle_supervisor_completion(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anlg_audio::{CaptureConfig, CaptureStream};
     use std::path::PathBuf;
+    use syntheo_audio::{CaptureConfig, CaptureStream};
 
     struct Runtime(PathBuf, std::sync::Mutex<Vec<(String, String)>>);
-    impl anlg_storage::StorageRuntime for Runtime {
-        fn global_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+    impl syntheo_storage::StorageRuntime for Runtime {
+        fn global_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(self.0.clone())
         }
-        fn vault_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+        fn vault_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(self.0.clone())
         }
     }
@@ -505,14 +505,14 @@ mod tests {
         fn emit_data(&self, _: crate::SessionDataEvent) {}
     }
     impl AudioProvider for Runtime {
-        fn open_capture(&self, _: CaptureConfig) -> Result<CaptureStream, anlg_audio::Error> {
+        fn open_capture(&self, _: CaptureConfig) -> Result<CaptureStream, syntheo_audio::Error> {
             unreachable!()
         }
         fn open_speaker_capture(
             &self,
             _: u32,
             _: usize,
-        ) -> Result<CaptureStream, anlg_audio::Error> {
+        ) -> Result<CaptureStream, syntheo_audio::Error> {
             unreachable!()
         }
         fn open_mic_capture(
@@ -520,7 +520,7 @@ mod tests {
             _: Option<String>,
             _: u32,
             _: usize,
-        ) -> Result<CaptureStream, anlg_audio::Error> {
+        ) -> Result<CaptureStream, syntheo_audio::Error> {
             unreachable!()
         }
         fn default_device_name(&self) -> String {
@@ -535,10 +535,10 @@ mod tests {
         fn play_bytes(&self, _: &'static [u8]) -> std::sync::mpsc::Sender<()> {
             unreachable!()
         }
-        fn probe_mic(&self, _: Option<String>) -> Result<(), anlg_audio::Error> {
+        fn probe_mic(&self, _: Option<String>) -> Result<(), syntheo_audio::Error> {
             Ok(())
         }
-        fn probe_speaker(&self) -> Result<(), anlg_audio::Error> {
+        fn probe_speaker(&self) -> Result<(), syntheo_audio::Error> {
             Ok(())
         }
     }

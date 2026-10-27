@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 
-import { cn } from "@anlg/utils";
+import { cn } from "@syntheo/utils";
 
 import { AutomationsNav } from "./automations";
 import { CalendarNav } from "./calendar";

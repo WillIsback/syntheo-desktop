@@ -1,4 +1,4 @@
-import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
+import { commands as fsSyncCommands } from "@syntheo/plugin-fs-sync";
 
 import { liveQueryClient } from "~/db";
 import { enqueueSessionAudioOperation } from "~/session/audio-operations";

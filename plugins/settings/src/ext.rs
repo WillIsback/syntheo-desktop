@@ -10,15 +10,16 @@ pub struct Settings<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
     fn settings_base_path(&self) -> Result<PathBuf, crate::Error> {
         let bundle_id: &str = self.manager.config().identifier.as_ref();
-        let path = anlg_storage::global::compute_default_base(bundle_id)
-            .ok_or(anlg_storage::Error::DataDirUnavailable)?;
+        let path = syntheo_storage::global::compute_default_base(bundle_id)
+            .ok_or(syntheo_storage::Error::DataDirUnavailable)?;
         std::fs::create_dir_all(&path)?;
         Ok(path)
     }
 
     pub fn settings_base(&self) -> Result<Utf8PathBuf, crate::Error> {
         let path = self.settings_base_path()?;
-        Utf8PathBuf::from_path_buf(path).map_err(|_| anlg_storage::Error::PathNotValidUtf8.into())
+        Utf8PathBuf::from_path_buf(path)
+            .map_err(|_| syntheo_storage::Error::PathNotValidUtf8.into())
     }
 
     pub fn global_base(&self) -> Result<Utf8PathBuf, crate::Error> {
@@ -27,13 +28,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
 
     pub fn settings_path(&self) -> Result<Utf8PathBuf, crate::Error> {
         let base = self.vault_base()?;
-        Ok(base.join(anlg_storage::vault::SETTINGS_FILENAME))
+        Ok(base.join(syntheo_storage::vault::SETTINGS_FILENAME))
     }
 
     pub fn vault_base(&self) -> Result<Utf8PathBuf, crate::Error> {
         let snapshot = self.manager.state::<crate::state::StartupSnapshot>();
         Utf8PathBuf::from_path_buf(snapshot.startup_vault_base().clone())
-            .map_err(|_| anlg_storage::Error::PathNotValidUtf8.into())
+            .map_err(|_| syntheo_storage::Error::PathNotValidUtf8.into())
     }
 
     pub fn resolve_startup_vault_base(&self) -> Result<PathBuf, crate::Error> {

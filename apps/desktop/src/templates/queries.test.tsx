@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { executeProxy, subscribe } from "@anlg/plugin-db";
+import { executeProxy, subscribe } from "@syntheo/plugin-db";
 
 import {
   getTemplateById,

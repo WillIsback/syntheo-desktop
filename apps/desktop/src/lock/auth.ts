@@ -1,4 +1,4 @@
-import { commands } from "@anlg/plugin-local-auth";
+import { commands } from "@syntheo/plugin-local-auth";
 
 export const DEVICE_AUTH_REASON = {
   openApp: "open",

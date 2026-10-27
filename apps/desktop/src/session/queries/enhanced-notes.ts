@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
-import { md2json } from "@anlg/editor/markdown";
-import { visibleSummaryDocuments } from "@anlg/utils/session";
+import { md2json } from "@syntheo/editor/markdown";
+import { visibleSummaryDocuments } from "@syntheo/utils/session";
 
 import type { EnhancedNoteRecord } from "./types";
 

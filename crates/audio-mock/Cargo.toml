@@ -5,9 +5,9 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-anlg-audio = { workspace = true }
-anlg-audio-utils = { workspace = true }
-anlg-data = { workspace = true }
+syntheo-audio = { workspace = true }
+syntheo-audio-utils = { workspace = true }
+syntheo-data = { workspace = true }
 
 futures-util = { workspace = true }
 rodio = { workspace = true, features = ["symphonia-all"] }

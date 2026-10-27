@@ -15,8 +15,8 @@ describe("getVisibleModelSelection", () => {
   });
 
   test("keeps a configured provider visible when its model is missing", () => {
-    expect(getVisibleModelSelection("anarlog", undefined, true)).toEqual({
-      provider: "anarlog",
+    expect(getVisibleModelSelection("syntheo", undefined, true)).toEqual({
+      provider: "syntheo",
       model: "",
     });
   });
@@ -31,48 +31,48 @@ describe("getVisibleModelSelection", () => {
 
 describe("getConfiguredProviders", () => {
   test("returns only providers whose configuration is complete", () => {
-    const providers = [{ id: "anarlog" }, { id: "deepgram" }, { id: "openai" }];
+    const providers = [{ id: "syntheo" }, { id: "deepgram" }, { id: "openai" }];
 
     expect(
       getConfiguredProviders(providers, {
-        anarlog: { configured: true },
+        syntheo: { configured: true },
         deepgram: { configured: true },
         openai: { configured: false },
       }),
-    ).toEqual([{ id: "anarlog" }, { id: "deepgram" }]);
+    ).toEqual([{ id: "syntheo" }, { id: "deepgram" }]);
   });
 });
 
 describe("getConfiguredProviderIds", () => {
   test("keeps the configured active provider first", () => {
-    const providers = [{ id: "anarlog" }, { id: "deepgram" }, { id: "openai" }];
+    const providers = [{ id: "syntheo" }, { id: "deepgram" }, { id: "openai" }];
 
     expect(
       getConfiguredProviderIds(
         providers,
         {
-          anarlog: { configured: true },
+          syntheo: { configured: true },
           deepgram: { configured: true },
           openai: { configured: false },
         },
         "deepgram",
       ),
-    ).toEqual(["deepgram", "anarlog"]);
+    ).toEqual(["deepgram", "syntheo"]);
   });
 
   test("falls back to configured provider order when the active provider is unavailable", () => {
-    const providers = [{ id: "anarlog" }, { id: "deepgram" }, { id: "openai" }];
+    const providers = [{ id: "syntheo" }, { id: "deepgram" }, { id: "openai" }];
 
     expect(
       getConfiguredProviderIds(
         providers,
         {
-          anarlog: { configured: true },
+          syntheo: { configured: true },
           deepgram: { configured: true },
           openai: { configured: false },
         },
         "openai",
       ),
-    ).toEqual(["anarlog", "deepgram"]);
+    ).toEqual(["syntheo", "deepgram"]);
   });
 });

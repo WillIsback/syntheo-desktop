@@ -1,6 +1,6 @@
 use tauri_plugin_settings::SettingsPluginExt;
 
-use anlg_hooks::HooksConfig;
+use syntheo_hooks::HooksConfig;
 
 use crate::error::{Error, Result};
 

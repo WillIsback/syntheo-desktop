@@ -13,7 +13,7 @@ pub use ignored::{UpdateIgnoredCalendarItemRequest, update_ignored_calendar_item
 pub use inventory::{ApplyCalendarInventoryRequest, apply_calendar_inventory};
 pub use selection::{SetCalendarEnabledRequest, set_calendar_enabled};
 
-use anlg_calendar_interface::CalendarProviderType;
+use syntheo_calendar_interface::CalendarProviderType;
 
 fn provider_str(provider: CalendarProviderType) -> &'static str {
     match provider {

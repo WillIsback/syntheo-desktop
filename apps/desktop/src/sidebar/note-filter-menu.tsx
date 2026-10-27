@@ -7,7 +7,7 @@ import {
   FunnelSimple,
   SortAscending,
   SortDescending,
-} from "@anlg/ui/components/icons";
+} from "@syntheo/ui/components/icons";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -19,8 +19,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@anlg/ui/components/ui/dropdown-menu";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/dropdown-menu";
+import { cn } from "@syntheo/utils";
 
 import { useSidebarNotes } from "./note-filter";
 

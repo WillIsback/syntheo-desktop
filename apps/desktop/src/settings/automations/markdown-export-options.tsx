@@ -1,8 +1,8 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useId } from "react";
 
-import type { MarkdownExportOptions } from "@anlg/plugin-local-api";
-import { Input } from "@anlg/ui/components/ui/input";
+import type { MarkdownExportOptions } from "@syntheo/plugin-local-api";
+import { Input } from "@syntheo/ui/components/ui/input";
 
 import { hasMarkdownExportContent } from "~/automations/markdown-export";
 

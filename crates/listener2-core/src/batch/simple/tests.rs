@@ -30,7 +30,7 @@ impl BatchSttAdapter for HangingHttpAdapter {
 
     fn is_supported_languages(
         &self,
-        _languages: &[anlg_language::Language],
+        _languages: &[syntheo_language::Language],
         _model: Option<&str>,
     ) -> bool {
         true
@@ -65,7 +65,7 @@ impl BatchSttAdapter for RecordingAdapter {
 
     fn is_supported_languages(
         &self,
-        _languages: &[anlg_language::Language],
+        _languages: &[syntheo_language::Language],
         _model: Option<&str>,
     ) -> bool {
         true
@@ -173,7 +173,7 @@ impl BatchSttAdapter for RateLimitedAdapter {
 
     fn is_supported_languages(
         &self,
-        _languages: &[anlg_language::Language],
+        _languages: &[syntheo_language::Language],
         _model: Option<&str>,
     ) -> bool {
         true
@@ -455,7 +455,7 @@ async fn oversized_audio_is_uploaded_one_segment_at_a_time() {
         model: None,
         base_url: "http://192.168.1.87:8000/v1".to_string(),
         api_key: "test".to_string(),
-        languages: vec![anlg_language::ISO639::En.into()],
+        languages: vec![syntheo_language::ISO639::En.into()],
         keywords: vec![],
         num_speakers: None,
         min_speakers: None,
@@ -512,7 +512,7 @@ async fn direct_provider_timeout_cancels_non_responding_request() {
         model: Some("whisper-1".to_string()),
         base_url: format!("http://{address}/v1"),
         api_key: "test".to_string(),
-        languages: vec![anlg_language::ISO639::En.into()],
+        languages: vec![syntheo_language::ISO639::En.into()],
         keywords: vec![],
         num_speakers: None,
         min_speakers: None,
@@ -525,7 +525,7 @@ async fn direct_provider_timeout_cancels_non_responding_request() {
             model: Some("whisper-1".to_string()),
             channels: 1,
             sample_rate: TARGET_SAMPLE_RATE,
-            languages: vec![anlg_language::ISO639::En.into()],
+            languages: vec![syntheo_language::ISO639::En.into()],
             ..Default::default()
         },
         Duration::from_secs(5),
@@ -569,7 +569,7 @@ async fn rate_limited_direct_request_is_retried_until_it_succeeds() {
         model: None,
         base_url: "http://192.168.1.87:8000/v1".to_string(),
         api_key: "test".to_string(),
-        languages: vec![anlg_language::ISO639::En.into()],
+        languages: vec![syntheo_language::ISO639::En.into()],
         keywords: vec![],
         num_speakers: None,
         min_speakers: None,

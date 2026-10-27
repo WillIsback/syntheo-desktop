@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { TranscriptionSession } from "@anlg/plugin-transcription";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import type { TranscriptionSession } from "@syntheo/plugin-transcription";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { getEnhancerService } from "~/services/enhancer";
 import { useSession } from "~/session/queries";

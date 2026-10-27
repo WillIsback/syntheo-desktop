@@ -31,7 +31,7 @@ pub async fn persist_chat_session_proposal(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::insert_pending_session_proposal(
+    syntheo_db_app::insert_pending_session_proposal(
         &mut transaction,
         &request.id,
         &request.session_id,
@@ -61,7 +61,7 @@ pub async fn set_session_proposal_status(
         .await
         .map_err(|error| error.to_string())?;
 
-    anlg_db_app::set_pending_session_proposal_status(
+    syntheo_db_app::set_pending_session_proposal_status(
         &mut transaction,
         &request.proposal_id,
         &request.status,

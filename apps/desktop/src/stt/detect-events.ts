@@ -4,9 +4,9 @@ import { useStore } from "zustand";
 import {
   commands as detectCommands,
   events as detectEvents,
-} from "@anlg/plugin-detect";
-import { commands as notificationCommands } from "@anlg/plugin-notification";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+} from "@syntheo/plugin-detect";
+import { commands as notificationCommands } from "@syntheo/plugin-notification";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import {
   AUTO_STOP_ACCESSIBILITY_TIMEOUT_MS,

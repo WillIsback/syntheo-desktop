@@ -17,7 +17,7 @@ const {
     isReady: true,
   },
   config: {
-    current_stt_provider: "anarlog",
+    current_stt_provider: "syntheo",
     current_stt_model: "cloud",
   },
   getServerForModelMock: vi.fn(),
@@ -31,7 +31,7 @@ const {
 }));
 
 const storedProviders = () => ({
-  "stt:anarlog": {
+  "stt:syntheo": {
     type: "stt",
     base_url: "   ",
     api_key: "test-key",
@@ -53,7 +53,7 @@ const storedProviders = () => ({
   },
 });
 
-vi.mock("@anlg/plugin-local-stt", () => ({
+vi.mock("@syntheo/plugin-local-stt", () => ({
   commands: {
     getServerForModel: getServerForModelMock,
     isModelDownloaded: isModelDownloadedMock,
@@ -66,7 +66,7 @@ vi.mock("~/billing/billing-context", () => ({
 }));
 
 vi.mock("~/env", () => ({
-  env: { VITE_API_URL: "https://api.anarlog.so" },
+  env: { VITE_API_URL: "https://api.example.com" },
 }));
 
 vi.mock("~/settings/providers", () => ({
@@ -85,8 +85,8 @@ vi.mock("~/shared/config", () => ({
 }));
 
 vi.mock("~/stt/capabilities", () => ({
-  isAnarlogCloudSttModel: (provider: string, model: string) =>
-    provider === "anarlog" && model === "cloud",
+  isSyntheoCloudSttModel: (provider: string, model: string) =>
+    provider === "syntheo" && model === "cloud",
   isLocalFileSttModel: (provider: string, model: string) =>
     provider === "local_file" && model === "local-file",
   isOnDeviceSttModel: (provider: string, model: string) =>
@@ -99,7 +99,7 @@ import { useSTTConnection } from "./useSTTConnection";
 
 describe("useSTTConnection", () => {
   beforeEach(() => {
-    config.current_stt_provider = "anarlog";
+    config.current_stt_provider = "syntheo";
     config.current_stt_model = "cloud";
     billingState.isPaid = true;
     billingState.isReady = true;
@@ -129,7 +129,7 @@ describe("useSTTConnection", () => {
     expect(result.current.isReady).toBe(true);
   });
 
-  it("never connects to the hosted Anarlog STT (no account)", () => {
+  it("never connects to the hosted Syntheo STT (no account)", () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });

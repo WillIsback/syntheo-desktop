@@ -43,7 +43,11 @@ impl Server {
         }
     }
 
-    async fn publish(&mut self, db: &anlg_db_core::Db, keyring: &anlg_e2ee::WorkspaceKeyring) {
+    async fn publish(
+        &mut self,
+        db: &syntheo_db_core::Db,
+        keyring: &syntheo_e2ee::WorkspaceKeyring,
+    ) {
         let rows: Vec<(String, String)> = sqlx::query_as(
             "SELECT id, payload FROM e2ee_records WHERE workspace_id = 'workspace-a'",
         )
@@ -57,7 +61,7 @@ impl Server {
             let Ok(field) = keyring.open_field("workspace-a", &id, &payload) else {
                 continue;
             };
-            let hash = anlg_e2ee::payload_hash(&payload);
+            let hash = syntheo_e2ee::payload_hash(&payload);
             let newer = match self.records.get(&id) {
                 None => true,
                 Some((_, revision, writer, current_hash)) => {
@@ -72,7 +76,7 @@ impl Server {
         }
     }
 
-    async fn pull(&self, db: &anlg_db_core::Db) {
+    async fn pull(&self, db: &syntheo_db_core::Db) {
         for (id, (payload, ..)) in &self.records {
             sqlx::query(
                 "INSERT INTO e2ee_records (id, workspace_id, payload) VALUES (?, 'workspace-a', ?)
@@ -112,7 +116,7 @@ fn paragraphs(body: &str) -> Vec<String> {
         .collect()
 }
 
-async fn note(db: &anlg_db_core::Db) -> (String, String) {
+async fn note(db: &syntheo_db_core::Db) -> (String, String) {
     sqlx::query_as(
         "SELECT session.title, note.body
          FROM sessions AS session
@@ -125,7 +129,7 @@ async fn note(db: &anlg_db_core::Db) -> (String, String) {
 }
 
 // The note and its session share the row id, so stamp only the table edited.
-async fn stamp(db: &anlg_db_core::Db, table: &str, edited_at_ms: i64) {
+async fn stamp(db: &syntheo_db_core::Db, table: &str, edited_at_ms: i64) {
     sqlx::query(
         "UPDATE e2ee_dirty_rows SET dirtied_at_ms = ?
          WHERE row_id = 'session-1' AND table_name = ?",
@@ -137,7 +141,7 @@ async fn stamp(db: &anlg_db_core::Db, table: &str, edited_at_ms: i64) {
     .unwrap();
 }
 
-async fn has_work(db: &anlg_db_core::Db) -> bool {
+async fn has_work(db: &syntheo_db_core::Db) -> bool {
     let dirty: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM e2ee_dirty_rows")
         .fetch_one(db.pool())
         .await
@@ -150,9 +154,9 @@ async fn has_work(db: &anlg_db_core::Db) -> bool {
 }
 
 async fn sync(
-    db: &anlg_db_core::Db,
+    db: &syntheo_db_core::Db,
     server: &mut Server,
-    workspace_keys: &HashMap<String, anlg_e2ee::WorkspaceKeyring>,
+    workspace_keys: &HashMap<String, syntheo_e2ee::WorkspaceKeyring>,
 ) {
     let keyring = &workspace_keys["workspace-a"];
     server.pull(db).await;

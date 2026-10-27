@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::process::Stdio;
 
-use anlg_cli_process::{StreamProcess, spawn_streaming_lines};
+use syntheo_cli_process::{StreamProcess, spawn_streaming_lines};
 use tokio::process::Command;
 use tokio_util::sync::CancellationToken;
 

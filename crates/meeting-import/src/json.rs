@@ -1,7 +1,7 @@
 use serde::Serialize;
 use serde_json::{Map, Value};
 
-pub use anlg_zoom::TranscriptSegment;
+pub use syntheo_zoom::TranscriptSegment;
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct ImportedMeeting {

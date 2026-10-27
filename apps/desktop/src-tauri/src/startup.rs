@@ -155,7 +155,7 @@ pub fn exit_for_running_peer_channel(identifier: &str, peer: &str) -> ! {
 }
 
 fn channel_product_name(_identifier: &str) -> &'static str {
-    anlg_brand::PRODUCT_NAME
+    syntheo_brand::PRODUCT_NAME
 }
 
 pub fn exit_for_already_running_instance() -> ! {
@@ -178,10 +178,10 @@ pub fn exit_for_already_running_instance() -> ! {
 // after updating moves the custom folder's contents back before any plugin
 // resolves the storage location. Runs under the launch lock.
 pub fn consolidate_custom_storage(identifier: &str) {
-    let Some(base) = anlg_storage::global::compute_default_base(identifier) else {
+    let Some(base) = syntheo_storage::global::compute_default_base(identifier) else {
         return;
     };
-    match anlg_storage::vault::consolidate_custom_vault(&base, &base) {
+    match syntheo_storage::vault::consolidate_custom_vault(&base, &base) {
         Ok(Some(previous)) if previous != base => eprintln!(
             "moved notes and recordings from {} to {}",
             previous.display(),
@@ -295,26 +295,24 @@ mod tests {
     #[test]
     fn channel_lock_excludes_the_peer_channel_while_held() {
         let dir = tempfile::tempdir().unwrap();
-        let stable = dir
-            .path()
-            .join(channel_lock_filename("com.hyprnote.stable"));
+        let stable = dir.path().join(channel_lock_filename("com.syntheo.stable"));
         let nightly = dir
             .path()
-            .join(channel_lock_filename("com.hyprnote.nightly"));
+            .join(channel_lock_filename("com.syntheo.nightly"));
 
-        let stable_lock = lock_channel_files(&stable, &nightly, "com.hyprnote.nightly");
+        let stable_lock = lock_channel_files(&stable, &nightly, "com.syntheo.nightly");
         assert!(matches!(stable_lock, ChannelLockState::Acquired(Some(_))));
 
         assert!(matches!(
-            lock_channel_files(&nightly, &stable, "com.hyprnote.stable"),
+            lock_channel_files(&nightly, &stable, "com.syntheo.stable"),
             ChannelLockState::PeerRunning {
-                peer: "com.hyprnote.stable"
+                peer: "com.syntheo.stable"
             }
         ));
 
         drop(stable_lock);
         assert!(matches!(
-            lock_channel_files(&nightly, &stable, "com.hyprnote.stable"),
+            lock_channel_files(&nightly, &stable, "com.syntheo.stable"),
             ChannelLockState::Acquired(Some(_))
         ));
     }
@@ -322,17 +320,15 @@ mod tests {
     #[test]
     fn channel_lock_defers_same_channel_relaunches_to_single_instance() {
         let dir = tempfile::tempdir().unwrap();
-        let stable = dir
-            .path()
-            .join(channel_lock_filename("com.hyprnote.stable"));
+        let stable = dir.path().join(channel_lock_filename("com.syntheo.stable"));
         let nightly = dir
             .path()
-            .join(channel_lock_filename("com.hyprnote.nightly"));
+            .join(channel_lock_filename("com.syntheo.nightly"));
 
-        let _running = lock_channel_files(&stable, &nightly, "com.hyprnote.nightly");
+        let _running = lock_channel_files(&stable, &nightly, "com.syntheo.nightly");
 
         assert!(matches!(
-            lock_channel_files(&stable, &nightly, "com.hyprnote.nightly"),
+            lock_channel_files(&stable, &nightly, "com.syntheo.nightly"),
             ChannelLockState::Acquired(None)
         ));
     }

@@ -3,11 +3,11 @@ use super::{
     parsing::WordBuilder,
     segment::{self, SegmentState},
 };
-use anlg_ws_client::client::Message;
 use base64::{Engine, engine::general_purpose::STANDARD};
 use owhisper_interface::{ListenParams, stream::StreamResponse};
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
+use syntheo_ws_client::client::Message;
 
 #[derive(Clone, Default)]
 pub struct NvidiaAdapter {
@@ -16,7 +16,7 @@ pub struct NvidiaAdapter {
 }
 impl NvidiaAdapter {
     pub fn language_support_live(
-        languages: &[anlg_language::Language],
+        languages: &[syntheo_language::Language],
         _model: Option<&str>,
     ) -> LanguageSupport {
         // The selected NIM deployment determines language coverage.
@@ -41,7 +41,7 @@ impl RealtimeSttAdapter for NvidiaAdapter {
     }
     fn is_supported_languages(
         &self,
-        languages: &[anlg_language::Language],
+        languages: &[syntheo_language::Language],
         model: Option<&str>,
     ) -> bool {
         Self::language_support_live(languages, model).is_supported()

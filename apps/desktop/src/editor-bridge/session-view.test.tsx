@@ -62,7 +62,7 @@ vi.mock("~/store/zustand/tabs", () => ({
     }),
 }));
 
-vi.mock("@anlg/editor/note", () => ({
+vi.mock("@syntheo/editor/note", () => ({
   useLinkedItemOpenBehavior: () => "current",
 }));
 

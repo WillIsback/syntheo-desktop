@@ -25,7 +25,7 @@ const mocks = vi.hoisted(() => ({
   windowShow: vi.fn(() => Promise.resolve({ status: "ok", data: null })),
 }));
 
-vi.mock("@anlg/plugin-windows", () => ({
+vi.mock("@syntheo/plugin-windows", () => ({
   commands: {
     windowEmitNavigate: mocks.windowEmitNavigate,
     windowShow: mocks.windowShow,

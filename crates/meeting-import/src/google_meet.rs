@@ -1,5 +1,5 @@
-use anlg_http::HttpClient;
 use serde::Deserialize;
+use syntheo_http::HttpClient;
 
 use crate::error::Error;
 use crate::json::{ImportedMeeting, TranscriptSegment, nonempty};

@@ -78,7 +78,7 @@ unsafe fn register_termination_handler(delegate_class: *mut objc2::runtime::AnyC
         let handler: Imp = std::mem::transmute(system_will_terminate as *const ());
         objc2::ffi::class_addMethod(
             delegate_class,
-            sel!(anlgSystemWillTerminate:),
+            sel!(syntheoSystemWillTerminate:),
             handler,
             c"v@:@".as_ptr(),
         );
@@ -94,7 +94,7 @@ unsafe fn register_system_termination_observer(delegate: &objc2::runtime::AnyObj
             .notificationCenter()
             .addObserver_selector_name_object(
                 delegate,
-                sel!(anlgSystemWillTerminate:),
+                sel!(syntheoSystemWillTerminate:),
                 Some(NSWorkspaceWillPowerOffNotification),
                 None,
             );
@@ -106,7 +106,7 @@ extern "C" fn system_will_terminate(
     _selector: objc2::runtime::Sel,
     _notification: *mut objc2::runtime::AnyObject,
 ) {
-    anlg_intercept::set_force_quit();
+    syntheo_intercept::set_force_quit();
     if let Some(app) = crate::APP_HANDLE.get() {
         app.exit(0);
     }
@@ -119,13 +119,13 @@ extern "C" fn application_should_terminate(
 ) -> objc2_app_kit::NSApplicationTerminateReply {
     use objc2_app_kit::NSApplicationTerminateReply;
 
-    if anlg_intercept::should_force_quit() {
+    if syntheo_intercept::should_force_quit() {
         return NSApplicationTerminateReply::TerminateNow;
     }
 
     // The system Dock Quit action bypasses Tauri's custom Quit menu item.
     if let Some(app) = crate::APP_HANDLE.get() {
-        tauri_plugin_tray::AnlgMenuItem::TrayQuit.handle(app);
+        tauri_plugin_tray::SyntheoMenuItem::TrayQuit.handle(app);
     }
     NSApplicationTerminateReply::TerminateCancel
 }
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn native_quit_keeps_app_running_until_full_termination_is_requested() {
-        let class = ClassBuilder::new(c"AnarlogQuitTestDelegate", NSObject::class())
+        let class = ClassBuilder::new(c"SyntheoQuitTestDelegate", NSObject::class())
             .unwrap()
             .register();
         unsafe {

@@ -31,8 +31,8 @@ import {
   TextHThree,
   TextHTwo,
   TextT,
-} from "@anlg/ui/components/icons";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/icons";
+import { cn } from "@syntheo/utils";
 
 import { schema } from "../note/schema";
 import { createTaskItemAttrs } from "../tasks";

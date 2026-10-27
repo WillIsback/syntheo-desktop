@@ -7,17 +7,17 @@ import {
   LogicalSize,
 } from "@tauri-apps/api/window";
 
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
-export const ZOOM_STORAGE_KEY = "anarlog-zoom-factor";
-export const ZOOM_CHANGED_EVENT = "anlg:zoom-factor-changed";
+export const ZOOM_STORAGE_KEY = "syntheo-zoom-factor";
+export const ZOOM_CHANGED_EVENT = "syntheo:zoom-factor-changed";
 
 export const ZOOM_STEPS = [
   0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3,
 ] as const;
 
 export const DEFAULT_ZOOM_FACTOR = 1;
-export const ZOOM_CSS_VARIABLE = "--anlg-zoom";
+export const ZOOM_CSS_VARIABLE = "--syntheo-zoom";
 
 // Logical (unzoomed) minimum inner sizes, mirroring plugins/windows v1.rs.
 const MAIN_WINDOW_BASE_MIN_SIZE = { width: 500, height: 500 };

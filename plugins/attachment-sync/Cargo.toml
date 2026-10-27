@@ -19,10 +19,10 @@ tempfile = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [dependencies]
-anlg-attachment-sync-core = { workspace = true }
-anlg-db-app = { workspace = true }
-anlg-e2ee = { workspace = true }
-anlg-fs-sync-core = { workspace = true }
+syntheo-attachment-sync-core = { workspace = true }
+syntheo-db-app = { workspace = true }
+syntheo-e2ee = { workspace = true }
+syntheo-fs-sync-core = { workspace = true }
 
 tauri = { workspace = true, features = ["test", "protocol-asset"] }
 tauri-plugin-db = { workspace = true }

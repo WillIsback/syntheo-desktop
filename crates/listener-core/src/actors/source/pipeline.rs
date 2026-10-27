@@ -13,8 +13,8 @@ use crate::{
     ListenerRuntime, SessionDataEvent,
     actors::{ChannelMode, ListenerAudioResult, ListenerMsg, SAMPLE_RATE},
 };
-use anlg_audio_utils::f32_to_i16_bytes;
-use anlg_vad_masking::VadMask;
+use syntheo_audio_utils::f32_to_i16_bytes;
+use syntheo_vad_masking::VadMask;
 
 use super::{ListenerRefreshReplay, ListenerRouting, SourceFrame};
 
@@ -605,7 +605,7 @@ mod tests {
 
     use ractor::{Actor, ActorProcessingErr, ActorRef};
 
-    use anlg_audio::CaptureFrame;
+    use syntheo_audio::CaptureFrame;
 
     use super::*;
     use crate::{
@@ -615,12 +615,12 @@ mod tests {
 
     struct TestRuntime;
 
-    impl anlg_storage::StorageRuntime for TestRuntime {
-        fn global_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+    impl syntheo_storage::StorageRuntime for TestRuntime {
+        fn global_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(std::env::temp_dir())
         }
 
-        fn vault_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+        fn vault_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(std::env::temp_dir())
         }
     }
@@ -638,12 +638,12 @@ mod tests {
     #[derive(Default)]
     struct DropoutRuntime(std::sync::Mutex<Vec<f32>>);
 
-    impl anlg_storage::StorageRuntime for DropoutRuntime {
-        fn global_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+    impl syntheo_storage::StorageRuntime for DropoutRuntime {
+        fn global_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(std::env::temp_dir())
         }
 
-        fn vault_base(&self) -> Result<PathBuf, anlg_storage::Error> {
+        fn vault_base(&self) -> Result<PathBuf, syntheo_storage::Error> {
             Ok(std::env::temp_dir())
         }
     }

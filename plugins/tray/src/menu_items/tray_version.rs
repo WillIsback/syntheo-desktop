@@ -9,7 +9,7 @@ pub struct TrayVersion;
 
 impl TrayVersion {
     fn get_channel(identifier: &str, _app_name: &str) -> &'static str {
-        if identifier == anlg_brand::STABLE_BUNDLE_ID {
+        if identifier == syntheo_brand::STABLE_BUNDLE_ID {
             "stable"
         } else {
             "dev"
@@ -18,7 +18,7 @@ impl TrayVersion {
 }
 
 impl MenuItemHandler for TrayVersion {
-    const ID: &'static str = "anlg_tray_version";
+    const ID: &'static str = "syntheo_tray_version";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
         let identifier = &app.config().identifier;
@@ -49,7 +49,7 @@ mod tests {
             "dev"
         );
         assert_eq!(
-            TrayVersion::get_channel("com.hyprnote.stable", "Anarlog"),
+            TrayVersion::get_channel("com.syntheo.stable", "Syntheo"),
             "dev"
         );
     }

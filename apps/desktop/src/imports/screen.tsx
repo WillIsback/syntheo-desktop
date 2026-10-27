@@ -3,21 +3,21 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { open as selectFiles } from "@tauri-apps/plugin-dialog";
 import { type ReactNode, useEffect } from "react";
 
-import { commands as importerCommands } from "@anlg/plugin-importer";
+import { commands as importerCommands } from "@syntheo/plugin-importer";
 import {
   CaretDown,
   CircleNotch,
   DownloadSimple,
-} from "@anlg/ui/components/icons";
+} from "@syntheo/ui/components/icons";
 import {
   Accordion,
   AccordionItem,
   AccordionHeader,
   AccordionTriggerPrimitive,
   AccordionContent,
-} from "@anlg/ui/components/ui/accordion";
-import { Button } from "@anlg/ui/components/ui/button";
-import { cn } from "@anlg/utils";
+} from "@syntheo/ui/components/ui/accordion";
+import { Button } from "@syntheo/ui/components/ui/button";
+import { cn } from "@syntheo/utils";
 
 import { detectImportSources } from "./detection";
 import { providerIconOpticalClass, providerIconSrc } from "./icons";

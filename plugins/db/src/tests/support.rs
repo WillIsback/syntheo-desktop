@@ -43,8 +43,8 @@ async fn setup_runtime_with_cloudsync(
 ) -> (tempfile::TempDir, Arc<runtime::PluginDbRuntime>) {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("app.db");
-    let db = anlg_db_core::Db::open(anlg_db_core::DbOpenOptions {
-        storage: anlg_db_core::DbStorage::Local(&db_path),
+    let db = syntheo_db_core::Db::open(syntheo_db_core::DbOpenOptions {
+        storage: syntheo_db_core::DbStorage::Local(&db_path),
         cloudsync_enabled,
         journal_mode_wal: true,
         foreign_keys: true,
@@ -52,13 +52,13 @@ async fn setup_runtime_with_cloudsync(
     })
     .await
     .unwrap();
-    anlg_db_app::prepare_schema(&db).await.unwrap();
+    syntheo_db_app::prepare_schema(&db).await.unwrap();
     sqlx::query(
         "UPDATE storage_migration_state
          SET importer_version = ?, parity_verified = 1
          WHERE id = 'legacy_v1'",
     )
-    .bind(anlg_db_app::LEGACY_IMPORTER_VERSION)
+    .bind(syntheo_db_app::LEGACY_IMPORTER_VERSION)
     .execute(db.pool())
     .await
     .unwrap();
@@ -73,7 +73,7 @@ pub(super) async fn setup_runtime() -> (tempfile::TempDir, Arc<runtime::PluginDb
 pub(super) async fn setup_enabled_cloudsync_runtime()
 -> (tempfile::TempDir, Arc<runtime::PluginDbRuntime>) {
     let (dir, runtime) = setup_runtime_with_cloudsync(true).await;
-    let recovery_key = anlg_e2ee::RecoveryKey::parse(
+    let recovery_key = syntheo_e2ee::RecoveryKey::parse(
         "anarlog-e2ee-v1:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc",
     )
     .unwrap();
@@ -190,8 +190,8 @@ pub(super) async fn setup_unmigrated_runtime_with_max_connections(
 ) -> (tempfile::TempDir, Arc<runtime::PluginDbRuntime>) {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("app.db");
-    let db = anlg_db_core::Db::open(anlg_db_core::DbOpenOptions {
-        storage: anlg_db_core::DbStorage::Local(&db_path),
+    let db = syntheo_db_core::Db::open(syntheo_db_core::DbOpenOptions {
+        storage: syntheo_db_core::DbStorage::Local(&db_path),
         cloudsync_enabled: false,
         journal_mode_wal: true,
         foreign_keys: true,

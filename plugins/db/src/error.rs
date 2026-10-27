@@ -5,23 +5,23 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    Db(#[from] anlg_db_core::DbOpenError),
+    Db(#[from] syntheo_db_core::DbOpenError),
     #[error(transparent)]
-    Migrate(#[from] anlg_db_migrate::MigrateError),
+    Migrate(#[from] syntheo_db_migrate::MigrateError),
     #[error(transparent)]
-    AppSchema(#[from] anlg_db_app::AppSchemaError),
+    AppSchema(#[from] syntheo_db_app::AppSchemaError),
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
     #[error(transparent)]
-    Execute(#[from] anlg_db_execute::Error),
+    Execute(#[from] syntheo_db_execute::Error),
     #[error(transparent)]
-    Reactive(#[from] anlg_db_reactive::Error),
+    Reactive(#[from] syntheo_db_reactive::Error),
     #[error(transparent)]
-    Cloudsync(#[from] anlg_db_core::CloudsyncRuntimeError),
+    Cloudsync(#[from] syntheo_db_core::CloudsyncRuntimeError),
     #[error(transparent)]
-    CloudsyncWorkspace(#[from] anlg_db_app::CloudsyncWorkspaceError),
+    CloudsyncWorkspace(#[from] syntheo_db_app::CloudsyncWorkspaceError),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
     #[error("end-to-end encryption recovery key setup is required before CloudSync can start")]

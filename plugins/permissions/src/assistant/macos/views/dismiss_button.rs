@@ -2,11 +2,11 @@ use objc2::rc::Retained;
 use objc2_app_kit::{NSColor, NSView};
 use objc2_foundation::MainThreadMarker;
 
-use anlg_overlay_kit::macos::button::{
+use syntheo_overlay_kit::macos::button::{
     ButtonRadius, OverlayButtonConfig, OverlayButtonStyle, OwnedFill, overlay_button,
 };
 
-use anlg_overlay_kit::macos::support::{rect, symbol_image_view};
+use syntheo_overlay_kit::macos::support::{rect, symbol_image_view};
 
 use super::super::animation::HOVER_DURATION;
 use super::super::dismiss_current;

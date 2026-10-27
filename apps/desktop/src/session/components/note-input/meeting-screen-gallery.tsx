@@ -2,7 +2,7 @@ import { t } from "@lingui/core/macro";
 import { useQuery } from "@tanstack/react-query";
 import { convertFileSrc } from "@tauri-apps/api/core";
 
-import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
+import { commands as fsSyncCommands } from "@syntheo/plugin-fs-sync";
 
 import { sessionAttachmentPathsQueryKey } from "~/session/hooks/useAttachmentResolver";
 import { formatMeetingPlatform } from "~/stt/meeting-chat-records";

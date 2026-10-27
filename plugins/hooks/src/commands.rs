@@ -1,4 +1,4 @@
-use anlg_hooks::{HookEvent, HookResult};
+use syntheo_hooks::{HookEvent, HookResult};
 
 use crate::HooksPluginExt;
 
