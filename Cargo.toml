@@ -25,7 +25,6 @@ syntheo-agent-core = { path = "crates/agent-core", package = "agent-core" }
 syntheo-apple-calendar = { path = "crates/apple-calendar", package = "apple-calendar" }
 syntheo-apple-todo = { path = "crates/apple-todo", package = "apple-todo" }
 syntheo-askama-utils = { path = "crates/askama-utils", package = "askama-utils" }
-syntheo-attachment-sync-core = { path = "crates/attachment-sync-core", package = "attachment-sync-core" }
 syntheo-audacity = { path = "crates/audacity", package = "audacity" }
 syntheo-audio = { path = "crates/audio", package = "audio" }
 syntheo-audio-actual = { path = "crates/audio-actual", package = "audio-actual" }
@@ -118,7 +117,6 @@ tauri-plugin-store = "2.4.3"
 tauri-plugin-window-state = "2.4"
 
 tauri-plugin-agent = { path = "plugins/agent" }
-tauri-plugin-attachment-sync = { path = "plugins/attachment-sync" }
 tauri-plugin-audio-priority = { path = "plugins/audio-priority" }
 tauri-plugin-calendar = { path = "plugins/calendar" }
 tauri-plugin-db = { path = "plugins/db" }

@@ -25,7 +25,6 @@ syntheo-brand = { workspace = true }
 tauri = { workspace = true, features = ["specta", "protocol-asset"] }
 
 tauri-plugin-agent = { workspace = true }
-tauri-plugin-attachment-sync = { workspace = true }
 tauri-plugin-audio-priority = { workspace = true }
 tauri-plugin-autostart = { workspace = true }
 tauri-plugin-calendar = { workspace = true }

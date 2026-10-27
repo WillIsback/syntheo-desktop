@@ -35,7 +35,6 @@
     "@syntheo/db-react": "workspace:*",
     "@syntheo/db-tauri": "workspace:*",
     "@syntheo/editor": "workspace:^",
-    "@syntheo/plugin-attachment-sync": "workspace:*",
     "@syntheo/plugin-calendar": "workspace:*",
     "@syntheo/plugin-db": "workspace:*",
     "@syntheo/plugin-deeplink2": "workspace:*",
