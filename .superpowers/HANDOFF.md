@@ -1,6 +1,7 @@
 # Passation — Syntheo Desktop
 
-Dernière mise à jour : 2026-10-27 (nuit) — E2E blackbox **résolu**, qualité **verte**.
+Dernière mise à jour : 2026-10-27 (nuit, suite) — E2E **résolu**, qualité **verte**, installateur
+**en une ligne** ajouté, CI **allégée** (Rust hors PR).
 Dépôt : `/home/will/work/syntheo-desktop` (GitHub `WillIsback/syntheo-desktop`, miroir
 Forgejo `wderue/syntheo-desktop`). Fork d'Anarlog (MIT), historique neuf, jamais fusionné
 vers l'amont.
@@ -19,12 +20,14 @@ vers l'amont.
 
 | Élément | État |
 |---|---|
-| `main` | **`145eee2`** — arbre **propre** (aucun fichier modifié suivi, aucun untracked hors `target/`) |
+| `main` | **`69dcc65`** — arbre **propre** (aucun fichier modifié suivi, aucun untracked hors `target/`) |
 | Lots 04 / 04b / 04c / 10 | terminés et fusionnés (sessions précédentes) |
 | Lots 06-09 | terminés et fusionnés (sessions précédentes) |
 | **Lot 04d — retrait cloud** | **TERMINÉ** (voir ci-dessous) |
-| Build préprod | **RÉUSSI** (deb + AppImage `0.1.0-preprod`) ; binaire release reconstruit après #106 |
+| Build préprod | **RÉUSSI** (deb + AppImage `0.1.0-preprod`, SHA256 section 3) |
 | E2E blackbox | **RÉSOLU** (PR #106) — `pnpm e2e` → `1 passing`, exit 0 |
+| Installeur une ligne | **AJOUTÉ** (PR #120) — `scripts/install.sh`, AppImage/deb, `--version` |
+| CI | **ALLÉGÉE** (PR #118) — clippy + tests Rust hors PR (push main + hebdo) |
 | Linters/qualité | **VERTS** : cargo-deny / trivy / zizmor / CodeQL / Sonar / actionlint / ESLint |
 
 ### Lot 04d — « aux chiottes le cloud » (app 100 % locale)
@@ -145,10 +148,10 @@ Artefacts produits (non suivis par git) :
 apps/desktop/src-tauri/target/release/bundle/deb/Syntheo_0.1.0-preprod_amd64.deb
 apps/desktop/src-tauri/target/release/bundle/appimage/Syntheo_0.1.0-preprod_amd64.AppImage
 ```
-SHA256 (**reconstruits après #106**, 2026-10-27) :
+SHA256 (**reconstruits depuis main post-#116**, 2026-10-27) :
 ```
-3d075c61be12ea6240b31d311384e19f23e2ebff4d0b453355c725889ab12e25  deb/Syntheo_0.1.0-preprod_amd64.deb
-6168cb778a7b81d8f322f2b3fb1bc836be5b67adbaa030fb4538e6a40259445b  appimage/Syntheo_0.1.0-preprod_amd64.AppImage
+6b2ed07c81cc3c47234519a3ffb8a1c2a8111e4e2af2d1364ce39dfbee91229e  deb/Syntheo_0.1.0-preprod_amd64.deb
+b61e8e07a4ea1755948729c38bee958389ea162e14f172d9de1e1363dd9ff071  appimage/Syntheo_0.1.0-preprod_amd64.AppImage
 ```
 Recette (identique `release.yml` build job, `VITE_API_URL` factice) :
 ```bash
@@ -167,9 +170,33 @@ docker run --rm -v /home/will/work/syntheo-desktop:/work -w /work syntheo-dev:1 
 ```
 Note : `--ci` désactive le mode interactif. ~7 min (release) + bundling.
 
-Les bundles ci-dessus ont été **reconstruits après #106** (correctif de démarrage) ; le binaire
-release `target/release/syntheo` sert aussi à l'E2E. **Attention** : ceci est une recette locale
-non signée, indépendante des releases GitHub (voir section 4).
+Les bundles ci-dessus sont une recette locale non signée, indépendante des releases GitHub
+(voir section 4) ; le binaire release `target/release/syntheo` sert aussi à l'E2E.
+
+### 3bis. Installation utilisateur — une ligne (PR #120)
+
+`scripts/install.sh` installe depuis les GitHub Releases (AppImage par défaut) :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.sh | bash -s -- --version v0.1.1   # version précise
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.sh | bash -s -- --deb              # Debian/Ubuntu
+```
+
+- AppImage → `~/.local/bin/Syntheo-<version>.AppImage` + lien `syntheo` (**plusieurs versions
+  coexistent**). Vérifie le `SHA256SUMS` de la release ; force HTTPS (`--proto '=https'`).
+- **Arch/Omarchy** : l'AppImage exige **FUSE 2** (`sudo pacman -S fuse2`).
+- Testé de bout en bout sur `v0.1.1` (téléchargement + `SHA256 vérifié` + install).
+- ⚠️ `packaging/aur/syntheo-bin/PKGBUILD` est **encore celui d'Anarlog** (`pkgver=1.4.31`,
+  `desktop_v*`, `syntheo-linux-*.deb`) et `release.yml` ne le met pas à jour → **AUR cassé**,
+  à reprendre ou supprimer.
+
+### 3ter. CI — clippy/tests Rust hors PR (PR #118)
+
+Le job `ci-code-quality (Rust)` (~20 min) ne tourne **plus sur les PR** : `push main` + hebdo +
+manuel (même schéma que le Rust de CodeQL). Les PR gardent `cargo metadata --locked` et tout le
+reste (Vitest, sécurité, TypeScript) → PR ~3 min au lieu de ~25. La doc est dans l'en-tête de
+`.github/workflows/ci-code-quality.yml`.
 
 ### 4. Signature pour distribution — **DÉCIDÉ : signature de code macOS/Windows**
 
@@ -238,14 +265,17 @@ Secrets : `bws` (Bitwarden EU). Jetons Forgejo/GitHub via `bws secret list`.
 
 ## Ordre suggéré pour la prochaine session
 
-1. **Implémenter la signature macOS/Windows** (section 4) une fois les secrets fournis —
+1. **Publier une release** — `main` est prêt (correctifs #106/#112/#114/#116 + installeur #120).
+   Le prochain calcul donne **v0.2.0** (un `feat` depuis `v0.1.1`) :
+   `gh workflow run release.yml -f bump=auto -f dry_run=false` (environnement `production`, à
+   approuver), puis vérifier l'asset, `SHA256SUMS` et l'attestation.
+   ⚠️ Release **Linux-only** (deb + AppImage) tant que la signature macOS/Windows (section 4)
+   n'est pas implémentée. `v0.1.1` contient encore le panic de démarrage (#106).
+2. **Implémenter la signature macOS/Windows** (section 4) une fois les secrets fournis —
    plan : `docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md`.
-2. Vérifier que la release GitHub **inclut bien #106** : `v0.1.1` (2026-10-27) a été construit
-   **avant** le correctif de démarrage → il contient le panic. La prochaine release (v0.1.2) le
-   corrigera ; sinon relancer un `workflow_dispatch`.
-3. Optionnel : durcir l'E2E audio virtuel (`E2E_VIRTUAL_AUDIO=1`, kill du groupe de processus)
-   et nettoyer les entrées `deny.toml` devenues inutiles (`advisory-not-detected`).
-4. Le blocage fonctionnel (démarrage) est corrigé ; la qualité et l'E2E sont verts.
+3. Optionnel : reprendre/supprimer le PKGBUILD AUR cassé (`packaging/aur/syntheo-bin`) ; durcir
+   l'E2E audio virtuel ; nettoyer les entrées `deny.toml` obsolètes (`advisory-not-detected`).
+4. Réécrire le reste du site Mintlify (hérité d'Anarlog : cloud, Zoom/Teams, api-cloud, Nightly…).
 
 > Note release : le marqueur `[skip release]` **exige** d'être dans le **sujet du commit** (le
 > réglage de squash du dépôt était `COMMIT_OR_PR_TITLE`, ce qui le perdait sur les PR à 1 commit).
