@@ -298,10 +298,7 @@ export function useUploadFile(sessionId: string) {
               catch: (error) =>
                 error instanceof Error ? error : new Error(String(error)),
             }).pipe(
-              Effect.tap(() =>
-                Effect.sync(() => {
-                }),
-              ),
+              Effect.tap(() => Effect.sync(() => {})),
               Effect.tap(() => Effect.promise(triggerEnhance)),
             );
           }),

@@ -14,7 +14,6 @@ export function DeleteNote({ sessionId }: { sessionId: string }) {
 
   const handleDeleteNote = useCallback(() => {
     deleteSession(sessionId, { title });
-
   }, [sessionId, deleteSession, title]);
 
   return (

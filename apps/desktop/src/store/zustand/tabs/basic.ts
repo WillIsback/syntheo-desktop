@@ -95,7 +95,6 @@ export const createBasicSlice = <
     if (tab.type === "sessions") {
       addRecentlyOpened(tab.id);
     }
-
   },
   openNew: (tab, options) => {
     const { tabs, history, addRecentlyOpened, chatMode } = get();
@@ -116,7 +115,6 @@ export const createBasicSlice = <
     if (tab.type === "sessions") {
       addRecentlyOpened(tab.id);
     }
-
   },
   select: (tab) => {
     const { tabs, addRecentlyOpened, chatMode } = get();

@@ -317,7 +317,6 @@ export function useStartListeningState(
         () => getSessionMode(sessionId) === "active",
       );
     }
-
   }, [
     automatic,
     aiLanguage,

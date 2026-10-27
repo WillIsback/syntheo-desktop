@@ -101,8 +101,7 @@ function OnboardingScreenContent({
     if (prev) setCurrentStep(prev);
   }, [currentStep]);
 
-  useEffect(() => {
-  }, [currentPlatform, currentStep]);
+  useEffect(() => {}, [currentPlatform, currentStep]);
 
   useMountEffect(() => {
     sfxCommands.play("BGM").catch(console.error);

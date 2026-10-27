@@ -35,14 +35,12 @@ function getRouteErrorKey(error: unknown) {
 }
 
 const ReportedErrorComponent = ({ error }: { error: Error }) => {
-  useMountEffect(() => {
-  });
+  useMountEffect(() => {});
 
   const handleRestart = async () => {
     try {
       await relaunch();
-    } catch (err) {
-    }
+    } catch (err) {}
   };
 
   return (

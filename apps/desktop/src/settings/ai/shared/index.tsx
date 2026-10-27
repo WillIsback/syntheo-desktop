@@ -399,7 +399,6 @@ export function NonAnarlogProviderCard({
 
       setHasUnresolvedKeychainError(false);
       notifyProviderSelection(value.api_key);
-
     },
     defaultValues:
       provider ??

@@ -38,7 +38,6 @@ const {
   stopTranscriptionMock: vi.fn(),
 }));
 
-
 vi.mock("@tauri-apps/api/window", () => ({
   UserAttentionType: { Critical: 1, Informational: 2 },
   getCurrentWindow: () => ({

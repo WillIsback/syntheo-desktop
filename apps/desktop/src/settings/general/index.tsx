@@ -117,7 +117,6 @@ function useSettingsForm(storedSettings: StoredSettingValues) {
         summary_use_main_language: normalizedValue.summary_use_main_language,
         spoken_languages: JSON.stringify(normalizedValue.spoken_languages),
       });
-
     },
   });
 

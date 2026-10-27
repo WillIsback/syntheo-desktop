@@ -149,4 +149,3 @@ function parseEventParticipants(value: string | null): EventParticipant[] {
     return [];
   }
 }
-

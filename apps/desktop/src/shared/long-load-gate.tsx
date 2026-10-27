@@ -110,8 +110,7 @@ function StartupErrorView({ error }: { error: Error }) {
   const handleRestart = async () => {
     try {
       await relaunch();
-    } catch (cause) {
-    }
+    } catch (cause) {}
   };
 
   return (

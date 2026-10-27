@@ -236,8 +236,7 @@ export function OpenNoteDialog({
 
   useEffect(() => {
     if (!open || !query.trim()) return;
-    const timeout = setTimeout(() => {
-    }, 300);
+    const timeout = setTimeout(() => {}, 300);
     return () => clearTimeout(timeout);
   }, [
     filteredOtherNotes.length,
