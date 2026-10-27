@@ -32,8 +32,6 @@ import {
   useDeleteWorkflow,
   useRemoveStarterDraft,
 } from "~/automations/actions";
-import { CLOUD_STEP_REMOVED_MESSAGE } from "~/automations/engine";
-import { parseAutomationTargetRef } from "~/automations/engine";
 import {
   useAutomationSelection,
   useEffectiveAutomationSelection,
@@ -45,10 +43,6 @@ import {
 } from "~/automations/starters";
 import {
   type AutomationWorkflow,
-  type WorkflowStep,
-  GOOGLE_DRIVE_STARTER_WORKFLOW_ID,
-  createGoogleDriveWorkflow,
-  mutateAutomationWorkflows,
   createEmptyWorkflow,
   isWorkflowReady,
   parseAutomationWorkflows,
@@ -422,38 +416,13 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
   const notifyPlanRequired = useNotifyPlanRequired();
   const starter = useStarterAutomations().find((item) => item.id === starterId);
   const [showPreview, setShowPreview] = useState(false);
-  const workflows = useAutomationWorkflows();
-  const driveFallback = useMemo(
-    () => ({
-      ...createGoogleDriveWorkflow(starter?.title ?? ""),
-      id: GOOGLE_DRIVE_STARTER_WORKFLOW_ID,
-    }),
-    [starter?.title],
-  );
-  const driveWorkflow =
-    workflows.find((item) => item.id === GOOGLE_DRIVE_STARTER_WORKFLOW_ID) ??
-    driveFallback;
-  const legacyKeys =
-    starterId === "google-drive" ? null : STARTER_AUTOMATIONS[starterId];
-  const saveDrive = (
-    updates: { enabled?: boolean; steps?: WorkflowStep[] } = {},
-  ) =>
-    mutateAutomationWorkflows((items) => {
-      const current =
-        items.find((item) => item.id === GOOGLE_DRIVE_STARTER_WORKFLOW_ID) ??
-        driveFallback;
-      return [
-        { ...current, ...updates },
-        ...items.filter((item) => item.id !== current.id),
-      ];
-    });
+  const legacyKeys = STARTER_AUTOMATIONS[starterId];
   const { values: settingValues } = useStoredSettingValues();
   const removeStarterDraft = useRemoveStarterDraft();
 
   const saveDraftMutation = useMutation({
     mutationKey: ["automation-draft-template"],
     mutationFn: async () => {
-      if (starterId === "google-drive") await saveDrive();
       await setSettingValue("automation_draft_template", starterId);
     },
     onSuccess: () => toast.success(t`Automation draft saved`),
@@ -464,8 +433,7 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
     mutationKey: ["automation-starter-enabled"],
     mutationFn: async ({ enabled }: { enabled: boolean }) => {
       const updates: SettingValues = { automation_draft_template: starterId };
-      if (legacyKeys) updates[legacyKeys.enabledKey] = enabled;
-      else await saveDrive({ enabled });
+      updates[legacyKeys.enabledKey] = enabled;
       return setSettingValues(updates);
     },
     onSuccess: (_, { enabled }) =>
@@ -477,32 +445,10 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
     return null;
   }
 
-  const isEnabled = legacyKeys
-    ? Boolean(settingValues[legacyKeys.enabledKey])
-    : driveWorkflow.enabled;
-  const targetRaw = legacyKeys
-    ? (settingValues[legacyKeys.targetKey] ?? "")
-    : "";
-  const isReady =
-    starterId === "google-drive"
-      ? isWorkflowReady(driveWorkflow)
-      : starterId === "markdown-export"
-        ? targetRaw.trim().length > 0
-        : parseAutomationTargetRef(targetRaw) !== null;
-  const readinessHint = (() => {
-    switch (starterId) {
-      case "google-drive":
-        return t`Choose a Google Drive folder first.`;
-      case "markdown-export":
-        return t`Choose an export folder first.`;
-      case "slack-recap":
-        return t`Choose a Slack channel first.`;
-      case "linear-action-items":
-        return t`Choose a Linear team first.`;
-      case "notion-project-notes":
-        return t`Choose a Notion page first.`;
-    }
-  })();
+  const isEnabled = Boolean(settingValues[legacyKeys.enabledKey]);
+  const targetRaw = settingValues[legacyKeys.targetKey] ?? "";
+  const isReady = targetRaw.trim().length > 0;
+  const readinessHint = t`Choose an export folder first.`;
 
   const handleSaveDraft = () => {
     if (!billing.isPro) {
@@ -666,13 +612,7 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
         </div>
 
         <div className="border-border border-t px-5 py-4">
-          {starterId === "markdown-export" ? (
-            <MarkdownExportConfig />
-          ) : (
-            <p className="text-muted-foreground text-xs">
-              {CLOUD_STEP_REMOVED_MESSAGE}
-            </p>
-          )}
+          <MarkdownExportConfig />
           {legacyKeys ? (
             <AutomationLastRunLine settingKey={legacyKeys.lastRunKey} />
           ) : null}

@@ -5,12 +5,7 @@ import { toast } from "@syntheo/ui/components/ui/toast";
 
 import { useAutomationSelection } from "./selection";
 import { STARTER_AUTOMATIONS, type StarterId } from "./starters";
-import {
-  GOOGLE_DRIVE_STARTER_WORKFLOW_ID,
-  mutateAutomationWorkflows,
-  parseAutomationWorkflows,
-  saveAutomationWorkflows,
-} from "./workflows";
+import { parseAutomationWorkflows, saveAutomationWorkflows } from "./workflows";
 
 import { deleteChatGroup } from "~/chat/store/queries";
 import { getStoredSettingValues, setSettingValues } from "~/settings/queries";
@@ -27,17 +22,7 @@ export function useRemoveStarterDraft() {
     mutationFn: async (starterId: StarterId) => {
       const stored = await getStoredSettingValues();
       const updates: SettingValues = {};
-      if (starterId === "google-drive") {
-        await mutateAutomationWorkflows((items) =>
-          items.map((item) =>
-            item.id === GOOGLE_DRIVE_STARTER_WORKFLOW_ID
-              ? { ...item, enabled: false }
-              : item,
-          ),
-        );
-      } else {
-        updates[STARTER_AUTOMATIONS[starterId].enabledKey] = false;
-      }
+      updates[STARTER_AUTOMATIONS[starterId].enabledKey] = false;
       if (stored.values.automation_draft_template === starterId) {
         updates.automation_draft_template = "";
       }

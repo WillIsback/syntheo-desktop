@@ -29,7 +29,6 @@ import {
 import {
   type AutomationWorkflow,
   createEmptyWorkflow,
-  GOOGLE_DRIVE_STARTER_WORKFLOW_ID,
   saveAutomationWorkflows,
   useAutomationWorkflows,
 } from "~/automations/workflows";
@@ -75,9 +74,7 @@ export function AutomationsNav() {
   );
   const filteredWorkflows = useMemo(() => {
     return workflows.filter(
-      (workflow) =>
-        workflow.id !== GOOGLE_DRIVE_STARTER_WORKFLOW_ID &&
-        (!query || workflow.title.toLowerCase().includes(query)),
+      (workflow) => !query || workflow.title.toLowerCase().includes(query),
     );
   }, [query, workflows]);
   const filteredChatAutomations = useMemo(() => {
