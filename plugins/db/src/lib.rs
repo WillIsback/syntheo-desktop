@@ -215,6 +215,20 @@ pub fn close_webview_subscriptions<R: tauri::Runtime>(app: &tauri::AppHandle<R>,
     });
 }
 
+/// Builds the plugin runtime inside the Tauri async runtime.
+///
+/// Plugin setup runs synchronously on the main thread from `Builder::build()`,
+/// which is not inside a Tokio reactor. `PluginDbRuntime::new` eagerly spawns
+/// the live-query dispatcher (via `LiveQueryRuntime::new` -> `tokio::spawn`),
+/// so construction must happen with a reactor entered.
+fn build_runtime(
+    db: std::sync::Arc<syntheo_db_core::Db>,
+) -> std::sync::Arc<runtime::PluginDbRuntime> {
+    std::sync::Arc::new(tauri::async_runtime::block_on(async {
+        runtime::PluginDbRuntime::new(db)
+    }))
+}
+
 pub fn init<R: tauri::Runtime>(
     db: std::sync::Arc<syntheo_db_core::Db>,
 ) -> tauri::plugin::TauriPlugin<R> {
@@ -223,8 +237,7 @@ pub fn init<R: tauri::Runtime>(
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _| {
-            let runtime =
-                std::sync::Arc::new(runtime::PluginDbRuntime::new(std::sync::Arc::clone(&db)));
+            let runtime = build_runtime(std::sync::Arc::clone(&db));
             let startup_db = std::sync::Arc::clone(&db);
             let startup_runtime = std::sync::Arc::clone(&runtime);
             let startup_app = app.app_handle().clone();
@@ -287,5 +300,15 @@ mod tests {
         ] {
             assert!(permissions.contains(permission), "missing {permission}");
         }
+    }
+
+    #[test]
+    fn runtime_constructs_outside_async_context() {
+        // Regression guard for the startup panic: plugin setup builds the
+        // runtime from a synchronous (reactor-less) context, and
+        // `PluginDbRuntime::new` eagerly spawns the live-query dispatcher.
+        let db = tauri::async_runtime::block_on(syntheo_db_core::Db::connect_memory_plain())
+            .expect("in-memory database");
+        let _runtime = crate::build_runtime(std::sync::Arc::new(db));
     }
 }
