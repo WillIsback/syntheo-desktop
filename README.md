@@ -35,10 +35,45 @@ Données, flux réseau et responsabilités au regard du RGPD :
 
 ## Installation
 
-Les installateurs graphiques (Windows, macOS, Linux) et les scripts
-d'installation en une ligne arriveront avec la première release : voir
-[#4](https://github.com/WillIsback/syntheo-desktop/issues/4).
-En attendant, l'application se construit depuis les sources :
+### Linux — script en une ligne (AppImage)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.sh | bash
+```
+
+Le script télécharge l'AppImage de la dernière release dans `~/.local/bin`,
+vérifie sa somme SHA256, l'enregistre comme `Syntheo-<version>.AppImage` et
+crée le lien `syntheo`.
+
+Pour **tester une release précise** (toutes les versions publiées) :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.sh | bash -s -- --version v0.1.1
+```
+
+> Sur **Arch / Omarchy**, l'AppImage nécessite FUSE 2 : `sudo pacman -S fuse2`.
+> Plusieurs versions peuvent coexister (fichiers `Syntheo-<version>.AppImage`).
+
+### Debian / Ubuntu
+
+Le script installe aussi le paquet `.deb` :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.sh | bash -s -- --deb
+sudo apt install ~/.local/bin/Syntheo_*_amd64.deb   # ou : sudo apt install ./Syntheo_*.deb
+```
+
+### Paquets
+
+Les `.deb` et AppImage sont aussi téléchargeables depuis la page
+[Releases](https://github.com/WillIsback/syntheo-desktop/releases) (chaque
+release publie `SHA256SUMS` et une attestation de provenance vérifiable avec
+`gh attestation verify`).
+
+### Windows / macOS
+
+Les paquets Windows et macOS ne sont pas encore publiés. En attendant,
+l'application se construit depuis les sources :
 [CONTRIBUTING.md › Construire depuis les sources](CONTRIBUTING.md#construire-depuis-les-sources).
 
 ## Développement
