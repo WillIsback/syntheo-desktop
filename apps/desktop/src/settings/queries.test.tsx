@@ -228,7 +228,7 @@ describe("SQLite settings", () => {
     expect(mocks.setAutomaticUpdatesEnabled).toHaveBeenCalledWith(false);
   });
 
-  it("initializes languages from OS preferences", async () => {
+  it("initialise la transcription en français par défaut", async () => {
     let rows: Array<{ id: string; value_json: string }> = [];
     mocks.execute.mockImplementation(async () => rows);
     mocks.executeTransaction.mockImplementation(async (statements) => {
@@ -248,7 +248,7 @@ describe("SQLite settings", () => {
     const statements = mocks.executeTransaction.mock.calls[0][0];
     expect(statements.map((statement) => statement.params.slice(0, 2))).toEqual(
       [
-        ["ai_language", JSON.stringify("ko")],
+        ["ai_language", JSON.stringify("fr")],
         ["spoken_languages", JSON.stringify(JSON.stringify(["en"]))],
       ],
     );
