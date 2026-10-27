@@ -11,7 +11,7 @@ fi
 SAMPLE_RATE=$1
 OUTPUT_PATH=$2
 
-curl -L -o jfk.wav https://github.com/ggml-org/whisper.cpp/raw/refs/heads/master/samples/jfk.wav
+curl --proto '=https' --proto-redir '=https' --tlsv1.2 -L -o jfk.wav https://github.com/ggml-org/whisper.cpp/raw/refs/heads/master/samples/jfk.wav
 ffmpeg -y -i jfk.wav -ar "${SAMPLE_RATE}" -ac 1 -c:a pcm_s16le temp_mono.wav
 
 ffmpeg -y -i temp_mono.wav \

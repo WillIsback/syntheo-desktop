@@ -6,7 +6,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 
 function runScript(scriptName) {
   return new Promise((resolve, reject) => {
-    const child = spawn("bash", [path.join(scriptDir, scriptName)], {
+    const child = spawn("/bin/bash", [path.join(scriptDir, scriptName)], {
       stdio: "inherit",
     });
 

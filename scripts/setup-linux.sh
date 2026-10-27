@@ -45,7 +45,7 @@ setup_toolchains() {
   if ((installed_node_major < NODE_MAJOR)); then
     local nodesource_setup
     nodesource_setup="$(mktemp)"
-    curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" -o "$nodesource_setup"
+    curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" -o "$nodesource_setup"
     sudo -E bash "$nodesource_setup"
     rm -f "$nodesource_setup"
     sudo apt-get install -y nodejs
@@ -66,7 +66,7 @@ setup_toolchains() {
   export PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"
   export PATH="$PNPM_HOME/bin:$PATH"
   if ! command -v pnpm &> /dev/null || [[ "$(pnpm --version)" != "$PNPM_VERSION" ]]; then
-    curl -fsSL https://get.pnpm.io/install.sh \
+    curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL https://get.pnpm.io/install.sh \
       | env PNPM_VERSION="$PNPM_VERSION" SHELL="${SHELL:-/bin/bash}" sh -
   fi
 

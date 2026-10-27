@@ -177,9 +177,29 @@ function defaultPackageDirectory() {
   return path.join(here, "..", "packaging", "aur", "syntheo-bin");
 }
 
+function resolvePackageDirectory(directory) {
+  if (
+    typeof directory !== "string" ||
+    directory.length === 0 ||
+    directory.split(path.sep).includes("..")
+  ) {
+    throw new Error("Invalid AUR package directory");
+  }
+  return path.resolve(directory);
+}
+
+function packageFilePath(directory, name) {
+  const base = resolvePackageDirectory(directory);
+  const target = path.resolve(base, name);
+  if (target !== base && !target.startsWith(`${base}${path.sep}`)) {
+    throw new Error(`Path escapes the AUR package directory: ${name}`);
+  }
+  return target;
+}
+
 export async function updatePackage(directory, version, checksums) {
-  const pkgbuildPath = path.join(directory, "PKGBUILD");
-  const srcinfoPath = path.join(directory, ".SRCINFO");
+  const pkgbuildPath = packageFilePath(directory, "PKGBUILD");
+  const srcinfoPath = packageFilePath(directory, ".SRCINFO");
 
   const pkgbuild = await readFile(pkgbuildPath, "utf8");
   const srcinfo = await readFile(srcinfoPath, "utf8");

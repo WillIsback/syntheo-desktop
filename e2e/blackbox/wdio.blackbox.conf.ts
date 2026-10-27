@@ -4,6 +4,7 @@ import { Socket } from "node:net";
 import os from "node:os";
 import path from "node:path";
 
+import { resolveExecutable } from "./executable.js";
 import { TestRecorder } from "./record.js";
 
 const videoRecorder = new TestRecorder();
@@ -73,10 +74,13 @@ export const config = {
 
       const { waitTestRunnerBackendReady } =
         await import("@crabnebula/test-runner-backend");
-      testRunnerBackend = spawn("pnpm", ["exec", "test-runner-backend"], {
-        stdio: "inherit",
-        shell: true,
-      });
+      testRunnerBackend = spawn(
+        resolveExecutable("pnpm"),
+        ["exec", "test-runner-backend"],
+        {
+          stdio: "inherit",
+        },
+      );
 
       testRunnerBackend.on("error", (error) => {
         console.error("test-runner-backend error:", error);
@@ -119,10 +123,14 @@ export const config = {
 
     if (useXvfb) {
       console.log("Starting tauri-driver with xvfb-run (ONBOARDING=0)...");
-      tauriDriver = spawn("xvfb-run", ["-a", tauriDriverCommand], {
-        stdio: [null, process.stdout, process.stderr],
-        env,
-      });
+      tauriDriver = spawn(
+        resolveExecutable("xvfb-run"),
+        ["-a", tauriDriverCommand],
+        {
+          stdio: [null, process.stdout, process.stderr],
+          env,
+        },
+      );
     } else {
       console.log(
         `Starting tauri-driver on ${process.platform} (ONBOARDING=0)...`,

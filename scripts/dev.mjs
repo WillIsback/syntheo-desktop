@@ -2,6 +2,8 @@ import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { resolveExecutable } from "./lib/resolve-executable.mjs";
+
 const [target, ...args] = process.argv.slice(2);
 const ports = { desktop: "18081" };
 
@@ -40,7 +42,7 @@ if (args[0] === "--") {
 }
 composeArgs.push(...args);
 
-const child = spawn("process-compose", composeArgs, {
+const child = spawn(resolveExecutable("process-compose"), composeArgs, {
   cwd: root,
   env,
   stdio: "inherit",

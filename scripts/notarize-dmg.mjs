@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 import { setTimeout } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
 
@@ -29,6 +29,21 @@ export async function notarizeDmg({
 }) {
   if (!dmgPath || !env.APPLE_ID || !env.APPLE_PASSWORD || !env.APPLE_TEAM_ID) {
     throw new Error("DMG path and Apple notarization credentials are required");
+  }
+  for (const value of [
+    dmgPath,
+    env.APPLE_ID,
+    env.APPLE_PASSWORD,
+    env.APPLE_TEAM_ID,
+  ]) {
+    if (typeof value !== "string" || value.startsWith("-")) {
+      throw new Error(
+        "Notarization inputs must be strings that do not start with '-'",
+      );
+    }
+  }
+  if (!isAbsolute(dmgPath)) {
+    throw new Error("DMG path must be absolute");
   }
   const auth = [
     "--apple-id",

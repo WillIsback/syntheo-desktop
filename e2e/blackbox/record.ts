@@ -3,6 +3,8 @@ import { type ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 
+import { resolveExecutable } from "./executable.js";
+
 function fileName(title: string) {
   return encodeURIComponent(title.trim().replace(/\s+/g, "-"));
 }
@@ -31,7 +33,7 @@ export class TestRecorder {
         `${fileName(test.parent)}-${fileName(test.title)}.mp4`,
       );
 
-      this.ffmpeg = spawn("ffmpeg", [
+      this.ffmpeg = spawn(resolveExecutable("ffmpeg"), [
         "-f",
         "x11grab",
         "-video_size",
