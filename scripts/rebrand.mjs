@@ -9,8 +9,8 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 // Sentinelles : mises en place avant les règles génériques, restaurées après.
 const KEEP = {
-  "anarlog.so": "\u0000KEEP_SO\u0000",
-  "anarlog.git": "\u0000KEEP_GIT\u0000",
+  "anarlog.so": "\uE000KEEP_SO\uE000",
+  "anarlog.git": "\uE000KEEP_GIT\uE000",
 };
 
 // Règles ordonnées, sensibles à la casse.
@@ -18,7 +18,7 @@ export const RULES = [
   [/anarlog\.so/g, KEEP["anarlog.so"]],
   [/anarlog\.git/g, KEEP["anarlog.git"]],
   // `anarlog.dev` nu (URL/fin de mot) protégé ; `anarlog.dev.x` reste renommable.
-  [/anarlog\.dev(?![A-Za-z0-9.-])/g, "\u0000KEEP_DEV\u0000"],
+  [/anarlog\.dev(?![A-Za-z0-9.-])/g, "\uE000KEEP_DEV\uE000"],
   [/Anarlog/g, "Syntheo"],
   [/ANARLOG/g, "SYNTHEO"],
   [/anarlog/g, "syntheo"],
@@ -28,9 +28,9 @@ export const RULES = [
   [/Hyprnote/g, "Syntheo"],
   [/HYPRNOTE/g, "SYNTHEO"],
   [/hyprnote/g, "syntheo"],
-  [/\u0000KEEP_SO\u0000/g, "anarlog.so"],
-  [/\u0000KEEP_GIT\u0000/g, "anarlog.git"],
-  [/\u0000KEEP_DEV\u0000/g, "anarlog.dev"],
+  [/\uE000KEEP_SO\uE000/g, "anarlog.so"],
+  [/\uE000KEEP_GIT\uE000/g, "anarlog.git"],
+  [/\uE000KEEP_DEV\uE000/g, "anarlog.dev"],
 ];
 
 export function rebrandText(input) {
@@ -110,7 +110,7 @@ function* walk(dir) {
   for (const entry of readdirSync(dir)) {
     if (SKIP_DIRS.has(entry)) continue;
     const abs = join(dir, entry);
-    const rel = relative(ROOT, abs).split("\\").join("/");
+    const rel = relative(ROOT, abs).replaceAll("\\", "/");
     if (
       SKIP_PREFIXES.some((p) => rel === p || rel.startsWith(`${p}/`)) ||
       SKIP_FILES.has(rel)

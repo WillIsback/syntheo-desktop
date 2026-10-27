@@ -8,8 +8,8 @@ const MEETING_MIC_POLL_INTERVAL_MS = 5_000;
 
 export function micAppsShowInUse(apps: MicApp[]): boolean {
   return getIgnorableApps(apps).some((app) => {
-    const key = app.id.toLowerCase();
-    return !key.includes("syntheo") && !key.includes("syntheo");
+    // Exclut Syntheo lui-même (le rebrand a fusionné deux motifs identiques).
+    return !app.id.toLowerCase().includes("syntheo");
   });
 }
 

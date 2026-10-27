@@ -4,6 +4,6 @@ export function useWebResources<T>(endpoint: string) {
   return useQuery({
     queryKey: ["settings", endpoint, "suggestions"],
     // Pas de catalogue distant (site Syntheo) : aucune suggestion web.
-    queryFn: async (): Promise<T[]> => [],
+    queryFn: (): Promise<T[]> => Promise.resolve([]),
   });
 }
