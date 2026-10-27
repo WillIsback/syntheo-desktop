@@ -2,21 +2,6 @@ import { useLingui } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 
 export const STARTER_AUTOMATIONS = {
-  "slack-recap": {
-    enabledKey: "automation_slack_recap_enabled",
-    targetKey: "automation_slack_recap_channel",
-    lastRunKey: "automation_slack_recap_last_run",
-  },
-  "notion-project-notes": {
-    enabledKey: "automation_notion_update_enabled",
-    targetKey: "automation_notion_update_page",
-    lastRunKey: "automation_notion_update_last_run",
-  },
-  "linear-action-items": {
-    enabledKey: "automation_linear_issues_enabled",
-    targetKey: "automation_linear_issues_team",
-    lastRunKey: "automation_linear_issues_last_run",
-  },
   "markdown-export": {
     enabledKey: "automation_markdown_export_enabled",
     targetKey: "automation_markdown_export_directory",
@@ -24,15 +9,12 @@ export const STARTER_AUTOMATIONS = {
   },
 } as const;
 
-export type StarterId = keyof typeof STARTER_AUTOMATIONS | "google-drive";
+export type StarterId = keyof typeof STARTER_AUTOMATIONS;
 
 export function isStarterId(
   value: string | null | undefined,
 ): value is StarterId {
-  return (
-    typeof value === "string" &&
-    (value === "google-drive" || value in STARTER_AUTOMATIONS)
-  );
+  return typeof value === "string" && value in STARTER_AUTOMATIONS;
 }
 
 export type StarterAutomation = {

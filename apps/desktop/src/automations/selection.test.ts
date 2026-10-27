@@ -60,34 +60,14 @@ describe("useAutomationSelection", () => {
     });
   });
 
-  it("keeps a chat thread per automation across selection switches", () => {
-    const { selectStarter } = useAutomationSelection.getState();
-
-    selectStarter("slack-recap");
-    const slackSession = automationsChat().sessionId;
-
-    // Chatting creates a group for the live automations chat.
-    useChatContext.getState().setGroupId("automations", "slack-group");
-
-    selectStarter("markdown-export");
-    expect(automationsChat().groupId).toBeUndefined();
-    expect(automationsChat().sessionId).not.toBe(slackSession);
-
-    selectStarter("slack-recap");
-    expect(automationsChat()).toEqual({
-      groupId: "slack-group",
-      sessionId: slackSession,
-    });
-  });
-
   it("clears the current selection and its stored chat thread", () => {
     const { selectStarter, clearSelection } = useAutomationSelection.getState();
 
-    selectStarter("slack-recap");
+    selectStarter("markdown-export");
     useChatContext.getState().setGroupId("automations", "slack-group");
     const slackSession = automationsChat().sessionId;
 
-    clearSelection({ kind: "starter", starterId: "slack-recap" });
+    clearSelection({ kind: "starter", starterId: "markdown-export" });
 
     expect(useAutomationSelection.getState().selection).toBeNull();
     expect(useAutomationSelection.getState().chatBySelection).toEqual({});
@@ -98,14 +78,14 @@ describe("useAutomationSelection", () => {
   it("keeps the current selection when clearing another automation", () => {
     const { selectStarter, clearSelection } = useAutomationSelection.getState();
 
-    selectStarter("slack-recap");
+    selectStarter("markdown-export");
     const slackChat = automationsChat();
 
     clearSelection({ kind: "chat", groupId: "other-group" });
 
     expect(useAutomationSelection.getState().selection).toEqual({
       kind: "starter",
-      starterId: "slack-recap",
+      starterId: "markdown-export",
     });
     expect(automationsChat()).toEqual(slackChat);
   });
@@ -153,7 +133,7 @@ describe("useAutomationSelection", () => {
     const liveSession = automationsChat().sessionId;
     useChatContext.getState().setGroupId("automations", "live-group");
 
-    useAutomationSelection.getState().selectStarter("slack-recap");
+    useAutomationSelection.getState().selectStarter("markdown-export");
     useAutomationSelection.getState().selectWorkflow("wf-1", "persisted-group");
 
     expect(automationsChat()).toEqual({
@@ -211,18 +191,18 @@ describe("useEffectiveAutomationSelection", () => {
   });
 
   it("falls back to the stored draft starter", () => {
-    settingsMocks.storedDraft = "slack-recap";
+    settingsMocks.storedDraft = "markdown-export";
 
     const { result } = renderHook(() => useEffectiveAutomationSelection());
 
     expect(result.current).toEqual({
       kind: "starter",
-      starterId: "slack-recap",
+      starterId: "markdown-export",
     });
   });
 
   it("prefers the explicit selection over the stored draft", () => {
-    settingsMocks.storedDraft = "slack-recap";
+    settingsMocks.storedDraft = "markdown-export";
     useAutomationSelection.setState({
       selection: { kind: "draft", draftId: "draft-1" },
     });

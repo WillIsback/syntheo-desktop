@@ -17,7 +17,6 @@ import { cn } from "@syntheo/utils";
 import { MarkdownExportOptionsConfig } from "./markdown-export-options";
 import { AutomationLastRunLine, MarkdownExportConfig } from "./starter-config";
 
-import { CLOUD_STEP_REMOVED_MESSAGE } from "~/automations/engine";
 import { DEFAULT_MARKDOWN_EXPORT_OPTIONS } from "~/automations/markdown-export";
 import {
   createWorkflowStep,
@@ -105,12 +104,7 @@ export function WorkflowBuilder({
               <SelectItem value="note_enhanced">
                 <Trans>After the meeting summary is ready</Trans>
               </SelectItem>
-              <SelectItem
-                value="meeting_completed"
-                disabled={workflow.steps.some(
-                  (step) => step.type === "google_drive_export",
-                )}
-              >
+              <SelectItem value="meeting_completed">
                 <Trans>After the meeting ends</Trans>
               </SelectItem>
             </SelectContent>
@@ -201,7 +195,7 @@ function WorkflowStepConfig({
   // héritée d'un ancien workflow s'affiche comme non prise en charge.
   return (
     <p className="text-muted-foreground text-xs">
-      {CLOUD_STEP_REMOVED_MESSAGE}
+      Unsupported step.
     </p>
   );
 }
@@ -320,7 +314,6 @@ export function useSaveWorkflow() {
               ...next,
               lastRun: existing.lastRun,
               processedSessionIds: existing.processedSessionIds,
-              driveExports: existing.driveExports,
             }
           : next;
         return existing

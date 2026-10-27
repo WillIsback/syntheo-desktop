@@ -47,7 +47,6 @@ vi.mock("@syntheo/editor/markdown", () => ({
 
 import {
   parseAutomationRunRecord,
-  parseAutomationTargetRef,
   runMeetingCompletedAutomations,
   runNoteEnhancedAutomations,
 } from "./engine";
@@ -139,16 +138,6 @@ describe("parsers", () => {
     expect(parseAutomationRunRecord(undefined)).toBeNull();
     expect(parseAutomationRunRecord("{broken")).toBeNull();
     expect(parseAutomationRunRecord('{"status":"success"}')).toBeNull();
-  });
-
-  it("parses target refs and rejects malformed values", () => {
-    expect(parseAutomationTargetRef('{"id":"C1","name":"general"}')).toEqual({
-      id: "C1",
-      name: "general",
-    });
-    expect(parseAutomationTargetRef(undefined)).toBeNull();
-    expect(parseAutomationTargetRef('{"id":"C1"}')).toBeNull();
-    expect(parseAutomationTargetRef("{broken")).toBeNull();
   });
 });
 
