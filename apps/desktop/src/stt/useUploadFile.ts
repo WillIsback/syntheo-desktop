@@ -362,7 +362,7 @@ export function useUploadFile(sessionId: string) {
         try {
           const dataBase64 = await readIpcAudioBase64(file);
           runAudioImport(
-            async () => "",
+            () => Promise.resolve(""),
             () => applyDroppedAudioNoteDate(file),
             { data_base64: dataBase64, file_name: file.name },
           );
@@ -451,7 +451,7 @@ async function readIpcAudioBase64(file: File) {
   let binary = "";
   const chunkSize = 0x8000;
   for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    binary += String.fromCharCode(
+    binary += String.fromCodePoint(
       ...bytes.subarray(offset, offset + chunkSize),
     );
   }

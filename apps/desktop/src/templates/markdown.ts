@@ -6,12 +6,13 @@ export function parseTemplateMarkdown(markdown: string): TemplateSection[] {
   let current: TemplateSection | null = null;
 
   for (const rawLine of markdown.split("\n")) {
-    const heading = rawLine.match(/^#+\s*(.+?)\s*$/);
+    // `(.+)` borné puis `trimEnd()` : plus linéaire que `(.+?)\s*$`.
+    const heading = /^#+[ \t]*(.+)$/.exec(rawLine);
     if (heading) {
       if (current) {
         sections.push(current);
       }
-      current = { title: heading[1], description: "" };
+      current = { title: heading[1].trimEnd(), description: "" };
       continue;
     }
     if (!current) {
@@ -35,9 +36,9 @@ export function templateSectionsToMarkdown(
   sections: TemplateSection[],
 ): string {
   return sections
-    .map(
-      (section) =>
-        `# ${section.title}${section.description ? `\n${section.description}` : ""}`,
-    )
+    .map((section) => {
+      const description = section.description ? `\n${section.description}` : "";
+      return `# ${section.title}${description}`;
+    })
     .join("\n\n");
 }

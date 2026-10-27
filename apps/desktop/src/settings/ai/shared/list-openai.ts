@@ -130,12 +130,12 @@ export function processGenericModels(
 // Un serveur on-prem expose les modèles qu'il sert : aucun n'est écarté par
 // les heuristiques propres au catalogue OpenAI (anciens, datés, gpt-4o-*) ;
 // seuls les modèles d'embedding, d'audio ou d'image le sont.
-export async function listCustomModels(
+export function listCustomModels(
   baseUrl: string,
   apiKey: string,
 ): Promise<ListModelsResult> {
   if (!baseUrl) {
-    return DEFAULT_RESULT;
+    return Promise.resolve(DEFAULT_RESULT);
   }
 
   return pipe(
