@@ -1,8 +1,9 @@
 # Passation — Syntheo Desktop
 
-Dernière mise à jour : 2026-10-27 (nuit) — **v0.1.2 publiée** (deb + AppImage + SBOM +
-SHA256SUMS), E2E **vérifié localement**, qualité **verte**, installateur **en une ligne** ajouté,
-CI **allégée** (Rust hors PR).
+Dernière mise à jour : 2026-10-28 — **v0.1.2 publiée** (deb + AppImage + SBOM +
+SHA256SUMS), E2E **vérifié localement**, installateur **en une ligne** ajouté, CI **allégée**
+(Rust hors PR). ⚠️ **Régression SonarCloud** : la PR #138 (outillage) fait échouer la gate
+`new_security_rating` (14 vulns S8707/S8705 dans les scripts de build) — voir « Ordre suggéré ».
 Dépôt : `/home/will/work/syntheo-desktop` (GitHub `WillIsback/syntheo-desktop`, miroir
 Forgejo `wderue/syntheo-desktop`). Fork d'Anarlog (MIT), historique neuf, jamais fusionné
 vers l'amont.
@@ -21,7 +22,7 @@ vers l'amont.
 
 | Élément | État |
 |---|---|
-| `main` | **`dcdea5c`** — arbre **propre** (aucun fichier modifié suivi, aucun untracked hors `target/`) |
+| `main` | **`9968012`** — arbre **propre** (aucun fichier modifié suivi, aucun untracked hors `target/`) |
 | Lots 04 / 04b / 04c / 10 | terminés et fusionnés (sessions précédentes) |
 | Lots 06-09 | terminés et fusionnés (sessions précédentes) |
 | **Lot 04d — retrait cloud** | **TERMINÉ** (voir ci-dessous) |
@@ -29,8 +30,8 @@ vers l'amont.
 | E2E blackbox | **RÉSOLU** (PR #106) — `pnpm e2e` → `1 passing`, exit 0 |
 | Installeur une ligne | **AJOUTÉ** (PR #120) — `scripts/install.sh`, AppImage/deb, `--version` |
 | CI | **ALLÉGÉE** (PR #118) — clippy + tests Rust hors PR (push main + hebdo) |
-| Linters/qualité | **VERTS** : cargo-deny / trivy / zizmor / CodeQL / actionlint / ESLint |
-| SonarCloud | **gate VERTE** (PR #126) — fiabilité + duplication du code neuf. Backlog hérité : ~1665 issues (surtout maintenabilité) |
+| Linters/qualité | **VERTS** : cargo-deny / trivy / zizmor / actionlint / ESLint. CodeQL Rust = gate release ; TS sur PR. |
+| SonarCloud | ⚠️ **RÉGRESSION** (PR #138) : gate `new_security_rating` = C (14 vulns S8707/S8705 dans les scripts de build). La gate fiabilité/duplication était verte avant #138. Backlog hérité : ~1665 issues (surtout maintenabilité). |
 
 ### Lot 04d — « aux chiottes le cloud » (app 100 % locale)
 
@@ -51,6 +52,7 @@ Retrait complet de toutes les intégrations cloud non-inference. PR fusionnées 
 | #130 | ci : le marqueur `[skip release]` ne bloque plus les releases **manuelles** |
 | #134 | sonar : exclut les migrations SQL (faux positifs PL/SQL) |
 | #135 | sonar : bugs/vulns de l'app (tri, a11y, promesses, CSS, `ws→wss`) |
+| #138 | sonar : bugs/vulns de l'outillage et des workflows (chemins absolus, HTTPS forcé, binaires vérifiés SHA-256, users non-root) — ⚠️ introduit 14 vulns S8707/S8705 sur le code neuf, gate `new_security_rating` = C |
 
 Points clés du retrait :
 
@@ -131,6 +133,12 @@ Vert :
   CodeQL TS **pass**. Rust reste gate **release** (`workflow_call`) + hebdo + manuel.
 - **SonarCloud** : `.sonarcloud.properties` existe → analyse **automatique via l'app GitHub**
   (`SonarCloud Code Analysis` **pass** sur #106). Pas de `sonar-project.properties` requis.
+  ⚠️ **Régression #138** : la gate échoue sur `new_security_rating` = C — 14 vulns
+  `jssecurity:S8707` (path traversal) et `jssecurity:S8705` (argument injection) détectées
+  dans `scripts/repack-linux-appimage.mjs`, `scripts/notarize-dmg.mjs` et
+  `scripts/update-aur-pkgbuild.mjs`, malgré les validations ajoutées par la PR. Options :
+  corriger le flux de taint (dur), ou exclure ces scripts d'outillage via
+  `sonar.issue.ignore.multicriteria` (piste privilégiée par le handoff).
 
 Pièges qualité connus :
 - Clippy `--all-targets -p tauri-plugin-db` remonte un `dead_code` **pré-existant** sur des
@@ -278,12 +286,14 @@ Secrets : `bws` (Bitwarden EU). Jetons Forgejo/GitHub via `bws secret list`.
    n'est pas implémentée.
 2. **Implémenter la signature macOS/Windows** (section 4) une fois les secrets fournis —
    plan : `docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md`.
-3. Optionnel : reprendre/supprimer le PKGBUILD AUR cassé (`packaging/aur/syntheo-bin`) ; durcir
+3. **⚠️ Priorité : restaurer la gate SonarCloud** (régression #138) — soit exclure les scripts
+   d'outillage via `sonar.issue.ignore.multicriteria` dans `.sonarcloud.properties`, soit
+   corriger le flux de taint S8707/S8705. Ensuite seulement, traiter le backlog hérité
+   (~1665 issues : S6759, S3358, S3776, S2871, SQL `plsql:*`…), chantier dédié ou exclusions
+   ciblées.
+4. Optionnel : reprendre/supprimer le PKGBUILD AUR cassé (`packaging/aur/syntheo-bin`) ; durcir
    l'E2E audio virtuel ; nettoyer les entrées `deny.toml` obsolètes (`advisory-not-detected`).
-   **SonarCloud** : la gate est verte, mais ~1665 issues héritées demeurent (S6759 props
-   read-only, S3358 ternaires imbriqués, S3776 complexité, S2871 tri, SQL `plsql:*` faux
-   positifs…). Chantier dédié à prévoir, ou exclusions ciblées (outillage dev, migrations).
-4. Réécrire le reste du site Mintlify (hérité d'Anarlog : cloud, Zoom/Teams, api-cloud, Nightly…).
+5. Réécrire le reste du site Mintlify (hérité d'Anarlog : cloud, Zoom/Teams, api-cloud, Nightly…).
 
 > Note release : le marqueur `[skip release]` **exige** d'être dans le **sujet du commit** (le
 > réglage de squash du dépôt était `COMMIT_OR_PR_TITLE`, ce qui le perdait sur les PR à 1 commit).
