@@ -590,7 +590,8 @@ async fn repair_migration_recreates_missing_templates_table() {
         .fetch_one(db.pool())
         .await
         .unwrap();
-    assert_eq!(row_count, 0);
+    // La table réparée est vide ; la migration Syntheo ajoute ses 4 templates.
+    assert_eq!(row_count, 4);
 }
 
 #[tokio::test]

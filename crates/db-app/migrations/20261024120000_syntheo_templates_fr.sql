@@ -54,7 +54,7 @@ WHERE
 UPDATE
   templates
 SET
-  title = 'Daily standup',
+  title = 'Standup quotidien',
   description = 'Pour un point quotidien rapide sur l''avancement et les blocages',
   category = 'Ingénierie',
   targets_json = '["Développeur","Engineering Manager","Scrum Master"]',
