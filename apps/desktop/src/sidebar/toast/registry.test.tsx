@@ -9,17 +9,6 @@ const baseParams: RegistryParams = {
   hasSttConfigured: true,
   isAiTranscriptionTabActive: false,
   isAiIntelligenceTabActive: false,
-  isLiveMeetingActive: false,
-  update: {
-    status: null,
-    version: null,
-    progress: null,
-    errorMessage: null,
-    downloadStarting: false,
-    installing: false,
-    downloadUpdate: vi.fn(),
-    installUpdate: vi.fn(),
-  },
   onOpenLLMSettings: vi.fn(),
   onOpenSTTSettings: vi.fn(),
 };
@@ -34,10 +23,6 @@ function showToast(
     createToastRegistry({ ...baseParams, ...overrides }),
     isDismissed,
   );
-}
-
-function withUpdate(update: Partial<RegistryParams["update"]>) {
-  return { update: { ...baseParams.update, version: "1.0.34", ...update } };
 }
 
 describe("sidebar toast registry", () => {
@@ -62,57 +47,8 @@ describe("sidebar toast registry", () => {
     expect(ids).not.toContain("upgrade-to-pro");
   });
 
-  it("offers an available desktop update with a one-day snooze", () => {
-    const downloadUpdate = vi.fn();
-    const toast = showToast(
-      withUpdate({ status: "available", downloadUpdate }),
-    );
-
-    expect(toast).toMatchObject({
-      id: "desktop-update:1.0.34:available",
-      lifecycle: { type: "persistent", dismissal: "day" },
-    });
-
-    toast?.primaryAction?.onClick();
-    expect(downloadUpdate).toHaveBeenCalledOnce();
-  });
-
-  it("hides the desktop update toast while a meeting is recording", () => {
-    expect(
-      showToast({
-        isLiveMeetingActive: true,
-        ...withUpdate({ status: "available" }),
-      }),
-    ).toBeNull();
-  });
-
-  it("keeps desktop update progress in the toast", () => {
-    const toast = showToast(
-      withUpdate({ status: "downloading", progress: 0.58 }),
-    );
-
-    expect(toast).toMatchObject({
-      id: "desktop-update:1.0.34:downloading",
-      description: "Downloading Syntheo 1.0.34 (58%)",
-      lifecycle: { type: "persistent", dismissal: "session" },
-      loading: true,
-    });
-    expect(toast?.primaryAction).toBeUndefined();
-  });
-
-  it("keeps Restart available once ready even if the download mutation is still settling", () => {
-    const installUpdate = vi.fn();
-    const toast = showToast(
-      withUpdate({ status: "ready", downloadStarting: true, installUpdate }),
-    );
-
-    expect(toast).toMatchObject({
-      id: "desktop-update:1.0.34:ready",
-      lifecycle: { type: "persistent", dismissal: "session" },
-    });
-    expect(toast?.loading).toBeUndefined();
-
-    toast?.primaryAction?.onClick();
-    expect(installUpdate).toHaveBeenCalledOnce();
+  it("never shows desktop update prompts (no updater)", () => {
+    const ids = createToastRegistry(baseParams).map((entry) => entry.toast.id);
+    expect(ids.some((id) => id.startsWith("desktop-update:"))).toBe(false);
   });
 });

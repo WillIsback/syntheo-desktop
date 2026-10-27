@@ -115,7 +115,6 @@ tauri-plugin-process = "2.3"
 tauri-plugin-shell = "2.3"
 tauri-plugin-single-instance = "2.4"
 tauri-plugin-store = "2.4.3"
-tauri-plugin-updater = "2.10"
 tauri-plugin-window-state = "2.4"
 
 tauri-plugin-agent = { path = "plugins/agent" }
@@ -157,7 +156,6 @@ tauri-plugin-todo = { path = "plugins/todo" }
 tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-transcription = { path = "plugins/transcription" }
 tauri-plugin-tray = { path = "plugins/tray", package = "tauri-plugin-syntheo-tray" }
-tauri-plugin-updater2 = { path = "plugins/updater2" }
 tauri-plugin-windows = { path = "plugins/windows" }
 
 async-stream = "0.3.6"

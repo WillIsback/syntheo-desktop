@@ -10,10 +10,6 @@ import { executeTransaction } from "~/db";
 import { createSession, updateSession } from "~/session/queries";
 import { useOwnerUserId } from "~/shared/owner-user";
 import {
-  type DevtoolsOtaPreviewStatus,
-  useDevtoolsOtaPreview,
-} from "~/store/zustand/devtools-ota-preview";
-import {
   type DevtoolsToastPreview,
   useDevtoolsToastPreview,
 } from "~/store/zustand/devtools-toast-preview";
@@ -29,8 +25,6 @@ export type DevtoolsAction =
   | "instruction:integration"
   | `toasts:preview:${DevtoolsToastPreview}`
   | "toasts:clear"
-  | `ota:${DevtoolsOtaPreviewStatus}`
-  | "ota:clear"
   | "notifications:calendar"
   | "notifications:mic-detected"
   | "notifications:mic-options"
@@ -99,39 +93,6 @@ export const DEVTOOLS_MENU: DevtoolsMenuGroup[] = [
         label: "Clear all toasts",
         description: "Dismiss every previewed toast.",
         action: "toasts:clear",
-        destructive: true,
-      },
-    ],
-  },
-  {
-    label: "OTA",
-    description: "Simulate updater states without publishing a release.",
-    items: [
-      {
-        label: "Available",
-        description:
-          "Show the banner for a new version that can be downloaded.",
-        action: "ota:available",
-      },
-      {
-        label: "Downloading",
-        description: "Show the banner with download progress.",
-        action: "ota:downloading",
-      },
-      {
-        label: "Ready",
-        description: "Show the banner asking to restart and install.",
-        action: "ota:ready",
-      },
-      {
-        label: "Failed",
-        description: "Show the banner for a failed update.",
-        action: "ota:failed",
-      },
-      {
-        label: "Clear",
-        description: "Remove the simulated update state.",
-        action: "ota:clear",
         destructive: true,
       },
     ],
@@ -237,8 +198,6 @@ export function useDevtoolsActions() {
   const clearToastPreview = useDevtoolsToastPreview(
     (state) => state.clearPreview,
   );
-  const showOtaPreview = useDevtoolsOtaPreview((state) => state.showPreview);
-  const clearOtaPreview = useDevtoolsOtaPreview((state) => state.clearPreview);
   const [shouldThrow, setShouldThrow] = useState(false);
 
   if (shouldThrow) {
@@ -472,17 +431,6 @@ export function useDevtoolsActions() {
         case "toasts:clear":
           clearToastPreview();
           return;
-        case "ota:available":
-        case "ota:downloading":
-        case "ota:ready":
-        case "ota:failed":
-          showOtaPreview(
-            action.slice("ota:".length) as DevtoolsOtaPreviewStatus,
-          );
-          return;
-        case "ota:clear":
-          clearOtaPreview();
-          return;
         case "notifications:calendar":
           void showCalendarNotification();
           return;
@@ -520,7 +468,6 @@ export function useDevtoolsActions() {
     },
     [
       clearNotifications,
-      clearOtaPreview,
       clearToastPreview,
       createWithCountdown,
       openNew,
@@ -530,7 +477,6 @@ export function useDevtoolsActions() {
       showInstruction,
       showMicDetectedNotification,
       showMicOptionsNotification,
-      showOtaPreview,
       showToastPreview,
     ],
   );

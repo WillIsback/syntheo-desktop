@@ -192,11 +192,6 @@ pub fn main() {
         .plugin(tauri_plugin_sidecar2::init())
         .plugin(tauri_plugin_permissions::init());
 
-    #[cfg(not(feature = "app-store"))]
-    {
-        builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
-    }
-
     builder = builder
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_deeplink2::init())
@@ -222,13 +217,8 @@ pub fn main() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_store2::init());
 
-    #[cfg(not(feature = "app-store"))]
-    {
-        builder = builder.plugin(tauri_plugin_updater2::init());
-    }
-
     builder = builder
-        .plugin(tauri_plugin_tray::init(!cfg!(feature = "app-store")))
+        .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_settings::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_shortcut::init())

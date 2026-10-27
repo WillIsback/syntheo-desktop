@@ -42,16 +42,6 @@ const mocks = vi.hoisted(() => ({
     localSttStatus: null as null | "loading" | "unreachable",
     isLocalSttModel: false,
   },
-  update: {
-    status: null as null | "available" | "downloading" | "ready" | "failed",
-    version: null as string | null,
-    progress: null as number | null,
-    errorMessage: null as string | null,
-    downloadStarting: false,
-    installing: false,
-    downloadUpdate: vi.fn(),
-    installUpdate: vi.fn(),
-  },
 }));
 
 vi.mock("@syntheo/ui/components/ui/toast", async (importOriginal) => {
@@ -71,11 +61,6 @@ vi.mock("@syntheo/ui/components/ui/toast", async (importOriginal) => {
 
 vi.mock("~/contexts/notifications", () => ({
   useNotifications: () => mocks.notifications,
-}));
-
-vi.mock("~/main/update-banner", () => ({
-  // Le vrai hook renvoie un nouvel objet à chaque changement d'état.
-  useDesktopUpdateControl: () => ({ ...mocks.update }),
 }));
 
 vi.mock("~/shared/config", () => ({
@@ -128,8 +113,6 @@ vi.mock("./useDismissedToasts", () => ({
   }),
 }));
 
-import { TOAST_DURATIONS } from "@syntheo/ui/components/ui/toast";
-
 import { ToastNotifications } from "./index";
 
 const storedValues = new Map<string, string>();
@@ -165,81 +148,12 @@ describe("ToastNotifications", () => {
     mocks.notifications.activeDownloads = [];
     mocks.notifications.localSttStatus = null;
     mocks.notifications.isLocalSttModel = false;
-    mocks.update.status = null;
-    mocks.update.version = null;
-    mocks.update.progress = null;
-    mocks.update.errorMessage = null;
-    mocks.update.downloadStarting = false;
-    mocks.update.installing = false;
-    mocks.update.downloadUpdate.mockClear();
-    mocks.update.installUpdate.mockClear();
   });
 
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
     vi.useRealTimers();
-  });
-
-  it("offers Restart after the download finishes", () => {
-    mocks.update.status = "downloading";
-    mocks.update.version = "1.0.34";
-    mocks.update.progress = 1;
-    mocks.update.downloadStarting = true;
-
-    const view = render(<ToastNotifications />);
-    act(() => vi.advanceTimersByTime(500));
-
-    mocks.loading.mockClear();
-    mocks.dismiss.mockClear();
-    mocks.message.mockClear();
-    mocks.update.status = "ready";
-    mocks.update.progress = null;
-    mocks.update.downloadStarting = true;
-    view.rerender(<ToastNotifications />);
-
-    expect(mocks.message).toHaveBeenCalledWith(
-      "Syntheo 1.0.34 is ready to install",
-      expect.objectContaining({
-        id: "desktop-update:1.0.34:ready",
-        action: expect.objectContaining({ label: "Restart" }),
-      }),
-    );
-
-    const options =
-      mocks.message.mock.calls[mocks.message.mock.calls.length - 1][1];
-    options.action.onClick();
-    expect(mocks.update.installUpdate).toHaveBeenCalledOnce();
-  });
-
-  it("updates download progress without dismissing the toast", () => {
-    mocks.update.status = "downloading";
-    mocks.update.version = "1.0.34";
-    mocks.update.progress = 0.1;
-
-    const view = render(<ToastNotifications />);
-    act(() => vi.advanceTimersByTime(500));
-
-    expect(mocks.loading).toHaveBeenCalledWith(
-      "Downloading Syntheo 1.0.34 (10%)",
-      expect.objectContaining({
-        id: "desktop-update:1.0.34:downloading",
-        duration: Infinity,
-      }),
-    );
-
-    mocks.loading.mockClear();
-    mocks.dismiss.mockClear();
-    mocks.update.progress = 0.58;
-    view.rerender(<ToastNotifications />);
-
-    expect(mocks.dismiss).not.toHaveBeenCalled();
-    expect(mocks.loading).toHaveBeenCalledWith(
-      "Downloading Syntheo 1.0.34 (58%)",
-      expect.objectContaining({
-        id: "desktop-update:1.0.34:downloading",
-      }),
-    );
   });
 
   it("uses the latest registry action while a toast remains visible", () => {
@@ -262,135 +176,5 @@ describe("ToastNotifications", () => {
       { tab: "intelligence" },
     );
     expect(mocks.openNew).not.toHaveBeenCalled();
-  });
-
-  it("snoozes a dismissed available update for one day across relaunches", () => {
-    vi.setSystemTime(new Date("2026-08-09T00:00:00Z"));
-    mocks.update.status = "available";
-    mocks.update.version = "1.0.34";
-    const wasShown = () =>
-      mocks.message.mock.calls.some(
-        ([, options]) => options.id === "desktop-update:1.0.34:available",
-      );
-    const relaunch = () => {
-      mocks.message.mockClear();
-      const view = render(<ToastNotifications />);
-      act(() => vi.advanceTimersByTime(500));
-      return view;
-    };
-
-    const firstLaunch = relaunch();
-    expect(wasShown()).toBe(true);
-    act(() => mocks.message.mock.calls[0][1].onDismiss());
-    expect(mocks.dismissToast).not.toHaveBeenCalled();
-
-    mocks.message.mockClear();
-    firstLaunch.rerender(<ToastNotifications />);
-    expect(wasShown()).toBe(false);
-    firstLaunch.unmount();
-
-    relaunch().unmount();
-    expect(wasShown()).toBe(false);
-
-    vi.setSystemTime(new Date("2026-08-10T00:00:00.001Z"));
-    relaunch();
-    expect(wasShown()).toBe(true);
-  });
-
-  it("resurfaces a dismissed ready update after relaunch", () => {
-    mocks.update.status = "ready";
-    mocks.update.version = "1.0.34";
-
-    const firstLaunch = render(<ToastNotifications />);
-    act(() => vi.advanceTimersByTime(500));
-    act(() => mocks.message.mock.calls[0][1].onDismiss());
-    firstLaunch.unmount();
-
-    mocks.message.mockClear();
-    render(<ToastNotifications />);
-    act(() => vi.advanceTimersByTime(500));
-
-    expect(mocks.message).toHaveBeenCalledWith(
-      "Syntheo 1.0.34 is ready to install",
-      expect.objectContaining({ id: "desktop-update:1.0.34:ready" }),
-    );
-  });
-
-  it("resurfaces a dismissed failed update after another download attempt", () => {
-    mocks.update.status = "failed";
-    mocks.update.version = "1.0.34";
-
-    const view = render(<ToastNotifications />);
-    act(() => vi.advanceTimersByTime(500));
-    act(() => mocks.error.mock.calls[0][1].onDismiss());
-
-    mocks.update.status = "downloading";
-    view.rerender(<ToastNotifications />);
-    mocks.update.status = "failed";
-    mocks.error.mockClear();
-    view.rerender(<ToastNotifications />);
-
-    expect(mocks.error).toHaveBeenCalledWith(
-      "The update download failed",
-      expect.objectContaining({
-        id: "desktop-update:1.0.34:failed",
-        duration: TOAST_DURATIONS.error,
-      }),
-    );
-  });
-
-  it("hides the update notice while a meeting is recording and resurfaces it after", () => {
-    mocks.update.status = "available";
-    mocks.update.version = "1.0.34";
-
-    const view = render(<ToastNotifications />);
-    act(() => vi.advanceTimersByTime(500));
-
-    expect(mocks.message).toHaveBeenCalledWith(
-      "Syntheo 1.0.34 is available",
-      expect.objectContaining({ id: "desktop-update:1.0.34:available" }),
-    );
-
-    mocks.live = { status: "active", sessionId: "meeting-1" };
-    view.rerender(<ToastNotifications />);
-    expect(mocks.dismiss).toHaveBeenCalledWith(
-      "desktop-update:1.0.34:available",
-    );
-
-    mocks.message.mockClear();
-    mocks.live = { status: "inactive", sessionId: null };
-    view.rerender(<ToastNotifications />);
-
-    expect(mocks.message).toHaveBeenCalledWith(
-      "Syntheo 1.0.34 is available",
-      expect.objectContaining({ id: "desktop-update:1.0.34:available" }),
-    );
-  });
-
-  it("keeps a dismissed available update snoozed after a meeting ends", () => {
-    mocks.update.status = "available";
-    mocks.update.version = "1.0.34";
-
-    const view = render(<ToastNotifications />);
-    act(() => vi.advanceTimersByTime(500));
-
-    const firstOptions = mocks.message.mock.calls[0][1];
-    act(() => firstOptions.onDismiss());
-
-    mocks.message.mockClear();
-    mocks.live = { status: "active", sessionId: "meeting-1" };
-    view.rerender(<ToastNotifications />);
-    expect(mocks.message).not.toHaveBeenCalledWith(
-      "Syntheo 1.0.34 is available",
-      expect.anything(),
-    );
-
-    mocks.live = { status: "inactive", sessionId: null };
-    view.rerender(<ToastNotifications />);
-
-    expect(mocks.message).not.toHaveBeenCalledWith(
-      "Syntheo 1.0.34 is available",
-      expect.anything(),
-    );
   });
 });

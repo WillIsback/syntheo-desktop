@@ -65,7 +65,6 @@
     "@syntheo/plugin-tracing": "workspace:*",
     "@syntheo/plugin-transcription": "workspace:*",
     "@syntheo/plugin-tray": "workspace:*",
-    "@syntheo/plugin-updater2": "workspace:*",
     "@syntheo/plugin-windows": "workspace:*",
     "@syntheo/provider-validation": "workspace:*",
     "@syntheo/store": "workspace:*",
