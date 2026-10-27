@@ -3,64 +3,41 @@ import { describe, expect, it } from "vitest";
 import { detectMeetingImportProviders } from "./providers";
 
 describe("meeting import providers", () => {
-  it("detects exact native names and bundle identifiers", () => {
-    const providers = detectMeetingImportProviders([
-      { id: "com.granola.app", name: "Granola" },
-      { id: "ai.plaud.desktop.plaud", name: "Plaud Desktop" },
-      { id: "com.microsoft.teams2", name: "Microsoft Teams" },
-      { id: "com.openvisionengineering.pocket-desktop-app", name: "Pocket" },
-    ]);
-
-    expect(providers.map((provider) => provider.id)).toEqual([
-      "granola",
-      "plaud",
-      "pocket",
-      "microsoft-teams",
-      "google-meet",
-    ]);
-    expect(providers.map((provider) => provider.installedAppId)).toEqual([
-      "com.granola.app",
-      "ai.plaud.desktop.plaud",
-      "com.openvisionengineering.pocket-desktop-app",
-      "com.microsoft.teams2",
-      "google-meet",
-    ]);
-  });
-
-  it("detects Plaud and Pocket desktop apps from Windows display names", () => {
-    const providers = detectMeetingImportProviders([
-      { id: "windows:hklm:Plaud Desktop", name: "Plaud Desktop" },
-      { id: "windows:hkcu:Pocket", name: "Pocket Desktop" },
-    ]);
-
-    expect(providers.map((provider) => provider.id)).toEqual([
-      "plaud",
-      "pocket",
-      "google-meet",
-    ]);
-  });
-
-  it("does not treat Pocket Casts as Pocket", () => {
+  it("détecte la CLI locale Plaud par bundle id et par nom", () => {
     expect(
       detectMeetingImportProviders([
-        { id: "com.electron.pocket-casts", name: "Pocket Casts" },
+        { id: "ai.plaud.desktop.plaud", name: "Plaud Desktop" },
       ]).map((provider) => provider.id),
-    ).toEqual(["google-meet"]);
-  });
+    ).toEqual(["plaud"]);
 
-  it("does not accept bundle identifier prefixes", () => {
     expect(
       detectMeetingImportProviders([
-        { id: "com.granola.app.helper", name: "Something Else" },
+        { id: "windows:hklm:Plaud Desktop", name: "Plaud Desktop" },
       ]).map((provider) => provider.id),
-    ).toEqual(["google-meet"]);
+    ).toEqual(["plaud"]);
   });
 
-  it("does not infer extension-only products from a browser", () => {
+  it("détecte les apps dont on importe l'export de fichier", () => {
+    expect(
+      detectMeetingImportProviders([
+        { id: "com.jamie.app", name: "Jamie" },
+      ]).map((provider) => provider.id),
+    ).toEqual(["jamie"]);
+  });
+
+  it("n'accepte que les identifiants exacts (pas les préfixes)", () => {
+    expect(
+      detectMeetingImportProviders([
+        { id: "ai.plaud.desktop.plaud.helper", name: "Something Else" },
+      ]).map((provider) => provider.id),
+    ).toEqual([]);
+  });
+
+  it("ne détecte rien pour une app inconnue", () => {
     expect(
       detectMeetingImportProviders([
         { id: "com.google.Chrome", name: "Google Chrome" },
       ]).map((provider) => provider.id),
-    ).toEqual(["google-meet"]);
+    ).toEqual([]);
   });
 });

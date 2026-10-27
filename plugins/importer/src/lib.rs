@@ -2,7 +2,6 @@ use tauri::Manager;
 
 mod commands;
 mod connected_cli;
-mod connected_mcp;
 mod types;
 
 pub use types::*;
@@ -28,7 +27,6 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            app.manage(connected_mcp::ConnectedImportOAuthState::default());
             app.manage(connected_cli::ConnectedImportCliState::default());
             Ok(())
         })

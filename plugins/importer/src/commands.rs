@@ -8,17 +8,21 @@ const MAX_IMPORT_FILE_BYTES: u64 = 20 * 1024 * 1024;
 const MAX_TOTAL_IMPORT_BYTES: u64 = 100 * 1024 * 1024;
 const SUPPORTED_EXTENSIONS: &[&str] = &["csv", "json", "md", "markdown", "srt", "txt", "vtt"];
 
+// Les imports « connectés » cloud (MCP hébergés) sont retirés de Syntheo.
+// Seul l'import via CLI locale (Plaud) subsiste, avec l'import de fichiers locaux.
+const CLOUD_IMPORT_REMOVED: &str =
+    "cloud meeting imports were removed from Syntheo; import a local file instead";
+
 #[tauri::command]
 #[specta::specta]
 pub async fn begin_connected_import(
     provider_id: String,
-    mcp_state: tauri::State<'_, crate::connected_mcp::ConnectedImportOAuthState>,
     cli_state: tauri::State<'_, crate::connected_cli::ConnectedImportCliState>,
 ) -> Result<ConnectedImportAuthorization, String> {
     if crate::connected_cli::is_cli_provider(&provider_id) {
         crate::connected_cli::begin_connection(&provider_id, &cli_state).await
     } else {
-        crate::connected_mcp::begin_connection(&provider_id, &mcp_state).await
+        Err(CLOUD_IMPORT_REMOVED.to_string())
     }
 }
 
@@ -26,13 +30,12 @@ pub async fn begin_connected_import(
 #[specta::specta]
 pub async fn cancel_connected_import(
     provider_id: String,
-    mcp_state: tauri::State<'_, crate::connected_mcp::ConnectedImportOAuthState>,
     cli_state: tauri::State<'_, crate::connected_cli::ConnectedImportCliState>,
 ) -> Result<bool, String> {
     if crate::connected_cli::is_cli_provider(&provider_id) {
         crate::connected_cli::cancel_connection(&provider_id, &cli_state).await
     } else {
-        crate::connected_mcp::cancel_connection(&provider_id, &mcp_state).await
+        Err(CLOUD_IMPORT_REMOVED.to_string())
     }
 }
 
@@ -40,13 +43,12 @@ pub async fn cancel_connected_import(
 #[specta::specta]
 pub async fn complete_connected_import(
     provider_id: String,
-    mcp_state: tauri::State<'_, crate::connected_mcp::ConnectedImportOAuthState>,
     cli_state: tauri::State<'_, crate::connected_cli::ConnectedImportCliState>,
 ) -> Result<ConnectedImportCredentials, String> {
     if crate::connected_cli::is_cli_provider(&provider_id) {
         crate::connected_cli::complete_connection(&provider_id, &cli_state).await
     } else {
-        crate::connected_mcp::complete_connection(&provider_id, &mcp_state).await
+        Err(CLOUD_IMPORT_REMOVED.to_string())
     }
 }
 
@@ -60,7 +62,7 @@ pub async fn sync_connected_import(
     if crate::connected_cli::is_cli_provider(&provider_id) {
         crate::connected_cli::sync(&provider_id, credentials, known_meeting_ids).await
     } else {
-        crate::connected_mcp::sync(&provider_id, credentials, known_meeting_ids).await
+        Err(CLOUD_IMPORT_REMOVED.to_string())
     }
 }
 
