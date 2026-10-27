@@ -23,9 +23,6 @@ vi.mock("@syntheo/plugin-deeplink2", () => ({
     },
   },
 }));
-vi.mock("~/onboarding/welcome-note", () => ({
-  stopActiveWelcomeDemo: vi.fn(async () => undefined),
-}));
 
 import { useDeeplinkHandler } from "./useDeeplinkHandler";
 

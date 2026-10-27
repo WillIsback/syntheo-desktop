@@ -804,8 +804,12 @@ msgid "Collected {0}"
 msgstr "Collected {0}"
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome demo doesn't."
-msgstr "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome demo doesn't."
+#~ msgid "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome demo doesn't."
+#~ msgstr "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome demo doesn't."
+
+#: src/settings/stats/badge-collection.tsx
+msgid "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome note doesn't."
+msgstr "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome note doesn't."
 
 #: src/settings/appearance/theme.tsx
 msgid "Color theme"
@@ -3665,8 +3669,8 @@ msgid "This edit is no longer pending."
 msgstr "This edit is no longer pending."
 
 #: src/session/components/outer-header/index.tsx
-msgid "This is a prerecorded demo, so your camera stays off. Click Join & record to see Syntheo in action."
-msgstr "This is a prerecorded demo, so your camera stays off. Click Join & record to see Syntheo in action."
+#~ msgid "This is a prerecorded demo, so your camera stays off. Click Join & record to see Syntheo in action."
+#~ msgstr "This is a prerecorded demo, so your camera stays off. Click Join & record to see Syntheo in action."
 
 #: src/calendar/components/event-chip.tsx
 msgid "This note"
@@ -3775,8 +3779,8 @@ msgid "Try speaking a little closer to the microphone."
 msgstr "Try speaking a little closer to the microphone."
 
 #: src/session/components/outer-header/index.tsx
-msgid "Try the demo"
-msgstr "Try the demo"
+#~ msgid "Try the demo"
+#~ msgstr "Try the demo"
 
 #: src/calendar/components/apple/permission.tsx
 msgid "Turn on Syntheo in System Settings → Privacy & Security → Calendars, then return here."

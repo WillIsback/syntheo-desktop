@@ -236,7 +236,7 @@ export function BadgeGallery({
       <p className="text-muted-foreground text-xs">
         <Trans>
           Collected badges stay yours on this device, even when you delete a
-          note or take a break. Imported transcripts count; the welcome demo
+          note or take a break. Imported transcripts count; the welcome note
           doesn't.
         </Trans>
       </p>

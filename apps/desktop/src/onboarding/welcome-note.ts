@@ -2,23 +2,23 @@ import { md2json } from "@syntheo/editor/markdown";
 import type { SessionEvent } from "@syntheo/store";
 
 import { liveQueryClient } from "~/db";
-import {
-  WELCOME_NOTE_DEMO_URL,
-  WELCOME_NOTE_TRACKING_ID,
-} from "~/onboarding/welcome-note.constants";
+import { WELCOME_NOTE_TRACKING_ID } from "~/onboarding/welcome-note.constants";
 import { createSession } from "~/session/queries";
 import { DEFAULT_USER_ID } from "~/shared/utils";
-import { listenerStore } from "~/store/zustand/listener/instance";
 
 const PENDING_WELCOME_SESSION_KEY = "syntheo.pending-welcome-session";
 
-const WELCOME_NOTE = `Welcome to Syntheo 👋
+const WELCOME_NOTE = `Bienvenue sur Syntheo 👋
 
-This note is a quick way to see how Syntheo works.
+Cette note explique en quelques lignes comment Syntheo fonctionne.
 
-Click **Join & record** in the top-right corner. It will open a private, prerecorded demo meeting, so you don't have to worry about your camera or microphone. Syntheo will save the audio. To create a transcript and notes, choose a provider in **Settings → Transcription**; if one is not ready, Syntheo will show you a setup shortcut.
+Cliquez sur **Enregistrer** en haut à droite pour démarrer l'écoute. Syntheo capture votre microphone et l'audio système ; l'audio n'est jamais écrit sur disque.
 
-When the video ends, Syntheo will stop listening. If transcription and intelligence are configured, it will start creating your summary automatically.`;
+Pour obtenir une transcription et un compte rendu, configurez un fournisseur de transcription dans les réglages. S'il n'est pas encore prêt, Syntheo affichera un raccourci de configuration.
+
+Quand vous avez terminé, arrêtez l'écoute : si la transcription et l'intelligence sont configurées, Syntheo génère automatiquement votre résumé.`;
+
+const WELCOME_NOTE_TITLE = "Bienvenue sur Syntheo";
 
 let pendingWelcomeSession: Promise<string> | null = null;
 
@@ -45,42 +45,6 @@ export function takePendingWelcomeSession(): string | null {
   return sessionId;
 }
 
-export async function stopActiveWelcomeDemo() {
-  const active = listenerStore.getState().live;
-  const sessionId = active.sessionId;
-  if (!sessionId || active.status !== "active") {
-    return;
-  }
-  const captureGeneration = active.captureGenerationBySession[sessionId];
-
-  const rows = await liveQueryClient.execute<{ id: string }>(
-    `
-      SELECT id
-      FROM sessions
-      WHERE id = ?
-        AND deleted_at IS NULL
-        AND CASE
-          WHEN json_valid(event_json)
-          THEN json_extract(event_json, '$.tracking_id')
-        END = ?
-      LIMIT 1
-    `,
-    [sessionId, WELCOME_NOTE_TRACKING_ID],
-  );
-  if (!rows[0]) {
-    return;
-  }
-
-  const current = listenerStore.getState();
-  if (
-    current.live.sessionId === sessionId &&
-    current.live.status === "active" &&
-    current.live.captureGenerationBySession[sessionId] === captureGeneration
-  ) {
-    current.stop();
-  }
-}
-
 async function findOrCreateWelcomeSession(): Promise<string> {
   const rows = await liveQueryClient.execute<{ id: string }>(
     `
@@ -102,16 +66,16 @@ async function findOrCreateWelcomeSession(): Promise<string> {
   const event: SessionEvent = {
     tracking_id: WELCOME_NOTE_TRACKING_ID,
     calendar_id: "",
-    title: "Welcome to Syntheo",
+    title: WELCOME_NOTE_TITLE,
     started_at: now,
     ended_at: "",
     is_all_day: false,
     has_recurrence_rules: false,
-    meeting_link: WELCOME_NOTE_DEMO_URL,
-    description: "A private, prerecorded introduction to Syntheo.",
+    meeting_link: "",
+    description: "Présentation rapide de Syntheo.",
   };
 
-  return createSession("Welcome to Syntheo", DEFAULT_USER_ID, {
+  return createSession(WELCOME_NOTE_TITLE, DEFAULT_USER_ID, {
     event_json: JSON.stringify(event),
     raw_md: JSON.stringify(md2json(WELCOME_NOTE)),
   });

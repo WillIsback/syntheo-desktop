@@ -7,7 +7,6 @@ import {
 } from "@syntheo/plugin-deeplink2";
 import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
-import { stopActiveWelcomeDemo } from "~/onboarding/welcome-note";
 import { subscribeThenDrainDeepLinks } from "~/shared/deeplink";
 
 export function useDeeplinkHandler() {
@@ -16,16 +15,11 @@ export function useDeeplinkHandler() {
       return;
     }
 
-    const handleDeepLink = (payload: DeepLink) => {
-      // `/auth/callback` n'est plus traité ici : Syntheo n'a pas de compte, et
-      // l'OAuth d'abonnement ChatGPT écoute ce lien dans son propre écran.
-      // Les retours d'intégrations web (`/integration/callback`) ont disparu
-      // avec les intégrations cloud.
-      if (payload.to === "/onboarding-demo/complete") {
-        void stopActiveWelcomeDemo().catch((error) => {
-          console.error("[onboarding] failed to complete welcome demo", error);
-        });
-      }
+    const handleDeepLink = (_payload: DeepLink) => {
+      // Aucun lien profond entrant n'est traité : Syntheo n'a pas de compte (les
+      // jetons d'un ancien `/auth/callback` sont ignorés), les retours
+      // d'intégrations web (`/integration/callback`) ont disparu avec le cloud,
+      // et la démo d'onboarding n'existe plus.
     };
     const deepLinkSubscription = subscribeThenDrainDeepLinks({
       listen: (handler) =>
