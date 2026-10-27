@@ -14,13 +14,11 @@ import {
 import type { ToastType } from "./types";
 import { useDismissedToasts } from "./useDismissedToasts";
 
-import { useDesktopUpdateControl } from "~/main/update-banner";
 import { useConfigValues } from "~/shared/config";
 import { useLatestRef } from "~/shared/hooks/useLatestRef";
 import { useDevtoolsToastPreview } from "~/store/zustand/devtools-toast-preview";
 import { useTabs } from "~/store/zustand/tabs";
 import { isConfiguredSttModel } from "~/stt/capabilities";
-import { useListener } from "~/stt/contexts";
 
 export function ToastNotifications() {
   const { dismissToast, isDismissed } = useDismissedToasts();
@@ -28,19 +26,6 @@ export function ToastNotifications() {
     () => new Set<string>(),
   );
   const shouldShowToast = useShouldShowToast();
-  const update = useDesktopUpdateControl();
-  const [observedUpdateStatus, setObservedUpdateStatus] = useState(
-    update.status,
-  );
-  if (observedUpdateStatus !== update.status) {
-    setObservedUpdateStatus(update.status);
-    if (observedUpdateStatus === "failed") {
-      setSessionDismissedToastIds(
-        (current) =>
-          new Set([...current].filter((id) => !id.endsWith(":failed"))),
-      );
-    }
-  }
 
   const {
     current_llm_provider,
@@ -69,13 +54,6 @@ export function ToastNotifications() {
     currentTab.state?.tab === "transcription";
   const isAiIntelligenceTabActive =
     currentTab?.type === "settings" && currentTab.state?.tab === "intelligence";
-  const activeLiveSessionId = useListener((state) =>
-    state.live.status === "active" || state.live.status === "finalizing"
-      ? state.live.sessionId
-      : null,
-  );
-  const isLiveMeetingActive = activeLiveSessionId !== null;
-
   const openNew = useTabs((state) => state.openNew);
   const updateSettingsTabState = useTabs(
     (state) => state.updateSettingsTabState,
@@ -107,8 +85,6 @@ export function ToastNotifications() {
         hasSttConfigured,
         isAiTranscriptionTabActive,
         isAiIntelligenceTabActive,
-        isLiveMeetingActive,
-        update,
         onOpenLLMSettings: handleOpenLLMSettings,
         onOpenSTTSettings: handleOpenSTTSettings,
       }),
@@ -117,8 +93,6 @@ export function ToastNotifications() {
       hasSttConfigured,
       isAiTranscriptionTabActive,
       isAiIntelligenceTabActive,
-      isLiveMeetingActive,
-      update,
       handleOpenLLMSettings,
       handleOpenSTTSettings,
     ],

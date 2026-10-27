@@ -2,10 +2,7 @@ import { t } from "@lingui/core/macro";
 
 import type { ToastCondition, ToastType } from "./types";
 
-import type { DesktopUpdateControl } from "~/main/update-banner";
 import type { DevtoolsToastPreview } from "~/store/zustand/devtools-toast-preview";
-
-const DESKTOP_UPDATE_TOAST_PREFIX = "desktop-update:";
 
 type ToastRegistryEntry = {
   toast: ToastType;
@@ -17,8 +14,6 @@ type ToastRegistryParams = {
   hasSttConfigured: boolean;
   isAiTranscriptionTabActive: boolean;
   isAiIntelligenceTabActive: boolean;
-  isLiveMeetingActive: boolean;
-  update: DesktopUpdateControl;
   onOpenLLMSettings: () => void;
   onOpenSTTSettings: () => void;
 };
@@ -34,26 +29,14 @@ export function createToastRegistry({
   hasSttConfigured,
   isAiTranscriptionTabActive,
   isAiIntelligenceTabActive,
-  isLiveMeetingActive,
-  update,
   onOpenLLMSettings,
   onOpenSTTSettings,
 }: ToastRegistryParams): ToastRegistryEntry[] {
   const hasUsableSttConfigured = hasSttConfigured;
   const hasUsableLlmConfigured = hasLLMConfigured;
-  const updateToast = createDesktopUpdateToast(update);
 
   // order matters
   return [
-    ...(updateToast
-      ? [
-          {
-            toast: updateToast,
-            // Never show update prompts mid-meeting; they resurface after.
-            condition: () => !isLiveMeetingActive,
-          },
-        ]
-      : []),
     {
       toast: {
         id: "missing-stt",
@@ -82,67 +65,6 @@ export function createToastRegistry({
         !isAiIntelligenceTabActive,
     },
   ];
-}
-
-function createDesktopUpdateToast(
-  update: DesktopUpdateControl,
-): ToastType | null {
-  if (!update.status || !update.version) {
-    return null;
-  }
-
-  const id = `${DESKTOP_UPDATE_TOAST_PREFIX}${update.version}`;
-  const busy =
-    update.status === "downloading" ||
-    update.downloadStarting ||
-    update.installing;
-
-  if (update.status === "ready") {
-    return {
-      // A new ID separates the finished notification from the loading state while
-      // this update was downloading.
-      id: `${id}:ready`,
-      description: t`Syntheo ${update.version} is ready to install`,
-      primaryAction: update.installing
-        ? undefined
-        : { label: t`Restart`, onClick: update.installUpdate },
-      lifecycle: { type: "persistent", dismissal: "session" },
-    };
-  }
-
-  if (update.status === "downloading" || update.downloadStarting) {
-    const progress =
-      update.progress === null
-        ? ""
-        : ` (${Math.round(update.progress * 100)}%)`;
-    return {
-      id: `${id}:downloading`,
-      description: t`Downloading Syntheo ${update.version}${progress}`,
-      lifecycle: { type: "persistent", dismissal: "session" },
-      loading: true,
-    };
-  }
-
-  if (update.status === "failed") {
-    return {
-      id: `${id}:failed`,
-      description: update.errorMessage || t`The update download failed`,
-      primaryAction: busy
-        ? undefined
-        : { label: t`Retry`, onClick: update.downloadUpdate },
-      lifecycle: { type: "persistent", dismissal: "session" },
-      variant: "error",
-    };
-  }
-
-  return {
-    id: `${id}:available`,
-    description: t`Syntheo ${update.version} is available`,
-    primaryAction: busy
-      ? undefined
-      : { label: t`Download`, onClick: update.downloadUpdate },
-    lifecycle: { type: "persistent", dismissal: "day" },
-  };
 }
 
 export function getToastToShow(

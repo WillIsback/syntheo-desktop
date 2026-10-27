@@ -4,7 +4,6 @@ const mocks = vi.hoisted(() => ({
   execute: vi.fn(),
   getPreferredLanguages: vi.fn(),
   getTemplateSource: vi.fn(),
-  setAutomaticUpdatesEnabled: vi.fn(async () => undefined),
   executeTransaction: vi.fn(
     (_statements: Array<{ sql: string; params: unknown[] }>) =>
       Promise.resolve([1]),
@@ -20,12 +19,6 @@ vi.mock("@syntheo/plugin-detect", () => ({
 vi.mock("@syntheo/plugin-template", () => ({
   commands: {
     getTemplateSource: mocks.getTemplateSource,
-  },
-}));
-
-vi.mock("@syntheo/plugin-updater2", () => ({
-  commands: {
-    setAutomaticUpdatesEnabled: mocks.setAutomaticUpdatesEnabled,
   },
 }));
 
@@ -220,12 +213,6 @@ describe("SQLite settings", () => {
     ]);
 
     expect(result.values.theme).toBe("dark");
-  });
-
-  it("applies the automatic update policy when it changes", async () => {
-    await setSettingValues({ automatic_updates: false });
-
-    expect(mocks.setAutomaticUpdatesEnabled).toHaveBeenCalledWith(false);
   });
 
   it("initialise la transcription en français par défaut", async () => {

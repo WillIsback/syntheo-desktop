@@ -30,13 +30,12 @@ import {
 } from "./services/task-scheduler";
 import { TrayRecordingSync } from "./services/tray-recording";
 import { TrayScheduleSync } from "./services/tray-schedule";
-import { UpdaterMeetingSync } from "./services/updater-meeting";
 import { useRemoteSessionDeletionUndoListener } from "./session/hooks/useDeleteSession";
 import { refreshLegacySettingsSnapshots } from "./settings/legacy-snapshots";
 import { migratePlaintextAiProviderApiKeys } from "./settings/providers";
 import { initializeApplicationSettings } from "./settings/queries";
 import { initializeAppExitFlush } from "./shared/app-exit";
-import { initializeAppStoreBuild, isAppStoreBuild } from "./shared/app-store";
+import { initializeAppStoreBuild } from "./shared/app-store";
 import { useConfigValue } from "./shared/config";
 import { ErrorComponent, NotFoundComponent } from "./shared/control";
 import { LongLoadGate } from "./shared/long-load-gate";
@@ -118,7 +117,6 @@ function ReadyApp() {
             {isMainWindow ? <EventListeners /> : null}
             {isMainWindow ? <TrayScheduleSync /> : null}
             {isMainWindow ? <TrayRecordingSync /> : null}
-            {isMainWindow && !isAppStoreBuild() ? <UpdaterMeetingSync /> : null}
             <Toaster position="bottom-right" theme={theme} />
           </AppLockGate>
         </TaskSchedulerProvider>

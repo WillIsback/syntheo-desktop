@@ -26,8 +26,8 @@ use crate::{
 #[cfg(target_os = "macos")]
 use crate::menu_items::{AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, TrayQuit};
 use crate::menu_items::{
-    MenuItemHandler, TrayCheckUpdate, TrayHide, TrayOpen, TrayQuitCompletely, TraySettings,
-    TrayShowEvents, TrayStart, TrayVersion, build_agenda_item,
+    MenuItemHandler, TrayHide, TrayOpen, TrayQuitCompletely, TraySettings, TrayShowEvents,
+    TrayStart, TrayVersion, build_agenda_item,
 };
 use tauri_plugin_store2::Store2PluginExt;
 
@@ -35,7 +35,6 @@ const TRAY_ID: &str = "syntheo-tray";
 
 static IS_RECORDING: AtomicBool = AtomicBool::new(false);
 static IS_DEGRADED: AtomicBool = AtomicBool::new(false);
-static IS_UPDATE_AVAILABLE: AtomicBool = AtomicBool::new(false);
 static SHOW_EVENTS: AtomicBool = AtomicBool::new(true);
 static START_DISABLED: AtomicBool = AtomicBool::new(false);
 static ANIMATION_TASK: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
@@ -52,44 +51,23 @@ static MENU_DIRTY: AtomicBool = AtomicBool::new(false);
 
 #[cfg(target_os = "macos")]
 pub fn build_app_menu(app: &AppHandle<tauri::Wry>) -> Result<Menu<tauri::Wry>> {
-    let app_submenu = if crate::updates_enabled() {
-        Submenu::with_items(
-            app,
-            app.package_info().name.clone(),
-            true,
-            &[
-                &AppInfo::build(app)?,
-                &TrayCheckUpdate::build(app)?,
-                &TraySettings::build(app)?,
-                &PredefinedMenuItem::separator(app)?,
-                &PredefinedMenuItem::services(app, None)?,
-                &PredefinedMenuItem::separator(app)?,
-                &PredefinedMenuItem::hide(app, None)?,
-                &PredefinedMenuItem::hide_others(app, None)?,
-                &PredefinedMenuItem::show_all(app, None)?,
-                &PredefinedMenuItem::separator(app)?,
-                &TrayQuit::build(app)?,
-            ],
-        )?
-    } else {
-        Submenu::with_items(
-            app,
-            app.package_info().name.clone(),
-            true,
-            &[
-                &AppInfo::build(app)?,
-                &TraySettings::build(app)?,
-                &PredefinedMenuItem::separator(app)?,
-                &PredefinedMenuItem::services(app, None)?,
-                &PredefinedMenuItem::separator(app)?,
-                &PredefinedMenuItem::hide(app, None)?,
-                &PredefinedMenuItem::hide_others(app, None)?,
-                &PredefinedMenuItem::show_all(app, None)?,
-                &PredefinedMenuItem::separator(app)?,
-                &TrayQuit::build(app)?,
-            ],
-        )?
-    };
+    let app_submenu = Submenu::with_items(
+        app,
+        app.package_info().name.clone(),
+        true,
+        &[
+            &AppInfo::build(app)?,
+            &TraySettings::build(app)?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::services(app, None)?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::hide(app, None)?,
+            &PredefinedMenuItem::hide_others(app, None)?,
+            &PredefinedMenuItem::show_all(app, None)?,
+            &PredefinedMenuItem::separator(app)?,
+            &TrayQuit::build(app)?,
+        ],
+    )?;
     let file_submenu = Submenu::with_items(
         app,
         "File",
@@ -411,9 +389,6 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         menu.append(&TraySettings::build(app)?)?;
         menu.append(&PredefinedMenuItem::separator(app)?)?;
         menu.append(&TrayVersion::build(app)?)?;
-        if crate::updates_enabled() {
-            menu.append(&TrayCheckUpdate::build(app)?)?;
-        }
         menu.append(&PredefinedMenuItem::separator(app)?)?;
         menu.append(&TrayHide::build(app)?)?;
         menu.append(&TrayQuitCompletely::build(app)?)?;
@@ -542,11 +517,6 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         Self::refresh_icon(self.manager.app_handle())
     }
 
-    pub fn set_update_available(&self, available: bool) -> Result<()> {
-        IS_UPDATE_AVAILABLE.store(available, Ordering::SeqCst);
-        Self::refresh_icon(self.manager.app_handle())
-    }
-
     fn refresh_icon(app: &AppHandle<tauri::Wry>) -> Result<()> {
         on_main_thread(app, |app| Self::refresh_icon_on_main_thread(app))
     }
@@ -586,9 +556,7 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
             return Ok(());
         };
 
-        let state = if IS_UPDATE_AVAILABLE.load(Ordering::SeqCst) {
-            TrayIconState::UpdateAvailable
-        } else if IS_DEGRADED.load(Ordering::SeqCst) {
+        let state = if IS_DEGRADED.load(Ordering::SeqCst) {
             TrayIconState::Degraded
         } else {
             TrayIconState::Default

@@ -6,10 +6,6 @@ import type {
   CaptureConfigUpdate,
   IdentityAssignment,
 } from "@syntheo/plugin-transcription";
-import {
-  commands as updaterCommands,
-  events as updaterEvents,
-} from "@syntheo/plugin-updater2";
 import { getCurrentWebviewWindowLabel } from "@syntheo/plugin-windows";
 import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
@@ -20,7 +16,6 @@ import {
 import { liveQueryClient } from "~/db";
 import { createSession, getOrCreateSessionForEventId } from "~/session/queries";
 import { setSettingValue } from "~/settings/queries";
-import { isAppStoreBuild } from "~/shared/app-store";
 import { useConfigValue, useConfigValues } from "~/shared/config";
 import { useLatestRef } from "~/shared/hooks/useLatestRef";
 import { listenerStore } from "~/store/zustand/listener/instance";
@@ -587,41 +582,6 @@ function LiveCaptureConfigSyncReady({
   return null;
 }
 
-function useUpdaterEvents() {
-  const openNew = useTabs((state) => state.openNew);
-  const openNewRef = useLatestRef(openNew);
-
-  useMountEffect(() => {
-    if (isAppStoreBuild() || getCurrentWebviewWindowLabel() !== "main") {
-      return;
-    }
-
-    let unlisten: UnlistenFn | null = null;
-    let cancelled = false;
-
-    void updaterEvents.updatedEvent
-      .listen(({ payload: { previous, current } }) => {
-        openNewRef.current({
-          type: "changelog",
-          state: { previous, current },
-        });
-      })
-      .then(async (f) => {
-        if (cancelled) {
-          f();
-          return;
-        }
-        unlisten = f;
-        await updaterCommands.maybeEmitUpdated();
-      });
-
-    return () => {
-      cancelled = true;
-      unlisten?.();
-    };
-  });
-}
-
 function useNotificationEvents() {
   const ignoredPlatforms = useConfigValue("ignored_platforms");
   const openNew = useTabs((state) => state.openNew);
@@ -844,7 +804,6 @@ export function EventListeners() {
 }
 
 function EventListenersInner() {
-  useUpdaterEvents();
   useNotificationEvents();
 
   return null;
