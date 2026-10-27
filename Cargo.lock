@@ -3130,7 +3130,6 @@ dependencies = [
  "tauri-plugin-local-api",
  "tauri-plugin-local-auth",
  "tauri-plugin-mcp",
- "tauri-plugin-messenger",
  "tauri-plugin-misc",
  "tauri-plugin-notification",
  "tauri-plugin-notify",
@@ -13422,20 +13421,6 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-mcp"
-version = "0.1.0"
-dependencies = [
- "serde",
- "specta",
- "specta-typescript",
- "tauri",
- "tauri-plugin",
- "tauri-specta",
- "thiserror 2.0.18",
- "tokio",
-]
-
-[[package]]
-name = "tauri-plugin-messenger"
 version = "0.1.0"
 dependencies = [
  "serde",
