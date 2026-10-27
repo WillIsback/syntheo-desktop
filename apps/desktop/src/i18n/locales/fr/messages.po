@@ -419,10 +419,6 @@ msgstr "Authentifiez-vous pour continuer."
 msgid "Authenticating…"
 msgstr "Authentification…"
 
-#: src/instruction/index.tsx
-msgid "Authorize access in your browser, then return to Syntheo."
-msgstr "Autorisez l'accès dans votre navigateur, puis revenez sur Syntheo."
-
 #: src/templates/auto-form.tsx
 msgid "Auto summary format"
 msgstr "Format de résumé automatique"
@@ -648,25 +644,9 @@ msgstr "Choisissez {0} fichiers d'exportation"
 msgid "Choose a file format and what to include."
 msgstr "Choisissez un format de fichier et les éléments à inclure."
 
-#: src/settings/automations/index.tsx
-msgid "Choose a Google Drive folder first."
-msgstr "Choisissez d'abord un dossier Google Drive."
-
 #: src/settings/ai/llm/select.tsx
 msgid "Choose a language model for summaries and chat."
 msgstr "Choisissez un modèle de langue pour les résumés et le chat."
-
-#: src/settings/automations/index.tsx
-msgid "Choose a Linear team first."
-msgstr "Choisissez d'abord une équipe Linear."
-
-#: src/settings/automations/index.tsx
-msgid "Choose a Notion page first."
-msgstr "Choisissez d'abord une page Notion."
-
-#: src/settings/automations/index.tsx
-msgid "Choose a Slack channel first."
-msgstr "Choisissez d'abord un canal Slack."
 
 #: src/settings/automations/index.tsx
 msgid "Choose a starter from the sidebar, or create a workflow and add steps like Zapier."
@@ -894,10 +874,9 @@ msgid "Confirm"
 msgstr "Confirmer"
 
 #. placeholder {0}: config.displayName
-#. placeholder {0}: integration.displayName
 #. placeholder {0}: provider.displayName
+#. placeholder {0}: subscriptionProvider.displayName
 #: src/calendar/components/sidebar.tsx
-#: src/instruction/index.tsx
 #: src/settings/ai/shared/index.tsx
 msgid "Connect {0}"
 msgstr "Connecter {0}"
@@ -910,10 +889,6 @@ msgstr "Connectez un modèle de langage pour générer un modèle."
 #: src/onboarding/index.tsx
 msgid "Connect calendar"
 msgstr "Connecter le calendrier"
-
-#: src/instruction/index.tsx
-msgid "Connect your integration"
-msgstr "Connecter votre intégration"
 
 #. placeholder {0}: subscriptionProvider.displayName
 #: src/settings/ai/shared/index.tsx
@@ -940,6 +915,10 @@ msgstr "Contexte"
 #: src/onboarding/calendar.tsx
 msgid "Continue"
 msgstr "Continuer"
+
+#: src/instruction/index.tsx
+msgid "Continue in your browser, then return to Syntheo."
+msgstr "Continuez dans votre navigateur, puis revenez dans Syntheo."
 
 #: src/settings/general/meeting-settings.tsx
 msgid "Control listening without reopening Syntheo."
@@ -1291,15 +1270,6 @@ msgstr "Déconnecter"
 #: src/settings/imports/index.tsx
 msgid "Documentation"
 msgstr "Documentation"
-
-#: src/sidebar/toast/registry.tsx
-msgid "Download"
-msgstr "Télécharger"
-
-#. placeholder {0}: update.version
-#: src/sidebar/toast/registry.tsx
-msgid "Downloading Syntheo {0}{progress}"
-msgstr "Téléchargement de Syntheo {0}{progress}"
 
 #: src/settings/automations/index.tsx
 #: src/settings/automations/workflow-builder.tsx
@@ -2540,6 +2510,10 @@ msgstr "Ouvrir dans une nouvelle fenêtre"
 msgid "Open in right panel"
 msgstr "Ouvrir dans le panneau droit"
 
+#: src/instruction/index.tsx
+msgid "Open in your browser"
+msgstr "Ouvrir dans votre navigateur"
+
 #: src/services/event-notification/index.ts
 msgid "Open meeting"
 msgstr "Ouvrir la réunion"
@@ -2935,10 +2909,6 @@ msgstr "Réinitialiser vers Téléchargements"
 msgid "Respect Do-Not-Disturb mode"
 msgstr "Respecter le mode Ne pas déranger"
 
-#: src/sidebar/toast/registry.tsx
-msgid "Restart"
-msgstr "Redémarrer"
-
 #: src/shared/control.tsx
 msgid "Restart App"
 msgstr "Redémarrer l'application"
@@ -2953,7 +2923,6 @@ msgstr "Restaurer"
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 #: src/settings/general/account-profile.tsx
 #: src/settings/general/storage/legacy-cleanup.tsx
-#: src/sidebar/toast/registry.tsx
 msgid "Retry"
 msgstr "Réessayer"
 
@@ -3567,16 +3536,6 @@ msgstr "Symboles"
 msgid "Synced"
 msgstr "Synchronisé"
 
-#. placeholder {0}: update.version
-#: src/sidebar/toast/registry.tsx
-msgid "Syntheo {0} is available"
-msgstr "Syntheo {0} est disponible"
-
-#. placeholder {0}: update.version
-#: src/sidebar/toast/registry.tsx
-msgid "Syntheo {0} is ready to install"
-msgstr "Syntheo {0} est prêt à être installé"
-
 #: src/onboarding/permissions.tsx
 msgid "Syntheo can hear others"
 msgstr "Syntheo peut entendre les autres"
@@ -3684,10 +3643,6 @@ msgstr "Les exécutions de test ne sont pas encore disponibles."
 #: src/shared/control.tsx
 msgid "The page you're looking for doesn't exist."
 msgstr "La page que vous recherchez n'existe pas."
-
-#: src/sidebar/toast/registry.tsx
-msgid "The update download failed"
-msgstr "Le téléchargement de la mise à jour a échoué"
 
 #: src/settings/appearance/theme.tsx
 msgid "Theme"
