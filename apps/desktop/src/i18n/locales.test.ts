@@ -1,19 +1,20 @@
-import { describe, expect, test } from "vitest";
+import { readdirSync } from "node:fs";
+import { resolve } from "node:path";
+import { describe, expect, it } from "vitest";
 
-import { resolveDisplayLocale } from "./locales";
+import { SOURCE_LOCALE, SUPPORTED_DISPLAY_LOCALES } from "./locales";
 
-describe("resolveDisplayLocale", () => {
-  test("resolves the canonical Filipino locale to the Tagalog catalog", () => {
-    expect(resolveDisplayLocale("fil-PH")).toBe("tl");
+describe("locales supportées", () => {
+  it("se limite à en et fr", () => {
+    expect([...SUPPORTED_DISPLAY_LOCALES].sort()).toEqual(["en", "fr"]);
   });
 
-  test("uses base language for regional variants", () => {
-    expect(resolveDisplayLocale("pt-BR")).toBe("pt");
-    expect(resolveDisplayLocale("zh-Hans")).toBe("zh");
+  it("n'a que les dossiers de catalogue en et fr", () => {
+    const dirs = readdirSync(resolve(process.cwd(), "src/i18n/locales")).sort();
+    expect(dirs).toEqual(["en", "fr"]);
   });
 
-  test("falls back to English for unsupported or invalid values", () => {
-    expect(resolveDisplayLocale("eo")).toBe("en");
-    expect(resolveDisplayLocale("not a locale")).toBe("en");
+  it("garde l'anglais comme source", () => {
+    expect(SOURCE_LOCALE).toBe("en");
   });
 });
