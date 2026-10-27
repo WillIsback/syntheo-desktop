@@ -234,7 +234,8 @@ final class FloatingBarCommandCoalescerTests: XCTestCase {
     }
 
     let duration = TimeInterval(environment["SYNTHEO_BRIDGE_SOAK_SECONDS"] ?? "1800") ?? 1800
-    let sampleInterval = TimeInterval(environment["SYNTHEO_BRIDGE_SOAK_SAMPLE_SECONDS"] ?? "60") ?? 60
+    let sampleInterval =
+      TimeInterval(environment["SYNTHEO_BRIDGE_SOAK_SAMPLE_SECONDS"] ?? "60") ?? 60
     let samples = ResidentMemorySamples()
     let finished = expectation(description: "Amplitude bridge soak finished")
 
