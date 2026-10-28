@@ -85,30 +85,7 @@ function draw() {
       continue;
     }
 
-    const rect = outline.node.getBoundingClientRect();
-    if (rect.width > 0 || rect.height > 0) {
-      const { alpha } = outline;
-      context.strokeStyle = `rgba(${OUTLINE_RGB}, ${alpha})`;
-      context.fillStyle = `rgba(${OUTLINE_RGB}, ${alpha * 0.08})`;
-      context.fillRect(rect.x, rect.y, rect.width, rect.height);
-      context.strokeRect(
-        rect.x + 0.5,
-        rect.y + 0.5,
-        Math.max(rect.width - 1, 0),
-        Math.max(rect.height - 1, 0),
-      );
-
-      const label =
-        [...outline.names].join(", ") +
-        (outline.count > 1 ? ` ×${outline.count}` : "");
-      const width = context.measureText(label).width + 6;
-      const x = Math.max(rect.x, 0);
-      const y = rect.y >= LABEL_HEIGHT ? rect.y - LABEL_HEIGHT : rect.y;
-      context.fillStyle = `rgba(${OUTLINE_RGB}, ${alpha})`;
-      context.fillRect(x, y, width, LABEL_HEIGHT);
-      context.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-      context.fillText(label, x + 3, y + LABEL_HEIGHT / 2);
-    }
+    drawOutline(context, outline);
 
     outline.alpha -= FADE_PER_FRAME;
     if (outline.alpha <= 0) {
@@ -121,4 +98,34 @@ function draw() {
   } else {
     context.clearRect(0, 0, window.innerWidth, window.innerHeight);
   }
+}
+
+function drawOutline(
+  context: CanvasRenderingContext2D,
+  outline: Outline,
+): void {
+  const rect = outline.node.getBoundingClientRect();
+  if (rect.width <= 0 && rect.height <= 0) return;
+
+  const { alpha } = outline;
+  context.strokeStyle = `rgba(${OUTLINE_RGB}, ${alpha})`;
+  context.fillStyle = `rgba(${OUTLINE_RGB}, ${alpha * 0.08})`;
+  context.fillRect(rect.x, rect.y, rect.width, rect.height);
+  context.strokeRect(
+    rect.x + 0.5,
+    rect.y + 0.5,
+    Math.max(rect.width - 1, 0),
+    Math.max(rect.height - 1, 0),
+  );
+
+  const label =
+    [...outline.names].join(", ") +
+    (outline.count > 1 ? ` ×${outline.count}` : "");
+  const width = context.measureText(label).width + 6;
+  const x = Math.max(rect.x, 0);
+  const y = rect.y >= LABEL_HEIGHT ? rect.y - LABEL_HEIGHT : rect.y;
+  context.fillStyle = `rgba(${OUTLINE_RGB}, ${alpha})`;
+  context.fillRect(x, y, width, LABEL_HEIGHT);
+  context.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+  context.fillText(label, x + 3, y + LABEL_HEIGHT / 2);
 }
