@@ -6,6 +6,7 @@ import {
   deriveTimelineWindowData,
   getItemTimeRange,
   type TimelineBucket,
+  type TimelineItem,
 } from "./utils";
 
 import { useIgnoredEvents } from "~/calendar/ignored-events";
@@ -153,32 +154,56 @@ function getNextUpcomingMeetingStatusRefreshMs(
     return Math.max(1, UPCOMING_MEETING_STATUS_TICK_MS - remainder);
   }
 
-  let nextDeadlineMs = Number.POSITIVE_INFINITY;
-  for (const bucket of buckets) {
-    for (const item of bucket.items) {
-      if (item.type === "event" && item.data.is_all_day) continue;
-
-      const { start, end } = getItemTimeRange(item);
-      const startsAtMs = start?.getTime();
-      if (startsAtMs === undefined) continue;
-
-      const deadlines = [
-        startsAtMs - UPCOMING_MEETING_VISIBLE_WINDOW_MS,
-        startsAtMs,
-        end ? end.getTime() + 1 : Number.NaN,
-      ];
-      for (const deadlineMs of deadlines) {
-        if (deadlineMs > currentTimeMs && deadlineMs < nextDeadlineMs) {
-          nextDeadlineMs = deadlineMs;
-        }
-      }
-    }
-  }
-
+  const nextDeadlineMs = getNextItemDeadlineMs(buckets, currentTimeMs);
   return Number.isFinite(nextDeadlineMs)
     ? Math.max(1, Math.ceil(nextDeadlineMs - currentTimeMs))
     : null;
 }
+
+function getNextItemDeadlineMs(
+  buckets: TimelineBucket[],
+  currentTimeMs: number,
+): number {
+  let nextDeadlineMs = Number.POSITIVE_INFINITY;
+
+  for (const item of buckets.flatMap((bucket) => bucket.items)) {
+    for (const deadlineMs of getItemUpcomingDeadlineMs(item)) {
+      if (deadlineMs > currentTimeMs && deadlineMs < nextDeadlineMs) {
+        nextDeadlineMs = deadlineMs;
+      }
+    }
+  }
+
+  return nextDeadlineMs;
+}
+
+function getItemUpcomingDeadlineMs(item: TimelineItem): number[] {
+  if (isAllDayTimelineItem(item)) {
+    return [];
+  }
+
+  const { start, end } = getItemTimeRange(item);
+  const startsAtMs = start?.getTime();
+  if (startsAtMs === undefined) {
+    return [];
+  }
+
+  return [
+    startsAtMs - UPCOMING_MEETING_VISIBLE_WINDOW_MS,
+    startsAtMs,
+    ...(end ? [end.getTime() + 1] : []),
+  ];
+}
+
+function isAllDayTimelineItem(item: TimelineItem): boolean {
+  return item.type === "event" && Boolean(item.data.is_all_day);
+}
+
+type UpcomingMeetingCandidate = { itemKey: string; title: string };
+
+type UpcomingMeetingItemTiming =
+  | ({ kind: "active" } & UpcomingMeetingCandidate & { endsAtMs: number })
+  | ({ kind: "upcoming" } & UpcomingMeetingCandidate & { diffMs: number });
 
 function getUpcomingMeetingStatus(
   buckets: TimelineBucket[],
@@ -186,54 +211,10 @@ function getUpcomingMeetingStatus(
   formatLabel: (diffMs: number) => string = formatUpcomingMeetingLabelEnglish,
   activeLabel = "Now",
 ): SidebarUpcomingMeetingStatus | null {
-  let active: { itemKey: string; title: string; endsAtMs: number } | null =
-    null;
-  let nearest: { itemKey: string; title: string; diffMs: number } | null = null;
-
-  for (const bucket of buckets) {
-    for (const item of bucket.items) {
-      if (item.type === "event" && item.data.is_all_day) {
-        continue;
-      }
-
-      const { start, end } = getItemTimeRange(item);
-      if (!start) {
-        continue;
-      }
-
-      const startsAtMs = start.getTime();
-      const endsAtMs = end?.getTime();
-      if (
-        typeof endsAtMs === "number" &&
-        endsAtMs > startsAtMs &&
-        startsAtMs <= currentTimeMs &&
-        currentTimeMs <= endsAtMs
-      ) {
-        if (!active || endsAtMs < active.endsAtMs) {
-          active = {
-            itemKey: `${item.type}-${item.id}`,
-            title: item.data.title || "Untitled",
-            endsAtMs,
-          };
-        }
-
-        continue;
-      }
-
-      const diffMs = startsAtMs - currentTimeMs;
-      if (diffMs <= 0 || diffMs > UPCOMING_MEETING_VISIBLE_WINDOW_MS) {
-        continue;
-      }
-
-      if (!nearest || diffMs < nearest.diffMs) {
-        nearest = {
-          itemKey: `${item.type}-${item.id}`,
-          title: item.data.title || "Untitled",
-          diffMs,
-        };
-      }
-    }
-  }
+  const { active, nearest } = collectUpcomingMeetingCandidates(
+    buckets,
+    currentTimeMs,
+  );
 
   if (active) {
     return {
@@ -254,6 +235,96 @@ function getUpcomingMeetingStatus(
     progress: getUpcomingMeetingProgress(nearest.diffMs),
     title: nearest.title,
   };
+}
+
+function collectUpcomingMeetingCandidates(
+  buckets: TimelineBucket[],
+  currentTimeMs: number,
+): {
+  active: (UpcomingMeetingCandidate & { endsAtMs: number }) | null;
+  nearest: (UpcomingMeetingCandidate & { diffMs: number }) | null;
+} {
+  let active: (UpcomingMeetingCandidate & { endsAtMs: number }) | null = null;
+  let nearest: (UpcomingMeetingCandidate & { diffMs: number }) | null = null;
+
+  for (const item of buckets.flatMap((bucket) => bucket.items)) {
+    const timing = getUpcomingMeetingItemTiming(item, currentTimeMs);
+    if (!timing) {
+      continue;
+    }
+
+    if (timing.kind === "active") {
+      if (!active || timing.endsAtMs < active.endsAtMs) {
+        active = {
+          itemKey: timing.itemKey,
+          title: timing.title,
+          endsAtMs: timing.endsAtMs,
+        };
+      }
+      continue;
+    }
+
+    if (!nearest || timing.diffMs < nearest.diffMs) {
+      nearest = {
+        itemKey: timing.itemKey,
+        title: timing.title,
+        diffMs: timing.diffMs,
+      };
+    }
+  }
+
+  return { active, nearest };
+}
+
+function getUpcomingMeetingItemTiming(
+  item: TimelineItem,
+  currentTimeMs: number,
+): UpcomingMeetingItemTiming | null {
+  if (isAllDayTimelineItem(item)) {
+    return null;
+  }
+
+  const { start, end } = getItemTimeRange(item);
+  if (!start) {
+    return null;
+  }
+
+  const identity: UpcomingMeetingCandidate = {
+    itemKey: `${item.type}-${item.id}`,
+    title: item.data.title || "Untitled",
+  };
+  const startsAtMs = start.getTime();
+  const endsAtMs = end?.getTime();
+
+  if (
+    typeof endsAtMs === "number" &&
+    isMeetingInProgress(startsAtMs, endsAtMs, currentTimeMs)
+  ) {
+    return { kind: "active", ...identity, endsAtMs };
+  }
+
+  const diffMs = startsAtMs - currentTimeMs;
+  if (!isWithinUpcomingMeetingWindow(diffMs)) {
+    return null;
+  }
+
+  return { kind: "upcoming", ...identity, diffMs };
+}
+
+function isMeetingInProgress(
+  startsAtMs: number,
+  endsAtMs: number,
+  currentTimeMs: number,
+): boolean {
+  return (
+    endsAtMs > startsAtMs &&
+    startsAtMs <= currentTimeMs &&
+    currentTimeMs <= endsAtMs
+  );
+}
+
+function isWithinUpcomingMeetingWindow(diffMs: number): boolean {
+  return diffMs > 0 && diffMs <= UPCOMING_MEETING_VISIBLE_WINDOW_MS;
 }
 
 function getUpcomingMeetingProgress(diffMs: number): number {
