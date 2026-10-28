@@ -109,13 +109,28 @@ export async function importConnectedMeetings(
   return runMeetingImport(providerId, files, "connection");
 }
 
+type ImportStatement = { sql: string; params: unknown[] };
+
+type ImportRunContext = {
+  providerId: string;
+  mode: MeetingImportMode;
+  runId: string;
+  sourceKind: string;
+};
+
+type MeetingTarget = { meeting: ImportedMeeting; sessionId: string };
+
 async function runMeetingImport(
   providerId: string,
   files: ImportTextFile[],
   mode: MeetingImportMode,
 ): Promise<MeetingImportResult> {
-  const runId = id();
-  const sourceKind = `meeting-${mode}:${providerId}`;
+  const ctx: ImportRunContext = {
+    providerId,
+    mode,
+    runId: id(),
+    sourceKind: `meeting-${mode}:${providerId}`,
+  };
   const totals: MeetingImportResult = {
     discovered: 0,
     imported: 0,
@@ -124,6 +139,24 @@ async function runMeetingImport(
     errors: 0,
   };
 
+  await startImportRun(ctx);
+
+  // Les fichiers sont importés séquentiellement (les écritures d'un fichier
+  // influencent les suivants) : on enchaîne les promesses plutôt que
+  // d'utiliser `await` dans la boucle.
+  let chain = Promise.resolve();
+  for (const [fileIndex, file] of files.entries()) {
+    chain = chain.then(() =>
+      importSingleFile({ ctx, file, fileIndex, totals }),
+    );
+  }
+  await chain;
+
+  await finalizeImportRun(ctx, totals);
+  return totals;
+}
+
+async function startImportRun(ctx: ImportRunContext) {
   await executeTransaction([
     {
       sql: `
@@ -131,132 +164,209 @@ async function runMeetingImport(
           id, importer_version, source_root, dry_run, status
         ) VALUES (?, ?, ?, 0, 'running')
       `,
-      params: [runId, IMPORTER_VERSION, `meeting-import:${providerId}`],
+      params: [ctx.runId, IMPORTER_VERSION, `meeting-import:${ctx.providerId}`],
     },
   ]);
+}
 
-  for (const [fileIndex, file] of files.entries()) {
-    const itemId = `${runId}:item:${fileIndex}`;
-    const sourceSha256 = await sha256(file.content);
-    const prior = await findPriorImport(file.path, sourceKind, sourceSha256);
-    if (prior) {
-      totals.discovered += prior.discovered_count;
-      totals.matched += prior.discovered_count;
-      await recordUnchangedItem({
-        itemId,
-        runId,
-        file,
-        sourceKind,
-        sourceSha256,
-        discovered: prior.discovered_count,
-      });
-      continue;
-    }
-
-    try {
-      const meetings = parseMeetingExport(file);
-      const targets = await Promise.all(
-        meetings.map(async (meeting, meetingIndex) => ({
-          meeting,
-          sessionId: await stableSessionId(
-            providerId,
-            meeting.externalId || `${file.path}#${meetingIndex}`,
-          ),
-        })),
-      );
-      const existingIds = await findExistingSessionIds(
-        targets.map((target) => target.sessionId),
-      );
-      const importedTargets = targets.filter(
-        (target) => !existingIds.has(target.sessionId),
-      );
-
-      const statements: Array<{ sql: string; params: unknown[] }> = [];
-      for (const target of importedTargets) {
-        statements.push(
-          ...buildMeetingStatements({
-            providerId,
-            sourcePath: file.path,
-            sessionId: target.sessionId,
-            meeting: target.meeting,
-          }),
-        );
-      }
-
-      const existingCount = targets.length - importedTargets.length;
-      const matchedCount = mode === "connection" ? existingCount : 0;
-      const conflictCount = mode === "export" ? existingCount : 0;
-      statements.push({
-        sql: `
-          INSERT INTO migration_import_items (
-            id, run_id, source_path, source_kind, source_sha256, status,
-            discovered_count, imported_count, matched_count, skipped_count,
-            conflict_count, error, completed_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, '', ?)
-        `,
-        params: [
-          itemId,
-          runId,
-          file.path,
-          sourceKind,
-          sourceSha256,
-          conflictCount > 0 ? "conflict" : "complete",
-          targets.length,
-          importedTargets.length,
-          matchedCount,
-          conflictCount,
-          new Date().toISOString(),
-        ],
-      });
-      for (const target of targets) {
-        statements.push({
-          sql: `
-            INSERT INTO migration_import_targets (
-              id, run_id, item_id, source_path, source_kind, table_name,
-              target_id, status
-            ) VALUES (?, ?, ?, ?, ?, 'sessions', ?, ?)
-          `,
-          params: [
-            `${itemId}:session:${target.sessionId}`,
-            runId,
-            itemId,
-            file.path,
-            sourceKind,
-            target.sessionId,
-            existingIds.has(target.sessionId)
-              ? mode === "connection"
-                ? "matched"
-                : "conflict"
-              : "inserted",
-          ],
-        });
-      }
-      await executeTransaction(statements);
-
-      totals.discovered += targets.length;
-      totals.imported += importedTargets.length;
-      totals.matched += matchedCount;
-      totals.conflicts += conflictCount;
-    } catch (error) {
-      totals.discovered += 1;
-      totals.errors += 1;
-      await recordImportError({
-        itemId,
-        runId,
-        file,
-        sourceKind,
-        sourceSha256,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
+async function importSingleFile({
+  ctx,
+  file,
+  fileIndex,
+  totals,
+}: {
+  ctx: ImportRunContext;
+  file: ImportTextFile;
+  fileIndex: number;
+  totals: MeetingImportResult;
+}) {
+  const itemId = `${ctx.runId}:item:${fileIndex}`;
+  const sourceSha256 = await sha256(file.content);
+  const prior = await findPriorImport(file.path, ctx.sourceKind, sourceSha256);
+  if (prior) {
+    totals.discovered += prior.discovered_count;
+    totals.matched += prior.discovered_count;
+    await recordUnchangedItem({
+      itemId,
+      runId: ctx.runId,
+      file,
+      sourceKind: ctx.sourceKind,
+      sourceSha256,
+      discovered: prior.discovered_count,
+    });
+    return;
   }
 
-  const status =
-    totals.errors > 0
-      ? "completed_with_issues"
-      : totals.conflicts > 0
-        ? "completed_with_conflicts"
-        : "completed";
+  try {
+    await importParsedFile({ ctx, itemId, file, sourceSha256, totals });
+  } catch (error) {
+    totals.discovered += 1;
+    totals.errors += 1;
+    await recordImportError({
+      itemId,
+      runId: ctx.runId,
+      file,
+      sourceKind: ctx.sourceKind,
+      sourceSha256,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function importParsedFile({
+  ctx,
+  itemId,
+  file,
+  sourceSha256,
+  totals,
+}: {
+  ctx: ImportRunContext;
+  itemId: string;
+  file: ImportTextFile;
+  sourceSha256: string;
+  totals: MeetingImportResult;
+}) {
+  const targets = await resolveTargets(ctx.providerId, file);
+  const existingIds = await findExistingSessionIds(
+    targets.map((target) => target.sessionId),
+  );
+  const importedTargets = targets.filter(
+    (target) => !existingIds.has(target.sessionId),
+  );
+  const existingCount = targets.length - importedTargets.length;
+  const matchedCount = ctx.mode === "connection" ? existingCount : 0;
+  const conflictCount = ctx.mode === "export" ? existingCount : 0;
+
+  await executeTransaction(
+    buildFileStatements({
+      ctx,
+      itemId,
+      file,
+      sourceSha256,
+      targets,
+      importedTargets,
+      existingIds,
+      matchedCount,
+      conflictCount,
+    }),
+  );
+
+  totals.discovered += targets.length;
+  totals.imported += importedTargets.length;
+  totals.matched += matchedCount;
+  totals.conflicts += conflictCount;
+}
+
+async function resolveTargets(
+  providerId: string,
+  file: ImportTextFile,
+): Promise<MeetingTarget[]> {
+  const meetings = parseMeetingExport(file);
+  return Promise.all(
+    meetings.map(async (meeting, meetingIndex) => ({
+      meeting,
+      sessionId: await stableSessionId(
+        providerId,
+        meeting.externalId || `${file.path}#${meetingIndex}`,
+      ),
+    })),
+  );
+}
+
+function buildFileStatements({
+  ctx,
+  itemId,
+  file,
+  sourceSha256,
+  targets,
+  importedTargets,
+  existingIds,
+  matchedCount,
+  conflictCount,
+}: {
+  ctx: ImportRunContext;
+  itemId: string;
+  file: ImportTextFile;
+  sourceSha256: string;
+  targets: MeetingTarget[];
+  importedTargets: MeetingTarget[];
+  existingIds: Set<string>;
+  matchedCount: number;
+  conflictCount: number;
+}): ImportStatement[] {
+  const statements: ImportStatement[] = [];
+  for (const target of importedTargets) {
+    statements.push(
+      ...buildMeetingStatements({
+        providerId: ctx.providerId,
+        sourcePath: file.path,
+        sessionId: target.sessionId,
+        meeting: target.meeting,
+      }),
+    );
+  }
+
+  statements.push({
+    sql: `
+      INSERT INTO migration_import_items (
+        id, run_id, source_path, source_kind, source_sha256, status,
+        discovered_count, imported_count, matched_count, skipped_count,
+        conflict_count, error, completed_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, '', ?)
+    `,
+    params: [
+      itemId,
+      ctx.runId,
+      file.path,
+      ctx.sourceKind,
+      sourceSha256,
+      conflictCount > 0 ? "conflict" : "complete",
+      targets.length,
+      importedTargets.length,
+      matchedCount,
+      conflictCount,
+      new Date().toISOString(),
+    ],
+  });
+
+  for (const target of targets) {
+    statements.push({
+      sql: `
+        INSERT INTO migration_import_targets (
+          id, run_id, item_id, source_path, source_kind, table_name,
+          target_id, status
+        ) VALUES (?, ?, ?, ?, ?, 'sessions', ?, ?)
+      `,
+      params: [
+        `${itemId}:session:${target.sessionId}`,
+        ctx.runId,
+        itemId,
+        file.path,
+        ctx.sourceKind,
+        target.sessionId,
+        targetStatus(ctx.mode, existingIds.has(target.sessionId)),
+      ],
+    });
+  }
+
+  return statements;
+}
+
+function targetStatus(mode: MeetingImportMode, exists: boolean) {
+  if (!exists) return "inserted";
+  return mode === "connection" ? "matched" : "conflict";
+}
+
+function computeRunStatus(totals: MeetingImportResult) {
+  if (totals.errors > 0) return "completed_with_issues";
+  if (totals.conflicts > 0) return "completed_with_conflicts";
+  return "completed";
+}
+
+async function finalizeImportRun(
+  ctx: ImportRunContext,
+  totals: MeetingImportResult,
+) {
   await executeTransaction([
     {
       sql: `
@@ -267,7 +377,7 @@ async function runMeetingImport(
         WHERE id = ?
       `,
       params: [
-        status,
+        computeRunStatus(totals),
         totals.discovered,
         totals.imported,
         totals.matched,
@@ -275,12 +385,10 @@ async function runMeetingImport(
         totals.conflicts,
         totals.errors,
         new Date().toISOString(),
-        runId,
+        ctx.runId,
       ],
     },
   ]);
-
-  return totals;
 }
 
 export function buildMeetingStatements({
@@ -540,7 +648,8 @@ async function recordImportError({
 }
 
 async function stableSessionId(providerId: string, sourceIdentity: string) {
-  return `meeting-import:${await sha256(`${providerId}:${sourceIdentity}`)}`;
+  const identityHash = await sha256(`${providerId}:${sourceIdentity}`);
+  return `meeting-import:${identityHash}`;
 }
 
 async function sha256(value: string) {
