@@ -24,6 +24,61 @@ type NotificationEventRow = {
   meeting_link: string;
 };
 
+function pruneExpiredNotifiedEvents(
+  notifiedEvents: NotifiedEventsMap,
+  now: number,
+): void {
+  for (const [key, timestamp] of notifiedEvents) {
+    if (now - timestamp > NOTIFIED_EVENTS_TTL_MS) notifiedEvents.delete(key);
+  }
+}
+
+function isEventIgnored(
+  event: NotificationEventRow,
+  ignoredIds: Set<string>,
+  ignoredSeriesIds: Set<string>,
+): boolean {
+  if (event.tracking_id_event && ignoredIds.has(event.tracking_id_event)) {
+    return true;
+  }
+  return (
+    !!event.recurrence_series_id &&
+    ignoredSeriesIds.has(event.recurrence_series_id)
+  );
+}
+
+function showUpcomingEventNotification(
+  event: NotificationEventRow,
+  startTime: Date,
+  notificationKey: string,
+  timeUntilStart: number,
+): void {
+  const minutesUntil = Math.ceil(timeUntilStart / 60_000);
+  const hasMeetingLink = Boolean(event.meeting_link.trim());
+  void notificationCommands.showNotification({
+    key: notificationKey,
+    title: event.title || t`Upcoming Event`,
+    message:
+      minutesUntil === 1
+        ? t`Starting in 1 minute`
+        : t`Starting in ${minutesUntil} minutes`,
+    timeout: null,
+    source: { type: "calendar_event", event_id: event.id },
+    start_time: Math.floor(startTime.getTime() / 1000),
+    participants: null,
+    event_details: null,
+    action_label: hasMeetingLink ? t`Join & record` : t`Start recording`,
+    action: "join_and_record",
+    action_menu: hasMeetingLink
+      ? { label: t`Open meeting`, action: "open_meeting" }
+      : null,
+    action_variant: null,
+    options: null,
+    footer: null,
+    icon: null,
+  });
+}
+
 export async function checkEventNotifications(
   notificationEnabled: boolean,
   notifiedEvents: NotifiedEventsMap,
@@ -31,9 +86,7 @@ export async function checkEventNotifications(
   if (!notificationEnabled) return;
 
   const now = Date.now();
-  for (const [key, timestamp] of notifiedEvents) {
-    if (now - timestamp > NOTIFIED_EVENTS_TTL_MS) notifiedEvents.delete(key);
-  }
+  pruneExpiredNotifiedEvents(notifiedEvents, now);
 
   const [{ ignoredIds, ignoredSeriesIds }, events] = await Promise.all([
     getIgnoredEventSets(),
@@ -53,7 +106,7 @@ export async function checkEventNotifications(
   ]);
 
   for (const event of events) {
-    if (Boolean(event.is_all_day)) {
+    if (event.is_all_day) {
       continue;
     }
 
@@ -61,48 +114,30 @@ export async function checkEventNotifications(
     if (!startTime) {
       continue;
     }
-    const timeUntilStart = startTime.getTime() - now;
-    const notificationKey = `event-${event.id}-${startTime.getTime()}`;
-
-    if (
-      event.tracking_id_event &&
-      (ignoredIds.has(event.tracking_id_event) ||
-        (event.recurrence_series_id &&
-          ignoredSeriesIds.has(event.recurrence_series_id)))
-    ) {
+    if (isEventIgnored(event, ignoredIds, ignoredSeriesIds)) {
       continue;
     }
 
-    if (timeUntilStart > 0 && timeUntilStart <= NOTIFY_WINDOW_MS) {
-      if (notifiedEvents.has(notificationKey)) continue;
-      notifiedEvents.set(notificationKey, now);
-      const minutesUntil = Math.ceil(timeUntilStart / 60_000);
+    const timeUntilStart = startTime.getTime() - now;
+    const notificationKey = `event-${event.id}-${startTime.getTime()}`;
 
-      const hasMeetingLink = Boolean(event.meeting_link.trim());
-      void notificationCommands.showNotification({
-        key: notificationKey,
-        title: event.title || t`Upcoming Event`,
-        message:
-          minutesUntil === 1
-            ? t`Starting in 1 minute`
-            : t`Starting in ${minutesUntil} minutes`,
-        timeout: null,
-        source: { type: "calendar_event", event_id: event.id },
-        start_time: Math.floor(startTime.getTime() / 1000),
-        participants: null,
-        event_details: null,
-        action_label: hasMeetingLink ? t`Join & record` : t`Start recording`,
-        action: "join_and_record",
-        action_menu: hasMeetingLink
-          ? { label: t`Open meeting`, action: "open_meeting" }
-          : null,
-        action_variant: null,
-        options: null,
-        footer: null,
-        icon: null,
-      });
-    } else if (timeUntilStart <= 0) {
+    if (timeUntilStart <= 0) {
       notifiedEvents.delete(notificationKey);
+      continue;
     }
+    if (timeUntilStart > NOTIFY_WINDOW_MS) {
+      continue;
+    }
+    if (notifiedEvents.has(notificationKey)) {
+      continue;
+    }
+
+    notifiedEvents.set(notificationKey, now);
+    showUpcomingEventNotification(
+      event,
+      startTime,
+      notificationKey,
+      timeUntilStart,
+    );
   }
 }
