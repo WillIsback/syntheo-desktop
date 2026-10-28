@@ -16,7 +16,7 @@ tracing = { workspace = true }
 
 hound = { workspace = true }
 rodio = { workspace = true, features = ["symphonia-all"] }
-rubato = "1.0.1"
+rubato = "5.0.1"
 
 [dev-dependencies]
 syntheo-data = { workspace = true }
