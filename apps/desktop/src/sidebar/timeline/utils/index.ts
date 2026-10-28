@@ -124,44 +124,95 @@ export function getBucketInfo(
   }
 
   if (daysDiff < 0) {
-    if (absDays <= 6) {
-      return { label: t`${absDays} days ago`, sortKey, precision: "time" };
-    }
+    return getPastBucketInfo({
+      now,
+      tzDate,
+      tzNow,
+      sortKey,
+      absDays,
+      timezone,
+    });
+  }
 
-    if (absDays <= 27) {
-      const weeks = Math.max(1, Math.round(absDays / 7));
-      const weekRangeEndDay = Math.max(7, weeks * 7 - 3);
-      const weekRangeEnd = new Date(
-        now.getTime() - weekRangeEndDay * 24 * 60 * 60 * 1000,
-      );
-      const weekSortKey = startOfDay(toTZ(weekRangeEnd, timezone)).getTime();
+  return getFutureBucketInfo({
+    now,
+    tzDate,
+    tzNow,
+    sortKey,
+    absDays,
+    timezone,
+  });
+}
 
-      return {
-        label: weeks === 1 ? t`a week ago` : t`${weeks} weeks ago`,
-        sortKey: weekSortKey,
-        precision: "date",
-      };
-    }
+type BucketContext = {
+  now: Date;
+  tzDate: Date;
+  tzNow: Date;
+  sortKey: number;
+  absDays: number;
+  timezone?: string;
+};
 
-    let months = Math.abs(differenceInCalendarMonths(tzDate, tzNow));
-    if (months === 0) {
-      months = 1;
-    }
-    const monthStartKey = startOfMonth(tzDate).getTime();
-    const lastDayInMonthBucket = new Date(
-      now.getTime() - 28 * 24 * 60 * 60 * 1000,
+function getPastBucketInfo({
+  now,
+  tzDate,
+  tzNow,
+  sortKey,
+  absDays,
+  timezone,
+}: BucketContext): {
+  label: string;
+  sortKey: number;
+  precision: TimelinePrecision;
+} {
+  if (absDays <= 6) {
+    return { label: t`${absDays} days ago`, sortKey, precision: "time" };
+  }
+
+  if (absDays <= 27) {
+    const weeks = Math.max(1, Math.round(absDays / 7));
+    const weekRangeEndDay = Math.max(7, weeks * 7 - 3);
+    const weekRangeEnd = new Date(
+      now.getTime() - weekRangeEndDay * 24 * 60 * 60 * 1000,
     );
-    const lastDayKey = startOfDay(
-      toTZ(lastDayInMonthBucket, timezone),
-    ).getTime();
-    const monthSortKey = Math.min(monthStartKey, lastDayKey);
+    const weekSortKey = startOfDay(toTZ(weekRangeEnd, timezone)).getTime();
+
     return {
-      label: months === 1 ? t`a month ago` : t`${months} months ago`,
-      sortKey: monthSortKey,
+      label: weeks === 1 ? t`a week ago` : t`${weeks} weeks ago`,
+      sortKey: weekSortKey,
       precision: "date",
     };
   }
 
+  const months = Math.max(
+    1,
+    Math.abs(differenceInCalendarMonths(tzDate, tzNow)),
+  );
+  const monthStartKey = startOfMonth(tzDate).getTime();
+  const lastDayInMonthBucket = new Date(
+    now.getTime() - 28 * 24 * 60 * 60 * 1000,
+  );
+  const lastDayKey = startOfDay(toTZ(lastDayInMonthBucket, timezone)).getTime();
+  const monthSortKey = Math.min(monthStartKey, lastDayKey);
+  return {
+    label: months === 1 ? t`a month ago` : t`${months} months ago`,
+    sortKey: monthSortKey,
+    precision: "date",
+  };
+}
+
+function getFutureBucketInfo({
+  now,
+  tzDate,
+  tzNow,
+  sortKey,
+  absDays,
+  timezone,
+}: BucketContext): {
+  label: string;
+  sortKey: number;
+  precision: TimelinePrecision;
+} {
   if (absDays <= 6) {
     return { label: t`in ${absDays} days`, sortKey, precision: "time" };
   }
@@ -181,10 +232,7 @@ export function getBucketInfo(
     };
   }
 
-  let months = differenceInCalendarMonths(tzDate, tzNow);
-  if (months === 0) {
-    months = 1;
-  }
+  const months = Math.max(1, differenceInCalendarMonths(tzDate, tzNow));
   const monthStartKey = startOfMonth(tzDate).getTime();
   const firstDayInMonthBucket = new Date(
     now.getTime() + 28 * 24 * 60 * 60 * 1000,
@@ -407,57 +455,95 @@ export function deriveTimelineWindowData({
     recurrenceSeriesId: string | null | undefined,
   ) => boolean;
 }): TimelineWindowData {
-  const filteredEventsTable = timelineEventsTable
-    ? ({} as Record<string, TimelineEventRow>)
-    : timelineEventsTable;
-  const filteredSessionsTable = timelineSessionsTable
-    ? ({} as Record<string, TimelineSessionRow>)
-    : timelineSessionsTable;
-  let hasMoreFutureItems = false;
-
-  if (timelineSessionsTable && filteredSessionsTable) {
-    for (const [sessionId, row] of Object.entries(timelineSessionsTable)) {
-      const date = safeParseDate(
-        getSessionEvent(row)?.started_at ?? row.created_at,
-      );
-
-      if (isAfterTomorrow(date, timezone)) {
-        hasMoreFutureItems = true;
-        continue;
-      }
-
-      if (isAtOrBeforeTomorrow(date, timezone)) {
-        filteredSessionsTable[sessionId] = row;
-      }
-    }
-  }
-
-  if (timelineEventsTable && filteredEventsTable) {
-    for (const [eventId, row] of Object.entries(timelineEventsTable)) {
-      if (isUnacceptedEvent(row)) continue;
-      const ignored =
-        !showIgnored &&
-        isEventIgnored(row.tracking_id_event, row.recurrence_series_id);
-      const date = safeParseDate(row.started_at) ?? safeParseDate(row.ended_at);
-
-      if (isAfterTomorrow(date, timezone)) {
-        if (!ignored) {
-          hasMoreFutureItems = true;
-        }
-        continue;
-      }
-
-      if (!ignored && isAtOrBeforeTomorrow(date, timezone)) {
-        filteredEventsTable[eventId] = row;
-      }
-    }
-  }
+  const sessions = timelineSessionsTable
+    ? partitionSessionsByTomorrow(timelineSessionsTable, timezone)
+    : null;
+  const events = timelineEventsTable
+    ? partitionEventsByTomorrow({
+        timelineEventsTable,
+        timezone,
+        showIgnored,
+        isEventIgnored,
+      })
+    : null;
 
   return {
-    timelineEventsTable: filteredEventsTable,
-    timelineSessionsTable: filteredSessionsTable,
-    hasMoreFutureItems,
+    timelineEventsTable: events ? events.kept : timelineEventsTable,
+    timelineSessionsTable: sessions ? sessions.kept : timelineSessionsTable,
+    hasMoreFutureItems:
+      (sessions?.hasMoreFutureItems ?? false) ||
+      (events?.hasMoreFutureItems ?? false),
   };
+}
+
+function partitionSessionsByTomorrow(
+  timelineSessionsTable: Record<string, TimelineSessionRow>,
+  timezone?: string,
+): {
+  kept: Record<string, TimelineSessionRow>;
+  hasMoreFutureItems: boolean;
+} {
+  const kept: Record<string, TimelineSessionRow> = {};
+  let hasMoreFutureItems = false;
+
+  for (const [sessionId, row] of Object.entries(timelineSessionsTable)) {
+    const date = safeParseDate(
+      getSessionEvent(row)?.started_at ?? row.created_at,
+    );
+
+    if (isAfterTomorrow(date, timezone)) {
+      hasMoreFutureItems = true;
+      continue;
+    }
+
+    if (isAtOrBeforeTomorrow(date, timezone)) {
+      kept[sessionId] = row;
+    }
+  }
+
+  return { kept, hasMoreFutureItems };
+}
+
+function partitionEventsByTomorrow({
+  timelineEventsTable,
+  timezone,
+  showIgnored,
+  isEventIgnored,
+}: {
+  timelineEventsTable: Record<string, TimelineEventRow>;
+  timezone?: string;
+  showIgnored: boolean;
+  isEventIgnored: (
+    trackingId: string | null | undefined,
+    recurrenceSeriesId: string | null | undefined,
+  ) => boolean;
+}): {
+  kept: Record<string, TimelineEventRow>;
+  hasMoreFutureItems: boolean;
+} {
+  const kept: Record<string, TimelineEventRow> = {};
+  let hasMoreFutureItems = false;
+
+  for (const [eventId, row] of Object.entries(timelineEventsTable)) {
+    if (isUnacceptedEvent(row)) continue;
+    const ignored =
+      !showIgnored &&
+      isEventIgnored(row.tracking_id_event, row.recurrence_series_id);
+    const date = safeParseDate(row.started_at) ?? safeParseDate(row.ended_at);
+
+    if (isAfterTomorrow(date, timezone)) {
+      if (!ignored) {
+        hasMoreFutureItems = true;
+      }
+      continue;
+    }
+
+    if (!ignored && isAtOrBeforeTomorrow(date, timezone)) {
+      kept[eventId] = row;
+    }
+  }
+
+  return { kept, hasMoreFutureItems };
 }
 
 export function hasTimelineItemsAfterTomorrow({
