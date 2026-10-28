@@ -547,5 +547,16 @@ function parseTimestamp(value: string) {
 }
 
 function stripCaptionMarkup(value: string) {
-  return value.replace(/<[^>]+>/gu, "").trim();
+  // Suppression itérée jusqu'à stabilisation : une passe unique permettrait de
+  // reconstituer une balise à partir des fragments restants (« <<x>script> »
+  // deviendrait « <script> » après retrait de « <x> »).
+  let sanitized = value;
+  let previous: string;
+  do {
+    previous = sanitized;
+    sanitized = previous.replace(/<[^>]*>/gu, "");
+  } while (sanitized !== previous);
+  // Neutralise les chevrons non appariés restants (ex. « <script » sans « > »),
+  // pour qu'aucune séquence « <script » ne puisse subsister dans le texte importé.
+  return sanitized.replace(/[<>]/gu, "").trim();
 }
