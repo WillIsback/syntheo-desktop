@@ -32,6 +32,7 @@ internal
 
 # Agent scratch / reference material (not for commit)
 .tmp/
+.worktrees/
 .changelog-hmr-*/
 .codex-security-artifacts-*/
 .codex-security-work-ledger-*.jsonl

@@ -16,6 +16,13 @@ updates:
     groups:
       npm-minor-patch:
         update-types: ["minor", "patch"]
+    # Avis sans version corrigée publiée ou bloqués par une contrainte amont.
+    # Voir .github/security-exceptions.yml (expire le 2027-01-31).
+    ignore:
+      - dependency-name: "node-forge" # aucun correctif publié (patch local)
+      - dependency-name: "extract-zip" # aucun correctif publié (patch local)
+      - dependency-name: "zod"
+        versions: ["3.x"] # correctif uniquement en 4.x, tiré par des tiers
 
   - package-ecosystem: "cargo"
     directory: "/"
@@ -31,6 +38,11 @@ updates:
     groups:
       cargo-minor-patch:
         update-types: ["minor", "patch"]
+    # glib 0.18 est imposé par gtk3-rs / webkit2gtk-4.1 (Tauri).
+    # Voir .github/security-exceptions.yml (expire le 2027-01-31).
+    ignore:
+      - dependency-name: "glib"
+        versions: ["0.18.x"]
 
   - package-ecosystem: "github-actions"
     directories: ["/", "/.github/actions/*"]
