@@ -222,7 +222,7 @@ chrono-tz = "0.10"
 
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 
-vergen-gix = "9"
+vergen-gix = "10"
 
 askama = "0.15"
 askama_parser = "0.15"

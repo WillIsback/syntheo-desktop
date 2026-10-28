@@ -289,16 +289,31 @@ function addDelimitedNames(value: string, addName: (name: string) => void) {
   }
 }
 
+const HTML_ENTITY_REPLACEMENTS: Record<string, string> = {
+  nbsp: " ",
+  amp: "&",
+  lt: "<",
+  gt: ">",
+};
+
+// Décode les entités en une seule passe : les caractères produits (notamment
+// « & ») ne sont jamais relus par une étape de décodage ultérieure, ce qui
+// évite tout double-déchappement (ex. « &amp;lt; » reste « &lt; »).
+function decodeHtmlEntities(value: string): string {
+  return value.replace(/&(?:nbsp|amp|lt|gt);/gi, (match) => {
+    const entity = HTML_ENTITY_REPLACEMENTS[match.slice(1, -1).toLowerCase()];
+    return entity === undefined ? match : entity;
+  });
+}
+
 function stripHtml(value: string): string {
-  return value
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/\u00a0/g, " ");
+  return decodeHtmlEntities(
+    value
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\u00a0/g, " "),
+  );
 }
 
 function normalizeExtractedContacts(

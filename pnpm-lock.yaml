@@ -46,13 +46,13 @@ overrides:
   follow-redirects@<1.16.1: 1.16.1
   form-data@>=4.0.0 <4.0.6: 4.0.6
   hono@<4.13.7: 4.13.7
-  ip-address@<10.7.1: 10.7.1
+  ip-address@<=10.7.3: 10.7.4
   js-yaml@>=4.0.0 <4.3.2: 4.3.2
   katex@>=0.11.0 <0.18.2: 0.18.2
   lodash@<4.18.1: 4.18.1
   mermaid@>=11.0.0 <11.16.1: 11.17.2
   postcss-selector-parser@<7.1.6: 7.1.6
-  serialize-javascript@<7.0.5: 7.0.5
+  serialize-javascript@<7.1.3: 7.1.3
   shell-quote@<1.11.0: 1.11.0
   sharp@<0.35.4: 0.35.4
   source-map-js@>=1.0.0 <1.2.2: 1.2.2
@@ -60,7 +60,7 @@ overrides:
   tinypool@<2.1.2: 2.1.2
   toml@<4.2.0: 4.2.0
   undici@>=6.0.0 <6.29.1: 6.29.1
-  undici@>=7.0.0 <7.29.1: 7.29.1
+  undici@>=7.0.0 <7.30.1: 7.30.1
   uuid@<11.1.1: 11.1.1
   ws@>=8.0.0 <8.21.0: 8.21.0
 
@@ -7163,8 +7163,8 @@ packages:
     resolution: {integrity: sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==}
     engines: {node: '>=12'}
 
-  ip-address@10.7.1:
-    resolution: {integrity: sha512-4OUAqU9Z1i3vCnS05hzGiFnEMDpQ+62pAD/MVQOp83fYyNC8GleCqaS0QikQBmcWCrKFiUs/B8ztRRiYOAXuCA==}
+  ip-address@10.7.4:
+    resolution: {integrity: sha512-DWBMKyeM25D70nrIiTkgQth59/G+naKOTep6huF9j+GmeK3DMD60Zvxg5d5qQnz+38AHgou6ean2LECX+lrKDg==}
     engines: {node: '>= 12'}
 
   is-alphabetical@2.0.1:
@@ -8918,8 +8918,8 @@ packages:
     resolution: {integrity: sha512-ZYkZLAvKTKQXWuh5XpBw7CdbSzagarX39WyZ2H07CDLC5/KfsRGlIXV8d4+tfqX1M7916mRqR1QfNHSij+c9Pw==}
     engines: {node: '>=18'}
 
-  serialize-javascript@7.0.5:
-    resolution: {integrity: sha512-F4LcB0UqUl1zErq+1nYEEzSHJnIwb3AF2XWB94b+afhrekOUijwooAYqFyRbjYkm2PAKBabx6oYv/xDxNi8IBw==}
+  serialize-javascript@7.1.3:
+    resolution: {integrity: sha512-kYEnegpAxWFjUw3dSYdSM9zVlTrsxDbsSkq/qd3B7VanqyJ+JdDy6qVyuqVGBhSfuD/rLZQEKuXsO5KZFCrVYQ==}
     engines: {node: '>=20.0.0'}
 
   seroval-plugins@1.6.8:
@@ -9396,8 +9396,8 @@ packages:
     resolution: {integrity: sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA==}
     engines: {node: '>=18.17'}
 
-  undici@7.29.1:
-    resolution: {integrity: sha512-RYONW2MeafgYlkVOKYKkA/Ag7BmXqgIWCa8t1m0JcxrQg9pI9lEqRhAOruOBCbAohOa/gkCF+iPi9hrgvTzu6Q==}
+  undici@7.30.1:
+    resolution: {integrity: sha512-03KrMbjIFDWQR5RNPrSw3bd1r12JpyFQl9/yxjUbJtqkjmllqC5lFjZh6ujeuJCKr8EOQvRW872Oy/az+nLYxg==}
     engines: {node: '>=20.18.1'}
 
   undici@8.12.3:
@@ -14526,7 +14526,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 7.29.1
+      undici: 7.30.1
       whatwg-mimetype: 4.0.0
 
   chokidar@3.6.0:
@@ -16003,7 +16003,7 @@ snapshots:
 
   internmap@2.0.3: {}
 
-  ip-address@10.7.1: {}
+  ip-address@10.7.4: {}
 
   is-alphabetical@2.0.1: {}
 
@@ -17136,7 +17136,7 @@ snapshots:
       log-symbols: 4.1.0
       minimatch: 5.1.9
       ms: 2.1.3
-      serialize-javascript: 7.0.5
+      serialize-javascript: 7.1.3
       strip-json-comments: 3.1.1
       supports-color: 8.1.1
       workerpool: 6.5.1
@@ -18420,7 +18420,7 @@ snapshots:
     dependencies:
       type-fest: 4.41.0
 
-  serialize-javascript@7.0.5: {}
+  serialize-javascript@7.1.3: {}
 
   seroval-plugins@1.6.8(seroval@1.6.8):
     dependencies:
@@ -18498,7 +18498,7 @@ snapshots:
 
   socks@2.8.7:
     dependencies:
-      ip-address: 10.7.1
+      ip-address: 10.7.4
       smart-buffer: 4.2.0
 
   source-map-js@1.2.2: {}
@@ -18870,7 +18870,7 @@ snapshots:
 
   undici@6.29.1: {}
 
-  undici@7.29.1: {}
+  undici@7.30.1: {}
 
   undici@8.12.3: {}
 

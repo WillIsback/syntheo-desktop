@@ -55,7 +55,7 @@ export function serializeMarkdownImage({
   alt,
   title,
   editorWidth,
-  escapeAlt = (value) => value.replace(/]/g, "\\]"),
+  escapeAlt = (value) => value.replace(/\\/g, "\\\\").replace(/]/g, "\\]"),
 }: {
   src?: string | null;
   alt?: string | null;
@@ -64,10 +64,12 @@ export function serializeMarkdownImage({
   escapeAlt?: (value: string) => string;
 }) {
   const escapedAlt = escapeAlt(alt || "");
-  const escapedSrc = src ? src.replace(/[()]/g, "\\$&") : "";
+  const escapedSrc = src
+    ? src.replace(/\\/g, "\\\\").replace(/[()]/g, "\\$&")
+    : "";
   const metadataTitle = serializeImageTitleMetadata({ editorWidth, title });
   const titlePart = metadataTitle
-    ? ` "${metadataTitle.replace(/"/g, '\\"')}"`
+    ? ` "${metadataTitle.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
     : "";
 
   return `![${escapedAlt}](${escapedSrc}${titlePart})`;
