@@ -21,7 +21,7 @@
     "node-forge": "1.4.0",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
-    "oxlint-tsgolint": "^0.21.1",
+    "oxlint-tsgolint": "^7.0.2005",
     "sprintf-js": "1.0.3",
     "turbo": "2.9.14",
     "typescript-eslint": "^8.58.1"

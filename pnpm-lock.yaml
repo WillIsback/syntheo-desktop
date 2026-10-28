@@ -109,10 +109,10 @@ importers:
         version: 0.45.0
       oxlint:
         specifier: ^1.60.0
-        version: 1.60.0(oxlint-tsgolint@0.21.1)
+        version: 1.60.0(oxlint-tsgolint@7.0.2005)
       oxlint-tsgolint:
-        specifier: ^0.21.1
-        version: 0.21.1
+        specifier: ^7.0.2005
+        version: 7.0.2005
       sprintf-js:
         specifier: 1.0.3
         version: 1.0.3(patch_hash=6fa2a63960c99febab49eb5f19aad4829d1cfaef2713f357a7115887dc768e0b)
@@ -370,7 +370,7 @@ importers:
         version: 4.6.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       react-scan:
         specifier: 0.5.7
-        version: 0.5.7(patch_hash=040b19ffe77a486ebd4ebf4ad8292c3e4b0f8266b6ae4f97c6459efd8058a365)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.10.0))(eslint@9.39.5(jiti@2.7.0))(oxlint-tsgolint@0.21.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(rolldown@1.1.5)(vite@8.1.6(@types/node@24.12.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.21.0)(yaml@2.9.1))
+        version: 0.5.7(patch_hash=040b19ffe77a486ebd4ebf4ad8292c3e4b0f8266b6ae4f97c6459efd8058a365)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.10.0))(eslint@9.39.5(jiti@2.7.0))(oxlint-tsgolint@7.0.2005)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(rolldown@1.1.5)(vite@8.1.6(@types/node@24.12.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.21.0)(yaml@2.9.1))
       retext-english:
         specifier: ^5.0.0
         version: 5.0.0
@@ -3024,33 +3024,33 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@oxlint-tsgolint/darwin-arm64@0.21.1':
-    resolution: {integrity: sha512-7TLjyWe4wG9saJc992VWmaHq2hwKfOEEVTjheReXJXaDhavMZI4X9a6nKhbEng4IVkYtzjD2jw16vw2WFXLYLw==}
+  '@oxlint-tsgolint/darwin-arm64@7.0.2005':
+    resolution: {integrity: sha512-VqDZxcZVjlonNLuuvraVNgDQt+1ndwa4yJo8OqsK4HYh/61ba9IlMStCVfi/aaIqRoDhNbAKC8gdcTrXqnb+Ug==}
     cpu: [arm64]
     os: [darwin]
 
-  '@oxlint-tsgolint/darwin-x64@0.21.1':
-    resolution: {integrity: sha512-7wf9Wf75nTzA7zpL9myhFe2RKvfuqGUOADNvUooCjEWvh7hmPz3lSEqTMh5Z/VQhzsG04mM9ACyghxhRzq7zFw==}
+  '@oxlint-tsgolint/darwin-x64@7.0.2005':
+    resolution: {integrity: sha512-4kUfLRNYoVpv0Tm3jPYrvxyfOc/LmdvFC3pKZ4tL6K7lA7K/VS81SAtmxRzbYXYSyb3SBWhwsuX+df4neqzxxA==}
     cpu: [x64]
     os: [darwin]
 
-  '@oxlint-tsgolint/linux-arm64@0.21.1':
-    resolution: {integrity: sha512-IPuQN/Vd0Rjklg/cCGBbQyUuRBp2f6LQXpZYwk5ivOR6V/+CgiYsv8pn/PVY7gjeyoNvPQrXB7xMjHUO2YZbdw==}
+  '@oxlint-tsgolint/linux-arm64@7.0.2005':
+    resolution: {integrity: sha512-rhUNcPsBlKvhXtrbhbBUidtRBRdJ8fbEHN9H5Q5N59gby18ruGuDA7KUxl7oRnUzp797uykYQhkBDm+0KpfK/Q==}
     cpu: [arm64]
     os: [linux]
 
-  '@oxlint-tsgolint/linux-x64@0.21.1':
-    resolution: {integrity: sha512-d1niGuTbh2qiv7dR7tqkbOcM5cIR63of0lMBFdEQavL1KrJV8zuRdwdi68K7MNGdgoR+J5A9ajpGGvsHwp1bPg==}
+  '@oxlint-tsgolint/linux-x64@7.0.2005':
+    resolution: {integrity: sha512-tKs9yinDQZOHygM0e8EJnjTU3mzJtdfkOZP6Udu82iLMePUSHOhTJ9zzU/mSd1hQxURI4LTRRiFhfzC+PzwdNA==}
     cpu: [x64]
     os: [linux]
 
-  '@oxlint-tsgolint/win32-arm64@0.21.1':
-    resolution: {integrity: sha512-ICu9y2JLnFPvFqstnWPPNqBM8LK8BWw2OTeaR0UgEMm4hOSbrZAKv1/hwZYyiLqnCNjBL87AGSQIgTHCYlsipw==}
+  '@oxlint-tsgolint/win32-arm64@7.0.2005':
+    resolution: {integrity: sha512-VYPnu1gjfbSv+ROhuyNfMs382D4zQU2ZRc8Uc3nuEZo1k2kf+1KfTrg4hrlWh73h9GI+dUWyo+DYCQzUBlPwcQ==}
     cpu: [arm64]
     os: [win32]
 
-  '@oxlint-tsgolint/win32-x64@0.21.1':
-    resolution: {integrity: sha512-cTEFCFjCj6iXfrSHcvajSPNqhEA4TxSzU3gFxbdGSAUTNXGToU99IbdhWAPSbhcucoym0XE4Zl7E41NiSkNTug==}
+  '@oxlint-tsgolint/win32-x64@7.0.2005':
+    resolution: {integrity: sha512-ekU89cTGy9fpQzuvxIsFHrnoP8XoFjGIRgPEW6eqgY2NYjGy9pwpjF79o04WXRMJFKRrcaVqkZXUUBdLsqpQDw==}
     cpu: [x64]
     os: [win32]
 
@@ -8186,8 +8186,8 @@ packages:
     resolution: {integrity: sha512-1mfeb/jzXnduWOZJxrvdJjvKT0pFNKrNFYcPO4ncpFAnfW41M0mLz/23lAFzHb0knNLYayEgIQ5DjI4ZfFe+DQ==}
     engines: {node: ^20.19.0 || >=22.13.0}
 
-  oxlint-tsgolint@0.21.1:
-    resolution: {integrity: sha512-O2hxiT14C2HJkwzBU6CQBFPoagSd/IcV+Tt3e3UUaXFwbW4BO5DSDPSSboc3UM5MIDY+MLyepvtQwBQafNxWdw==}
+  oxlint-tsgolint@7.0.2005:
+    resolution: {integrity: sha512-6ccPGu4u4J9bwYPHXBFPee3RZrX3BboRdU7k14zRDDB1lvN3O7J/vPRFdaEfa1+CWx4xnQQOp4ctoaF66oO0uw==}
     hasBin: true
 
   oxlint@1.60.0:
@@ -11734,22 +11734,22 @@ snapshots:
   '@oxfmt/binding-win32-x64-msvc@0.45.0':
     optional: true
 
-  '@oxlint-tsgolint/darwin-arm64@0.21.1':
+  '@oxlint-tsgolint/darwin-arm64@7.0.2005':
     optional: true
 
-  '@oxlint-tsgolint/darwin-x64@0.21.1':
+  '@oxlint-tsgolint/darwin-x64@7.0.2005':
     optional: true
 
-  '@oxlint-tsgolint/linux-arm64@0.21.1':
+  '@oxlint-tsgolint/linux-arm64@7.0.2005':
     optional: true
 
-  '@oxlint-tsgolint/linux-x64@0.21.1':
+  '@oxlint-tsgolint/linux-x64@7.0.2005':
     optional: true
 
-  '@oxlint-tsgolint/win32-arm64@0.21.1':
+  '@oxlint-tsgolint/win32-arm64@7.0.2005':
     optional: true
 
-  '@oxlint-tsgolint/win32-x64@0.21.1':
+  '@oxlint-tsgolint/win32-x64@7.0.2005':
     optional: true
 
   '@oxlint/binding-android-arm-eabi@1.60.0':
@@ -17537,16 +17537,16 @@ snapshots:
       lightningcss: 1.30.1
       oxc-parser: 0.148.0
 
-  oxlint-tsgolint@0.21.1:
+  oxlint-tsgolint@7.0.2005:
     optionalDependencies:
-      '@oxlint-tsgolint/darwin-arm64': 0.21.1
-      '@oxlint-tsgolint/darwin-x64': 0.21.1
-      '@oxlint-tsgolint/linux-arm64': 0.21.1
-      '@oxlint-tsgolint/linux-x64': 0.21.1
-      '@oxlint-tsgolint/win32-arm64': 0.21.1
-      '@oxlint-tsgolint/win32-x64': 0.21.1
+      '@oxlint-tsgolint/darwin-arm64': 7.0.2005
+      '@oxlint-tsgolint/darwin-x64': 7.0.2005
+      '@oxlint-tsgolint/linux-arm64': 7.0.2005
+      '@oxlint-tsgolint/linux-x64': 7.0.2005
+      '@oxlint-tsgolint/win32-arm64': 7.0.2005
+      '@oxlint-tsgolint/win32-x64': 7.0.2005
 
-  oxlint@1.60.0(oxlint-tsgolint@0.21.1):
+  oxlint@1.60.0(oxlint-tsgolint@7.0.2005):
     optionalDependencies:
       '@oxlint/binding-android-arm-eabi': 1.60.0
       '@oxlint/binding-android-arm64': 1.60.0
@@ -17567,9 +17567,9 @@ snapshots:
       '@oxlint/binding-win32-arm64-msvc': 1.60.0
       '@oxlint/binding-win32-ia32-msvc': 1.60.0
       '@oxlint/binding-win32-x64-msvc': 1.60.0
-      oxlint-tsgolint: 0.21.1
+      oxlint-tsgolint: 7.0.2005
 
-  oxlint@1.81.0(oxlint-tsgolint@0.21.1):
+  oxlint@1.81.0(oxlint-tsgolint@7.0.2005):
     optionalDependencies:
       '@oxlint/binding-android-arm-eabi': 1.81.0
       '@oxlint/binding-android-arm64': 1.81.0
@@ -17590,7 +17590,7 @@ snapshots:
       '@oxlint/binding-win32-arm64-msvc': 1.81.0
       '@oxlint/binding-win32-ia32-msvc': 1.81.0
       '@oxlint/binding-win32-x64-msvc': 1.81.0
-      oxlint-tsgolint: 0.21.1
+      oxlint-tsgolint: 7.0.2005
 
   p-limit@3.1.0:
     dependencies:
@@ -18046,7 +18046,7 @@ snapshots:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
 
-  react-doctor@0.9.18(@opentelemetry/core@2.8.0(@opentelemetry/api@1.10.0))(eslint@9.39.5(jiti@2.7.0))(oxlint-tsgolint@0.21.1)(react@19.2.5):
+  react-doctor@0.9.18(@opentelemetry/core@2.8.0(@opentelemetry/api@1.10.0))(eslint@9.39.5(jiti@2.7.0))(oxlint-tsgolint@7.0.2005)(react@19.2.5):
     dependencies:
       '@astrojs/compiler': 4.0.0
       '@sentry/node': 10.76.2(@opentelemetry/core@2.8.0(@opentelemetry/api@1.10.0))
@@ -18060,7 +18060,7 @@ snapshots:
       magicast: 0.5.5
       oxc-parser: 0.148.0
       oxc-resolver: 11.24.2
-      oxlint: 1.81.0(oxlint-tsgolint@0.21.1)
+      oxlint: 1.81.0(oxlint-tsgolint@7.0.2005)
       oxlint-plugin-react-doctor: 0.9.18
       playwright-core: 1.64.1
       prompts: 2.4.2
@@ -18200,7 +18200,7 @@ snapshots:
       react-draggable: 4.7.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       tslib: 2.6.2
 
-  react-scan@0.5.7(patch_hash=040b19ffe77a486ebd4ebf4ad8292c3e4b0f8266b6ae4f97c6459efd8058a365)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.10.0))(eslint@9.39.5(jiti@2.7.0))(oxlint-tsgolint@0.21.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(rolldown@1.1.5)(vite@8.1.6(@types/node@24.12.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.21.0)(yaml@2.9.1)):
+  react-scan@0.5.7(patch_hash=040b19ffe77a486ebd4ebf4ad8292c3e4b0f8266b6ae4f97c6459efd8058a365)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.10.0))(eslint@9.39.5(jiti@2.7.0))(oxlint-tsgolint@7.0.2005)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(rolldown@1.1.5)(vite@8.1.6(@types/node@24.12.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.21.0)(yaml@2.9.1)):
     dependencies:
       '@babel/core': 7.29.7
       '@babel/types': 7.29.8
@@ -18212,7 +18212,7 @@ snapshots:
       preact: 10.29.1
       prompts: 2.4.2
       react: 19.2.5
-      react-doctor: 0.9.18(@opentelemetry/core@2.8.0(@opentelemetry/api@1.10.0))(eslint@9.39.5(jiti@2.7.0))(oxlint-tsgolint@0.21.1)(react@19.2.5)
+      react-doctor: 0.9.18(@opentelemetry/core@2.8.0(@opentelemetry/api@1.10.0))(eslint@9.39.5(jiti@2.7.0))(oxlint-tsgolint@7.0.2005)(react@19.2.5)
       react-dom: 19.2.5(react@19.2.5)
       react-grab: 0.2.0(react@19.2.5)
     optionalDependencies:
