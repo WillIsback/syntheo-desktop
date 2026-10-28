@@ -67,6 +67,82 @@ async function loadMeetingFolder(meetingId: string) {
   return rows[0];
 }
 
+type MoveMeetingResult = {
+  meeting_id: string;
+  title?: string;
+  previous_folder_path?: string;
+  status: "moved" | "unchanged" | "error";
+  message?: string;
+};
+
+async function applyMoveToFolder(
+  meetingId: string,
+  path: string,
+  abortSignal?: AbortSignal,
+): Promise<MoveMeetingResult> {
+  abortSignal?.throwIfAborted();
+  const meeting = await loadMeetingFolder(meetingId);
+  if (!meeting) {
+    return {
+      meeting_id: meetingId,
+      status: "error",
+      message: "Meeting not found or deleted",
+    };
+  }
+
+  const unchanged = normalizeFolderPath(meeting.folder_path) === path;
+  if (!unchanged) {
+    abortSignal?.throwIfAborted();
+    await updateSession(meetingId, { folder_id: path });
+    const updated = await loadMeetingFolder(meetingId);
+    if (!updated || updated.folder_path !== path) {
+      throw new Error("Meeting folder assignment could not be verified");
+    }
+  }
+  return {
+    meeting_id: meetingId,
+    title: meeting.title,
+    previous_folder_path: meeting.folder_path,
+    status: unchanged ? "unchanged" : "moved",
+  };
+}
+
+async function moveMeetingToFolder(
+  meetingId: string,
+  path: string,
+  abortSignal?: AbortSignal,
+): Promise<MoveMeetingResult> {
+  try {
+    return await applyMoveToFolder(meetingId, path, abortSignal);
+  } catch (error) {
+    return {
+      meeting_id: meetingId,
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+function countByStatus(
+  results: MoveMeetingResult[],
+  status: MoveMeetingResult["status"],
+): number {
+  return results.filter((result) => result.status === status).length;
+}
+
+function summarizeMoveStatus(
+  failed: number,
+  total: number,
+): "ok" | "error" | "partial" {
+  if (failed === 0) {
+    return "ok";
+  }
+  if (failed === total) {
+    return "error";
+  }
+  return "partial";
+}
+
 export const buildMoveMeetingsToFolderTool = () =>
   tool({
     description:
@@ -87,70 +163,26 @@ export const buildMoveMeetingsToFolderTool = () =>
           status: "error" as const,
           message:
             "Destination folder does not exist. Use list_folders or create_folder first.",
-          results: [],
+          results: [] as MoveMeetingResult[],
         };
       }
 
-      const results: Array<{
-        meeting_id: string;
-        title?: string;
-        previous_folder_path?: string;
-        status: "moved" | "unchanged" | "error";
-        message?: string;
-      }> = [];
-      for (const meetingId of new Set(meeting_ids)) {
-        try {
-          abortSignal?.throwIfAborted();
-          const meeting = await loadMeetingFolder(meetingId);
-          if (!meeting) {
-            results.push({
-              meeting_id: meetingId,
-              status: "error",
-              message: "Meeting not found or deleted",
-            });
-            continue;
-          }
-
-          const unchanged = normalizeFolderPath(meeting.folder_path) === path;
-          if (!unchanged) {
-            abortSignal?.throwIfAborted();
-            await updateSession(meetingId, { folder_id: path });
-            const updated = await loadMeetingFolder(meetingId);
-            if (!updated || updated.folder_path !== path) {
-              throw new Error(
-                "Meeting folder assignment could not be verified",
-              );
-            }
-          }
-          results.push({
-            meeting_id: meetingId,
-            title: meeting.title,
-            previous_folder_path: meeting.folder_path,
-            status: unchanged ? "unchanged" : "moved",
-          });
-        } catch (error) {
-          results.push({
-            meeting_id: meetingId,
-            status: "error",
-            message: error instanceof Error ? error.message : String(error),
-          });
-        }
-      }
-
-      const failed = results.filter(
-        (result) => result.status === "error",
-      ).length;
+      const results = await Array.from(new Set(meeting_ids)).reduce(
+        async (previous, meetingId) => {
+          const accumulated = await previous;
+          accumulated.push(
+            await moveMeetingToFolder(meetingId, path, abortSignal),
+          );
+          return accumulated;
+        },
+        Promise.resolve([] as MoveMeetingResult[]),
+      );
+      const failed = countByStatus(results, "error");
       return {
-        status:
-          failed === 0
-            ? ("ok" as const)
-            : failed === results.length
-              ? ("error" as const)
-              : ("partial" as const),
+        status: summarizeMoveStatus(failed, results.length),
         folder_path: path,
-        moved: results.filter((result) => result.status === "moved").length,
-        unchanged: results.filter((result) => result.status === "unchanged")
-          .length,
+        moved: countByStatus(results, "moved"),
+        unchanged: countByStatus(results, "unchanged"),
         failed,
         results,
       };
