@@ -22,10 +22,13 @@ export async function extractPdfText(
     return null;
   }
 
-  const chunks: string[] = [];
+  const streams = collectPdfStreams(data).slice(0, MAX_STREAMS);
+  const decoded = await Promise.all(
+    streams.map((stream) => decodePdfStream(stream)),
+  );
 
-  for (const stream of collectPdfStreams(data).slice(0, MAX_STREAMS)) {
-    const content = await decodePdfStream(stream);
+  const chunks: string[] = [];
+  for (const content of decoded) {
     if (!content) {
       continue;
     }
@@ -35,10 +38,7 @@ export async function extractPdfText(
     }
   }
 
-  const joined = chunks
-    .join("\n")
-    .replace(/[ \t]+\n/g, "\n")
-    .trim();
+  const joined = normalizePdfText(chunks.join("\n"));
   return joined || null;
 }
 
@@ -46,6 +46,27 @@ type PdfStream = {
   dictionary: string;
   data: Uint8Array;
 };
+
+type PdfToken = {
+  value: string;
+  end: number;
+};
+
+function normalizePdfText(text: string): string {
+  return text
+    .split("\n")
+    .map((line) => trimSpacesAndTabs(line))
+    .join("\n")
+    .trim();
+}
+
+function trimSpacesAndTabs(line: string): string {
+  let end = line.length;
+  while (end > 0 && (line[end - 1] === " " || line[end - 1] === "\t")) {
+    end -= 1;
+  }
+  return line.slice(0, end);
+}
 
 function collectPdfStreams(bytes: Uint8Array): PdfStream[] {
   const source = latin1Decode(bytes);
@@ -81,20 +102,18 @@ function pdfStreamByteLength(
   dictionary: string,
   source: string,
 ): number | null {
-  const indirect = dictionary.match(/\/Length\s+(\d+)\s+(\d+)\s+R\b/);
+  const indirect = /\/Length\s+(\d+)\s+(\d+)\s+R\b/.exec(dictionary);
   if (indirect) {
     const objectId = indirect[1] ?? "";
     const generation = indirect[2] ?? "0";
-    const object = source.match(
-      new RegExp(
-        `(?:^|\\s)${objectId}\\s+${generation}\\s+obj\\s+(\\d+)\\s+endobj`,
-      ),
-    );
+    const object = new RegExp(
+      String.raw`(?:^|\s)${objectId}\s+${generation}\s+obj\s+(\d+)\s+endobj`,
+    ).exec(source);
     const resolved = Number(object?.[1]);
     return Number.isFinite(resolved) ? resolved : null;
   }
 
-  const direct = dictionary.match(/\/Length\s+(\d+)(?!\s+\d+\s+R\b)/);
+  const direct = /\/Length\s+(\d+)(?!\s+\d+\s+R\b)/.exec(dictionary);
   const declared = Number(direct?.[1]);
   return Number.isFinite(declared) ? declared : null;
 }
@@ -161,59 +180,55 @@ function extractPdfOperators(content: string): string {
   let index = 0;
 
   while (index < content.length) {
-    const char = content[index];
-    if (char === "(") {
-      const parsed = readPdfLiteral(content, index);
-      if (!parsed) {
-        index += 1;
-        continue;
-      }
-      index = parsed.end;
-      if (isPdfShowOperator(content, index)) {
-        parts.push(parsed.value);
-      }
+    const operand = readPdfOperand(content, index);
+    if (!operand) {
+      index += 1;
       continue;
     }
-
-    if (char === "<" && content[index + 1] !== "<") {
-      const parsed = readPdfHex(content, index);
-      if (!parsed) {
-        index += 1;
-        continue;
-      }
-      index = parsed.end;
-      if (isPdfShowOperator(content, index)) {
-        parts.push(parsed.value);
-      }
-      continue;
+    index = operand.end;
+    if (operand.text !== null) {
+      parts.push(operand.text);
     }
-
-    if (char === "[") {
-      const parsed = readPdfTjArray(content, index);
-      if (parsed) {
-        index = parsed.end;
-        if (isPdfShowOperator(content, index)) {
-          parts.push(parsed.value);
-        }
-        continue;
-      }
-    }
-
-    index += 1;
   }
 
   return parts.join(" ").replace(/\s+/g, " ").trim();
 }
 
-function isPdfShowOperator(content: string, index: number): boolean {
-  const match = content.slice(index).match(/^\s*(\'|\"|Tj|TJ)/);
-  return match !== null;
+function readPdfOperand(
+  content: string,
+  index: number,
+): { end: number; text: string | null } | null {
+  const parsed = readPdfOperandValue(content, index);
+  if (!parsed) {
+    return null;
+  }
+  return {
+    end: parsed.end,
+    text: isPdfShowOperator(content, parsed.end) ? parsed.value : null,
+  };
 }
 
-function readPdfLiteral(
-  content: string,
-  start: number,
-): { value: string; end: number } | null {
+function readPdfOperandValue(content: string, index: number): PdfToken | null {
+  const char = content[index];
+  if (char === "(") {
+    return readPdfLiteral(content, index);
+  }
+  if (char === "<" && content[index + 1] !== "<") {
+    return readPdfHex(content, index);
+  }
+  if (char === "[") {
+    return readPdfTjArray(content, index);
+  }
+  return null;
+}
+
+const SHOW_OPERATOR_PATTERN = /^\s*('|"|Tj|TJ)/;
+
+function isPdfShowOperator(content: string, index: number): boolean {
+  return SHOW_OPERATOR_PATTERN.exec(content.slice(index)) !== null;
+}
+
+function readPdfLiteral(content: string, start: number): PdfToken | null {
   if (content[start] !== "(") {
     return null;
   }
@@ -227,28 +242,22 @@ function readPdfLiteral(
     if (escaped) {
       value += unescapePdfChar(char);
       escaped = false;
-      continue;
-    }
-    if (char === "\\") {
+    } else if (char === "\\") {
       escaped = true;
-      continue;
-    }
-    if (char === "(") {
+    } else if (char === "(") {
       depth += 1;
       if (depth > 1) {
         value += char;
       }
-      continue;
-    }
-    if (char === ")") {
+    } else if (char === ")") {
       depth -= 1;
       if (depth === 0) {
         return { value, end: index + 1 };
       }
       value += char;
-      continue;
+    } else {
+      value += char;
     }
-    value += char;
   }
 
   return null;
@@ -271,10 +280,7 @@ function unescapePdfChar(char: string): string {
   }
 }
 
-function readPdfHex(
-  content: string,
-  start: number,
-): { value: string; end: number } | null {
+function readPdfHex(content: string, start: number): PdfToken | null {
   if (content[start] !== "<") {
     return null;
   }
@@ -284,27 +290,19 @@ function readPdfHex(
     return null;
   }
 
-  const hex = (content.slice(start + 1, end).replace(/\s+/g, "") + "0").slice(
-    0,
-    content.slice(start + 1, end).replace(/\s+/g, "").length +
-      (content.slice(start + 1, end).replace(/\s+/g, "").length % 2),
-  );
+  const clean = content.slice(start + 1, end).replace(/\s+/g, "");
+  const hex = (clean + "0").slice(0, clean.length + (clean.length % 2));
   let value = "";
   for (let index = 0; index < hex.length; index += 2) {
     const code = Number.parseInt(hex.slice(index, index + 2), 16);
-    if (Number.isFinite(code) && code >= 32 && code < 127) {
-      value += String.fromCharCode(code);
-    } else if (Number.isFinite(code) && code >= 128) {
-      value += String.fromCharCode(code);
+    if (Number.isFinite(code) && code >= 32 && code !== 127) {
+      value += String.fromCodePoint(code);
     }
   }
   return { value, end: end + 1 };
 }
 
-function readPdfTjArray(
-  content: string,
-  start: number,
-): { value: string; end: number } | null {
+function readPdfTjArray(content: string, start: number): PdfToken | null {
   if (content[start] !== "[") {
     return null;
   }
