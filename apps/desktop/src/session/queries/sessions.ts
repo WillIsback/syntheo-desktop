@@ -277,117 +277,148 @@ function previousHeadingsTime(
   return row.updated_at ?? now;
 }
 
+type SqlStatement = { sql: string; params: unknown[] };
+
+function buildSessionUpdateStatement(
+  changes: SessionChanges,
+  sessionId: string,
+  now: string,
+): SqlStatement | undefined {
+  const assignments: string[] = [];
+  const params: unknown[] = [];
+
+  for (const [column, value] of [
+    ["title", changes.title],
+    ["created_at", changes.created_at],
+    ["folder_path", changes.folder_id],
+    ["event_json", changes.event_json],
+    [
+      "locked",
+      changes.locked === undefined ? undefined : Number(changes.locked),
+    ],
+  ] as const) {
+    if (value === undefined) continue;
+    assignments.push(`${column} = ?`);
+    params.push(value);
+  }
+
+  if (assignments.length === 0) return undefined;
+  return {
+    sql: `
+      UPDATE sessions
+      SET ${assignments.join(", ")}, updated_at = ?
+      WHERE id = ? AND deleted_at IS NULL
+    `,
+    params: [...params, now, sessionId],
+  };
+}
+
+type NoteDocumentRow = {
+  generation_metadata_json: string;
+  updated_at: string;
+  body: string;
+  body_format: string;
+};
+
+async function computeNoteMetadata(
+  sessionId: string,
+  changes: SessionChanges,
+  rawMd: string,
+  now: string,
+): Promise<string | undefined> {
+  const existing =
+    (await liveQueryClient.execute<NoteDocumentRow>(
+      `SELECT generation_metadata_json, updated_at, body, body_format FROM session_documents WHERE id = ? AND kind = 'note'`,
+      [sessionId],
+    )) ?? [];
+  const metadata = parseJsonRecord(existing[0]?.generation_metadata_json);
+  let changed = false;
+  if (changes.raw_template_snapshot !== undefined) {
+    metadata.appliedTemplate = changes.raw_template_snapshot;
+    changed = true;
+  }
+  const headingsKey = extractBodyHeadingsKey(rawMd);
+  if (headingsKey !== null) {
+    const stored = metadata.headings as
+      | { key?: unknown; updatedAt?: unknown }
+      | undefined;
+    if (stored?.key !== headingsKey) {
+      metadata.headings = {
+        key: headingsKey,
+        updatedAt:
+          stored?.key === undefined
+            ? previousHeadingsTime(existing[0], headingsKey, now)
+            : now,
+      };
+      changed = true;
+    }
+  }
+  return changed ? JSON.stringify(metadata) : undefined;
+}
+
+function buildNoteUpsertStatement(
+  sessionId: string,
+  changes: SessionChanges,
+  rawMd: string,
+  now: string,
+): SqlStatement {
+  const hasTemplateChange = changes.raw_template_id !== undefined;
+  return {
+    sql: `
+      INSERT INTO session_documents (
+        id, workspace_id, session_id, kind, template_id, body_format, body,
+        created_by, updated_by, created_at, updated_at, deleted_at
+      )
+      SELECT ?, workspace_id, id, 'note', ?, 'prosemirror_json', ?,
+        owner_user_id, owner_user_id, ?, ?, NULL
+      FROM sessions
+      WHERE id = ? AND deleted_at IS NULL
+      ON CONFLICT(id) DO UPDATE SET
+        ${hasTemplateChange ? "template_id = excluded.template_id," : ""}
+        body_format = excluded.body_format,
+        body = excluded.body,
+        updated_by = excluded.updated_by,
+        updated_at = excluded.updated_at,
+        deleted_at = NULL
+    `,
+    params: [
+      sessionId,
+      changes.raw_template_id ?? "",
+      rawMd,
+      now,
+      now,
+      sessionId,
+    ],
+  };
+}
+
 export function updateSession(
   sessionId: string,
   changes: SessionChanges,
 ): Promise<void> {
   return enqueueDatabaseWrite(`session:${sessionId}`, async () => {
     const now = new Date().toISOString();
-    const assignments: string[] = [];
-    const params: unknown[] = [];
+    const statements: SqlStatement[] = [];
 
-    for (const [column, value] of [
-      ["title", changes.title],
-      ["created_at", changes.created_at],
-      ["folder_path", changes.folder_id],
-      ["event_json", changes.event_json],
-      [
-        "locked",
-        changes.locked === undefined ? undefined : Number(changes.locked),
-      ],
-    ] as const) {
-      if (value === undefined) continue;
-      assignments.push(`${column} = ?`);
-      params.push(value);
-    }
-
-    const statements: Array<{ sql: string; params: unknown[] }> = [];
-    if (assignments.length > 0) {
-      statements.push({
-        sql: `
-          UPDATE sessions
-          SET ${assignments.join(", ")}, updated_at = ?
-          WHERE id = ? AND deleted_at IS NULL
-        `,
-        params: [...params, now, sessionId],
-      });
-    }
-
-    let noteMetadata: string | undefined;
-    if (changes.raw_md !== undefined) {
-      const existing =
-        (await liveQueryClient.execute<{
-          generation_metadata_json: string;
-          updated_at: string;
-          body: string;
-          body_format: string;
-        }>(
-          `SELECT generation_metadata_json, updated_at, body, body_format FROM session_documents WHERE id = ? AND kind = 'note'`,
-          [sessionId],
-        )) ?? [];
-      const metadata = parseJsonRecord(existing[0]?.generation_metadata_json);
-      let changed = false;
-      if (changes.raw_template_snapshot !== undefined) {
-        metadata.appliedTemplate = changes.raw_template_snapshot;
-        changed = true;
-      }
-      const headingsKey = extractBodyHeadingsKey(changes.raw_md);
-      if (headingsKey !== null) {
-        const stored = metadata.headings as
-          | { key?: unknown; updatedAt?: unknown }
-          | undefined;
-        if (stored?.key !== headingsKey) {
-          metadata.headings = {
-            key: headingsKey,
-            updatedAt:
-              stored?.key === undefined
-                ? previousHeadingsTime(existing[0], headingsKey, now)
-                : now,
-          };
-          changed = true;
-        }
-      }
-      if (changed) {
-        noteMetadata = JSON.stringify(metadata);
-      }
-    }
+    const sessionUpdate = buildSessionUpdateStatement(changes, sessionId, now);
+    if (sessionUpdate) statements.push(sessionUpdate);
 
     if (changes.raw_md !== undefined) {
-      const hasTemplateChange = changes.raw_template_id !== undefined;
-      statements.push({
-        sql: `
-          INSERT INTO session_documents (
-            id, workspace_id, session_id, kind, template_id, body_format, body,
-            created_by, updated_by, created_at, updated_at, deleted_at
-          )
-          SELECT ?, workspace_id, id, 'note', ?, 'prosemirror_json', ?,
-            owner_user_id, owner_user_id, ?, ?, NULL
-          FROM sessions
-          WHERE id = ? AND deleted_at IS NULL
-          ON CONFLICT(id) DO UPDATE SET
-            ${hasTemplateChange ? "template_id = excluded.template_id," : ""}
-            body_format = excluded.body_format,
-            body = excluded.body,
-            updated_by = excluded.updated_by,
-            updated_at = excluded.updated_at,
-            deleted_at = NULL
-        `,
-        params: [
-          sessionId,
-          changes.raw_template_id ?? "",
-          changes.raw_md,
-          now,
-          now,
-          sessionId,
-        ],
-      });
-    }
-
-    if (noteMetadata !== undefined) {
-      statements.push({
-        sql: `UPDATE session_documents SET generation_metadata_json = ? WHERE id = ? AND kind = 'note'`,
-        params: [noteMetadata, sessionId],
-      });
+      const noteMetadata = await computeNoteMetadata(
+        sessionId,
+        changes,
+        changes.raw_md,
+        now,
+      );
+      statements.push(
+        buildNoteUpsertStatement(sessionId, changes, changes.raw_md, now),
+      );
+      if (noteMetadata !== undefined) {
+        statements.push({
+          sql: `UPDATE session_documents SET generation_metadata_json = ? WHERE id = ? AND kind = 'note'`,
+          params: [noteMetadata, sessionId],
+        });
+      }
     }
 
     if (statements.length > 0) await executeTransaction(statements);
