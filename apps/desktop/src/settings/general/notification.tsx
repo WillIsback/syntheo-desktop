@@ -24,6 +24,7 @@ import {
 import {
   AppFloatingPanel,
   Popover,
+  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from "@syntheo/ui/components/ui/popover";
@@ -46,13 +47,232 @@ import {
 import { useSetSettingValues } from "~/settings/queries";
 import { SettingRow, SettingSwitchRow } from "~/settings/setting-row";
 import {
+  type CompletionSoundName,
   normalizeCompletionSoundName,
   previewCompletionSound,
 } from "~/shared/completion-sound";
 import { useConfigValues } from "~/shared/config";
 
-export function NotificationSettingsView() {
+type CompletionSoundRowProps = {
+  sound: CompletionSoundName;
+  disabled: boolean;
+  onSoundChange: (sound: CompletionSoundName) => void;
+  onPreview: () => void;
+};
+
+function CompletionSoundRow({
+  sound,
+  disabled,
+  onSoundChange,
+  onPreview,
+}: CompletionSoundRowProps) {
+  return (
+    <SettingRow
+      title={<Trans>Sound</Trans>}
+      description={<Trans>Choose from five completion sounds.</Trans>}
+    >
+      {(labelProps) => (
+        <div className="flex w-full items-center gap-2">
+          <Select
+            value={sound}
+            onValueChange={(value) =>
+              onSoundChange(normalizeCompletionSoundName(value))
+            }
+            disabled={disabled}
+          >
+            <SelectTrigger {...labelProps} className="min-w-0 flex-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              <SelectItem value="ready">
+                <Trans>Ready</Trans>
+              </SelectItem>
+              <SelectItem value="success">
+                <Trans>Success</Trans>
+              </SelectItem>
+              <SelectItem value="chime">
+                <Trans>Chime</Trans>
+              </SelectItem>
+              <SelectItem value="sparkle">
+                <Trans>Sparkle</Trans>
+              </SelectItem>
+              <SelectItem value="bloom">
+                <Trans>Bloom</Trans>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={disabled}
+            onClick={onPreview}
+          >
+            <Trans>Preview</Trans>
+          </Button>
+        </div>
+      )}
+    </SettingRow>
+  );
+}
+
+type IgnoredAppsSelectorProps = {
+  installedApps: InstalledApp[];
+  defaultIgnoredBundleIds: string[];
+  ignoredPlatforms: string[];
+  includedPlatforms: string[];
+  searchOpen: boolean;
+  searchQuery: string;
+  onSearchOpenChange: (open: boolean) => void;
+  onSearchQueryChange: (query: string) => void;
+  onToggleApp: (
+    bundleId: string,
+    ignoredPlatforms: string[],
+    includedPlatforms: string[],
+  ) => void;
+};
+
+function IgnoredAppsSelector({
+  installedApps,
+  defaultIgnoredBundleIds,
+  ignoredPlatforms,
+  includedPlatforms,
+  searchOpen,
+  searchQuery,
+  onSearchOpenChange,
+  onSearchQueryChange,
+  onToggleApp,
+}: IgnoredAppsSelectorProps) {
   const { t } = useLingui();
+
+  const ignorableApps = getIgnorableApps({
+    installedApps,
+    ignoredPlatforms,
+    includedPlatforms,
+    inputValue: searchQuery,
+    defaultIgnoredBundleIds,
+  });
+  const ignoredBundleIds = getIgnoredBundleIds({
+    installedApps,
+    ignoredPlatforms,
+    includedPlatforms,
+    defaultIgnoredBundleIds,
+  });
+
+  const bundleIdToName = (bundleId: string) => {
+    return installedApps.find((app) => app.id === bundleId)?.name ?? bundleId;
+  };
+
+  const isDefaultIgnored = (bundleId: string) => {
+    return defaultIgnoredBundleIds.includes(bundleId);
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Popover open={searchOpen} onOpenChange={onSearchOpenChange}>
+        <PopoverAnchor asChild>
+          <div
+            className={cn([
+              "flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2 rounded-2xl border p-2",
+              "focus-within:ring-ring focus-within:ring-1 focus-within:outline-hidden",
+            ])}
+          >
+            {ignoredBundleIds.map((bundleId: string) => {
+              const isDefault = isDefaultIgnored(bundleId);
+              return (
+                <Badge
+                  key={bundleId}
+                  variant="secondary"
+                  className={cn([
+                    "flex items-center gap-1 px-2 py-0.5 text-xs",
+                    isDefault
+                      ? ["bg-accent text-muted-foreground"]
+                      : ["bg-muted"],
+                  ])}
+                  title={isDefault ? "default" : undefined}
+                >
+                  {bundleIdToName(bundleId)}
+                  {isDefault && (
+                    <span className="text-[10px] opacity-70">
+                      <Trans>(default)</Trans>
+                    </span>
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="ml-0.5 h-3 w-3 p-0 hover:bg-transparent"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onToggleApp(
+                        bundleId,
+                        ignoredPlatforms,
+                        includedPlatforms,
+                      );
+                    }}
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </Button>
+                </Badge>
+              );
+            })}
+            <PopoverTrigger
+              type="button"
+              className="flex min-h-[22px] flex-1 cursor-text items-center gap-2 rounded-lg text-left focus-visible:outline-hidden"
+            >
+              <span className="text-muted-foreground text-sm">
+                <Trans>Search installed apps...</Trans>
+              </span>
+            </PopoverTrigger>
+          </div>
+        </PopoverAnchor>
+        <PopoverContent
+          variant="app"
+          align="start"
+          style={{
+            width: "var(--radix-popover-trigger-width)",
+          }}
+        >
+          <AppFloatingPanel className="overflow-hidden">
+            <Command className="rounded-[inherit] border-0 bg-transparent">
+              <CommandInput
+                placeholder={t`Search installed apps...`}
+                value={searchQuery}
+                onValueChange={onSearchQueryChange}
+              />
+              <CommandEmpty>
+                <div className="text-muted-foreground px-2 py-1.5 text-sm">
+                  <Trans>No apps found.</Trans>
+                </div>
+              </CommandEmpty>
+              <CommandList>
+                <CommandGroup className="max-h-[250px] overflow-y-auto">
+                  {ignorableApps.map((app) => (
+                    <CommandItem
+                      key={app.id}
+                      value={`${app.name} ${app.id}`}
+                      onSelect={() =>
+                        onToggleApp(app.id, ignoredPlatforms, includedPlatforms)
+                      }
+                      className={cn([
+                        "cursor-pointer",
+                        "hover:bg-accent! focus:bg-accent! aria-selected:bg-transparent",
+                      ])}
+                    >
+                      <span className="flex-1 truncate">{app.name}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </AppFloatingPanel>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+export function NotificationSettingsView() {
   const currentPlatform = platform();
   const supportsMicDetection = currentPlatform !== "windows";
   const supportsDoNotDisturb = currentPlatform === "macos";
@@ -107,14 +327,6 @@ export function NotificationSettingsView() {
     },
   });
 
-  const bundleIdToName = (bundleId: string) => {
-    return installedApps.find((a) => a.id === bundleId)?.name ?? bundleId;
-  };
-
-  const isDefaultIgnored = (bundleId: string) => {
-    return defaultIgnoredBundleIds.includes(bundleId);
-  };
-
   const setSettingValues = useSetSettingValues();
 
   const form = useForm({
@@ -136,11 +348,11 @@ export function NotificationSettingsView() {
       mic_active_threshold: configs.mic_active_threshold,
     },
     listeners: {
-      onChange: async ({ formApi }) => {
+      onChange: ({ formApi }) => {
         void formApi.handleSubmit();
       },
     },
-    onSubmit: async ({ value }) => {
+    onSubmit: ({ value }) => {
       setSettingValues({
         notification_disabled: value.notification_disabled,
         notification_event: value.notification_event,
@@ -289,64 +501,17 @@ export function NotificationSettingsView() {
                     <div className={cn(["border-muted ml-3 border-l-2 pl-4"])}>
                       <form.Field name="notification_completion_sound_name">
                         {(soundField) => (
-                          <SettingRow
-                            title={<Trans>Sound</Trans>}
-                            description={
-                              <Trans>Choose from five completion sounds.</Trans>
+                          <CompletionSoundRow
+                            sound={soundField.state.value}
+                            disabled={notificationsDisabled}
+                            onSoundChange={(sound) => {
+                              soundField.handleChange(sound);
+                              previewCompletionSound(sound);
+                            }}
+                            onPreview={() =>
+                              previewCompletionSound(soundField.state.value)
                             }
-                          >
-                            {(labelProps) => (
-                              <div className="flex w-full items-center gap-2">
-                                <Select
-                                  value={soundField.state.value}
-                                  onValueChange={(value) => {
-                                    const sound =
-                                      normalizeCompletionSoundName(value);
-                                    soundField.handleChange(sound);
-                                    previewCompletionSound(sound);
-                                  }}
-                                  disabled={notificationsDisabled}
-                                >
-                                  <SelectTrigger
-                                    {...labelProps}
-                                    className="min-w-0 flex-1"
-                                  >
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent align="end">
-                                    <SelectItem value="ready">
-                                      <Trans>Ready</Trans>
-                                    </SelectItem>
-                                    <SelectItem value="success">
-                                      <Trans>Success</Trans>
-                                    </SelectItem>
-                                    <SelectItem value="chime">
-                                      <Trans>Chime</Trans>
-                                    </SelectItem>
-                                    <SelectItem value="sparkle">
-                                      <Trans>Sparkle</Trans>
-                                    </SelectItem>
-                                    <SelectItem value="bloom">
-                                      <Trans>Bloom</Trans>
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  disabled={notificationsDisabled}
-                                  onClick={() =>
-                                    previewCompletionSound(
-                                      soundField.state.value,
-                                    )
-                                  }
-                                >
-                                  <Trans>Preview</Trans>
-                                </Button>
-                              </div>
-                            )}
-                          </SettingRow>
+                          />
                         )}
                       </form.Field>
                     </div>
@@ -442,153 +607,19 @@ export function NotificationSettingsView() {
                           </p>
                         </div>
                         <form.Subscribe selector={(state) => state.values}>
-                          {(values) => {
-                            const ignoredPlatforms = values.ignored_platforms;
-                            const includedPlatforms = values.included_platforms;
-                            const ignorableApps = getIgnorableApps({
-                              installedApps,
-                              ignoredPlatforms,
-                              includedPlatforms,
-                              inputValue: searchQuery,
-                              defaultIgnoredBundleIds,
-                            });
-                            const ignoredBundleIds = getIgnoredBundleIds({
-                              installedApps,
-                              ignoredPlatforms,
-                              includedPlatforms,
-                              defaultIgnoredBundleIds,
-                            });
-
-                            return (
-                              <div className="flex flex-col gap-3">
-                                <Popover
-                                  open={searchOpen}
-                                  onOpenChange={setSearchOpen}
-                                >
-                                  <PopoverTrigger asChild>
-                                    <div
-                                      role="button"
-                                      tabIndex={0}
-                                      aria-expanded={searchOpen}
-                                      className={cn([
-                                        "flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2 rounded-2xl border p-2",
-                                        "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden",
-                                      ])}
-                                      onKeyDown={(event) => {
-                                        if (
-                                          event.key === "Enter" ||
-                                          event.key === " "
-                                        ) {
-                                          event.preventDefault();
-                                          setSearchOpen(true);
-                                        }
-                                      }}
-                                    >
-                                      {ignoredBundleIds.map(
-                                        (bundleId: string) => {
-                                          const isDefault =
-                                            isDefaultIgnored(bundleId);
-                                          return (
-                                            <Badge
-                                              key={bundleId}
-                                              variant="secondary"
-                                              className={cn([
-                                                "flex items-center gap-1 px-2 py-0.5 text-xs",
-                                                isDefault
-                                                  ? [
-                                                      "bg-accent text-muted-foreground",
-                                                    ]
-                                                  : ["bg-muted"],
-                                              ])}
-                                              title={
-                                                isDefault
-                                                  ? "default"
-                                                  : undefined
-                                              }
-                                            >
-                                              {bundleIdToName(bundleId)}
-                                              {isDefault && (
-                                                <span className="text-[10px] opacity-70">
-                                                  <Trans>(default)</Trans>
-                                                </span>
-                                              )}
-                                              <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="ml-0.5 h-3 w-3 p-0 hover:bg-transparent"
-                                                onClick={(event) => {
-                                                  event.stopPropagation();
-                                                  handleToggleIgnoredApp(
-                                                    bundleId,
-                                                    ignoredPlatforms,
-                                                    includedPlatforms,
-                                                  );
-                                                }}
-                                              >
-                                                <X className="h-2.5 w-2.5" />
-                                              </Button>
-                                            </Badge>
-                                          );
-                                        },
-                                      )}
-                                      <span className="text-muted-foreground text-sm">
-                                        <Trans>Search installed apps...</Trans>
-                                      </span>
-                                    </div>
-                                  </PopoverTrigger>
-                                  <PopoverContent
-                                    variant="app"
-                                    align="start"
-                                    style={{
-                                      width:
-                                        "var(--radix-popover-trigger-width)",
-                                    }}
-                                  >
-                                    <AppFloatingPanel className="overflow-hidden">
-                                      <Command className="rounded-[inherit] border-0 bg-transparent">
-                                        <CommandInput
-                                          placeholder={t`Search installed apps...`}
-                                          value={searchQuery}
-                                          onValueChange={setSearchQuery}
-                                        />
-                                        <CommandEmpty>
-                                          <div className="text-muted-foreground px-2 py-1.5 text-sm">
-                                            <Trans>No apps found.</Trans>
-                                          </div>
-                                        </CommandEmpty>
-                                        <CommandList>
-                                          <CommandGroup className="max-h-[250px] overflow-y-auto">
-                                            {ignorableApps.map((app) => (
-                                              <CommandItem
-                                                key={app.id}
-                                                value={`${app.name} ${app.id}`}
-                                                onSelect={() =>
-                                                  handleToggleIgnoredApp(
-                                                    app.id,
-                                                    ignoredPlatforms,
-                                                    includedPlatforms,
-                                                  )
-                                                }
-                                                className={cn([
-                                                  "cursor-pointer",
-                                                  "hover:bg-accent! focus:bg-accent! aria-selected:bg-transparent",
-                                                ])}
-                                              >
-                                                <span className="flex-1 truncate">
-                                                  {app.name}
-                                                </span>
-                                              </CommandItem>
-                                            ))}
-                                          </CommandGroup>
-                                        </CommandList>
-                                      </Command>
-                                    </AppFloatingPanel>
-                                  </PopoverContent>
-                                </Popover>
-                              </div>
-                            );
-                          }}
+                          {(values) => (
+                            <IgnoredAppsSelector
+                              installedApps={installedApps}
+                              defaultIgnoredBundleIds={defaultIgnoredBundleIds}
+                              ignoredPlatforms={values.ignored_platforms}
+                              includedPlatforms={values.included_platforms}
+                              searchOpen={searchOpen}
+                              searchQuery={searchQuery}
+                              onSearchOpenChange={setSearchOpen}
+                              onSearchQueryChange={setSearchQuery}
+                              onToggleApp={handleToggleIgnoredApp}
+                            />
+                          )}
                         </form.Subscribe>
                       </div>
                     )}
