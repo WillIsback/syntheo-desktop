@@ -8,7 +8,7 @@ import { commands as windowsCommands } from "@syntheo/plugin-windows";
 
 import { executeTransaction, liveQueryClient, useLiveQuery } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";
-import { normalizeAudioRetention } from "~/services/audio-retention-policy";
+import { normalizeAudioRetentionOrUndefined } from "~/services/audio-retention-policy";
 import { normalizeStoredLlmSelection } from "~/settings/ai/llm/selection";
 import {
   LEGACY_MAIN_VALUES_ID,
@@ -97,7 +97,6 @@ export async function initializeApplicationSettings(): Promise<void> {
   const languageResult = await detectCommands
     .getPreferredLanguages()
     .catch(() => null);
-  const updates: SettingValues = {};
   const normalizedSttSelection = normalizeStoredSttSelection(
     stored.values.current_stt_provider,
     stored.values.current_stt_model,
@@ -107,38 +106,17 @@ export async function initializeApplicationSettings(): Promise<void> {
     stored.values.current_llm_model,
   );
 
-  if (normalizedSttSelection.provider !== stored.values.current_stt_provider) {
-    updates.current_stt_provider = normalizedSttSelection.provider;
-  }
-  if (normalizedSttSelection.model !== stored.values.current_stt_model) {
-    updates.current_stt_model = normalizedSttSelection.model;
-  }
-  if (normalizedLlmSelection.provider !== stored.values.current_llm_provider) {
-    updates.current_llm_provider = normalizedLlmSelection.provider;
-  }
-  if (normalizedLlmSelection.model !== stored.values.current_llm_model) {
-    updates.current_llm_model = normalizedLlmSelection.model;
-  }
-
-  if (languageResult?.status === "ok" && languageResult.data.length > 0) {
-    if (!stored.hasValues.has("ai_language")) {
-      // Français d'abord : la transcription par défaut est le français.
-      updates.ai_language = "fr";
-    }
-
-    const storedSpokenLanguages = parseStringArray(
-      stored.values.spoken_languages ?? "[]",
-    );
-    const isSystemDefault =
-      stored.values.ai_language === languageResult.data[0] &&
-      storedSpokenLanguages.length === languageResult.data.length &&
-      storedSpokenLanguages.every(
-        (language, index) => language === languageResult.data[index],
-      );
-    if (!stored.hasValues.has("spoken_languages") || isSystemDefault) {
-      updates.spoken_languages = JSON.stringify(languageResult.data.slice(1));
-    }
-  }
+  const updates: SettingValues = {
+    ...collectSelectionUpdates(
+      stored,
+      normalizedSttSelection,
+      normalizedLlmSelection,
+    ),
+    ...collectLanguageUpdates(
+      stored,
+      languageResult?.status === "ok" ? languageResult.data : null,
+    ),
+  };
 
   if (!normalizedSttSelection.model) {
     const defaultModel = getDefaultSttModel(normalizedSttSelection.provider);
@@ -158,6 +136,57 @@ export async function initializeApplicationSettings(): Promise<void> {
   const current =
     Object.keys(updates).length > 0 ? await getStoredSettingValues() : stored;
   applySettingSideEffects(current.values);
+}
+
+function collectSelectionUpdates(
+  stored: StoredSettingValues,
+  sttSelection: ReturnType<typeof normalizeStoredSttSelection>,
+  llmSelection: ReturnType<typeof normalizeStoredLlmSelection>,
+): SettingValues {
+  const updates: SettingValues = {};
+  if (sttSelection.provider !== stored.values.current_stt_provider) {
+    updates.current_stt_provider = sttSelection.provider;
+  }
+  if (sttSelection.model !== stored.values.current_stt_model) {
+    updates.current_stt_model = sttSelection.model;
+  }
+  if (llmSelection.provider !== stored.values.current_llm_provider) {
+    updates.current_llm_provider = llmSelection.provider;
+  }
+  if (llmSelection.model !== stored.values.current_llm_model) {
+    updates.current_llm_model = llmSelection.model;
+  }
+  return updates;
+}
+
+function collectLanguageUpdates(
+  stored: StoredSettingValues,
+  preferredLanguages: readonly string[] | null,
+): SettingValues {
+  const updates: SettingValues = {};
+  if (!preferredLanguages || preferredLanguages.length === 0) {
+    return updates;
+  }
+
+  if (!stored.hasValues.has("ai_language")) {
+    // Français d'abord : la transcription par défaut est le français.
+    updates.ai_language = "fr";
+  }
+
+  const storedSpokenLanguages = parseStringArray(
+    stored.values.spoken_languages ?? "[]",
+  );
+  const isSystemDefault =
+    stored.values.ai_language === preferredLanguages[0] &&
+    storedSpokenLanguages.length === preferredLanguages.length &&
+    storedSpokenLanguages.every(
+      (language, index) => language === preferredLanguages[index],
+    );
+  if (!stored.hasValues.has("spoken_languages") || isSystemDefault) {
+    updates.spoken_languages = JSON.stringify(preferredLanguages.slice(1));
+  }
+
+  return updates;
 }
 
 async function migrateLegacyAutoSummaryPrompt(
@@ -331,17 +360,15 @@ function readLegacySettingValue(
     value = getByPath(settingsDocument, ["general", "spoken_languages"]);
   } else if (key === "audio_retention") {
     value =
-      normalizeAudioRetention(value, undefined) ??
-      normalizeAudioRetention(
+      normalizeAudioRetentionOrUndefined(value) ??
+      normalizeAudioRetentionOrUndefined(
         getByPath(settingsDocument, ["general", "saveAudioAfterMeeting"]),
-        undefined,
       ) ??
-      normalizeAudioRetention(
+      normalizeAudioRetentionOrUndefined(
         getByPath(settingsDocument, ["general", "save_recordings"]),
-        undefined,
       ) ??
-      normalizeAudioRetention(mainValuesDocument.audio_retention, undefined) ??
-      normalizeAudioRetention(mainValuesDocument.save_recordings, undefined);
+      normalizeAudioRetentionOrUndefined(mainValuesDocument.audio_retention) ??
+      normalizeAudioRetentionOrUndefined(mainValuesDocument.save_recordings);
   }
 
   if (value === undefined) value = mainValuesDocument[key];
@@ -359,27 +386,41 @@ function normalizeSettingValue(
   if (value === INVALID || value === undefined) return INVALID;
 
   if (key === "audio_retention") {
-    return normalizeAudioRetention(value, undefined) ?? INVALID;
+    return normalizeAudioRetentionOrUndefined(value) ?? INVALID;
   }
 
   if (JSON_ARRAY_KEYS.has(key)) {
-    if (Array.isArray(value)) return JSON.stringify(value);
-    if (typeof value !== "string") return INVALID;
-    try {
-      return Array.isArray(JSON.parse(value)) ? value : INVALID;
-    } catch {
-      if (!direct && value.includes(",")) {
-        return JSON.stringify(
-          value
-            .split(",")
-            .map((entry) => entry.trim())
-            .filter(Boolean),
-        );
-      }
-      return INVALID;
-    }
+    return normalizeJsonArraySettingValue(value, direct);
   }
 
+  return normalizeTypedSettingValue(key, value);
+}
+
+function normalizeJsonArraySettingValue(
+  value: unknown,
+  direct: boolean,
+): string | typeof INVALID {
+  if (Array.isArray(value)) return JSON.stringify(value);
+  if (typeof value !== "string") return INVALID;
+  try {
+    return Array.isArray(JSON.parse(value)) ? value : INVALID;
+  } catch {
+    if (!direct && value.includes(",")) {
+      return JSON.stringify(
+        value
+          .split(",")
+          .map((entry) => entry.trim())
+          .filter(Boolean),
+      );
+    }
+    return INVALID;
+  }
+}
+
+function normalizeTypedSettingValue(
+  key: SettingKey,
+  value: unknown,
+): boolean | number | string | typeof INVALID {
   const expectedType = SETTING_DEFINITIONS[key].type;
   if (expectedType === "boolean" && typeof value === "boolean") return value;
   if (expectedType === "number" && typeof value === "number") return value;
