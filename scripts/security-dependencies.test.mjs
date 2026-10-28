@@ -45,8 +45,10 @@ test("sprintf clamps untrusted floating-point precision to supported limits", ()
 });
 
 test("RSA verification rejects additional nested DigestAlgorithm elements", () => {
+  // 2048 bits minimum : un modulus plus court est considéré cassable (CodeQL
+  // js/insufficient-key-size) et n'apporte rien à ce test de structure DigestInfo.
   const pair = generateKeyPairSync("rsa", {
-    modulusLength: 1024,
+    modulusLength: 2048,
     publicExponent: 3,
     privateKeyEncoding: { type: "pkcs1", format: "pem" },
     publicKeyEncoding: { type: "pkcs1", format: "pem" },
