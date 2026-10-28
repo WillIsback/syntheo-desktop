@@ -287,7 +287,7 @@ swift-rs = { git = "https://github.com/Brendonovich/swift-rs", rev = "41a1605" }
 
 wasapi = "0.23.0"
 windows = "0.62.2"
-windows-core = "0.62.2"
+windows-core = "0.100.0"
 xcap = "0.9.3"
 
 rmcp = "3.2"
