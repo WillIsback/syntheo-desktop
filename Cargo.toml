@@ -209,7 +209,7 @@ uuid = "1"
 
 criterion = "0.8"
 insta = "1.46"
-serial_test = "3"
+serial_test = "4"
 wiremock = "0.6"
 
 axum = "0.8"
