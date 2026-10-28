@@ -22,10 +22,53 @@ export function getTranscriptSelectionFromRange(
     return null;
   }
 
-  const groups = new Map<string, TranscriptWordSelectionGroup>();
-  let sessionId: string | undefined;
-  let startMs: number | undefined;
+  const accumulator: SelectionAccumulator = {
+    groups: new Map<string, TranscriptWordSelectionGroup>(),
+  };
+  collectRenderedWords(range, container, accumulator);
+  collectEditedWords(range, container, accumulator);
 
+  if (accumulator.groups.size === 0) {
+    return null;
+  }
+
+  return {
+    sessionId: accumulator.sessionId,
+    text: range.toString().trim(),
+    startMs: accumulator.startMs ?? 0,
+    groups: [...accumulator.groups.values()],
+  };
+}
+
+type SelectionAccumulator = {
+  groups: Map<string, TranscriptWordSelectionGroup>;
+  sessionId?: string;
+  startMs?: number;
+};
+
+type SegmentContext = {
+  segmentElement: HTMLElement;
+  transcriptId: string;
+  segmentKey: SegmentKey;
+};
+
+function readSegmentContext(element: HTMLElement): SegmentContext | null {
+  const segmentElement = element.closest<HTMLElement>("[data-transcript-id]");
+  const transcriptId = segmentElement?.dataset.transcriptId;
+  const segmentKey = segmentElement
+    ? readSegmentKey(segmentElement)
+    : undefined;
+  if (!segmentElement || !transcriptId || !segmentKey) {
+    return null;
+  }
+  return { segmentElement, transcriptId, segmentKey };
+}
+
+function collectRenderedWords(
+  range: Range,
+  container: HTMLElement,
+  accumulator: SelectionAccumulator,
+) {
   for (const wordElement of container.querySelectorAll<HTMLElement>(
     "[data-transcript-word-id]",
   )) {
@@ -34,22 +77,31 @@ export function getTranscriptSelectionFromRange(
     }
 
     const wordId = wordElement.dataset.transcriptWordId;
-    const segmentElement = wordElement.closest<HTMLElement>(
-      "[data-transcript-id]",
-    );
-    const transcriptId = segmentElement?.dataset.transcriptId;
-    const segmentKey = segmentElement
-      ? readSegmentKey(segmentElement)
-      : undefined;
-    if (!wordId || !transcriptId || !segmentKey) {
+    const context = readSegmentContext(wordElement);
+    if (!wordId || !context) {
       continue;
     }
 
-    addWordToSelection(groups, transcriptId, segmentKey, wordId);
-    sessionId ??= segmentElement?.dataset.sessionId || undefined;
-    startMs ??= readWordStartMs(wordElement, segmentElement);
+    addWordToSelection(
+      accumulator.groups,
+      context.transcriptId,
+      context.segmentKey,
+      wordId,
+    );
+    accumulator.sessionId ??=
+      context.segmentElement.dataset.sessionId || undefined;
+    accumulator.startMs ??= readWordStartMs(
+      wordElement,
+      context.segmentElement,
+    );
   }
+}
 
+function collectEditedWords(
+  range: Range,
+  container: HTMLElement,
+  accumulator: SelectionAccumulator,
+) {
   for (const editorElement of container.querySelectorAll<HTMLElement>(
     "[data-transcript-edit-word-ids]",
   )) {
@@ -57,54 +109,50 @@ export function getTranscriptSelectionFromRange(
       continue;
     }
 
-    const segmentElement = editorElement.closest<HTMLElement>(
-      "[data-transcript-id]",
-    );
-    const transcriptId = segmentElement?.dataset.transcriptId;
-    const segmentKey = segmentElement
-      ? readSegmentKey(segmentElement)
-      : undefined;
-    if (!transcriptId || !segmentKey) {
+    const context = readSegmentContext(editorElement);
+    if (!context) {
       continue;
     }
 
-    const wordIds = parseStringArray(
-      editorElement.dataset.transcriptEditWordIds,
-    );
-    const wordTexts = parseStringArray(
-      editorElement.dataset.transcriptEditWordTexts,
-    );
-    const wordStartMs = parseNumberArray(
-      editorElement.dataset.transcriptEditWordStartMs,
-    );
-    const selectedIndices = getSelectedEditableWordIndices(
-      range,
-      editorElement,
-      wordTexts,
-    );
-    for (const index of selectedIndices) {
-      const wordId = wordIds[index];
-      if (!wordId) {
-        continue;
-      }
-      addWordToSelection(groups, transcriptId, segmentKey, wordId);
-      sessionId ??= segmentElement?.dataset.sessionId || undefined;
-      startMs ??=
-        (wordStartMs[index] ?? 0) +
-        Number(segmentElement?.dataset.transcriptOffsetMs ?? 0);
+    addSelectedEditedWords(range, editorElement, context, accumulator);
+  }
+}
+
+function addSelectedEditedWords(
+  range: Range,
+  editorElement: HTMLElement,
+  context: SegmentContext,
+  accumulator: SelectionAccumulator,
+) {
+  const wordIds = parseStringArray(editorElement.dataset.transcriptEditWordIds);
+  const wordTexts = parseStringArray(
+    editorElement.dataset.transcriptEditWordTexts,
+  );
+  const wordStartMs = parseNumberArray(
+    editorElement.dataset.transcriptEditWordStartMs,
+  );
+  const transcriptOffsetMs = Number(
+    context.segmentElement.dataset.transcriptOffsetMs ?? 0,
+  );
+  for (const index of getSelectedEditableWordIndices(
+    range,
+    editorElement,
+    wordTexts,
+  )) {
+    const wordId = wordIds[index];
+    if (!wordId) {
+      continue;
     }
+    addWordToSelection(
+      accumulator.groups,
+      context.transcriptId,
+      context.segmentKey,
+      wordId,
+    );
+    accumulator.sessionId ??=
+      context.segmentElement.dataset.sessionId || undefined;
+    accumulator.startMs ??= (wordStartMs[index] ?? 0) + transcriptOffsetMs;
   }
-
-  if (groups.size === 0) {
-    return null;
-  }
-
-  return {
-    sessionId,
-    text: range.toString().trim(),
-    startMs: startMs ?? 0,
-    groups: [...groups.values()],
-  };
 }
 
 export function getTranscriptContextSelection({
@@ -314,9 +362,8 @@ export function getTranscriptMergeTarget(
   for (const index of indexes) {
     const group = entries.get(order[index]!)?.groups[0];
     if (
-      !group ||
-      group.transcriptId !== targetGroup.transcriptId ||
-      group.segmentKey.channel !== targetGroup.segmentKey.channel
+      group?.transcriptId !== targetGroup.transcriptId ||
+      group?.segmentKey.channel !== targetGroup.segmentKey.channel
     ) {
       return null;
     }
