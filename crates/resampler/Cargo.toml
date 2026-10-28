@@ -18,7 +18,7 @@ audioadapter-buffers = "2.0"
 dasp = { workspace = true, optional = true }
 futures-util = { workspace = true, optional = true }
 pin-project = { workspace = true, optional = true }
-rubato = "1.0.1"
+rubato = "5.0.1"
 syntheo-audio-interface = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
