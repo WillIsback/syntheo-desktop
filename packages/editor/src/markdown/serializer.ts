@@ -27,8 +27,14 @@ function backticksFor(node: PMNode, side: number): string {
 function escapeTableCell(markdown: string): string {
   const breakPlaceholder = "\u0000TABLE_CELL_BREAK\u0000";
 
+  // Order matters: "\" + newline is first turned into a <br> placeholder (that
+  // is how hardBreak is serialized), then every remaining backslash is doubled
+  // *before* "|" and "<br>" are escaped. Without doubling the backslashes, a
+  // cell containing "\|" would serialize as "\\" + "|", i.e. a literal
+  // backslash followed by an unescaped cell delimiter (cell injection).
   return markdown
     .replace(/\\\n/g, breakPlaceholder)
+    .replace(/\\/g, "\\\\")
     .replace(/\n+/g, breakPlaceholder)
     .replace(/\|/g, "\\|")
     .replace(/<br\s*\/?>/gi, "\\$&")
@@ -310,8 +316,11 @@ export function getSerializer(): MarkdownSerializer {
       link: {
         open: "[",
         close(_state: MarkdownSerializerState, mark) {
+          // Backslashes must be escaped first, otherwise a trailing "\" in the
+          // href would escape the closing ")" and let the link swallow the rest
+          // of the document.
           const href = mark.attrs.href
-            ? mark.attrs.href.replace(/[()]/g, "\\$&")
+            ? mark.attrs.href.replace(/\\/g, "\\\\").replace(/[()]/g, "\\$&")
             : "";
           return `](${href})`;
         },
