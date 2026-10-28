@@ -52,7 +52,9 @@ async function fetchPage(page) {
   });
   const response = await fetch(`${API}?${params}`);
   if (!response.ok) {
-    throw new Error(`SonarCloud HTTP ${response.status} : ${await response.text()}`);
+    throw new Error(
+      `SonarCloud HTTP ${response.status} : ${await response.text()}`,
+    );
   }
   return response.json();
 }
@@ -95,17 +97,27 @@ async function main() {
       title: alerts.map((alert) => alert.rule).join(", "),
       branch: `fix/sonar-${slug(file)}`,
       files: [file],
-      alerts: alerts.sort((a, b) => (SEVERITY_RANK[b.severity] ?? 0) - (SEVERITY_RANK[a.severity] ?? 0)),
+      alerts: alerts.sort(
+        (a, b) =>
+          (SEVERITY_RANK[b.severity] ?? 0) - (SEVERITY_RANK[a.severity] ?? 0),
+      ),
     }))
     .sort(
       (a, b) =>
-        Math.max(...b.alerts.map((alert) => SEVERITY_RANK[alert.severity] ?? 0)) -
-        Math.max(...a.alerts.map((alert) => SEVERITY_RANK[alert.severity] ?? 0)),
+        Math.max(
+          ...b.alerts.map((alert) => SEVERITY_RANK[alert.severity] ?? 0),
+        ) -
+        Math.max(
+          ...a.alerts.map((alert) => SEVERITY_RANK[alert.severity] ?? 0),
+        ),
     )
     .slice(0, limit);
 
   mkdirSync(REMEDIATION_DIR, { recursive: true });
-  writeFileSync(join(REMEDIATION_DIR, "sonar-tasks.json"), `${JSON.stringify(tasks, null, 2)}\n`);
+  writeFileSync(
+    join(REMEDIATION_DIR, "sonar-tasks.json"),
+    `${JSON.stringify(tasks, null, 2)}\n`,
+  );
 
   const bySeverity = issues.reduce((acc, issue) => {
     acc[issue.severity] = (acc[issue.severity] ?? 0) + 1;
@@ -119,11 +131,16 @@ async function main() {
     tasks: tasks.length,
     by_severity: bySeverity,
   };
-  writeFileSync(join(REMEDIATION_DIR, "sonar-summary.json"), `${JSON.stringify(summary, null, 2)}\n`);
+  writeFileSync(
+    join(REMEDIATION_DIR, "sonar-summary.json"),
+    `${JSON.stringify(summary, null, 2)}\n`,
+  );
 
   console.log(`Issues ouvertes : ${total}`);
   console.log(`Fichiers        : ${byFile.size}`);
-  console.log(`Tâches générées : ${tasks.length} → ${join(REMEDIATION_DIR, "sonar-tasks.json")}`);
+  console.log(
+    `Tâches générées : ${tasks.length} → ${join(REMEDIATION_DIR, "sonar-tasks.json")}`,
+  );
 }
 
 main().catch((error) => {

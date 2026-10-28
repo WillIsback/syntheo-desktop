@@ -79,8 +79,12 @@ function main() {
 
   console.log(`Collecte des alertes pour ${repo}...`);
 
-  const rawCodeScanning = ghApi(`repos/${repo}/code-scanning/alerts?state=open&per_page=100`);
-  const rawDependabot = ghApi(`repos/${repo}/dependabot/alerts?state=open&per_page=100`);
+  const rawCodeScanning = ghApi(
+    `repos/${repo}/code-scanning/alerts?state=open&per_page=100`,
+  );
+  const rawDependabot = ghApi(
+    `repos/${repo}/dependabot/alerts?state=open&per_page=100`,
+  );
 
   const codeScanning = rawCodeScanning.map(compactCodeScanning);
   const dependabot = rawDependabot.map(compactDependabot);
@@ -88,7 +92,9 @@ function main() {
   const tasks = [];
 
   // --- Alertes de type secret (Gitleaks) : une seule tâche de triage ---
-  const secretAlerts = codeScanning.filter((alert) => alert.tool === "Gitleaks");
+  const secretAlerts = codeScanning.filter(
+    (alert) => alert.tool === "Gitleaks",
+  );
   const otherAlerts = codeScanning.filter((alert) => alert.tool !== "Gitleaks");
 
   if (secretAlerts.length > 0) {
@@ -167,7 +173,10 @@ function main() {
   ];
 
   mkdirSync(REMEDIATION_DIR, { recursive: true });
-  writeFileSync(join(REMEDIATION_DIR, "tasks.json"), `${JSON.stringify(ordered, null, 2)}\n`);
+  writeFileSync(
+    join(REMEDIATION_DIR, "tasks.json"),
+    `${JSON.stringify(ordered, null, 2)}\n`,
+  );
 
   const summary = {
     repo,
@@ -180,11 +189,16 @@ function main() {
       return acc;
     }, {}),
   };
-  writeFileSync(join(REMEDIATION_DIR, "summary.json"), `${JSON.stringify(summary, null, 2)}\n`);
+  writeFileSync(
+    join(REMEDIATION_DIR, "summary.json"),
+    `${JSON.stringify(summary, null, 2)}\n`,
+  );
 
   console.log(`Code Scanning ouverts : ${codeScanning.length}`);
   console.log(`Dependabot ouverts    : ${dependabot.length}`);
-  console.log(`Tâches générées       : ${ordered.length} → ${join(REMEDIATION_DIR, "tasks.json")}`);
+  console.log(
+    `Tâches générées       : ${ordered.length} → ${join(REMEDIATION_DIR, "tasks.json")}`,
+  );
 }
 
 main();

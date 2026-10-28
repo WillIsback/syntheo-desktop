@@ -24,8 +24,8 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { isAbsolute } from "node:path";
 import { tmpdir } from "node:os";
+import { isAbsolute } from "node:path";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -126,13 +126,24 @@ function createTaskClone(task) {
 
   const cloned = run(
     "git",
-    ["clone", "--quiet", "--reference", repoRoot, "--branch", INTEGRATION_BRANCH, repoRoot, clone],
+    [
+      "clone",
+      "--quiet",
+      "--reference",
+      repoRoot,
+      "--branch",
+      INTEGRATION_BRANCH,
+      repoRoot,
+      clone,
+    ],
     repoRoot,
   );
-  if (!cloned.ok) throw new Error(`clone échoué pour ${task.id} : ${cloned.stderr}`);
+  if (!cloned.ok)
+    throw new Error(`clone échoué pour ${task.id} : ${cloned.stderr}`);
 
   const checkout = git(["checkout", "-b", branch], clone);
-  if (!checkout.ok) throw new Error(`checkout échoué pour ${task.id} : ${checkout.stderr}`);
+  if (!checkout.ok)
+    throw new Error(`checkout échoué pour ${task.id} : ${checkout.stderr}`);
 
   if (task.kind !== "dependabot") linkNodeModules(clone);
   return clone;
@@ -147,7 +158,16 @@ function removeTaskClone(task) {
 function linkNodeModules(worktree) {
   const find = spawnSync(
     "find",
-    [repoRoot, "-maxdepth", "4", "-name", "node_modules", "-type", "d", "-prune"],
+    [
+      repoRoot,
+      "-maxdepth",
+      "4",
+      "-name",
+      "node_modules",
+      "-type",
+      "d",
+      "-prune",
+    ],
     { encoding: "utf8" },
   );
   const dirs = find.stdout.split("\n").filter(Boolean);
@@ -177,22 +197,33 @@ function validationCommands(task) {
   if (task.kind === "secret-triage") return [];
   const files = task.files ?? [];
   const commands = [];
-  const tsFiles = files.filter((file) => /\.(ts|tsx|mts|js|mjs|cjs)$/.test(file));
-  const otherFiles = files.filter((file) => /\.(md|json|jsonc|ya?ml|toml)$/.test(file));
+  const tsFiles = files.filter((file) =>
+    /\.(ts|tsx|mts|js|mjs|cjs)$/.test(file),
+  );
+  const otherFiles = files.filter((file) =>
+    /\.(md|json|jsonc|ya?ml|toml)$/.test(file),
+  );
   const rustFiles = files.filter((file) => file.endsWith(".rs"));
   const pythonFiles = files.filter((file) => file.endsWith(".py"));
 
   if (files.includes("pnpm-lock.yaml") || files.includes("package.json")) {
     commands.push("pnpm install --frozen-lockfile");
   }
-  if (files.includes("Cargo.lock") || files.some((file) => file.endsWith("Cargo.toml"))) {
+  if (
+    files.includes("Cargo.lock") ||
+    files.some((file) => file.endsWith("Cargo.toml"))
+  ) {
     commands.push("cargo metadata --locked --format-version 1 > /dev/null");
   }
   if (tsFiles.length > 0) {
     commands.push(`./node_modules/.bin/oxfmt --check ${tsFiles.join(" ")}`);
-    const desktopFiles = tsFiles.filter((file) => file.startsWith("apps/desktop/"));
+    const desktopFiles = tsFiles.filter((file) =>
+      file.startsWith("apps/desktop/"),
+    );
     if (desktopFiles.length > 0) {
-      commands.push(`./node_modules/.bin/oxlint --quiet ${desktopFiles.join(" ")}`);
+      commands.push(
+        `./node_modules/.bin/oxlint --quiet ${desktopFiles.join(" ")}`,
+      );
       commands.push("./node_modules/.bin/tsc -p apps/desktop --noEmit");
     } else {
       commands.push(`./node_modules/.bin/eslint ${tsFiles.join(" ")}`);
@@ -204,7 +235,9 @@ function validationCommands(task) {
   if (rustFiles.length > 0) {
     const crateDir = nearestCargoDir(rustFiles[0]);
     if (crateDir) {
-      commands.push(`cargo clippy --manifest-path ${crateDir}/Cargo.toml -- -D warnings`);
+      commands.push(
+        `cargo clippy --manifest-path ${crateDir}/Cargo.toml -- -D warnings`,
+      );
     }
   }
   if (pythonFiles.length > 0) {
@@ -216,7 +249,8 @@ function validationCommands(task) {
 function nearestCargoDir(file) {
   let current = join(repoRoot, dirname(file));
   for (let depth = 0; depth < 6; depth += 1) {
-    if (existsSync(join(current, "Cargo.toml"))) return relative(repoRoot, current);
+    if (existsSync(join(current, "Cargo.toml")))
+      return relative(repoRoot, current);
     const parent = dirname(current);
     if (parent === current) break;
     current = parent;
@@ -225,7 +259,10 @@ function nearestCargoDir(file) {
 }
 
 function renderPrompt(task) {
-  const template = readFileSync(join(repoRoot, "scripts/remediation/prompt-worker.md"), "utf8");
+  const template = readFileSync(
+    join(repoRoot, "scripts/remediation/prompt-worker.md"),
+    "utf8",
+  );
   const firstAlert = task.alerts?.[0] ?? {};
   const replacements = {
     "{{TASK_ID}}": task.id,
@@ -271,7 +308,11 @@ function runAgent(task, clone, prompt, suffix = "") {
         title,
         fullPrompt,
       ],
-      { cwd: clone, stdio: ["ignore", out, out], env: { ...process.env, PWD: clone, INIT_CWD: clone } },
+      {
+        cwd: clone,
+        stdio: ["ignore", out, out],
+        env: { ...process.env, PWD: clone, INIT_CWD: clone },
+      },
     );
 
     let settled = false;
@@ -313,7 +354,12 @@ function validate(task, worktree) {
       cwd: worktree,
       encoding: "utf8",
       maxBuffer: 64 * 1024 * 1024,
-      env: { ...process.env, CARGO_TARGET_DIR, PWD: worktree, INIT_CWD: worktree },
+      env: {
+        ...process.env,
+        CARGO_TARGET_DIR,
+        PWD: worktree,
+        INIT_CWD: worktree,
+      },
     });
     outputs.push(`$ ${command}\n${result.stdout}${result.stderr}`);
     if (result.status !== 0) {
@@ -325,7 +371,10 @@ function validate(task, worktree) {
 
 function mergeTask(task) {
   const clone = join(REMEDIATION_DIR, "clones", task.id);
-  const fetched = git(["fetch", clone, `+${task.branch}:${task.branch}`], INTEGRATION_WT);
+  const fetched = git(
+    ["fetch", clone, `+${task.branch}:${task.branch}`],
+    INTEGRATION_WT,
+  );
   if (!fetched.ok) {
     return { ok: false, output: fetched.stdout + fetched.stderr };
   }
@@ -343,7 +392,10 @@ function mergeTask(task) {
 function markCompleted(task) {
   if (!state.completed.includes(task.id)) state.completed.push(task.id);
   state.needs_human = state.needs_human.filter((entry) => entry.id !== task.id);
-  writeFileSync(NEEDS_HUMAN_FILE, `${JSON.stringify(state.needs_human, null, 2)}\n`);
+  writeFileSync(
+    NEEDS_HUMAN_FILE,
+    `${JSON.stringify(state.needs_human, null, 2)}\n`,
+  );
   writeFileSync(STATE_FILE, `${JSON.stringify(state, null, 2)}\n`);
 }
 
@@ -357,7 +409,10 @@ function markNeedsHuman(task, reason, output) {
     reason,
     output: output.slice(-4000),
   });
-  writeFileSync(NEEDS_HUMAN_FILE, `${JSON.stringify(state.needs_human, null, 2)}\n`);
+  writeFileSync(
+    NEEDS_HUMAN_FILE,
+    `${JSON.stringify(state.needs_human, null, 2)}\n`,
+  );
   writeFileSync(STATE_FILE, `${JSON.stringify(state, null, 2)}\n`);
 }
 
@@ -369,9 +424,13 @@ async function processTask(task) {
 
   console.log(`\n=== ${task.id} (${task.kind}) ===`);
   if (DRY_RUN) {
-    console.log(`clone: ${join(REMEDIATION_DIR, "clones", task.id)}  branche: ${task.branch}`);
+    console.log(
+      `clone: ${join(REMEDIATION_DIR, "clones", task.id)}  branche: ${task.branch}`,
+    );
     console.log(`fichiers: ${(task.files ?? []).join(", ")}`);
-    console.log(`validation: ${validationCommands(task).join(" ; ") || "(aucune)"}`);
+    console.log(
+      `validation: ${validationCommands(task).join(" ; ") || "(aucune)"}`,
+    );
     return { task, status: "dry-run" };
   }
 
@@ -382,7 +441,12 @@ async function processTask(task) {
     try {
       clone = createTaskClone(task);
 
-      const agent = await runAgent(task, clone, prompt, attempt === 2 ? ".retry" : "");
+      const agent = await runAgent(
+        task,
+        clone,
+        prompt,
+        attempt === 2 ? ".retry" : "",
+      );
       if (!agent.ok) {
         const reason = `agent exit ${agent.code}`;
         if (attempt === 2) {
@@ -441,12 +505,15 @@ async function processTask(task) {
 async function pool(items, size, worker) {
   const queue = [...items];
   const results = [];
-  const runners = Array.from({ length: Math.min(size, queue.length) }, async () => {
-    while (queue.length > 0) {
-      const item = queue.shift();
-      results.push(await worker(item));
-    }
-  });
+  const runners = Array.from(
+    { length: Math.min(size, queue.length) },
+    async () => {
+      while (queue.length > 0) {
+        const item = queue.shift();
+        results.push(await worker(item));
+      }
+    },
+  );
   await Promise.all(runners);
   return results;
 }
@@ -485,10 +552,16 @@ async function main() {
   }
 
   const merged = results.filter((result) => result.status === "merged").length;
-  const needsHuman = results.filter((result) => result.status === "needs-human").length;
-  const skipped = results.filter((result) => result.status === "skipped").length;
+  const needsHuman = results.filter(
+    (result) => result.status === "needs-human",
+  ).length;
+  const skipped = results.filter(
+    (result) => result.status === "skipped",
+  ).length;
 
-  console.log(`\nRésumé : ${merged} mergées, ${needsHuman} à traiter, ${skipped} ignorées.`);
+  console.log(
+    `\nRésumé : ${merged} mergées, ${needsHuman} à traiter, ${skipped} ignorées.`,
+  );
   if (needsHuman > 0) console.log(`Détails : ${NEEDS_HUMAN_FILE}`);
   if (!DRY_RUN) {
     console.log(
