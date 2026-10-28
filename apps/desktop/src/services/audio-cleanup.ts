@@ -10,54 +10,72 @@ import {
   saveIncompleteCapture,
 } from "~/stt/capture-result";
 
-export async function handleCaptureCleanupStatus(payload: CaptureStatusEvent) {
-  if (payload.type !== "audio_error") return;
-  if (payload.error.startsWith("audio_deletion_failed:")) {
-    toast.error(
-      payload.session_id
-        ? "Audio could not be deleted"
-        : "Audio cleanup could not finish",
-      {
-        id: payload.session_id
-          ? `audio-deletion-${payload.session_id}`
-          : "audio-cleanup",
-        duration: Infinity,
-        description: payload.session_id
-          ? "Syntheo could not remove temporary audio and will retry cleanup automatically."
-          : "Syntheo could not finish audio cleanup or recovery and will retry automatically.",
-      },
-    );
-    if (payload.session_id) {
-      await saveIncompleteCapture(
-        payload.session_id,
-        "audio-cleanup",
-        false,
-        true,
-      );
-    }
-  } else if (payload.error.startsWith("audio_recovery_failed:")) {
-    toast.error("Audio could not be recovered", {
-      id: `audio-recovery-${payload.session_id}`,
+async function reportDeletionFailure(sessionId: string) {
+  const activeSession = Boolean(sessionId);
+  toast.error(
+    activeSession
+      ? "Audio could not be deleted"
+      : "Audio cleanup could not finish",
+    {
+      id: activeSession ? `audio-deletion-${sessionId}` : "audio-cleanup",
       duration: Infinity,
-      description:
-        "Syntheo could not restore interrupted audio and will retry recovery automatically.",
-    });
-    if (payload.session_id) {
-      await saveIncompleteCapture(payload.session_id, "audio-recovery", false);
-    }
-  } else if (payload.error === "audio_recovery_completed") {
-    // Restoring audio does not prove that the missing transcript was repaired.
-    toast.dismiss(`audio-recovery-${payload.session_id}`);
-  } else if (payload.error === "audio_deletion_completed") {
-    if (payload.session_id) {
-      await clearCaptureAudioDeletionFailure(payload.session_id);
-      toast.dismiss(`audio-deletion-${payload.session_id}`);
-    } else {
-      toast.dismiss("audio-cleanup");
-    }
-  } else {
+      description: activeSession
+        ? "Syntheo could not remove temporary audio and will retry cleanup automatically."
+        : "Syntheo could not finish audio cleanup or recovery and will retry automatically.",
+    },
+  );
+  if (activeSession) {
+    await saveIncompleteCapture(sessionId, "audio-cleanup", false, true);
+  }
+}
+
+async function reportRecoveryFailure(sessionId: string) {
+  toast.error("Audio could not be recovered", {
+    id: `audio-recovery-${sessionId}`,
+    duration: Infinity,
+    description:
+      "Syntheo could not restore interrupted audio and will retry recovery automatically.",
+  });
+  if (sessionId) {
+    await saveIncompleteCapture(sessionId, "audio-recovery", false);
+  }
+}
+
+async function confirmDeletionCompleted(sessionId: string) {
+  if (!sessionId) {
+    toast.dismiss("audio-cleanup");
     return;
   }
+  await clearCaptureAudioDeletionFailure(sessionId);
+  toast.dismiss(`audio-deletion-${sessionId}`);
+}
+
+type AudioErrorEvent = Extract<CaptureStatusEvent, { type: "audio_error" }>;
+
+async function applyCleanupStatus(payload: AudioErrorEvent): Promise<boolean> {
+  if (payload.error.startsWith("audio_deletion_failed:")) {
+    await reportDeletionFailure(payload.session_id);
+    return true;
+  }
+  if (payload.error.startsWith("audio_recovery_failed:")) {
+    await reportRecoveryFailure(payload.session_id);
+    return true;
+  }
+  if (payload.error === "audio_recovery_completed") {
+    // Restoring audio does not prove that the missing transcript was repaired.
+    toast.dismiss(`audio-recovery-${payload.session_id}`);
+    return true;
+  }
+  if (payload.error === "audio_deletion_completed") {
+    await confirmDeletionCompleted(payload.session_id);
+    return true;
+  }
+  return false;
+}
+
+export async function handleCaptureCleanupStatus(payload: CaptureStatusEvent) {
+  if (payload.type !== "audio_error") return;
+  if (!(await applyCleanupStatus(payload))) return;
   const result = await commands.acknowledgeCaptureAudioCleanupStatus(
     payload.session_id,
     payload.error,
@@ -102,16 +120,21 @@ export async function listenForCaptureCleanup() {
   try {
     const result = await commands.getCaptureAudioCleanupStatus();
     if (result.status === "error") throw new Error(result.error);
-    for (const [sessionId, error] of Object.entries(result.data)) {
-      if (!error || changedDuringRead.has(sessionId)) continue;
-      await consume({
-        type: "audio_error",
-        session_id: sessionId,
-        is_fatal: false,
-        device: null,
-        error,
-      });
-    }
+    await Object.entries(result.data).reduce(
+      (chain, [sessionId, error]) =>
+        chain.then(async () => {
+          if (error && !changedDuringRead?.has(sessionId)) {
+            await consume({
+              type: "audio_error",
+              session_id: sessionId,
+              is_fatal: false,
+              device: null,
+              error,
+            });
+          }
+        }),
+      Promise.resolve(),
+    );
   } catch (error) {
     console.error("[audio-cleanup] failed to read cleanup status", error);
   } finally {
