@@ -45,4 +45,4 @@ libloading = { workspace = true }
 objc2 = { workspace = true }
 objc2-app-kit = { workspace = true, features = ["NSStatusItem"] }
 objc2-foundation = { workspace = true, features = ["NSString", "NSUserDefaults"] }
-tray-icon = { version = "0.24.2", default-features = false }
+tray-icon = { version = "0.25.1", default-features = false }
