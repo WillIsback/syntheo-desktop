@@ -16,19 +16,52 @@ import { hasOwnSidebarHeaderTab } from "./use-custom-sidebar";
 import { usesTitleBarSidebarActions } from "~/shared/hooks/useWindowControlsGutter";
 import { useTabs } from "~/store/zustand/tabs";
 
+interface LeftSidebarProps {
+  folderFilter?: string | null;
+  noteFilter?: SidebarNoteFilter;
+  timelineHeader?: ReactNode;
+  showIgnoredTimelineEvents?: boolean;
+  onShowIgnoredTimelineEventsChange?: (showIgnored: boolean) => void;
+}
+
+// Only ever rendered when no special nav is active, i.e. when
+// isTimelineSidebarLayout is true in the parent component.
+function TimelineSidebarPanel({
+  folderFilter,
+  noteFilter = "mine",
+  timelineHeader,
+  showIgnoredTimelineEvents,
+  onShowIgnoredTimelineEventsChange,
+}: LeftSidebarProps) {
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      {noteFilter === "mine" ? (
+        <>
+          {folderFilter ? (
+            <FolderMaterialsPanel folderPath={folderFilter} />
+          ) : null}
+          <div className="relative min-h-0 flex-1">
+            <TimelineView
+              folderFilter={folderFilter}
+              showIgnoredEvents={showIgnoredTimelineEvents}
+              onShowIgnoredEventsChange={onShowIgnoredTimelineEventsChange}
+              topChromeInset={!timelineHeader && !usesTitleBarSidebarActions()}
+              topChipsOverlapHeader={!!timelineHeader}
+            />
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 export function LeftSidebar({
   folderFilter = null,
   noteFilter = "mine",
   timelineHeader,
   showIgnoredTimelineEvents,
   onShowIgnoredTimelineEventsChange,
-}: {
-  folderFilter?: string | null;
-  noteFilter?: SidebarNoteFilter;
-  timelineHeader?: ReactNode;
-  showIgnoredTimelineEvents?: boolean;
-  onShowIgnoredTimelineEventsChange?: (showIgnored: boolean) => void;
-} = {}) {
+}: LeftSidebarProps = {}) {
   const currentTab = useTabs((state) => state.currentTab);
 
   const isSettingsMode = currentTab?.type === "settings";
@@ -50,6 +83,14 @@ export function LeftSidebar({
   // would clip a pulled-up header).
   const needsChromeRowGutter =
     isSpecialMode && !hasOwnSidebarHeaderTab(currentTab);
+  const activeSpecialNav = [
+    { active: isSettingsMode, node: <SettingsNav /> },
+    { active: isCalendarMode, node: <CalendarNav /> },
+    { active: isContactsMode, node: <ContactsNav /> },
+    { active: isTemplatesMode, node: <TemplatesNav /> },
+    { active: isAutomationsMode, node: <AutomationsNav /> },
+    { active: isFoldersMode, node: <FoldersNav /> },
+  ].find((entry) => entry.active)?.node;
   return (
     <div
       className={cn([
@@ -61,45 +102,16 @@ export function LeftSidebar({
       <div className="flex flex-1 flex-col gap-1 overflow-hidden">
         {isTimelineSidebarLayout ? timelineHeader : null}
         <div className="relative min-h-0 flex-1 overflow-hidden">
-          {isSettingsMode ? (
-            <SettingsNav />
-          ) : isCalendarMode ? (
-            <CalendarNav />
-          ) : isContactsMode ? (
-            <ContactsNav />
-          ) : isTemplatesMode ? (
-            <TemplatesNav />
-          ) : isAutomationsMode ? (
-            <AutomationsNav />
-          ) : isFoldersMode ? (
-            <FoldersNav />
-          ) : (
-            <div className="flex h-full min-h-0 flex-col">
-              {noteFilter === "mine" ? (
-                <>
-                  {folderFilter ? (
-                    <FolderMaterialsPanel folderPath={folderFilter} />
-                  ) : null}
-                  <div className="relative min-h-0 flex-1">
-                    <TimelineView
-                      folderFilter={folderFilter}
-                      showIgnoredEvents={showIgnoredTimelineEvents}
-                      onShowIgnoredEventsChange={
-                        onShowIgnoredTimelineEventsChange
-                      }
-                      topChromeInset={
-                        isTimelineSidebarLayout &&
-                        !timelineHeader &&
-                        !usesTitleBarSidebarActions()
-                      }
-                      topChipsOverlapHeader={
-                        isTimelineSidebarLayout && !!timelineHeader
-                      }
-                    />
-                  </div>
-                </>
-              ) : null}
-            </div>
+          {activeSpecialNav ?? (
+            <TimelineSidebarPanel
+              folderFilter={folderFilter}
+              noteFilter={noteFilter}
+              timelineHeader={timelineHeader}
+              showIgnoredTimelineEvents={showIgnoredTimelineEvents}
+              onShowIgnoredTimelineEventsChange={
+                onShowIgnoredTimelineEventsChange
+              }
+            />
           )}
         </div>
       </div>
