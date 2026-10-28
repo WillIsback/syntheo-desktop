@@ -266,8 +266,23 @@ async function hashAsset(asset, assetDir) {
 }
 
 async function hashRemoteAsset(assetId) {
+  invariant(
+    typeof assetId === "string" && /^[A-Za-z0-9_-]+$/.test(assetId),
+    "Asset ID is invalid",
+  );
   const baseUrl = process.env.CN_ASSET_BASE_URL ?? DEFAULT_ASSET_BASE_URL;
-  const response = await fetch(`${baseUrl.replace(/\/$/, "")}/${assetId}`);
+  // The asset ID is read from the release/manifest files. Build the URL with
+  // `new URL` and a percent-encoded path segment so the file-derived value
+  // stays confined to one segment below the configured base and can never
+  // influence the request destination (scheme, host, credentials, or query).
+  let url;
+  try {
+    url = new URL(encodeURIComponent(assetId), `${baseUrl.replace(/\/$/, "")}/`)
+      .href;
+  } catch {
+    throw new Error(`Asset base URL is invalid: ${baseUrl}`);
+  }
+  const response = await fetch(url);
   invariant(
     response.ok && response.body,
     `Could not download asset ${assetId}: ${response.status}`,
