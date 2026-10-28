@@ -1,6 +1,10 @@
 import { type UnlistenFn } from "@tauri-apps/api/event";
 
-import { events as notificationEvents } from "@syntheo/plugin-notification";
+import {
+  events as notificationEvents,
+  type NotificationEvent,
+  type NotificationSource,
+} from "@syntheo/plugin-notification";
 import { commands as openerCommands } from "@syntheo/plugin-opener2";
 import type {
   CaptureConfigUpdate,
@@ -582,6 +586,237 @@ function LiveCaptureConfigSyncReady({
   return null;
 }
 
+type OpenNewFn = ReturnType<typeof useTabs.getState>["openNew"];
+type OpenNewRef = { current: OpenNewFn };
+
+type ConfirmAcceptTimeoutEvent = Extract<
+  NotificationEvent,
+  {
+    type:
+      | "notification_confirm"
+      | "notification_accept"
+      | "notification_timeout";
+  }
+>;
+type NotificationActionEvent = Extract<
+  NotificationEvent,
+  { type: "notification_action" }
+>;
+type OptionSelectedEvent = Extract<
+  NotificationEvent,
+  { type: "notification_option_selected" }
+>;
+type FooterActionEvent = Extract<
+  NotificationEvent,
+  { type: "notification_footer_action" }
+>;
+
+function getEventIdFromSource(
+  source: NotificationSource | null,
+): string | null {
+  if (source?.type === "calendar_event") {
+    return source.event_id;
+  }
+  if (source?.type === "mic_detected") {
+    return source.event_ids?.[0] ?? null;
+  }
+  return null;
+}
+
+function getSessionIdFromSource(
+  source: NotificationSource | null,
+): string | null {
+  if (source?.type === "session") {
+    return source.session_id;
+  }
+  return null;
+}
+
+function getTriggerAppIdsFromSource(
+  source: NotificationSource | null,
+): string[] | null {
+  if (source?.type === "mic_detected") {
+    return source.app_ids ?? null;
+  }
+  return null;
+}
+
+function getEventIdsFromSource(source: NotificationSource | null): string[] {
+  if (source?.type === "mic_detected") {
+    return source.event_ids ?? [];
+  }
+  return [];
+}
+
+function handleConfirmAcceptTimeoutEvent(
+  payload: ConfirmAcceptTimeoutEvent,
+  openNewRef: OpenNewRef,
+) {
+  if (handleAutoStopEndedNotification(payload.type, payload.key)) {
+    return;
+  }
+
+  if (payload.type === "notification_timeout") {
+    return;
+  }
+
+  if (payload.key?.startsWith("team-invitation:")) {
+    openNewRef.current({ type: "settings", state: { tab: "team" } });
+    return;
+  }
+
+  const source = payload.source;
+  const eventId = getEventIdFromSource(source);
+  const sourceSessionId = getSessionIdFromSource(source);
+  const triggerAppIds = getTriggerAppIdsFromSource(source);
+
+  if (sourceSessionId) {
+    openNewRef.current({
+      type: "sessions",
+      id: sourceSessionId,
+      state: {
+        view: null,
+        autoStart: null,
+        scheduledAutoStart: null,
+      },
+    });
+    return;
+  }
+
+  if (source?.type !== "calendar_event" && source?.type !== "mic_detected") {
+    return;
+  }
+
+  void createNotificationSession(eventId, triggerAppIds)
+    .then(({ sessionId, autoStart }) => {
+      openNewRef.current({
+        type: "sessions",
+        id: sessionId,
+        state: {
+          view: null,
+          autoStart: autoStart ? true : null,
+          scheduledAutoStart: null,
+        },
+      });
+    })
+    .catch((error) => {
+      console.error(
+        "[notification] failed to open notification session",
+        error,
+      );
+    });
+}
+
+async function startCalendarEventRecording(
+  eventId: string,
+  openNewRef: OpenNewRef,
+) {
+  try {
+    const sessionId = await getOrCreateSessionForEventId(eventId);
+    openNewRef.current({
+      type: "sessions",
+      id: sessionId,
+      state: {
+        view: null,
+        autoStart: true,
+      },
+    });
+  } catch (error) {
+    console.error(
+      "[notification] failed to start calendar event recording",
+      error,
+    );
+  }
+
+  try {
+    // Opening the meeting last returns focus to the meeting client,
+    // while the session starts from the route's auto-start state.
+    await openCalendarMeeting(eventId);
+  } catch (error) {
+    console.error("[notification] failed to open calendar meeting", error);
+  }
+}
+
+function handleNotificationActionEvent(
+  payload: NotificationActionEvent,
+  openNewRef: OpenNewRef,
+) {
+  if (payload.source?.type !== "calendar_event") {
+    return;
+  }
+
+  const eventId = payload.source.event_id;
+  if (payload.action === "open_meeting") {
+    void openCalendarMeeting(eventId).catch((error) => {
+      console.error("[notification] failed to open calendar meeting", error);
+    });
+    return;
+  }
+
+  void startCalendarEventRecording(eventId, openNewRef);
+}
+
+function handleOptionSelectedEvent(
+  payload: OptionSelectedEvent,
+  openNewRef: OpenNewRef,
+) {
+  const eventIds = getEventIdsFromSource(payload.source);
+  const sessionPromise =
+    payload.selected_index < eventIds.length
+      ? getOrCreateSessionForEventId(eventIds[payload.selected_index])
+      : createSession();
+
+  if (payload.source?.type === "mic_detected") {
+    const triggerAppIds = payload.source.app_ids ?? [];
+    listenerStore
+      .getState()
+      .setTriggerAppIds(triggerAppIds.length > 0 ? triggerAppIds : null);
+  }
+
+  void sessionPromise
+    .then((sessionId) => {
+      openNewRef.current({
+        type: "sessions",
+        id: sessionId,
+        state: {
+          view: null,
+          autoStart: true,
+          scheduledAutoStart: null,
+        },
+      });
+    })
+    .catch((error) => {
+      console.error("[notification] failed to open selected event", error);
+    });
+}
+
+function handleFooterActionEvent(
+  payload: FooterActionEvent,
+  ignoredPlatforms: string[],
+) {
+  if (payload.source?.type !== "mic_detected") {
+    return;
+  }
+
+  const appIds = payload.source.app_ids ?? [];
+  if (appIds.length === 0) {
+    return;
+  }
+
+  const nextIgnoredPlatforms = [...new Set([...ignoredPlatforms, ...appIds])];
+
+  if (nextIgnoredPlatforms.length === ignoredPlatforms.length) {
+    return;
+  }
+
+  void setSettingValue(
+    "ignored_platforms",
+    JSON.stringify(nextIgnoredPlatforms),
+  ).catch((error) => {
+    console.error("[notification] failed to ignore platforms", error);
+  });
+}
+
 function useNotificationEvents() {
   const ignoredPlatforms = useConfigValue("ignored_platforms");
   const openNew = useTabs((state) => state.openNew);
@@ -598,185 +833,21 @@ function useNotificationEvents() {
 
     void notificationEvents.notificationEvent
       .listen(({ payload }) => {
-        if (
-          payload.type === "notification_confirm" ||
-          payload.type === "notification_accept" ||
-          payload.type === "notification_timeout"
-        ) {
-          if (handleAutoStopEndedNotification(payload.type, payload.key)) {
-            return;
-          }
-
-          if (payload.type === "notification_timeout") {
-            return;
-          }
-
-          if (payload.key?.startsWith("team-invitation:")) {
-            openNewRef.current({ type: "settings", state: { tab: "team" } });
-            return;
-          }
-
-          const eventId =
-            payload.source?.type === "calendar_event"
-              ? payload.source.event_id
-              : payload.source?.type === "mic_detected"
-                ? (payload.source.event_ids?.[0] ?? null)
-                : null;
-          const sourceSessionId =
-            payload.source?.type === "session"
-              ? payload.source.session_id
-              : null;
-          const triggerAppIds =
-            payload.source?.type === "mic_detected"
-              ? (payload.source.app_ids ?? null)
-              : null;
-          if (sourceSessionId) {
-            openNewRef.current({
-              type: "sessions",
-              id: sourceSessionId,
-              state: {
-                view: null,
-                autoStart: null,
-                scheduledAutoStart: null,
-              },
-            });
-            return;
-          }
-
-          if (
-            payload.source?.type !== "calendar_event" &&
-            payload.source?.type !== "mic_detected"
-          ) {
-            return;
-          }
-
-          void createNotificationSession(eventId, triggerAppIds)
-            .then(({ sessionId, autoStart }) => {
-              openNewRef.current({
-                type: "sessions",
-                id: sessionId,
-                state: {
-                  view: null,
-                  autoStart: autoStart ? true : null,
-                  scheduledAutoStart: null,
-                },
-              });
-            })
-            .catch((error) => {
-              console.error(
-                "[notification] failed to open notification session",
-                error,
-              );
-            });
-        } else if (payload.type === "notification_action") {
-          if (payload.source?.type !== "calendar_event") {
-            return;
-          }
-
-          const eventId = payload.source.event_id;
-          if (payload.action === "open_meeting") {
-            void openCalendarMeeting(eventId).catch((error) => {
-              console.error(
-                "[notification] failed to open calendar meeting",
-                error,
-              );
-            });
-            return;
-          }
-
-          void (async () => {
-            try {
-              const sessionId = await getOrCreateSessionForEventId(eventId);
-              openNewRef.current({
-                type: "sessions",
-                id: sessionId,
-                state: {
-                  view: null,
-                  autoStart: true,
-                },
-              });
-            } catch (error) {
-              console.error(
-                "[notification] failed to start calendar event recording",
-                error,
-              );
-            }
-
-            try {
-              // Opening the meeting last returns focus to the meeting client,
-              // while the session starts from the route's auto-start state.
-              await openCalendarMeeting(eventId);
-            } catch (error) {
-              console.error(
-                "[notification] failed to open calendar meeting",
-                error,
-              );
-            }
-          })();
-        } else if (payload.type === "notification_option_selected") {
-          const selectedIndex = payload.selected_index;
-          const eventIds =
-            payload.source?.type === "mic_detected"
-              ? (payload.source.event_ids ?? [])
-              : [];
-
-          const sessionPromise =
-            selectedIndex < eventIds.length
-              ? getOrCreateSessionForEventId(eventIds[selectedIndex])
-              : createSession();
-
-          if (payload.source?.type === "mic_detected") {
-            const triggerAppIds = payload.source.app_ids ?? [];
-            listenerStore
-              .getState()
-              .setTriggerAppIds(
-                triggerAppIds.length > 0 ? triggerAppIds : null,
-              );
-          }
-
-          void sessionPromise
-            .then((sessionId) => {
-              openNewRef.current({
-                type: "sessions",
-                id: sessionId,
-                state: {
-                  view: null,
-                  autoStart: true,
-                  scheduledAutoStart: null,
-                },
-              });
-            })
-            .catch((error) => {
-              console.error(
-                "[notification] failed to open selected event",
-                error,
-              );
-            });
-        } else if (payload.type === "notification_footer_action") {
-          if (payload.source?.type !== "mic_detected") {
-            return;
-          }
-
-          const appIds = payload.source.app_ids ?? [];
-          if (appIds.length === 0) {
-            return;
-          }
-
-          const ignoredPlatforms = ignoredPlatformsRef.current;
-          const nextIgnoredPlatforms = [
-            ...new Set([...ignoredPlatforms, ...appIds]),
-          ];
-
-          if (nextIgnoredPlatforms.length === ignoredPlatforms.length) {
-            return;
-          }
-
-          void setSettingValue(
-            "ignored_platforms",
-            JSON.stringify(nextIgnoredPlatforms),
-          ).catch((error) => {
-            console.error("[notification] failed to ignore platforms", error);
-          });
+        switch (payload.type) {
+          case "notification_confirm":
+          case "notification_accept":
+          case "notification_timeout":
+            handleConfirmAcceptTimeoutEvent(payload, openNewRef);
+            break;
+          case "notification_action":
+            handleNotificationActionEvent(payload, openNewRef);
+            break;
+          case "notification_option_selected":
+            handleOptionSelectedEvent(payload, openNewRef);
+            break;
+          case "notification_footer_action":
+            handleFooterActionEvent(payload, ignoredPlatformsRef.current);
+            break;
         }
       })
       .then((f) => {
