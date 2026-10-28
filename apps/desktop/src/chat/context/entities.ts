@@ -115,13 +115,13 @@ function resultItems(output: unknown): Record<string, unknown>[] {
     return [];
   }
 
-  const results = Array.isArray(output.results)
-    ? output.results
-    : Array.isArray(output.meetings)
-      ? output.meetings
-      : [];
-
-  return results.filter(isRecord);
+  if (Array.isArray(output.results)) {
+    return output.results.filter(isRecord);
+  }
+  if (Array.isArray(output.meetings)) {
+    return output.meetings.filter(isRecord);
+  }
+  return [];
 }
 
 function itemId(item: Record<string, unknown>): string | null {
@@ -214,31 +214,28 @@ const toolEntityExtractors: Record<
   search_calendar_events: parseSearchCalendarEventsOutput,
 };
 
+function extractPartEntities(part: unknown): ContextEntity[] {
+  if (!isToolOutputAvailablePart(part) || !part.type.startsWith("tool-")) {
+    return [];
+  }
+
+  const extractor = toolEntityExtractors[part.type.slice(5)];
+  if (!extractor) {
+    return [];
+  }
+
+  return extractor(part.output);
+}
+
 export function extractToolContextEntities(
   messages: Array<Pick<SyntheoUIMessage, "parts">>,
 ): ContextEntity[] {
-  const seen = new Set<string>();
-  const entities: ContextEntity[] = [];
-
+  const groups: ContextEntity[][] = [];
   for (const message of messages) {
-    if (!Array.isArray(message.parts)) continue;
-    for (const part of message.parts) {
-      if (!isToolOutputAvailablePart(part) || !part.type.startsWith("tool-")) {
-        continue;
-      }
-
-      const toolName = part.type.slice(5);
-      const extractor = toolEntityExtractors[toolName];
-      if (!extractor) continue;
-
-      for (const entity of extractor(part.output)) {
-        if (!seen.has(entity.key)) {
-          seen.add(entity.key);
-          entities.push(entity);
-        }
-      }
+    if (!Array.isArray(message.parts)) {
+      continue;
     }
+    groups.push(message.parts.flatMap(extractPartEntities));
   }
-
-  return entities;
+  return dedupeByKey(groups);
 }
