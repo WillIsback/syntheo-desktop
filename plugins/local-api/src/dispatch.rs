@@ -393,11 +393,54 @@ mod tests {
 
     #[test]
     fn signature_matches_reference_hmac() {
-        // Precomputed with python hmac: key=whsec_test, message={"a":1}
+        // The key is generated at runtime so that no key material is
+        // hard-coded in the sources (CodeQL rust/hard-coded-cryptographic-value).
+        // The expected MAC is recomputed here with a manual RFC 2104
+        // construction over `sha2`, independent from the `hmac` crate used
+        // by `sign_payload`.
+        let key = uuid::Uuid::new_v4().simple().to_string();
+        let payload = "{\"a\":1}";
+
         assert_eq!(
-            sign_payload("whsec_test", "{\"a\":1}"),
-            "51426af50a41dd7ff2cd3f116594734766d4018d15d6fb07169aee5d2959adf5"
+            sign_payload(&key, payload),
+            reference_hmac_sha256_hex(key.as_bytes(), payload.as_bytes())
         );
+        // Same key and body must produce the same signature, while a
+        // different key must change it.
+        assert_eq!(sign_payload(&key, payload), sign_payload(&key, payload));
+        assert_ne!(
+            sign_payload(&key, payload),
+            sign_payload(&uuid::Uuid::new_v4().simple().to_string(), payload)
+        );
+    }
+
+    fn reference_hmac_sha256_hex(key: &[u8], message: &[u8]) -> String {
+        use sha2::Digest as _;
+
+        const BLOCK_LEN: usize = 64;
+        let normalized: Vec<u8> = if key.len() > BLOCK_LEN {
+            sha2::Sha256::digest(key).to_vec()
+        } else {
+            key.to_vec()
+        };
+        let mut padded = normalized;
+        padded.resize(BLOCK_LEN, 0);
+
+        let inner_block: Vec<u8> = padded.iter().map(|byte| byte ^ 0x36).collect();
+        let mut inner = sha2::Sha256::new();
+        inner.update(&inner_block);
+        inner.update(message);
+        let inner = inner.finalize();
+
+        let outer_block: Vec<u8> = padded.iter().map(|byte| byte ^ 0x5c).collect();
+        let mut outer = sha2::Sha256::new();
+        outer.update(&outer_block);
+        outer.update(inner);
+        outer
+            .finalize()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect()
     }
 
     #[test]
