@@ -4,8 +4,12 @@ export function parseFrontmatter(content: string): {
   body: string;
 } {
   const trimmed = content.trim();
+  // Les délimiteurs de frontmatter n'acceptent que des espaces/tabs (et un CR
+  // éventuel avant le saut de ligne) : `\s*` autoriserait `\n` et se confondrait
+  // avec les boucles `[\s\S]*?`, ce qui rend le motif quadratique sur une entrée
+  // hostile (ReDoS). Le motif ci-dessous reste linéaire.
   const frontmatterMatch = trimmed.match(
-    /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/,
+    /^---[ \t\r]*\n([\s\S]*?)\n---[ \t\r]*\n([\s\S]*)$/,
   );
 
   if (!frontmatterMatch) {
@@ -13,7 +17,9 @@ export function parseFrontmatter(content: string): {
   }
 
   const frontmatterBlock = frontmatterMatch[1];
-  const body = frontmatterMatch[2];
+  // L'ancien `\s*` avalait les lignes vides situées après le délimiteur
+  // fermant ; on les retire ici pour conserver exactement le même corps.
+  const body = frontmatterMatch[2].replace(/^[\s]*/, "");
 
   const date = readFrontmatterValue(frontmatterBlock, "date");
   const summary = readFrontmatterValue(frontmatterBlock, "summary");
