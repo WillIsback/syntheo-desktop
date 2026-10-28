@@ -100,8 +100,13 @@ test("removes Wayland libraries, repacks, and regenerates the signature", async 
     run: async (command, args, options) => {
       commands.push({ command, args, options });
       if (command === fixture.plugin) {
-        await assert.rejects(access(fixture.appImage, constants.F_OK));
-        await writeFile(fixture.appImage, "repacked-appimage");
+        // L'AppImage d'origine doit avoir été supprimée avant le
+        // rempaquetage. La création exclusive (flag "wx") échoue avec
+        // EEXIST si le fichier est encore présent, sans contrôle préalable
+        // sujet à une course entre la vérification et l'écriture.
+        await writeFile(fixture.appImage, "repacked-appimage", {
+          flag: "wx",
+        });
       } else {
         await writeFile(`${fixture.appImage}.sig`, "fresh-signature");
       }
