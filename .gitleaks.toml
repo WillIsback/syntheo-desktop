@@ -5,9 +5,24 @@ title = "Syntheo Desktop"
 useDefault = true
 
 [allowlist]
-description = "Fichiers générés et lockfiles (hashes d'intégrité, pas des secrets)"
+description = "Fichiers générés/lockfiles + fixtures de test et identifiants publics (faux positifs Gitleaks #58–#69)"
 paths = [
   '''pnpm-lock\.yaml''',
   '''Cargo\.lock''',
   '''apps/desktop/src/i18n/locales/.*/messages\.(po|ts)''',
+  # Faux positifs triés le 2026-10-28 (alertes GitHub #58–#69, détections
+  # historiques sur f3a017e ; fichiers retirés du dépôt dans c72ed9ab).
+  # Aucune clé réelle : clés ES256 jetonnées de tests unitaires, JWT factices
+  # de test, clé publique Supabase « role: anon », identifiants Stripe price_*
+  # publics, identifiants client OAuth publics (Copilot/Grok), nom de variable
+  # linkedinUsername. Entrées exactes pour le scan d'historique.
+  '''^apps/api/src/tests\.rs$''',
+  '''^apps/desktop/src/crm/enrichment\.ts$''',
+  '''^apps/desktop/src/settings/ai/llm/subscriptions/oauth\.ts$''',
+  '''^apps/mobile/src/settings/subscription-oauth\.ts$''',
+  '''^apps/stripe/src/scripts/stripe-migrate-legacy-pro-prices\.ts$''',
+  '''^crates/api-cloud/src/routes\.rs$''',
+  '''^crates/supabase-auth/src/server/mod\.rs$''',
+  '''^crates/supabase-auth/src/session\.rs$''',
+  '''^supabase/tests/000-setup-tests-hooks\.sql$''',
 ]
