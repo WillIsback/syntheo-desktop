@@ -354,99 +354,35 @@ export function buildPastSessionNotes(
   }
 
   const currentTimestamp = getSessionTimestamp(currentSession);
-  const items: Array<{
-    note: PastSessionNote & { dateMs: number };
-    request: PastSessionNoteRequest;
-    isMissing: boolean;
-  }> = [];
+  const candidateContext: PastNoteCandidateContext = {
+    currentSessionId: sessionId,
+    currentTimestamp,
+    currentParticipantIds,
+    currentSeriesId,
+    currentTitleKey,
+    userId,
+    keyFacts: data.keyFacts,
+    participantIdsFor,
+    notesBySession,
+    namesByHumanId,
+  };
 
+  const items: PastSessionNoteItem[] = [];
   for (const candidateSession of Object.values(data.sessions)) {
-    const candidateSessionId = candidateSession.id;
-    if (candidateSessionId === sessionId) {
-      continue;
+    const item = buildPastSessionNoteItem(candidateSession, candidateContext);
+    if (item) {
+      items.push(item);
     }
-
-    const candidateTimestamp = getSessionTimestamp(candidateSession);
-    if (
-      currentTimestamp > 0 &&
-      candidateTimestamp > 0 &&
-      candidateTimestamp >= currentTimestamp
-    ) {
-      continue;
-    }
-
-    const candidateEvent = getSessionEvent(candidateSession);
-    const candidateParticipantIds = participantIdsFor(candidateSessionId);
-    const candidateSeriesId = getRecurrenceSeriesId(candidateEvent);
-    const relationship = getPastSessionRelationship({
-      currentParticipantIds,
-      currentSeriesId,
-      currentTitleKey,
-      candidateParticipantIds,
-      candidateSeriesId,
-      candidateTitleKey: getSessionTitleKey(candidateSession),
-    });
-    if (!relationship) {
-      continue;
-    }
-
-    const source = getSessionKeyFactsSource(
-      notesBySession.get(candidateSessionId) ?? [],
-    );
-    if (!source) {
-      continue;
-    }
-
-    const title = getSessionTitle(candidateSession);
-    const dateLabel = formatSessionDate(candidateSession);
-    const sourceHash = createSourceHash([title, dateLabel, source].join("\n"));
-    const saved = getSavedKeyFacts(
-      data.keyFacts,
-      candidateSessionId,
-      sourceHash,
-    );
-    const ownerUserId = getSessionUserId(candidateSession, userId);
-    const participantNames = getSessionParticipantNames(
-      namesByHumanId,
-      new Set([...currentParticipantIds, ...candidateParticipantIds]),
-    );
-    const request = {
-      sessionId: candidateSessionId,
-      userId: ownerUserId,
-      title,
-      dateLabel,
-      sourceText: source,
-      sourceHash,
-      participantNames,
-    };
-
-    items.push({
-      note: {
-        sessionId: candidateSessionId,
-        title,
-        dateLabel,
-        occurredAt: candidateEvent?.started_at || candidateSession.created_at,
-        participantNames,
-        sourceSummary: source,
-        relationship,
-        summary: saved,
-        isGenerating: false,
-        dateMs: candidateTimestamp,
-      },
-      request,
-      isMissing: !saved,
-    });
   }
 
-  const selected = items
-    .sort((a, b) => {
-      return (
-        getRelationshipRank(b.note.relationship) -
-          getRelationshipRank(a.note.relationship) ||
-        b.note.dateMs - a.note.dateMs
-      );
-    })
-    .slice(0, MAX_PAST_NOTES);
+  items.sort((a, b) => {
+    return (
+      getRelationshipRank(b.note.relationship) -
+        getRelationshipRank(a.note.relationship) ||
+      b.note.dateMs - a.note.dateMs
+    );
+  });
+  const selected = items.slice(0, MAX_PAST_NOTES);
 
   return {
     notes: selected.map(({ note }) => {
@@ -458,6 +394,104 @@ export function buildPastSessionNotes(
   };
 }
 
+type PastSessionNoteItem = {
+  note: PastSessionNote & { dateMs: number };
+  request: PastSessionNoteRequest;
+  isMissing: boolean;
+};
+
+type PastNoteCandidateContext = {
+  currentSessionId: string;
+  currentTimestamp: number;
+  currentParticipantIds: Set<string>;
+  currentSeriesId: string | null;
+  currentTitleKey: string;
+  userId: string | null;
+  keyFacts: Record<string, PastKeyFactsRow>;
+  participantIdsFor: (id: string) => Set<string>;
+  notesBySession: Map<string, PastEnhancedNoteRow[]>;
+  namesByHumanId: Map<string, string>;
+};
+
+function buildPastSessionNoteItem(
+  candidateSession: PastSessionRow,
+  context: PastNoteCandidateContext,
+): PastSessionNoteItem | null {
+  const candidateSessionId = candidateSession.id;
+  if (candidateSessionId === context.currentSessionId) {
+    return null;
+  }
+
+  const candidateTimestamp = getSessionTimestamp(candidateSession);
+  if (
+    context.currentTimestamp > 0 &&
+    candidateTimestamp > 0 &&
+    candidateTimestamp >= context.currentTimestamp
+  ) {
+    return null;
+  }
+
+  const candidateEvent = getSessionEvent(candidateSession);
+  const candidateParticipantIds = context.participantIdsFor(candidateSessionId);
+  const relationship = getPastSessionRelationship({
+    currentParticipantIds: context.currentParticipantIds,
+    currentSeriesId: context.currentSeriesId,
+    currentTitleKey: context.currentTitleKey,
+    candidateParticipantIds,
+    candidateSeriesId: getRecurrenceSeriesId(candidateEvent),
+    candidateTitleKey: getSessionTitleKey(candidateSession),
+  });
+  if (!relationship) {
+    return null;
+  }
+
+  const source = getSessionKeyFactsSource(
+    context.notesBySession.get(candidateSessionId) ?? [],
+  );
+  if (!source) {
+    return null;
+  }
+
+  const title = getSessionTitle(candidateSession);
+  const dateLabel = formatSessionDate(candidateSession);
+  const sourceHash = createSourceHash([title, dateLabel, source].join("\n"));
+  const saved = getSavedKeyFacts(
+    context.keyFacts,
+    candidateSessionId,
+    sourceHash,
+  );
+  const participantNames = getSessionParticipantNames(
+    context.namesByHumanId,
+    new Set([...context.currentParticipantIds, ...candidateParticipantIds]),
+  );
+  const request: PastSessionNoteRequest = {
+    sessionId: candidateSessionId,
+    userId: getSessionUserId(candidateSession, context.userId),
+    title,
+    dateLabel,
+    sourceText: source,
+    sourceHash,
+    participantNames,
+  };
+
+  return {
+    note: {
+      sessionId: candidateSessionId,
+      title,
+      dateLabel,
+      occurredAt: candidateEvent?.started_at || candidateSession.created_at,
+      participantNames,
+      sourceSummary: source,
+      relationship,
+      summary: saved,
+      isGenerating: false,
+      dateMs: candidateTimestamp,
+    },
+    request,
+    isMissing: !saved,
+  };
+}
+
 async function generateAndSavePastSessionNotes({
   model,
   requests,
@@ -465,14 +499,14 @@ async function generateAndSavePastSessionNotes({
   model: LanguageModel;
   requests: PastSessionNoteRequest[];
 }) {
-  const rows: Array<PastSessionNoteRequest & { content: string }> = [];
-
-  for (const request of requests) {
-    const content = await generatePastSessionKeyFacts({ model, request });
-    if (content) {
-      rows.push({ ...request, content });
-    }
-  }
+  const contents = await Promise.all(
+    requests.map((request) => generatePastSessionKeyFacts({ model, request })),
+  );
+  const rows: Array<PastSessionNoteRequest & { content: string }> =
+    requests.flatMap((request, index) => {
+      const content = contents[index];
+      return content ? [{ ...request, content }] : [];
+    });
 
   if (rows.length === 0) {
     return;
@@ -635,8 +669,7 @@ function getSavedKeyFacts(
 ): string | null {
   const row = keyFacts[sessionId];
   if (
-    !row ||
-    row.session_id !== sessionId ||
+    row?.session_id !== sessionId ||
     row.source_hash !== sourceHash ||
     !row.content?.trim()
   ) {
@@ -676,9 +709,9 @@ function getSessionKeyFactsSource(
 function cleanSourceText(text: string): string {
   return text
     .replace(/!\[[^\]]*]\([^)]+\)/g, "")
-    .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
+    .replace(/\[([^\][]+)\]\(([^)\][]+)\)/g, "$1")
     .replace(/[`*_~>#]/g, "")
-    .replace(/(^|\s)([-+]|[0-9]+[.)])\s+/g, " ")
+    .replace(/(^|\s)([-+]|\d+[.)])\s+/g, " ")
     .replace(SPACE_REGEX, " ")
     .trim();
 }
@@ -856,7 +889,7 @@ function formatSessionDate(session: {
 function createSourceHash(text: string): string {
   let hash = 0x811c9dc5;
   for (let i = 0; i < text.length; i++) {
-    hash ^= text.charCodeAt(i);
+    hash ^= text.codePointAt(i) ?? 0;
     hash = Math.imul(hash, 0x01000193);
   }
   return (hash >>> 0).toString(16);
