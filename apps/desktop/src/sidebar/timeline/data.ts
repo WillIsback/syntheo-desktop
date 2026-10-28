@@ -18,37 +18,46 @@ export function getFallbackIndicatorIndex(
   nowMs: number,
   sortOrder: TimelineSortOrder = "newest",
 ) {
-  if (sortOrder === "oldest") {
-    for (let index = 0; index < buckets.length; index++) {
-      const bucket = buckets[index];
-      if (!bucket) {
-        continue;
-      }
+  return sortOrder === "oldest"
+    ? findOldestFallbackIndicatorIndex(buckets, nowMs)
+    : findNewestFallbackIndicatorIndex(buckets, nowMs);
+}
 
-      if (isFutureBucketLabel(bucket.label)) {
-        return index;
-      }
-
-      const newestItem = bucket.items[bucket.items.length - 1];
-      const itemDate = newestItem ? getItemTimestamp(newestItem) : null;
-      if (itemDate && itemDate.getTime() >= nowMs) {
-        return index;
-      }
+function findOldestFallbackIndicatorIndex(
+  buckets: TimelineBucket[],
+  nowMs: number,
+) {
+  for (let index = 0; index < buckets.length; index++) {
+    const bucket = buckets[index];
+    if (!bucket) {
+      continue;
     }
 
-    return -1;
+    if (isFutureBucketLabel(bucket.label)) {
+      return index;
+    }
+
+    if (hasItemAtOrAfter(bucket, nowMs)) {
+      return index;
+    }
   }
 
+  return -1;
+}
+
+function findNewestFallbackIndicatorIndex(
+  buckets: TimelineBucket[],
+  nowMs: number,
+) {
   let staleFutureBoundary: number | null = null;
 
   for (let index = 0; index < buckets.length; index++) {
     const bucket = buckets[index];
-    const firstItem = bucket?.items[0];
-    if (!bucket || !firstItem) {
+    if (!bucket) {
       continue;
     }
 
-    const itemDate = getItemTimestamp(firstItem);
+    const itemDate = getFirstItemTimestamp(bucket);
     if (!itemDate || itemDate.getTime() >= nowMs) {
       continue;
     }
@@ -62,6 +71,17 @@ export function getFallbackIndicatorIndex(
   }
 
   return staleFutureBoundary ?? -1;
+}
+
+function getFirstItemTimestamp(bucket: TimelineBucket): Date | null {
+  const firstItem = bucket.items[0];
+  return firstItem ? getItemTimestamp(firstItem) : null;
+}
+
+function hasItemAtOrAfter(bucket: TimelineBucket, nowMs: number) {
+  const newestItem = bucket.items[bucket.items.length - 1];
+  const itemDate = newestItem ? getItemTimestamp(newestItem) : null;
+  return itemDate !== null && itemDate.getTime() >= nowMs;
 }
 
 function isFutureBucketLabel(label: string) {
