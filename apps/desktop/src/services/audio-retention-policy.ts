@@ -14,9 +14,12 @@ const AUDIO_RETENTION_VALUES = new Set([
   "forever",
 ]);
 
-export function normalizeAudioRetention<
-  T extends AudioRetentionPolicy | undefined = "forever",
->(value: unknown, fallback?: T): AudioRetentionPolicy | T {
+// Variante sans fallback implicite : une valeur invalide donne `undefined`
+// (alors que normalizeAudioRetention sans second argument retombe sur
+// "forever"), ce qui permet les chaînages `??` de candidats.
+export function normalizeAudioRetentionOrUndefined(
+  value: unknown,
+): AudioRetentionPolicy | undefined {
   if (typeof value === "string" && AUDIO_RETENTION_VALUES.has(value)) {
     return value as AudioRetentionPolicy;
   }
@@ -27,6 +30,17 @@ export function normalizeAudioRetention<
 
   if (value === true) {
     return "forever";
+  }
+
+  return undefined;
+}
+
+export function normalizeAudioRetention<
+  T extends AudioRetentionPolicy | undefined = "forever",
+>(value: unknown, fallback?: T): AudioRetentionPolicy | T {
+  const normalized = normalizeAudioRetentionOrUndefined(value);
+  if (normalized !== undefined) {
+    return normalized;
   }
 
   return arguments.length >= 2 ? (fallback as T) : ("forever" as T);
