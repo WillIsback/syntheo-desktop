@@ -18,6 +18,9 @@ import { useTabs } from "~/store/zustand/tabs";
 
 type Renderer = ToolRenderer<"tool-search_meetings">;
 type Part = Parameters<Renderer>[0]["part"];
+type CreatedAtFilter = NonNullable<
+  NonNullable<Part["input"]>["filters"]
+>["created_at"];
 type MeetingSearchResult = {
   id: string;
   title: string;
@@ -26,17 +29,39 @@ type MeetingSearchResult = {
   created_at: number | string;
 };
 
+function extractResultList(record: {
+  results?: unknown;
+  meetings?: unknown;
+}): unknown[] | null {
+  if (Array.isArray(record.results)) {
+    return record.results;
+  }
+  if (Array.isArray(record.meetings)) {
+    return record.meetings;
+  }
+  return null;
+}
+
+function resolveCreatedAt(
+  startedAt: unknown,
+  createdAt: unknown,
+): number | string {
+  if (typeof startedAt === "string" && startedAt) {
+    return startedAt;
+  }
+  if (typeof createdAt === "number" || typeof createdAt === "string") {
+    return createdAt;
+  }
+  return 0;
+}
+
 function parseMeetingSearchResults(output: unknown): MeetingSearchResult[] {
   if (!output || typeof output !== "object") {
     return [];
   }
 
   const record = output as { results?: unknown; meetings?: unknown };
-  const results = Array.isArray(record.results)
-    ? record.results
-    : Array.isArray(record.meetings)
-      ? record.meetings
-      : null;
+  const results = extractResultList(record);
   if (!results) {
     return [];
   }
@@ -64,15 +89,55 @@ function parseMeetingSearchResults(output: unknown): MeetingSearchResult[] {
         title: typeof title === "string" ? title : "Untitled",
         excerpt: typeof excerpt === "string" ? excerpt : "",
         score: typeof score === "number" ? score : 0,
-        created_at:
-          typeof started_at === "string" && started_at
-            ? started_at
-            : typeof created_at === "number" || typeof created_at === "string"
-              ? created_at
-              : 0,
+        created_at: resolveCreatedAt(started_at, created_at),
       },
     ];
   });
+}
+
+type AbsoluteBounds = {
+  gte?: number;
+  lte?: number;
+  gt?: number;
+  lt?: number;
+  eq?: number;
+};
+
+function formatAbsoluteBounds(createdAt: AbsoluteBounds): string[] {
+  const bounds: string[] = [];
+  const comparisons: Array<[string, number | undefined]> = [
+    ["gte", createdAt.gte],
+    ["lte", createdAt.lte],
+    ["gt", createdAt.gt],
+    ["lt", createdAt.lt],
+    ["eq", createdAt.eq],
+  ];
+
+  for (const [operator, value] of comparisons) {
+    if (value != null) {
+      bounds.push(`${operator} ${new Date(value).toLocaleString()}`);
+    }
+  }
+
+  return bounds;
+}
+
+function pushDateDetails(details: string[], createdAt: CreatedAtFilter): void {
+  if (createdAt?.kind === "relative") {
+    details.push(
+      `Date: recent ${createdAt.recent_days} day(s), including today`,
+    );
+    return;
+  }
+
+  if (createdAt?.kind !== "absolute") {
+    return;
+  }
+
+  const bounds = formatAbsoluteBounds(createdAt);
+  if (bounds.length > 0) {
+    details.push(`Date: ${bounds.join(", ")}`);
+  }
 }
 
 function formatSearchInput(input: Part["input"] | undefined): {
@@ -93,34 +158,7 @@ function formatSearchInput(input: Part["input"] | undefined): {
     details.push(`Query: ${rawQuery}`);
   }
 
-  const createdAt = input.filters?.created_at;
-  if (createdAt?.kind === "relative") {
-    details.push(
-      `Date: recent ${createdAt.recent_days} day(s), including today`,
-    );
-  } else if (createdAt?.kind === "absolute") {
-    const bounds = [
-      createdAt.gte != null
-        ? `gte ${new Date(createdAt.gte).toLocaleString()}`
-        : null,
-      createdAt.lte != null
-        ? `lte ${new Date(createdAt.lte).toLocaleString()}`
-        : null,
-      createdAt.gt != null
-        ? `gt ${new Date(createdAt.gt).toLocaleString()}`
-        : null,
-      createdAt.lt != null
-        ? `lt ${new Date(createdAt.lt).toLocaleString()}`
-        : null,
-      createdAt.eq != null
-        ? `eq ${new Date(createdAt.eq).toLocaleString()}`
-        : null,
-    ].filter(Boolean);
-
-    if (bounds.length > 0) {
-      details.push(`Date: ${bounds.join(", ")}`);
-    }
-  }
+  pushDateDetails(details, input.filters?.created_at);
 
   if (typeof input.limit === "number") {
     details.push(`Limit: ${input.limit}`);
@@ -161,7 +199,7 @@ const getTitle = (part: Part) => {
   return "Search";
 };
 
-function RenderContent({ part }: { part: Part }) {
+function RenderContent({ part }: { readonly part: Part }) {
   const { details } = formatSearchInput(part.input);
 
   if (part.state === "output-available") {
@@ -230,7 +268,7 @@ function RenderContent({ part }: { part: Part }) {
   ) : null;
 }
 
-function RenderMeeting({ result }: { result: MeetingSearchResult }) {
+function RenderMeeting({ result }: { readonly result: MeetingSearchResult }) {
   const { id: sessionId } = result;
   const openNew = useTabs((state) => state.openNew);
 
