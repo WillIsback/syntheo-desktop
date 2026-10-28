@@ -11,8 +11,16 @@ export function normalizeFolderPath(path: string): string | null {
     return null;
   }
 
+  // Supprime les "/" de fin par une boucle linéaire : un regex /\/+$/u
+  // évalué via replace() backtrack en temps quadratique sur les entrées
+  // répétitives (ReDoS polynomial, cf. CodeQL js/polynomial-redos).
+  let end = replaced.length;
+  while (end > 0 && replaced[end - 1] === "/") {
+    end -= 1;
+  }
+
   const segments: string[] = [];
-  for (const raw of replaced.replace(/\/+$/u, "").split("/")) {
+  for (const raw of replaced.slice(0, end).split("/")) {
     if (!raw || raw === "." || raw === "..") {
       return null;
     }
