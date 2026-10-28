@@ -6,10 +6,10 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const ESCAPES = {
   "\\": "\\\\",
-  '"': '\\"',
-  "\n": "\\n",
-  "\r": "\\r",
-  "\t": "\\t",
+  '"': String.raw`\"`,
+  "\n": String.raw`\n`,
+  "\r": String.raw`\r`,
+  "\t": String.raw`\t`,
 };
 const UNESCAPES = { n: "\n", r: "\r", t: "\t", '"': '"', "\\": "\\" };
 
@@ -37,43 +37,56 @@ function decodeQuoted(line) {
   return match[1].replace(/\\(.)/g, (_, char) => UNESCAPES[char] ?? char);
 }
 
+/** Rassemble une ligne `msgid`/`msgstr` et ses lignes de continuation `"...". */
+function collectQuotedParts(lines, start) {
+  const parts = [decodeQuoted(lines[start])];
+  let next = start + 1;
+  while (next < lines.length && lines[next].startsWith('"')) {
+    parts.push(decodeQuoted(lines[next]));
+    next += 1;
+  }
+  return { parts, next };
+}
+
+/** Parse une entrée `msgid` (avec son `msgstr` optionnel) à partir de `start`. */
+function parseEntry(lines, start) {
+  const idParts = collectQuotedParts(lines, start);
+  let msgstrStart = -1;
+  let msgstrEnd = -1;
+  let msgstr = "";
+  if (
+    idParts.next < lines.length &&
+    lines[idParts.next].startsWith("msgstr ")
+  ) {
+    msgstrStart = idParts.next;
+    const strParts = collectQuotedParts(lines, idParts.next);
+    msgstr = strParts.parts.join("");
+    msgstrEnd = strParts.next;
+  }
+  return {
+    entry: {
+      msgid: idParts.parts.join(""),
+      msgstr,
+      msgstrStart,
+      msgstrEnd,
+    },
+    next: msgstrEnd < 0 ? idParts.next : msgstrEnd,
+  };
+}
+
 /** Parse un PO en conservant les bornes de chaque `msgstr` pour réécriture ciblée. */
 export function parsePo(text) {
   const lines = text.split("\n");
   const entries = [];
   let i = 0;
   while (i < lines.length) {
-    if (lines[i].startsWith("msgid ")) {
-      const idParts = [decodeQuoted(lines[i])];
-      let j = i + 1;
-      while (j < lines.length && lines[j].startsWith('"')) {
-        idParts.push(decodeQuoted(lines[j]));
-        j += 1;
-      }
-      const msgid = idParts.join("");
-      let msgstrStart = -1;
-      let msgstrEnd = -1;
-      const strParts = [];
-      if (j < lines.length && lines[j].startsWith("msgstr ")) {
-        msgstrStart = j;
-        strParts.push(decodeQuoted(lines[j]));
-        j += 1;
-        while (j < lines.length && lines[j].startsWith('"')) {
-          strParts.push(decodeQuoted(lines[j]));
-          j += 1;
-        }
-        msgstrEnd = j;
-      }
-      entries.push({
-        msgid,
-        msgstr: strParts.join(""),
-        msgstrStart,
-        msgstrEnd,
-      });
-      i = j;
-    } else {
+    if (!lines[i].startsWith("msgid ")) {
       i += 1;
+      continue;
     }
+    const parsed = parseEntry(lines, i);
+    entries.push(parsed.entry);
+    i = parsed.next;
   }
   return { lines, entries };
 }
@@ -86,7 +99,7 @@ export function renderMsgstr(value) {
   const out = ['msgstr ""'];
   segments.forEach((segment, index) => {
     const isLast = index === segments.length - 1;
-    out.push(`"${encodePoString(segment)}${isLast ? "" : "\\n"}"`);
+    out.push(`"${encodePoString(segment)}${isLast ? "" : String.raw`\n`}"`);
   });
   return out;
 }
@@ -98,8 +111,10 @@ export function applyTranslations(text, translations) {
   let cursor = 0;
   for (const entry of entries) {
     if (entry.msgstrStart < 0 || !(entry.msgid in translations)) continue;
-    out.push(...lines.slice(cursor, entry.msgstrStart));
-    out.push(...renderMsgstr(translations[entry.msgid]));
+    out.push(
+      ...lines.slice(cursor, entry.msgstrStart),
+      ...renderMsgstr(translations[entry.msgid]),
+    );
     cursor = entry.msgstrEnd;
   }
   out.push(...lines.slice(cursor));
@@ -131,14 +146,14 @@ function extractJsonArray(raw) {
 export function parseTranslations(raw, expected) {
   const parsed = extractJsonArray(raw);
   if (!Array.isArray(parsed)) {
-    throw new Error("la réponse n'est pas un tableau JSON");
+    throw new TypeError("la réponse n'est pas un tableau JSON");
   }
   if (parsed.length !== expected) {
     throw new Error(`attendu ${expected} traductions, reçu ${parsed.length}`);
   }
   return parsed.map((value, index) => {
     if (typeof value !== "string") {
-      throw new Error(`traduction non textuelle à l'index ${index}`);
+      throw new TypeError(`traduction non textuelle à l'index ${index}`);
     }
     return value;
   });
@@ -178,7 +193,7 @@ export async function translateBatch(strings, options) {
     const data = await response.json();
     const content = data?.choices?.[0]?.message?.content;
     if (typeof content !== "string") {
-      throw new Error("réponse LLM sans contenu");
+      throw new TypeError("réponse LLM sans contenu");
     }
     return parseTranslations(content, strings.length);
   } finally {
@@ -188,6 +203,28 @@ export async function translateBatch(strings, options) {
 
 function sourceTextFor(entry) {
   return entry.msgstr.trim() === "" ? entry.msgid : entry.msgstr;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Exécute le client sur un batch, avec un nombre maximal de `retries`
+ * nouvelles tentatives et une attente croissante. Retourne `null` quand
+ * toutes les tentatives ont échoué.
+ */
+async function attemptBatch(client, strings, retries, attempt) {
+  try {
+    return await client(strings);
+  } catch {
+    // Erreur volontairement ignorée ici : la tentative est répétée avec une
+    // attente croissante, et si toutes échouent l'appelant collecte les
+    // msgids du batch dans `failures` et les remonte à l'utilisateur.
+    if (attempt >= retries) return null;
+    await delay(2000 * (attempt + 1));
+    return attemptBatch(client, strings, retries, attempt + 1);
+  }
 }
 
 export async function translatePo({
@@ -215,27 +252,14 @@ export async function translatePo({
     const strings = batch.map((entry) =>
       sourceTextFor(sourceById.get(entry.msgid) ?? entry),
     );
-    let results;
-    let attempt = 0;
-    for (;;) {
-      try {
-        results = await client(strings);
-        break;
-      } catch (error) {
-        attempt += 1;
-        if (attempt > retries) {
-          failures.push(...batch.map((entry) => entry.msgid));
-          results = null;
-          break;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
-      }
-    }
+    const results = await attemptBatch(client, strings, retries, 0);
     if (results) {
       batch.forEach((entry, index) => {
         translations[entry.msgid] = results[index];
         translated += 1;
       });
+    } else {
+      failures.push(...batch.map((entry) => entry.msgid));
     }
     onProgress(translated, pending.length, failures.length);
   }
@@ -295,8 +319,10 @@ async function main() {
 }
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
+  try {
+    await main();
+  } catch (error) {
     console.error(error);
     process.exit(1);
-  });
+  }
 }
