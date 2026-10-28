@@ -224,7 +224,7 @@ gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3d
 
 vergen-gix = "10"
 
-askama = "0.15"
+askama = "0.16"
 askama_parser = "0.15"
 markdown = "1"
 # Vendored 0.0.2 with byte-indexed Unicode escaping fixed; upstream still uses chars().nth(byte_offset).
