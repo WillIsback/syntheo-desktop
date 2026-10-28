@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 
 import type { AIProviderStorage } from "@syntheo/store";
 import { Warning } from "@syntheo/ui/components/icons";
@@ -32,6 +32,7 @@ import {
 } from "~/settings/ai/shared";
 import {
   getProviderSelectionBlockers,
+  type ProviderRequirement,
   requiresEntitlement,
 } from "~/settings/ai/shared/eligibility";
 import { PersistAiSelection } from "~/settings/ai/shared/persist-selection";
@@ -109,13 +110,14 @@ export function SelectProviderAndModel() {
   const visibleProvider = effectiveSelection.provider as ProviderId | "";
   const isConfigured = !!(visibleProvider && effectiveSelection.model);
   const hasError = isConfigured && health.status === "error";
-  const alertDescription = !providerSettingsReady
-    ? undefined
-    : !isConfigured
-      ? t`Choose a transcription model to start listening.`
-      : hasError
-        ? health.message
-        : undefined;
+  const chooseModelMessage = t`Choose a transcription model to start listening.`;
+  const alertDescription = getSttAlertDescription({
+    providerSettingsReady,
+    isConfigured,
+    hasError,
+    healthMessage: health.message,
+    chooseModelMessage,
+  });
   const displayedSttModel = effectiveSelection.model;
   const modelSuggestions = getSttModelSuggestions(visibleProvider);
   const providerOptions = getConfiguredProviders(
@@ -125,9 +127,7 @@ export function SelectProviderAndModel() {
 
   const setSelection = useSetSettingValues();
   const lastSelectedModelsRef = useRef<Record<string, string>>(
-    current_stt_provider && selectedSttModel
-      ? { [current_stt_provider]: selectedSttModel }
-      : {},
+    getInitialSelectedModels(current_stt_provider, selectedSttModel),
   );
   const rememberModel = (provider?: string, model?: string) => {
     if (!provider || model === undefined) {
@@ -202,85 +202,201 @@ export function SelectProviderAndModel() {
         <Trans>Model being used</Trans>
       </h3>
       <div className="flex flex-row items-center gap-4">
-        <div className="min-w-0 flex-2" data-stt-provider-selector>
-          <Select value={visibleProvider} onValueChange={handleProviderChange}>
-            <SelectTrigger
-              corners={{ radius: 18, smoothing: 0 }}
-              className="bg-card rounded-[18px] shadow-none"
-            >
-              <SelectValue placeholder={t`Select a provider`} />
-            </SelectTrigger>
-            <SelectContent>
-              {providerOptions.length === 0 && (
-                <div className="text-muted-foreground px-2 py-3 text-center text-sm">
-                  <Trans>No providers found.</Trans>
-                </div>
-              )}
-              {providerOptions.map((provider) => {
-                const configured =
-                  configuredProviders[provider.id]?.configured ?? false;
-                const requiresPro = requiresEntitlement(
-                  provider.requirements,
-                  "pro",
-                );
-                const locked = requiresPro && !billing.isPaid;
-                return (
-                  <SelectItem
-                    key={provider.id}
-                    value={provider.id}
-                    disabled={provider.disabled || locked}
-                    className={cn([
-                      "data-disabled:text-muted-foreground data-disabled:!opacity-100",
-                      !configured && !locked && "text-muted-foreground",
-                    ])}
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-2">
-                        <ProviderIconSlot>{provider.icon}</ProviderIconSlot>
-                        <span>{provider.displayName}</span>
-                        {requiresPro ? (
-                          <span className="border-border text-muted-foreground rounded-full border px-2 py-0.5 text-[10px] tracking-wide uppercase">
-                            <Trans>Pro</Trans>
-                          </span>
-                        ) : null}
-                      </div>
-                      {locked ? (
-                        <span className="text-muted-foreground text-[11px]">
-                          <Trans>Upgrade to Pro to use this provider.</Trans>
-                        </span>
-                      ) : "description" in provider && provider.description ? (
-                        <span className="text-muted-foreground text-[11px]">
-                          {provider.description}
-                        </span>
-                      ) : null}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
+        <SttProviderSelect
+          options={providerOptions}
+          selectedProvider={visibleProvider}
+          configuredProviders={configuredProviders}
+          isPaid={billing.isPaid}
+          placeholder={t`Select a provider`}
+          onValueChange={handleProviderChange}
+        />
 
         <span className="text-muted-foreground">/</span>
 
-        <div className="flex min-w-0 flex-3 items-center gap-2">
-          <datalist id={STT_MODEL_SUGGESTIONS_ID}>
-            {modelSuggestions.map((model) => (
-              <option key={model} value={model} />
-            ))}
-          </datalist>
-          <Input
-            list={
-              modelSuggestions.length > 0 ? STT_MODEL_SUGGESTIONS_ID : undefined
-            }
-            value={displayedSttModel || ""}
-            onChange={(event) => handleModelChange(event.target.value)}
-            className="text-xs"
-            placeholder={t`Enter a model identifier`}
-          />
-          {isConfigured && <HealthStatusIndicator />}
-        </div>
+        <SttModelInput
+          suggestions={modelSuggestions}
+          value={displayedSttModel}
+          placeholder={t`Enter a model identifier`}
+          showHealthIndicator={isConfigured}
+          onValueChange={handleModelChange}
+        />
       </div>
+    </div>
+  );
+}
+
+type SttProviderOption = {
+  id: string;
+  displayName: string;
+  description?: string;
+  disabled: boolean;
+  icon: ReactNode;
+  requirements: readonly ProviderRequirement[];
+};
+
+function getInitialSelectedModels(
+  provider?: string,
+  model?: string,
+): Record<string, string> {
+  if (provider && model) {
+    return { [provider]: model };
+  }
+
+  return {};
+}
+
+function getSttAlertDescription({
+  providerSettingsReady,
+  isConfigured,
+  hasError,
+  healthMessage,
+  chooseModelMessage,
+}: {
+  providerSettingsReady: boolean;
+  isConfigured: boolean;
+  hasError: boolean;
+  healthMessage?: string;
+  chooseModelMessage: string;
+}): string | undefined {
+  if (!providerSettingsReady) {
+    return undefined;
+  }
+
+  if (!isConfigured) {
+    return chooseModelMessage;
+  }
+
+  if (hasError) {
+    return healthMessage;
+  }
+
+  return undefined;
+}
+
+function SttProviderSelect<T extends SttProviderOption>({
+  options,
+  selectedProvider,
+  configuredProviders,
+  isPaid,
+  placeholder,
+  onValueChange,
+}: {
+  options: readonly T[];
+  selectedProvider: string;
+  configuredProviders: Record<string, { configured: boolean } | undefined>;
+  isPaid: boolean;
+  placeholder: string;
+  onValueChange: (provider: string) => void;
+}) {
+  return (
+    <div className="min-w-0 flex-2" data-stt-provider-selector>
+      <Select value={selectedProvider} onValueChange={onValueChange}>
+        <SelectTrigger
+          corners={{ radius: 18, smoothing: 0 }}
+          className="bg-card rounded-[18px] shadow-none"
+        >
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.length === 0 && (
+            <div className="text-muted-foreground px-2 py-3 text-center text-sm">
+              <Trans>No providers found.</Trans>
+            </div>
+          )}
+          {options.map((provider) => {
+            const configured =
+              configuredProviders[provider.id]?.configured ?? false;
+            const requiresPro = requiresEntitlement(
+              provider.requirements,
+              "pro",
+            );
+            const locked = requiresPro && !isPaid;
+            return (
+              <SelectItem
+                key={provider.id}
+                value={provider.id}
+                disabled={provider.disabled || locked}
+                className={cn([
+                  "data-disabled:text-muted-foreground data-disabled:!opacity-100",
+                  !configured && !locked && "text-muted-foreground",
+                ])}
+              >
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <ProviderIconSlot>{provider.icon}</ProviderIconSlot>
+                    <span>{provider.displayName}</span>
+                    {requiresPro ? (
+                      <span className="border-border text-muted-foreground rounded-full border px-2 py-0.5 text-[10px] tracking-wide uppercase">
+                        <Trans>Pro</Trans>
+                      </span>
+                    ) : null}
+                  </div>
+                  <SttProviderOptionDetails
+                    description={provider.description}
+                    locked={locked}
+                  />
+                </div>
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+function SttProviderOptionDetails({
+  description,
+  locked,
+}: {
+  description?: string;
+  locked: boolean;
+}) {
+  if (locked) {
+    return (
+      <span className="text-muted-foreground text-[11px]">
+        <Trans>Upgrade to Pro to use this provider.</Trans>
+      </span>
+    );
+  }
+
+  if (description) {
+    return (
+      <span className="text-muted-foreground text-[11px]">{description}</span>
+    );
+  }
+
+  return null;
+}
+
+function SttModelInput({
+  suggestions,
+  value,
+  placeholder,
+  showHealthIndicator,
+  onValueChange,
+}: {
+  suggestions: readonly string[];
+  value: string;
+  placeholder: string;
+  showHealthIndicator: boolean;
+  onValueChange: (model: string) => void;
+}) {
+  return (
+    <div className="flex min-w-0 flex-3 items-center gap-2">
+      <datalist id={STT_MODEL_SUGGESTIONS_ID}>
+        {suggestions.map((model) => (
+          <option key={model} value={model} />
+        ))}
+      </datalist>
+      <Input
+        list={suggestions.length > 0 ? STT_MODEL_SUGGESTIONS_ID : undefined}
+        value={value || ""}
+        onChange={(event) => onValueChange(event.target.value)}
+        className="text-xs"
+        placeholder={placeholder}
+      />
+      {showHealthIndicator && <HealthStatusIndicator />}
     </div>
   );
 }
