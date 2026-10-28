@@ -133,7 +133,11 @@ export async function verifyProviderCredentials(
 // modèles. Aucune contre-épreuve par clé invalide : un vLLM sans --api-key
 // accepte toute clé, ce qui est légitime sur un réseau privé.
 function credentialRequest({ baseUrl, apiKey }: ProviderCredential) {
-  const base = baseUrl.replace(/\/+$/, "");
+  // Retire les « / » de fin sans expression régulière : parcours linéaire
+  // borné, insensible aux entrées bourrées de répétitions de « / ».
+  let end = baseUrl.length;
+  while (end > 0 && baseUrl[end - 1] === "/") end--;
+  const base = baseUrl.slice(0, end);
   const headers: Record<string, string> = apiKey
     ? { Authorization: `Bearer ${apiKey}` }
     : {};
