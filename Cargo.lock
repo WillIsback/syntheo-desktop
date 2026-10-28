@@ -2639,7 +2639,7 @@ checksum = "be1e0bca6c3637f992fc1cc7cbc52a78c1ef6db076dbf1059c4323d6a2048376"
 name = "db-app"
 version = "0.1.0"
 dependencies = [
- "base64 0.22.1",
+ "base64 0.23.1",
  "db-core",
  "db-migrate",
  "serde",
@@ -7062,7 +7062,7 @@ dependencies = [
  "async-stream",
  "audio-utils",
  "axum",
- "base64 0.22.1",
+ "base64 0.23.1",
  "futures-util",
  "hound",
  "language",
@@ -8555,7 +8555,7 @@ dependencies = [
 name = "owhisper-client"
 version = "0.0.1"
 dependencies = [
- "base64 0.22.1",
+ "base64 0.23.1",
  "bytes",
  "data",
  "futures-util",
@@ -11546,7 +11546,7 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 name = "storage"
 version = "0.1.0"
 dependencies = [
- "base64 0.22.1",
+ "base64 0.23.1",
  "brand",
  "dirs 6.0.0",
  "serde_json",
@@ -12061,7 +12061,7 @@ name = "syntheo-cli"
 version = "0.1.0"
 dependencies = [
  "agent-access",
- "base64 0.22.1",
+ "base64 0.23.1",
  "clap",
  "cli-docs",
  "db-app",
@@ -12703,7 +12703,7 @@ dependencies = [
 name = "tauri-plugin-detect"
 version = "0.1.0"
 dependencies = [
- "base64 0.22.1",
+ "base64 0.23.1",
  "detect",
  "notification-interface",
  "objc2",
@@ -12750,7 +12750,7 @@ version = "0.1.0"
 dependencies = [
  "atspi",
  "audio",
- "base64 0.22.1",
+ "base64 0.23.1",
  "dictation-ui-macos",
  "futures-util",
  "hound",
@@ -12917,7 +12917,7 @@ dependencies = [
 name = "tauri-plugin-icon"
 version = "0.1.0"
 dependencies = [
- "base64 0.22.1",
+ "base64 0.23.1",
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",
