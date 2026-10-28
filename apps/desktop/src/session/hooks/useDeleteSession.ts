@@ -51,6 +51,119 @@ function isSessionDeletedForUndoPayload(
   );
 }
 
+type DeletionContext = {
+  sessionId: string;
+  tombstone: string;
+  isMainWindow: boolean;
+  trackingId?: string | null;
+  wasIgnored: boolean;
+  hadOpenTab: boolean;
+};
+
+type DeletionDependencies = {
+  clearDeletion: (sessionId: string) => void;
+  unignoreEvent: (trackingId: string) => void;
+};
+
+/** Progress marker shared with the handoff so a failed emit still counts as deleted. */
+type DeletionProgress = {
+  didDelete: boolean;
+};
+
+function clearOptimisticDeletion(
+  sessionId: string,
+  tombstone: string,
+  clearDeletion: (sessionId: string) => void,
+) {
+  const pending = useUndoDelete.getState().pendingDeletions[sessionId];
+  if (pending?.data.tombstone === tombstone) {
+    clearDeletion(sessionId);
+  }
+}
+
+/**
+ * Hands the deleted session over to the main window (or reports the undo
+ * entry from it) and reports whether the soft-delete actually committed.
+ */
+async function handoffDeletedSession(
+  progress: DeletionProgress,
+  context: DeletionContext,
+  commit: Promise<DeletedSessionData | null>,
+  dependencies: DeletionDependencies,
+) {
+  const deletedData = await commit;
+  if (!deletedData) {
+    // The session was already deleted; drop the optimistic toast.
+    if (context.isMainWindow) {
+      clearOptimisticDeletion(
+        context.sessionId,
+        context.tombstone,
+        dependencies.clearDeletion,
+      );
+    }
+    return;
+  }
+  progress.didDelete = true;
+
+  if (!context.isMainWindow) {
+    await emitTo("main", SESSION_DELETED_FOR_UNDO_EVENT, {
+      sessionId: context.sessionId,
+      data: deletedData,
+    } satisfies SessionDeletedForUndoPayload);
+  }
+}
+
+function handleDeletionFailure(
+  context: DeletionContext,
+  didDelete: boolean,
+  dependencies: DeletionDependencies,
+) {
+  if (!didDelete) {
+    if (context.isMainWindow) {
+      clearOptimisticDeletion(
+        context.sessionId,
+        context.tombstone,
+        dependencies.clearDeletion,
+      );
+    }
+    // Only undo the optimistic ignore; a pre-existing ignore must
+    // survive a failed delete.
+    if (context.trackingId && !context.wasIgnored) {
+      dependencies.unignoreEvent(context.trackingId);
+    }
+    if (context.hadOpenTab) {
+      useTabs
+        .getState()
+        .openCurrent({ type: "sessions", id: context.sessionId });
+    }
+    toast.error(t`Could not delete this note. Please try again.`);
+    return;
+  }
+
+  // The delete committed but main never learned about it, so its
+  // finalize-time cleanup will not run. Finalize here — losing the
+  // undo window beats leaving the shared link live forever.
+  void finalizeSessionDeletion(context.sessionId);
+}
+
+async function settleSessionDeletion(
+  context: DeletionContext,
+  commit: Promise<DeletedSessionData | null>,
+  dependencies: DeletionDependencies,
+) {
+  const progress: DeletionProgress = { didDelete: false };
+  try {
+    await handoffDeletedSession(progress, context, commit, dependencies);
+  } catch (error) {
+    console.error("[delete-session] failed to finish deletion", error);
+    handleDeletionFailure(context, progress.didDelete, dependencies);
+  } finally {
+    if (progress.didDelete) {
+      await closeSessionNoteWindows(context.sessionId);
+    }
+  }
+}
+
 export function useDeleteSession() {
   const invalidateResource = useTabs((state) => state.invalidateResource);
   const addDeletion = useUndoDelete((state) => state.addDeletion);
@@ -98,13 +211,6 @@ export function useDeleteSession() {
       const commit = softDeleteSession(sessionId, tombstone);
       trackPendingSoftDelete(sessionId, commit);
 
-      const clearOptimisticDeletion = () => {
-        const pending = useUndoDelete.getState().pendingDeletions[sessionId];
-        if (pending?.data.tombstone === tombstone) {
-          clearDeletion(sessionId);
-        }
-      };
-
       if (isMainWindow) {
         // Finalize gates on the commit so a failed or no-op delete never
         // removes the session folder or revokes the shared link. It returns
@@ -127,48 +233,18 @@ export function useDeleteSession() {
         );
       }
 
-      void (async () => {
-        let didDelete = false;
-        try {
-          const deletedData = await commit;
-          if (!deletedData) {
-            // The session was already deleted; drop the optimistic toast.
-            if (isMainWindow) clearOptimisticDeletion();
-            return;
-          }
-          didDelete = true;
-
-          if (!isMainWindow) {
-            await emitTo("main", SESSION_DELETED_FOR_UNDO_EVENT, {
-              sessionId,
-              data: deletedData,
-            } satisfies SessionDeletedForUndoPayload);
-          }
-        } catch (error) {
-          console.error("[delete-session] failed to finish deletion", error);
-          if (!didDelete) {
-            if (isMainWindow) clearOptimisticDeletion();
-            // Only undo the optimistic ignore; a pre-existing ignore must
-            // survive a failed delete.
-            if (trackingId && !wasIgnored) unignoreEvent(trackingId);
-            if (hadOpenTab) {
-              useTabs
-                .getState()
-                .openCurrent({ type: "sessions", id: sessionId });
-            }
-            toast.error(t`Could not delete this note. Please try again.`);
-          } else {
-            // The delete committed but main never learned about it, so its
-            // finalize-time cleanup will not run. Finalize here — losing the
-            // undo window beats leaving the shared link live forever.
-            void finalizeSessionDeletion(sessionId);
-          }
-        } finally {
-          if (didDelete) {
-            await closeSessionNoteWindows(sessionId);
-          }
-        }
-      })();
+      void settleSessionDeletion(
+        {
+          sessionId,
+          tombstone,
+          isMainWindow,
+          trackingId,
+          wasIgnored,
+          hadOpenTab,
+        },
+        commit,
+        { clearDeletion, unignoreEvent },
+      );
     },
     [
       ignoreEvent,
