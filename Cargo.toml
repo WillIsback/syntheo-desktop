@@ -215,7 +215,7 @@ wiremock = "0.6"
 axum = "0.8"
 axum-extra = "0.12"
 tower = "0.5"
-utoipa = { version = "5", features = ["axum_extras"] }
+utoipa = { version = "6", features = ["axum_extras"] }
 
 chrono = "0.4"
 chrono-tz = "0.10"
