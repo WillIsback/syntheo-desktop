@@ -143,6 +143,105 @@ function compareNullableDates(
   return 0;
 }
 
+function pushIdByDate(
+  idsByDate: Record<string, string[]>,
+  key: string,
+  id: string,
+) {
+  const bucket = idsByDate[key];
+  if (bucket) {
+    bucket.push(id);
+  } else {
+    idsByDate[key] = [id];
+  }
+}
+
+function compareEventRows(
+  eventsTable: NonNullable<TimelineEventsTable>,
+  a: string,
+  b: string,
+) {
+  const aAllDay = eventsTable[a]?.is_all_day ? 0 : 1;
+  const bAllDay = eventsTable[b]?.is_all_day ? 0 : 1;
+  const allDayCompare = aAllDay - bAllDay;
+  if (allDayCompare !== 0) return allDayCompare;
+
+  const startCompare = compareNullableDates(
+    eventsTable[a]?.started_at as string | undefined,
+    eventsTable[b]?.started_at as string | undefined,
+    parseEventInstant,
+  );
+  if (startCompare !== 0) return startCompare;
+
+  const titleCompare = String(eventsTable[a]?.title ?? "").localeCompare(
+    String(eventsTable[b]?.title ?? ""),
+  );
+  if (titleCompare !== 0) return titleCompare;
+
+  return a.localeCompare(b);
+}
+
+function compareSessionRows(
+  sessionsTable: NonNullable<TimelineSessionsTable>,
+  a: string,
+  b: string,
+) {
+  const createdAtCompare = compareNullableDates(
+    sessionsTable[a]?.created_at as string | undefined,
+    sessionsTable[b]?.created_at as string | undefined,
+  );
+  if (createdAtCompare !== 0) return createdAtCompare;
+
+  const titleCompare = String(sessionsTable[a]?.title ?? "").localeCompare(
+    String(sessionsTable[b]?.title ?? ""),
+  );
+  if (titleCompare !== 0) return titleCompare;
+
+  return a.localeCompare(b);
+}
+
+function buildEventIdsByDate(
+  eventsTable: NonNullable<TimelineEventsTable>,
+  isIgnored: ReturnType<typeof useIgnoredEvents>["isIgnored"],
+  tz?: string,
+) {
+  const eventIdsByDate: Record<string, string[]> = {};
+
+  for (const [eventId, row] of Object.entries(eventsTable)) {
+    if (isIgnored(row.tracking_id_event, row.recurrence_series_id)) continue;
+    const day = eventCalendarDay(row.started_at, row.is_all_day, tz);
+    if (!day) continue;
+    pushIdByDate(eventIdsByDate, day, eventId);
+  }
+
+  for (const ids of Object.values(eventIdsByDate)) {
+    ids.sort((a, b) => compareEventRows(eventsTable, a, b));
+  }
+
+  return eventIdsByDate;
+}
+
+function buildSessionIdsByDate(
+  sessionsTable: NonNullable<TimelineSessionsTable>,
+  tz?: string,
+) {
+  const sessionIdsByDate: Record<string, string[]> = {};
+
+  for (const [sessionId, row] of Object.entries(sessionsTable)) {
+    if (row.event_json || !row.title) continue;
+    const raw = safeParseDate(row.created_at);
+    if (!raw) continue;
+    const key = format(toTz(raw, tz), "yyyy-MM-dd");
+    pushIdByDate(sessionIdsByDate, key, sessionId);
+  }
+
+  for (const ids of Object.values(sessionIdsByDate)) {
+    ids.sort((a, b) => compareSessionRows(sessionsTable, a, b));
+  }
+
+  return sessionIdsByDate;
+}
+
 export function useCalendarData(): CalendarData {
   const tz = useTimezone();
   const {
@@ -152,72 +251,13 @@ export function useCalendarData(): CalendarData {
   const { isIgnored } = useIgnoredEvents();
 
   return useMemo(() => {
-    const eventIdsByDate: Record<string, string[]> = {};
-    const sessionIdsByDate: Record<string, string[]> = {};
-
-    if (eventsTable) {
-      for (const [eventId, row] of Object.entries(eventsTable)) {
-        if (isIgnored(row.tracking_id_event, row.recurrence_series_id))
-          continue;
-        const day = eventCalendarDay(row.started_at, row.is_all_day, tz);
-        if (!day) continue;
-        (eventIdsByDate[day] ??= []).push(eventId);
-      }
-
-      for (const ids of Object.values(eventIdsByDate)) {
-        ids.sort((a, b) => {
-          const aAllDay = eventsTable[a]?.is_all_day ? 0 : 1;
-          const bAllDay = eventsTable[b]?.is_all_day ? 0 : 1;
-          const allDayCompare = aAllDay - bAllDay;
-          if (allDayCompare !== 0) return allDayCompare;
-
-          const startCompare = compareNullableDates(
-            eventsTable[a]?.started_at as string | undefined,
-            eventsTable[b]?.started_at as string | undefined,
-            parseEventInstant,
-          );
-          if (startCompare !== 0) return startCompare;
-
-          const titleCompare = String(
-            eventsTable[a]?.title ?? "",
-          ).localeCompare(String(eventsTable[b]?.title ?? ""));
-          if (titleCompare !== 0) return titleCompare;
-
-          return a.localeCompare(b);
-        });
-      }
-    }
-
-    if (sessionsTable) {
-      for (const [sessionId, row] of Object.entries(sessionsTable)) {
-        if (row.event_json || !row.title) continue;
-        const raw = safeParseDate(row.created_at);
-        if (!raw) continue;
-        const key = format(toTz(raw, tz), "yyyy-MM-dd");
-        (sessionIdsByDate[key] ??= []).push(sessionId);
-      }
-
-      for (const ids of Object.values(sessionIdsByDate)) {
-        ids.sort((a, b) => {
-          const createdAtCompare = compareNullableDates(
-            sessionsTable[a]?.created_at as string | undefined,
-            sessionsTable[b]?.created_at as string | undefined,
-          );
-          if (createdAtCompare !== 0) return createdAtCompare;
-
-          const titleCompare = String(
-            sessionsTable[a]?.title ?? "",
-          ).localeCompare(String(sessionsTable[b]?.title ?? ""));
-          if (titleCompare !== 0) return titleCompare;
-
-          return a.localeCompare(b);
-        });
-      }
-    }
-
     return {
-      eventIdsByDate,
-      sessionIdsByDate,
+      eventIdsByDate: eventsTable
+        ? buildEventIdsByDate(eventsTable, isIgnored, tz)
+        : {},
+      sessionIdsByDate: sessionsTable
+        ? buildSessionIdsByDate(sessionsTable, tz)
+        : {},
       eventsById: eventsTable ?? {},
       sessionsById: sessionsTable ?? {},
     };
