@@ -247,7 +247,7 @@ tauri-specta = "2.0.0-rc.21"
 cidre = { version = "0.15", default-features = false, features = ["app", "async", "av", "ax", "blocks", "cm", "core_audio", "dispatch", "io_kit", "io_pm", "macos_15_0"] }
 cpal = "0.17"
 dasp = { version = "0.11.0", features = ["interpolate", "interpolate-linear"] }
-earshot = "0.1.0"
+earshot = "1.2.2"
 hound = "3.5.1"
 htmd = "0.5.0"
 macos-accessibility-client = "0.0.2"
