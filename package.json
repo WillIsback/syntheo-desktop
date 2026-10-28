@@ -11,20 +11,20 @@
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.61.0",
-    "@tanstack/eslint-plugin-query": "^5.99.0",
+    "@tanstack/eslint-plugin-query": "^5.104.5",
     "braces": "3.0.3",
     "decode-uri-component": "0.5.1",
-    "dprint": "^0.51.1",
+    "dprint": "^0.64.3",
     "eslint": "^9.39.4",
     "extract-zip": "2.0.1",
     "lint-staged": "^16.4.0",
     "node-forge": "1.4.0",
-    "oxfmt": "^0.45.0",
-    "oxlint": "^1.60.0",
+    "oxfmt": "^0.74.0",
+    "oxlint": "^1.89.0",
     "oxlint-tsgolint": "^7.0.2005",
     "sprintf-js": "1.0.3",
-    "turbo": "2.9.14",
-    "typescript-eslint": "^8.58.1"
+    "turbo": "2.11.10",
+    "typescript-eslint": "^8.72.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,css,md}": "dprint fmt"
