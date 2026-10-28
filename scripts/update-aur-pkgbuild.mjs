@@ -191,7 +191,8 @@ function resolvePackageDirectory(directory) {
 function packageFilePath(directory, name) {
   const base = resolvePackageDirectory(directory);
   const target = path.resolve(base, name);
-  if (target !== base && !target.startsWith(`${base}${path.sep}`)) {
+  const relativePath = path.relative(base, target);
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
     throw new Error(`Path escapes the AUR package directory: ${name}`);
   }
   return target;
