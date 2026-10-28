@@ -732,8 +732,8 @@ importers:
   packages/provider-validation:
     dependencies:
       js-sha256:
-        specifier: 0.10.1
-        version: 0.10.1
+        specifier: 1.0.0
+        version: 1.0.0
 
   packages/store:
     dependencies:
@@ -7401,6 +7401,9 @@ packages:
 
   js-sha256@0.10.1:
     resolution: {integrity: sha512-5obBtsz9301ULlsgggLg542s/jqtddfOpV5KJc4hajc9JV8GeY2gZHSVpYBn4nWqAUTJ9v+xwtbJ1mIBgIH5Vw==}
+
+  js-sha256@1.0.0:
+    resolution: {integrity: sha512-Bqxf6ENUzYIMzuELCmRNrJOVbjKH1oMgbfYJBKVr/W1Xf9fazpahqCbb24v1pR7XV1isuqhM+w9KWpK7zCyUQw==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -16324,6 +16327,8 @@ snapshots:
   js-levenshtein-esm@2.0.0: {}
 
   js-sha256@0.10.1: {}
+
+  js-sha256@1.0.0: {}
 
   js-tokens@4.0.0: {}
 
