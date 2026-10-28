@@ -28,16 +28,9 @@ import { useChatAppearance } from "~/chat/hooks/use-chat-appearance";
 import { useShell } from "~/contexts/shell";
 import { useMentionConfig } from "~/editor-bridge/mention-config";
 
-export function ChatMessageInput({
-  draftKey,
-  layout = "floating",
-  onSendMessage,
-  disabled: disabledProp,
-  isStreaming,
-  onStop,
-  onDraftContentChange,
-  onContextRefsChange,
-}: {
+type DictationPhase = "idle" | "starting" | "recording" | "transcribing";
+
+type ChatMessageInputProps = Readonly<{
   draftKey: string;
   layout?: "floating" | "right-panel";
   onSendMessage: (
@@ -50,7 +43,18 @@ export function ChatMessageInput({
   onStop?: () => void;
   onDraftContentChange?: (hasDraftContent: boolean) => void;
   onContextRefsChange?: (refs: ContextRef[]) => void;
-}) {
+}>;
+
+export function ChatMessageInput({
+  draftKey,
+  layout = "floating",
+  onSendMessage,
+  disabled: disabledProp,
+  isStreaming,
+  onStop,
+  onDraftContentChange,
+  onContextRefsChange,
+}: ChatMessageInputProps) {
   const { t } = useLingui();
   const { chat } = useShell();
   const { elevatedSurfaceClassName } = useChatAppearance();
@@ -117,32 +121,18 @@ export function ChatMessageInput({
     >
       <div
         data-chat-message-input
-        className={cn([
-          isFloating
-            ? [
-                "relative flex max-h-full min-h-[30px] w-full min-w-0",
-                hasVoiceStatus ? "flex-col items-stretch" : "items-center",
-              ]
-            : "flex flex-col px-2 pt-3 pb-2",
-        ])}
+        className={cn(inputShellClasses(isFloating, hasVoiceStatus))}
         data-chat-voice-state={dictation.phase}
       >
         <div className={cn([isFloating ? "min-w-0 flex-1" : "mb-1 min-h-0"])}>
           <ChatEditor
             ref={editorRef}
-            className={cn([
-              "chat-input-editor",
-              "text-sm",
-              isFloating
-                ? "max-h-36 min-h-5 w-full min-w-0 overflow-y-auto overscroll-contain"
-                : "overflow-y-auto overscroll-contain",
-              !isFloating && (isRightPanel ? "max-h-[40vh]" : "max-h-48"),
-              isFloating && hasVoiceStatus && "chat-input-editor-voice-active",
-              isFloating &&
-                hasContent &&
-                !hasVoiceStatus &&
-                "chat-input-editor-two-actions",
-            ])}
+            className={editorClasses({
+              hasContent,
+              hasVoiceStatus,
+              isFloating,
+              isRightPanel,
+            })}
             initialContent={initialContent}
             mentionConfig={mentionConfig}
             placeholder={placeholder}
@@ -154,53 +144,19 @@ export function ChatMessageInput({
           />
         </div>
 
-        {dictation.phase !== "idle" ? (
-          <VoiceStatus
-            elapsedSeconds={dictation.elapsedSeconds}
-            isSendDisabled={isSendDisabled}
-            isStreaming={Boolean(isStreaming)}
-            onSend={handleSubmit}
-            onStop={() => void dictation.stop()}
-            onStopResponse={onStop}
-            phase={dictation.phase}
-            showSend={showSendControl && !isStreaming}
-          />
-        ) : (
-          <div
-            className={cn([
-              "flex shrink-0 items-center gap-1",
-              isFloating ? "absolute right-0 bottom-0.5" : "justify-end",
-            ])}
-          >
-            {!isStreaming && (
-              <button
-                type="button"
-                aria-label={t`Start voice input`}
-                onClick={() => void dictation.start()}
-                disabled={Boolean(disabled)}
-                className={cn([
-                  "text-muted-foreground hover:bg-muted inline-flex size-7 shrink-0 items-center justify-center rounded-full transition-colors",
-                  "disabled:cursor-default disabled:opacity-45",
-                ])}
-              >
-                <Microphone size={17} weight="regular" />
-              </button>
-            )}
-            {isStreaming ? (
-              <Button
-                onClick={onStop}
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 rounded-full"
-                aria-label={t`Stop response`}
-              >
-                <Square size={14} />
-              </Button>
-            ) : showSendControl ? (
-              <SendButton disabled={isSendDisabled} onClick={handleSubmit} />
-            ) : null}
-          </div>
-        )}
+        <InputControls
+          elapsedSeconds={dictation.elapsedSeconds}
+          isFloating={isFloating}
+          isSendDisabled={isSendDisabled}
+          isStreaming={Boolean(isStreaming)}
+          isVoiceDisabled={Boolean(disabled)}
+          phase={dictation.phase}
+          showSendControl={showSendControl}
+          onSend={handleSubmit}
+          onStartVoice={() => void dictation.start()}
+          onStopResponse={onStop}
+          onStopVoice={() => void dictation.stop()}
+        />
       </div>
     </Container>
   );
@@ -213,14 +169,14 @@ function Container({
   isRightPanel,
   hasVoiceStatus,
   indicator,
-}: {
+}: Readonly<{
   children: React.ReactNode;
   elevatedSurfaceClassName: string;
   isFloating: boolean;
   isRightPanel: boolean;
   hasVoiceStatus: boolean;
   indicator?: React.ReactNode;
-}) {
+}>) {
   return (
     <div
       className={cn([
@@ -248,13 +204,98 @@ function Container({
   );
 }
 
+function InputControls({
+  elapsedSeconds,
+  isFloating,
+  isSendDisabled,
+  isStreaming,
+  isVoiceDisabled,
+  phase,
+  showSendControl,
+  onSend,
+  onStartVoice,
+  onStopResponse,
+  onStopVoice,
+}: Readonly<{
+  elapsedSeconds: number;
+  isFloating: boolean;
+  isSendDisabled: boolean;
+  isStreaming: boolean;
+  isVoiceDisabled: boolean;
+  phase: DictationPhase;
+  showSendControl: boolean;
+  onSend: () => void;
+  onStartVoice: () => void;
+  onStopResponse?: () => void;
+  onStopVoice: () => void;
+}>) {
+  const { t } = useLingui();
+
+  if (phase !== "idle") {
+    return (
+      <VoiceStatus
+        elapsedSeconds={elapsedSeconds}
+        isSendDisabled={isSendDisabled}
+        isStreaming={isStreaming}
+        onSend={onSend}
+        onStop={onStopVoice}
+        onStopResponse={onStopResponse}
+        phase={phase}
+        showSend={showSendControl && !isStreaming}
+      />
+    );
+  }
+
+  let trailingAction: React.ReactNode = null;
+  if (isStreaming) {
+    trailingAction = (
+      <Button
+        onClick={onStopResponse}
+        size="icon"
+        variant="ghost"
+        className="h-7 w-7 rounded-full"
+        aria-label={t`Stop response`}
+      >
+        <Square size={14} />
+      </Button>
+    );
+  } else if (showSendControl) {
+    trailingAction = <SendButton disabled={isSendDisabled} onClick={onSend} />;
+  }
+
+  return (
+    <div
+      className={cn([
+        "flex shrink-0 items-center gap-1",
+        isFloating ? "absolute right-0 bottom-0.5" : "justify-end",
+      ])}
+    >
+      {!isStreaming && (
+        <button
+          type="button"
+          aria-label={t`Start voice input`}
+          onClick={onStartVoice}
+          disabled={isVoiceDisabled}
+          className={cn([
+            "text-muted-foreground hover:bg-muted inline-flex size-7 shrink-0 items-center justify-center rounded-full transition-colors",
+            "disabled:cursor-default disabled:opacity-45",
+          ])}
+        >
+          <Microphone size={17} weight="regular" />
+        </button>
+      )}
+      {trailingAction}
+    </div>
+  );
+}
+
 function SendButton({
   disabled,
   onClick,
-}: {
+}: Readonly<{
   disabled: boolean;
   onClick: () => void;
-}) {
+}>) {
   const { t } = useLingui();
 
   return (
@@ -289,7 +330,7 @@ function VoiceStatus({
   onStopResponse,
   phase,
   showSend,
-}: {
+}: Readonly<{
   elapsedSeconds: number;
   isSendDisabled: boolean;
   isStreaming: boolean;
@@ -298,9 +339,16 @@ function VoiceStatus({
   onStopResponse?: () => void;
   phase: "starting" | "recording" | "transcribing";
   showSend: boolean;
-}) {
+}>) {
   const { t } = useLingui();
   const isProcessing = phase !== "recording";
+
+  let stopControlLabel = t`Stop voice input`;
+  if (phase === "starting") {
+    stopControlLabel = t`Starting voice input`;
+  } else if (phase === "transcribing") {
+    stopControlLabel = t`Transcribing voice input`;
+  }
 
   return (
     <div className="mt-2 flex min-h-7 w-full items-center gap-2">
@@ -335,13 +383,7 @@ function VoiceStatus({
       )}
       <button
         type="button"
-        aria-label={
-          phase === "starting"
-            ? t`Starting voice input`
-            : phase === "transcribing"
-              ? t`Transcribing voice input`
-              : t`Stop voice input`
-        }
+        aria-label={stopControlLabel}
         onClick={onStop}
         disabled={isProcessing}
         className="bg-muted text-foreground inline-flex size-7 shrink-0 items-center justify-center rounded-full disabled:opacity-60"
@@ -367,6 +409,42 @@ function VoiceStatus({
       )}
     </div>
   );
+}
+
+function inputShellClasses(isFloating: boolean, hasVoiceStatus: boolean) {
+  if (!isFloating) {
+    return "flex flex-col px-2 pt-3 pb-2";
+  }
+  return [
+    "relative flex max-h-full min-h-[30px] w-full min-w-0",
+    hasVoiceStatus ? "flex-col items-stretch" : "items-center",
+  ];
+}
+
+function editorClasses({
+  hasContent,
+  hasVoiceStatus,
+  isFloating,
+  isRightPanel,
+}: Readonly<{
+  hasContent: boolean;
+  hasVoiceStatus: boolean;
+  isFloating: boolean;
+  isRightPanel: boolean;
+}>) {
+  return cn([
+    "chat-input-editor",
+    "text-sm",
+    isFloating
+      ? "max-h-36 min-h-5 w-full min-w-0 overflow-y-auto overscroll-contain"
+      : "overflow-y-auto overscroll-contain",
+    !isFloating && (isRightPanel ? "max-h-[40vh]" : "max-h-48"),
+    isFloating && hasVoiceStatus && "chat-input-editor-voice-active",
+    isFloating &&
+      hasContent &&
+      !hasVoiceStatus &&
+      "chat-input-editor-two-actions",
+  ]);
 }
 
 function formatElapsedTime(elapsedSeconds: number) {
