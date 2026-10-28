@@ -166,6 +166,13 @@ async function loadNoteFile(sessionId: string): Promise<LoadedNoteFile | null> {
   };
 }
 
+async function loadNoteFiles(sessionIds: string[]): Promise<LoadedNoteFile[]> {
+  const notes = await Promise.all(
+    sessionIds.map((sessionId) => loadNoteFile(sessionId)),
+  );
+  return notes.filter((note): note is LoadedNoteFile => note !== null);
+}
+
 function queryTerms(query: string): string[] {
   return Array.from(
     new Set(
@@ -294,16 +301,11 @@ export async function searchMeetingContent({
     };
   }
 
-  const candidateIds =
-    sessionIds === undefined ? await loadActiveSessionIds() : sessionIds;
+  const candidateIds = sessionIds ?? (await loadActiveSessionIds());
+  const notes = await loadNoteFiles(candidateIds);
   const results: SearchMatch[] = [];
 
-  for (const sessionId of candidateIds) {
-    const note = await loadNoteFile(sessionId);
-    if (!note) {
-      continue;
-    }
-
+  for (const note of notes) {
     const match = searchNote(note, trimmedQuery);
     if (match) {
       results.push(match);
@@ -328,7 +330,11 @@ function sharedParticipantReasons(
     }
 
     const name = candidate.participantNamesById?.[humanId];
-    return [`shared participant${name ? `: ${name}` : ""}`];
+    if (!name) {
+      return ["shared participant"];
+    }
+
+    return [`shared participant: ${name}`];
   });
 }
 
@@ -349,6 +355,55 @@ function getDateDistanceDays(
   return Math.abs(aMs - bMs) / (24 * 60 * 60 * 1000);
 }
 
+type RelatedNoteMatch = {
+  sessionId: string;
+  title: string;
+  date: string | null;
+  score: number;
+  reasons: string[];
+};
+
+function scoreRelatedNote(
+  base: LoadedNoteFile,
+  baseParticipantIds: Set<string>,
+  candidate: LoadedNoteFile,
+): RelatedNoteMatch | null {
+  const reasons: string[] = [];
+  let score = 0;
+
+  if (base.eventId && candidate.eventId === base.eventId) {
+    reasons.push("same calendar event");
+    score += 20;
+  }
+
+  const participantReasons = sharedParticipantReasons(
+    baseParticipantIds,
+    candidate,
+  );
+  if (participantReasons.length > 0) {
+    reasons.push(...participantReasons);
+    score += participantReasons.length * 8;
+  }
+
+  const distanceDays = getDateDistanceDays(base.date, candidate.date);
+  if (distanceDays !== null && distanceDays <= 7) {
+    reasons.push("nearby date");
+    score += Math.max(1, 7 - Math.floor(distanceDays));
+  }
+
+  if (score <= 0) {
+    return null;
+  }
+
+  return {
+    sessionId: candidate.sessionId,
+    title: candidate.title,
+    date: candidate.date,
+    score,
+    reasons,
+  };
+}
+
 async function listRelatedNotes({
   sessionId,
   limit,
@@ -367,57 +422,14 @@ async function listRelatedNotes({
   }
 
   const baseParticipantIds = new Set(base.participantIds);
-  const results: Array<{
-    sessionId: string;
-    title: string;
-    date: string | null;
-    score: number;
-    reasons: string[];
-  }> = [];
+  const candidateIds = (await loadActiveSessionIds()).filter(
+    (candidateId) => candidateId !== sessionId,
+  );
+  const candidates = await loadNoteFiles(candidateIds);
 
-  for (const candidateId of await loadActiveSessionIds()) {
-    if (candidateId === sessionId) {
-      continue;
-    }
-
-    const candidate = await loadNoteFile(candidateId);
-    if (!candidate) {
-      continue;
-    }
-
-    const reasons: string[] = [];
-    let score = 0;
-
-    if (base.eventId && candidate.eventId === base.eventId) {
-      reasons.push("same calendar event");
-      score += 20;
-    }
-
-    const participantReasons = sharedParticipantReasons(
-      baseParticipantIds,
-      candidate,
-    );
-    if (participantReasons.length > 0) {
-      reasons.push(...participantReasons);
-      score += participantReasons.length * 8;
-    }
-
-    const distanceDays = getDateDistanceDays(base.date, candidate.date);
-    if (distanceDays !== null && distanceDays <= 7) {
-      reasons.push("nearby date");
-      score += Math.max(1, 7 - Math.floor(distanceDays));
-    }
-
-    if (score > 0) {
-      results.push({
-        sessionId: candidate.sessionId,
-        title: candidate.title,
-        date: candidate.date,
-        score,
-        reasons,
-      });
-    }
-  }
+  const results = candidates
+    .map((candidate) => scoreRelatedNote(base, baseParticipantIds, candidate))
+    .filter((match): match is RelatedNoteMatch => match !== null);
 
   results.sort((a, b) => b.score - a.score);
   return {
@@ -426,6 +438,21 @@ async function listRelatedNotes({
     title: base.title,
     results: results.slice(0, limit),
   };
+}
+
+function resolveContentSearchSessionIds(
+  folderSessionIds: string[] | undefined,
+  meetingIds: string[] | undefined,
+): string[] | undefined {
+  if (folderSessionIds === undefined) {
+    return meetingIds;
+  }
+
+  if (!meetingIds?.length) {
+    return folderSessionIds;
+  }
+
+  return meetingIds.filter((id) => folderSessionIds.includes(id));
 }
 
 export const buildSearchMeetingContentTool = (deps: ToolDependencies) =>
@@ -469,12 +496,10 @@ export const buildSearchMeetingContentTool = (deps: ToolDependencies) =>
                 ).flatMap((sessions) => sessions.map((session) => session.id)),
               ),
             ];
-      const sessionIds =
-        folderSessionIds === undefined
-          ? params.meeting_ids
-          : params.meeting_ids?.length
-            ? params.meeting_ids.filter((id) => folderSessionIds.includes(id))
-            : folderSessionIds;
+      const sessionIds = resolveContentSearchSessionIds(
+        folderSessionIds,
+        params.meeting_ids,
+      );
       const result = await searchMeetingContent({
         query: params.query,
         sessionIds,
