@@ -4675,7 +4675,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c91d8cffac8849493a82233811bd02b2b183b8cf39bf704de0fa0841b737595"
 dependencies = [
  "bstr",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
 ]
 
 [[package]]
@@ -7361,13 +7361,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "minijinja-contrib"
-version = "2.19.0"
+name = "minijinja"
+version = "3.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45092d80391870622fcf3bd82f5d2af18f99533ea60debb4bc9db0c76f0e809a"
+checksum = "f384a3e3726ee69716c351e921b72138104afd1e5362561733c8a656fc8c6a9a"
+
+[[package]]
+name = "minijinja-contrib"
+version = "3.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d593e87f5ce73ecea651ec60cdfa410479ae7e4ad6f060bb048ca56c8294d3cb"
 dependencies = [
- "minijinja",
- "serde",
+ "minijinja 3.0.4",
 ]
 
 [[package]]
@@ -13727,7 +13732,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "once_cell",
  "rustix 1.1.4",
  "windows-sys 0.61.2",
@@ -13740,7 +13745,7 @@ dependencies = [
  "askama",
  "askama-utils",
  "insta",
- "minijinja",
+ "minijinja 2.19.0",
  "serde",
  "specta",
  "thiserror 2.0.18",
@@ -13753,7 +13758,7 @@ dependencies = [
  "data",
  "htmd",
  "insta",
- "minijinja",
+ "minijinja 2.19.0",
  "minijinja-contrib",
  "reqwest 0.13.2",
  "serde",
