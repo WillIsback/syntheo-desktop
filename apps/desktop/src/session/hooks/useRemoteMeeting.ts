@@ -11,6 +11,10 @@ export type RemoteMeeting = {
   url: string;
 };
 
+function isHostOrSubdomain(hostname: string, domain: string): boolean {
+  return hostname === domain || hostname.endsWith(`.${domain}`);
+}
+
 function isXCallId(segment: string | undefined): boolean {
   return !!segment && segment !== "new" && !/^(g\d+|\d+-\d+)$/.test(segment);
 }
@@ -43,16 +47,16 @@ export function detectMeetingType(url: string): RemoteMeetingType | null {
     const parsed = new URL(url);
     const hostname = parsed.hostname.toLowerCase();
 
-    if (hostname.includes("zoom.us")) {
+    if (isHostOrSubdomain(hostname, "zoom.us")) {
       return "zoom";
     }
-    if (hostname.includes("meet.google.com")) {
+    if (isHostOrSubdomain(hostname, "meet.google.com")) {
       return "google-meet";
     }
-    if (hostname.includes("webex.com")) {
+    if (isHostOrSubdomain(hostname, "webex.com")) {
       return "webex";
     }
-    if (hostname.includes("teams.microsoft.com")) {
+    if (isHostOrSubdomain(hostname, "teams.microsoft.com")) {
       return "teams";
     }
     if (hostname === "app.cal.com" && parsed.pathname.startsWith("/video/")) {
