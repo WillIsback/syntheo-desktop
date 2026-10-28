@@ -305,71 +305,90 @@ function draftRetentionFailureMessage(failure: DraftRetentionFailure) {
   return "This unsent chat draft could not be kept because draft storage is full.";
 }
 
+type MentionRefBuilder = (mentionId: string) => ContextRef;
+
+const MENTION_REF_BUILDERS: Record<string, MentionRefBuilder> = {
+  session: (mentionId) => ({
+    kind: "session",
+    key: `session:manual:${mentionId}`,
+    source: "manual",
+    sessionId: mentionId,
+  }),
+  human: (mentionId) => ({
+    kind: "human",
+    key: `human:manual:${mentionId}`,
+    source: "manual",
+    humanId: mentionId,
+  }),
+  organization: (mentionId) => ({
+    kind: "organization",
+    key: `organization:manual:${mentionId}`,
+    source: "manual",
+    organizationId: mentionId,
+  }),
+  folder: (mentionId) => ({
+    kind: "folder",
+    key: `folder:manual:${mentionId}`,
+    source: "manual",
+    folderId: mentionId,
+  }),
+};
+
+// Returns false when the mention node lacks usable attrs, in which case its
+// children must be skipped (mirrors the original traversal behavior).
+function collectMentionRef(
+  node: JSONContent,
+  refs: ContextRef[],
+  seen: Set<string>,
+): boolean {
+  const mentionType =
+    typeof node.attrs?.type === "string" ? node.attrs.type : null;
+  const mentionId = typeof node.attrs?.id === "string" ? node.attrs.id : null;
+
+  if (!mentionType || !mentionId) {
+    return false;
+  }
+
+  const buildRef = MENTION_REF_BUILDERS[mentionType];
+  if (buildRef) {
+    const ref = buildRef(mentionId);
+    if (!seen.has(ref.key)) {
+      seen.add(ref.key);
+      refs.push(ref);
+    }
+  }
+
+  return true;
+}
+
+function collectContextRefs(
+  node: JSONContent | undefined,
+  refs: ContextRef[],
+  seen: Set<string>,
+): void {
+  if (!node || typeof node !== "object") {
+    return;
+  }
+
+  if (typeof node.type === "string" && node.type.startsWith("mention-")) {
+    if (!collectMentionRef(node, refs, seen)) {
+      return;
+    }
+  }
+
+  if (Array.isArray(node.content)) {
+    for (const child of node.content) {
+      collectContextRefs(child, refs, seen);
+    }
+  }
+}
+
 export function extractContextRefsFromTiptapJson(
   json: JSONContent | undefined,
 ): ContextRef[] {
   const refs: ContextRef[] = [];
   const seen = new Set<string>();
 
-  const visit = (node: JSONContent | undefined) => {
-    if (!node || typeof node !== "object") {
-      return;
-    }
-
-    if (typeof node.type === "string" && node.type.startsWith("mention-")) {
-      const mentionType =
-        typeof node.attrs?.type === "string" ? node.attrs.type : null;
-      const mentionId =
-        typeof node.attrs?.id === "string" ? node.attrs.id : null;
-
-      if (!mentionType || !mentionId) {
-        return;
-      }
-
-      let ref: ContextRef | null = null;
-      if (mentionType === "session") {
-        ref = {
-          kind: "session",
-          key: `session:manual:${mentionId}`,
-          source: "manual",
-          sessionId: mentionId,
-        };
-      } else if (mentionType === "human") {
-        ref = {
-          kind: "human",
-          key: `human:manual:${mentionId}`,
-          source: "manual",
-          humanId: mentionId,
-        };
-      } else if (mentionType === "organization") {
-        ref = {
-          kind: "organization",
-          key: `organization:manual:${mentionId}`,
-          source: "manual",
-          organizationId: mentionId,
-        };
-      } else if (mentionType === "folder") {
-        ref = {
-          kind: "folder",
-          key: `folder:manual:${mentionId}`,
-          source: "manual",
-          folderId: mentionId,
-        };
-      }
-
-      if (ref && !seen.has(ref.key)) {
-        seen.add(ref.key);
-        refs.push(ref);
-      }
-    }
-
-    if (Array.isArray(node.content)) {
-      for (const child of node.content) {
-        visit(child);
-      }
-    }
-  };
-
-  visit(json);
+  collectContextRefs(json, refs, seen);
   return refs;
 }
