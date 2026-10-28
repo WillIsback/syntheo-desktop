@@ -98,9 +98,9 @@ function replaceBoundedExact(
     return { text: value, count: 0 };
   }
 
-  const escaped = oldText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escaped = oldText.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
   const pattern = new RegExp(
-    `(^|[^\\p{L}\\p{N}])${escaped}(?=$|[^\\p{L}\\p{N}])`,
+    String.raw`(^|[^\p{L}\p{N}])${escaped}(?=$|[^\p{L}\p{N}])`,
     "giu",
   );
   let count = 0;
@@ -151,8 +151,20 @@ function planSummaryCorrections({
   return { changes, updates };
 }
 
+const TOKEN_CHAR_PATTERN = /[\p{L}\p{N}]/u;
+
 function trimTokenPunctuation(value: string): string {
-  return value.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "") || value;
+  const chars = [...value];
+  let start = 0;
+  while (start < chars.length && !TOKEN_CHAR_PATTERN.test(chars[start])) {
+    start++;
+  }
+  let end = chars.length;
+  while (end > start && !TOKEN_CHAR_PATTERN.test(chars[end - 1])) {
+    end--;
+  }
+  const trimmed = chars.slice(start, end).join("");
+  return trimmed || value;
 }
 
 function normalizeComparableToken(value: string): string {
@@ -462,6 +474,179 @@ function shouldEditTranscript(target: CorrectionTarget): boolean {
   return target === "transcript" || target === "summary_and_transcript";
 }
 
+type CorrectionParams = {
+  sessionId?: string;
+  target?: CorrectionTarget;
+  enhancedNoteId?: string;
+  oldText: string;
+  newText: string;
+  dictionaryTerms?: string[];
+};
+
+type CorrectionScope = {
+  editSummary: boolean;
+  editTranscript: boolean;
+  summaryError?: string;
+};
+
+type CorrectionPlans = {
+  summaryPlan: SummaryCorrectionPlan;
+  transcriptPlan: TranscriptCorrectionPlan;
+  titleChange: TitleChange | null;
+};
+
+function resolveCorrectionEnhancedNoteId(
+  params: CorrectionParams,
+  deps: Pick<ToolDependencies, "getSessionId" | "getEnhancedNoteId">,
+  sessionId: string,
+): string | undefined {
+  if (params.enhancedNoteId !== undefined) {
+    return params.enhancedNoteId;
+  }
+  if (params.sessionId) {
+    return undefined;
+  }
+  return resolveActiveEnhancedNoteId(deps, sessionId);
+}
+
+function resolveCorrectionScope({
+  target,
+  enhancedNoteId,
+  snapshot,
+}: {
+  target: CorrectionTarget;
+  enhancedNoteId?: string;
+  snapshot: SessionContentSnapshot;
+}): CorrectionScope {
+  const editTranscript = shouldEditTranscript(target);
+  const editSummary = shouldEditSummary(target);
+  if (!editSummary || !enhancedNoteId) {
+    return { editSummary, editTranscript };
+  }
+  if (snapshot.enhancedNotes.some((note) => note.id === enhancedNoteId)) {
+    return { editSummary, editTranscript };
+  }
+  if (target === "summary") {
+    return {
+      editSummary: false,
+      editTranscript,
+      summaryError:
+        "The requested summary does not belong to the target session.",
+    };
+  }
+  return { editSummary: false, editTranscript };
+}
+
+function buildCorrectionPlans({
+  scope,
+  snapshot,
+  enhancedNoteId,
+  oldText,
+  newText,
+}: {
+  scope: CorrectionScope;
+  snapshot: SessionContentSnapshot;
+  enhancedNoteId?: string;
+  oldText: string;
+  newText: string;
+}): CorrectionPlans {
+  const emptySummaryPlan: SummaryCorrectionPlan = { changes: [], updates: [] };
+  const emptyTranscriptPlan: TranscriptCorrectionPlan = {
+    changes: [],
+    updates: [],
+  };
+  return {
+    summaryPlan: scope.editSummary
+      ? planSummaryCorrections({
+          notes: snapshot.enhancedNotes,
+          enhancedNoteId,
+          oldText,
+          newText,
+        })
+      : emptySummaryPlan,
+    transcriptPlan: scope.editTranscript
+      ? planTranscriptCorrections({
+          transcripts: snapshot.transcripts,
+          oldText,
+          newText,
+        })
+      : emptyTranscriptPlan,
+    titleChange: scope.editSummary
+      ? planTitleCorrection({ title: snapshot.title, oldText, newText })
+      : null,
+  };
+}
+
+async function commitCorrectionPlans({
+  sessionId,
+  snapshot,
+  plans,
+}: {
+  sessionId: string;
+  snapshot: SessionContentSnapshot;
+  plans: CorrectionPlans;
+}): Promise<boolean> {
+  try {
+    await applySessionContentCorrections({
+      sessionId,
+      summaries: plans.summaryPlan.updates,
+      transcripts: plans.transcriptPlan.updates,
+      ...(plans.titleChange
+        ? {
+            title: {
+              currentTitle: snapshot.title,
+              nextTitle: plans.titleChange.nextTitle,
+            },
+          }
+        : {}),
+    });
+    return true;
+  } catch (error) {
+    console.error("Failed to apply session correction", error);
+    return false;
+  }
+}
+
+function buildMissingTargets({
+  scope,
+  plans,
+}: {
+  scope: CorrectionScope;
+  plans: CorrectionPlans;
+}): CorrectionTarget[] {
+  const missing = [
+    scope.editSummary &&
+    plans.summaryPlan.changes.length === 0 &&
+    !plans.titleChange
+      ? "summary"
+      : null,
+    scope.editTranscript && plans.transcriptPlan.changes.length === 0
+      ? "transcript"
+      : null,
+  ];
+  return missing.filter(
+    (target): target is CorrectionTarget => target !== null,
+  );
+}
+
+function buildOutcomeMessage({
+  missingTargets,
+  dictionarySaveFailed,
+}: {
+  missingTargets: CorrectionTarget[];
+  dictionarySaveFailed: boolean;
+}): string | undefined {
+  const messages = [
+    missingTargets.length > 0
+      ? `Applied correction where matched, but no matching ${missingTargets.join(" or ")} text was found.`
+      : null,
+    dictionarySaveFailed
+      ? "The correction was applied, but dictionary terms could not be saved."
+      : null,
+  ].filter((message): message is string => message !== null);
+  return messages.length > 0 ? messages.join(" ") : undefined;
+}
+
 export const buildApplySessionCorrectionTool = (
   deps: Pick<ToolDependencies, "getSessionId" | "getEnhancedNoteId">,
 ) =>
@@ -499,20 +684,9 @@ export const buildApplySessionCorrectionTool = (
           "Uncommon names, company/product names, acronyms, or jargon from the correction to save for future transcription. Skip common names.",
         ),
     }),
-    execute: async (
-      params: {
-        sessionId?: string;
-        target?: CorrectionTarget;
-        enhancedNoteId?: string;
-        oldText: string;
-        newText: string;
-        dictionaryTerms?: string[];
-      },
-      options,
-    ) => {
+    execute: async (params: CorrectionParams, options) => {
       const sessionId =
         params.sessionId ?? resolveCurrentSessionId(deps, options);
-      const target = params.target ?? "summary_and_transcript";
 
       if (!sessionId) {
         return {
@@ -531,11 +705,12 @@ export const buildApplySessionCorrectionTool = (
         };
       }
 
-      const enhancedNoteId =
-        params.enhancedNoteId ??
-        (params.sessionId
-          ? undefined
-          : resolveActiveEnhancedNoteId(deps, sessionId));
+      const target = params.target ?? "summary_and_transcript";
+      const enhancedNoteId = resolveCorrectionEnhancedNoteId(
+        params,
+        deps,
+        sessionId,
+      );
       const snapshot = await loadSessionContentSnapshot(sessionId);
       if (!snapshot) {
         return {
@@ -545,53 +720,31 @@ export const buildApplySessionCorrectionTool = (
         };
       }
 
-      let editSummary = shouldEditSummary(target);
-      if (
-        editSummary &&
-        enhancedNoteId &&
-        !snapshot.enhancedNotes.some((note) => note.id === enhancedNoteId)
-      ) {
-        if (target === "summary") {
-          return {
-            status: "error",
-            message:
-              "The requested summary does not belong to the target session.",
-            sessionId,
-          };
-        }
-        editSummary = false;
+      const scope = resolveCorrectionScope({
+        target,
+        enhancedNoteId,
+        snapshot,
+      });
+      if (scope.summaryError) {
+        return {
+          status: "error",
+          message: scope.summaryError,
+          sessionId,
+        };
       }
 
-      const summaryPlan = editSummary
-        ? planSummaryCorrections({
-            notes: snapshot.enhancedNotes,
-            enhancedNoteId,
-            oldText: params.oldText,
-            newText,
-          })
-        : { changes: [], updates: [] };
-      const editTranscript = shouldEditTranscript(target);
-      const transcriptPlan = editTranscript
-        ? planTranscriptCorrections({
-            transcripts: snapshot.transcripts,
-            oldText: params.oldText,
-            newText,
-          })
-        : { changes: [], updates: [] };
-      const summaryChanges = summaryPlan.changes;
-      const transcriptChanges = transcriptPlan.changes;
-      const titleChange = editSummary
-        ? planTitleCorrection({
-            title: snapshot.title,
-            oldText: params.oldText,
-            newText,
-          })
-        : null;
+      const plans = buildCorrectionPlans({
+        scope,
+        snapshot,
+        enhancedNoteId,
+        oldText: params.oldText,
+        newText,
+      });
 
       if (
-        summaryChanges.length === 0 &&
-        transcriptChanges.length === 0 &&
-        !titleChange
+        plans.summaryPlan.changes.length === 0 &&
+        plans.transcriptPlan.changes.length === 0 &&
+        !plans.titleChange
       ) {
         return {
           status: "not_found",
@@ -601,22 +754,12 @@ export const buildApplySessionCorrectionTool = (
         };
       }
 
-      try {
-        await applySessionContentCorrections({
-          sessionId,
-          summaries: summaryPlan.updates,
-          transcripts: transcriptPlan.updates,
-          ...(titleChange
-            ? {
-                title: {
-                  currentTitle: snapshot.title,
-                  nextTitle: titleChange.nextTitle,
-                },
-              }
-            : {}),
-        });
-      } catch (error) {
-        console.error("Failed to apply session correction", error);
+      const committed = await commitCorrectionPlans({
+        sessionId,
+        snapshot,
+        plans,
+      });
+      if (!committed) {
         return {
           status: "error",
           message:
@@ -633,29 +776,15 @@ export const buildApplySessionCorrectionTool = (
         dictionarySaveFailed = true;
         console.error("Failed to save correction dictionary terms", error);
       }
-      const missingTargets = [
-        editSummary && summaryChanges.length === 0 && !titleChange
-          ? "summary"
-          : null,
-        editTranscript && transcriptChanges.length === 0 ? "transcript" : null,
-      ].filter(Boolean);
 
-      const messages = [
-        missingTargets.length > 0
-          ? `Applied correction where matched, but no matching ${missingTargets.join(" or ")} text was found.`
-          : null,
-        dictionarySaveFailed
-          ? "The correction was applied, but dictionary terms could not be saved."
-          : null,
-      ].filter((message): message is string => Boolean(message));
-
+      const missingTargets = buildMissingTargets({ scope, plans });
       return {
         status: missingTargets.length > 0 ? "partial" : "applied",
-        message: messages.length > 0 ? messages.join(" ") : undefined,
+        message: buildOutcomeMessage({ missingTargets, dictionarySaveFailed }),
         sessionId,
-        summaryChanges,
-        transcriptChanges,
-        titleChange,
+        summaryChanges: plans.summaryPlan.changes,
+        transcriptChanges: plans.transcriptPlan.changes,
+        titleChange: plans.titleChange,
         dictionaryChanges,
       };
     },
