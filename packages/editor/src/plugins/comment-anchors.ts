@@ -29,6 +29,14 @@ export const commentAnchorsPluginKey = new PluginKey<CommentAnchorsState>(
 );
 
 /**
+ * ProseMirror expects `true` from `handleClick` when the click is consumed.
+ * Anchors are highlights only, so a click on an anchored range always
+ * bubbles up to the editor: the caret stays placeable (and the text
+ * selectable) inside a highlighted range.
+ */
+const ANCHOR_CLICK_NOT_CONSUMED = false;
+
+/**
  * Highlights comment-anchored ranges. Anchors and the active highlight are
  * controlled after mount through transaction metadata (the editor never
  * reconfigures plugins), via setCommentAnchors / setActiveCommentAnchor.
@@ -88,22 +96,7 @@ export function commentAnchorsPlugin(options?: {
       decorations(state) {
         return commentAnchorsPluginKey.getState(state)?.decorations;
       },
-      handleClick(view, pos) {
-        const pluginState = commentAnchorsPluginKey.getState(view.state);
-        if (!pluginState) return false;
-        const hits = pluginState.decorations.find(pos, pos);
-        const commentIds = [
-          ...new Set(
-            hits
-              .map((decoration) => decoration.spec.commentId as string)
-              .filter(Boolean),
-          ),
-        ];
-        if (commentIds.length > 0) {
-          emit({ type: "anchor-click", commentIds, pos });
-        }
-        return false;
-      },
+      handleClick: (view, pos) => emitAnchorClick(view, pos, emit),
     },
     view() {
       return {
@@ -132,6 +125,32 @@ export function commentAnchorsPlugin(options?: {
       };
     },
   });
+}
+
+/**
+ * Emits `anchor-click` with the deduplicated ids of every anchor covering
+ * `pos`, then reports that the click was left to the editor.
+ */
+function emitAnchorClick(
+  view: EditorView,
+  pos: number,
+  emit: (event: CommentAnchorsEvent) => void,
+): boolean {
+  const pluginState = commentAnchorsPluginKey.getState(view.state);
+  const commentIds = pluginState
+    ? [
+        ...new Set(
+          pluginState.decorations
+            .find(pos, pos)
+            .map((decoration) => decoration.spec.commentId as string)
+            .filter(Boolean),
+        ),
+      ]
+    : [];
+  if (commentIds.length > 0) {
+    emit({ type: "anchor-click", commentIds, pos });
+  }
+  return ANCHOR_CLICK_NOT_CONSUMED;
 }
 
 function dispatchCommentAnchorsMeta(
