@@ -64,41 +64,73 @@ export async function getProviderConnections(): Promise<
   return result.data;
 }
 
+type SuccessfulConnection = {
+  connectionId: string;
+  calendars: CalendarListItem[];
+};
+
+async function collectSuccessfulConnections(
+  provider: CalendarProviderType,
+  connectionIds: string[],
+  shouldStop: () => boolean,
+): Promise<SuccessfulConnection[] | undefined> {
+  const successfulConnections: SuccessfulConnection[] = [];
+
+  for (const connectionId of connectionIds) {
+    if (shouldStop()) return undefined;
+
+    const result = await calendarCommands.listCalendars(provider, connectionId);
+    if (shouldStop()) return undefined;
+    if (result.status === "error") continue;
+    successfulConnections.push({ connectionId, calendars: result.data });
+  }
+
+  return successfulConnections;
+}
+
+async function syncProviderConnections(
+  provider: CalendarProviderType,
+  connectionIds: string[],
+  shouldStop: () => boolean,
+): Promise<boolean> {
+  if (shouldStop()) return true;
+
+  const successfulConnections = await collectSuccessfulConnections(
+    provider,
+    connectionIds,
+    shouldStop,
+  );
+  if (successfulConnections === undefined) return true;
+  if (shouldStop()) return true;
+
+  await enqueueDatabaseWrite("calendar-sync", async () => {
+    if (shouldStop()) return;
+    await applyCalendarInventory({
+      provider,
+      requestedConnectionIds: connectionIds,
+      successfulConnections,
+    });
+  });
+  return false;
+}
+
 export async function syncCalendars(
   providerConnections: ProviderConnectionIds[],
   signal?: AbortSignal,
   shouldStop: () => boolean = () => signal?.aborted === true,
 ): Promise<void> {
-  for (const { provider, connection_ids } of providerConnections) {
-    if (shouldStop()) return;
-
-    const successfulConnections: Array<{
-      connectionId: string;
-      calendars: CalendarListItem[];
-    }> = [];
-
-    for (const connectionId of connection_ids) {
-      if (shouldStop()) return;
-
-      const result = await calendarCommands.listCalendars(
-        provider,
-        connectionId,
-      );
-      if (shouldStop()) return;
-      if (result.status === "error") continue;
-      successfulConnections.push({ connectionId, calendars: result.data });
-    }
-
-    if (shouldStop()) return;
-    await enqueueDatabaseWrite("calendar-sync", async () => {
-      if (shouldStop()) return;
-      await applyCalendarInventory({
-        provider,
-        requestedConnectionIds: connection_ids,
-        successfulConnections,
-      });
-    });
-  }
+  // Chaînage séquentiel sans `await` dans une boucle : le fournisseur suivant
+  // ne démarre qu'après l'écriture du précédent, et on s'arrête à la première
+  // demande d'arrêt (comportement identique aux `return` précédents).
+  await providerConnections.reduce(
+    (chain, { provider, connection_ids }) =>
+      chain.then((stopped) =>
+        stopped
+          ? true
+          : syncProviderConnections(provider, connection_ids, shouldStop),
+      ),
+    Promise.resolve(false),
+  );
 }
 
 const getDefaultRange = (): CalendarSyncRange => {
