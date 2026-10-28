@@ -381,7 +381,7 @@ function useVisibleRangeSync(
     queryFn: async ({ signal }) => {
       if (!range) return null;
       await syncRange(range, signal);
-      return null;
+      return range;
     },
     enabled: Boolean(range && canSync),
     staleTime: VISIBLE_RANGE_SYNC_STALE_MS,
@@ -424,12 +424,9 @@ function CalendarSyncHeaderControls() {
   }, [cancelDebouncedSync, queryClient, scheduleSync]);
 
   const showSyncIndicator = showManualRefreshFeedback || status !== "idle";
+  const syncingStatusText = showSyncIndicator ? "Syncing" : null;
   const statusText =
-    status === "scheduled"
-      ? "Sync scheduled"
-      : showSyncIndicator
-        ? "Syncing"
-        : null;
+    status === "scheduled" ? "Sync scheduled" : syncingStatusText;
 
   return (
     <div className="flex items-center">
