@@ -169,6 +169,39 @@ export function discardPendingAutoEnhanceJob(
   });
 }
 
+async function restoreRetiredDefaultSummary(
+  sessionId: string,
+): Promise<boolean> {
+  const [retired] = await liveQueryClient.execute<{
+    deleted_at: string;
+    updated_at: string;
+  }>(
+    `SELECT deleted_at, updated_at FROM session_documents
+     WHERE id = ? AND session_id = ? AND kind IN ('summary', 'template_output') AND deleted_at IS NOT NULL`,
+    [defaultSummaryDocumentId(sessionId), sessionId],
+  );
+  if (!retired) {
+    return false;
+  }
+  await executeTransaction([
+    {
+      sql: `UPDATE session_documents SET deleted_at = NULL, updated_at = ?
+            WHERE id = ? AND session_id = ? AND deleted_at = ? AND updated_at = ?
+              AND EXISTS (SELECT 1 FROM sessions WHERE id = ? AND deleted_at IS NULL)`,
+      params: [
+        new Date().toISOString(),
+        defaultSummaryDocumentId(sessionId),
+        sessionId,
+        retired.deleted_at,
+        retired.updated_at,
+        sessionId,
+      ],
+      expectedRowsAffected: 1,
+    },
+  ]);
+  return true;
+}
+
 function ensureSummaryDocumentWithMetadata(
   sessionId: string,
   templateId: string | undefined,
@@ -192,35 +225,13 @@ function ensureSummaryDocumentWithMetadata(
 
     let restoredDefault = false;
     if (snapshot.enhancedNotes.length === 0) {
-      const [retired] = await liveQueryClient.execute<{
-        deleted_at: string;
-        updated_at: string;
-      }>(
-        `SELECT deleted_at, updated_at FROM session_documents
-         WHERE id = ? AND session_id = ? AND kind IN ('summary', 'template_output') AND deleted_at IS NOT NULL`,
-        [defaultSummaryDocumentId(sessionId), sessionId],
-      );
-      if (retired) {
-        await executeTransaction([
-          {
-            sql: `UPDATE session_documents SET deleted_at = NULL, updated_at = ?
-            WHERE id = ? AND session_id = ? AND deleted_at = ? AND updated_at = ?
-              AND EXISTS (SELECT 1 FROM sessions WHERE id = ? AND deleted_at IS NULL)`,
-            params: [
-              new Date().toISOString(),
-              defaultSummaryDocumentId(sessionId),
-              sessionId,
-              retired.deleted_at,
-              retired.updated_at,
-              sessionId,
-            ],
-            expectedRowsAffected: 1,
-          },
-        ]);
-        restoredDefault = true;
+      restoredDefault = await restoreRetiredDefaultSummary(sessionId);
+      if (restoredDefault) {
         snapshot = await loadSessionContentSnapshot(sessionId);
-        if (!snapshot) throw new Error(`Session ${sessionId} no longer exists`);
       }
+    }
+    if (!snapshot) {
+      throw new Error(`Session ${sessionId} no longer exists`);
     }
 
     const normalizedTemplateId = templateId ?? "";
