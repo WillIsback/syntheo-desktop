@@ -96,7 +96,10 @@ const ReportedErrorComponent = ({ error }: { error: Error }) => {
 };
 
 export const ErrorComponent: ErrorRouteComponent = ({ error }) => (
-  <ReportedErrorComponent key={getRouteErrorKey(error)} error={error} />
+  <ReportedErrorComponent
+    key={getRouteErrorKey(error)}
+    error={error instanceof Error ? error : new Error(String(error))}
+  />
 );
 
 export const NotFoundComponent: NotFoundRouteComponent = () => {

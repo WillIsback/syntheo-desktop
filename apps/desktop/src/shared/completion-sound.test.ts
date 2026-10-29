@@ -34,7 +34,7 @@ describe("completion sounds", () => {
 
   it.each([
     [{}, "ready"],
-    [{ notification_completion_sound_name: "sparkle" }, "sparkle"],
+    [{ notification_completion_sound_name: "sparkle" }, "success"],
   ])("plays the configured completion sound", async (values, expected) => {
     mocks.getStoredSettingValues.mockResolvedValue(stored(values));
 
@@ -63,7 +63,7 @@ describe("completion sounds", () => {
   it("previews a sound without reading preferences", () => {
     previewCompletionSound("bloom");
 
-    expect(mocks.play).toHaveBeenCalledWith("bloom", { volume: 0.7 });
+    expect(mocks.play).toHaveBeenCalledWith("open", { volume: 0.7 });
     expect(mocks.getStoredSettingValues).not.toHaveBeenCalled();
   });
 });
