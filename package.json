@@ -17,7 +17,7 @@
     "dprint": "^0.64.3",
     "eslint": "^9.39.4",
     "extract-zip": "2.0.1",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.6.0",
     "node-forge": "1.4.0",
     "oxfmt": "^0.74.0",
     "oxlint": "^1.89.0",
