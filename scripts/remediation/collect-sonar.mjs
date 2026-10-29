@@ -30,6 +30,7 @@ const option = (name, fallback) => {
 
 const project = option("--project", PROJECT);
 const limit = Number(option("--limit", "0")) || Infinity;
+const offset = Number(option("--offset", "0")) || 0;
 
 const SEVERITY_RANK = { BLOCKER: 5, CRITICAL: 4, MAJOR: 3, MINOR: 2, INFO: 1 };
 
@@ -111,7 +112,7 @@ async function main() {
           ...a.alerts.map((alert) => SEVERITY_RANK[alert.severity] ?? 0),
         ),
     )
-    .slice(0, limit);
+    .slice(offset, offset + limit);
 
   mkdirSync(REMEDIATION_DIR, { recursive: true });
   writeFileSync(
