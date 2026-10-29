@@ -220,7 +220,7 @@ export function useUploadFile(sessionId: string) {
           }),
         ),
         Effect.tap(() => Effect.promise(triggerEnhanceIfSummaryEmpty)),
-        Effect.catchAll((error: unknown) =>
+        Effect.catch((error: unknown) =>
           Effect.sync(() => {
             if (isStoppedTranscriptionError(error)) {
               return;
