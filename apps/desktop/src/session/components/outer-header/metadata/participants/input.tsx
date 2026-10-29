@@ -38,7 +38,9 @@ import { getSessionEvent } from "~/session/utils";
 import { useAutoCloser } from "~/shared/hooks/useAutoCloser";
 import { removeHumanSpeakerAssignments } from "~/stt/queries";
 
-export function ParticipantInput({ sessionId }: { sessionId: string }) {
+export function ParticipantInput({
+  sessionId,
+}: Readonly<{ sessionId: string }>) {
   const {
     inputValue,
     showDropdown,
@@ -118,9 +120,8 @@ export function ParticipantInput({ sessionId }: { sessionId: string }) {
   return (
     <div className="relative" ref={setContainerRef}>
       <div
-        role="presentation"
         className="flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2"
-        onClick={() => inputRef.current?.focus()}
+        onMouseDown={() => inputRef.current?.focus()}
       >
         {mappingIds.map((mappingId) => (
           <ParticipantChip
@@ -277,6 +278,34 @@ function useParticipantMutations(
   >([]);
   const pendingAddKeyRef = useRef(0);
 
+  const removePendingAdd = useCallback((key: number) => {
+    setPendingAdds((prev) => prev.filter((entry) => entry.key !== key));
+  }, []);
+
+  // Backfill the id so the pending chip disappears as soon as the
+  // real participant row shows up, instead of lingering until the
+  // finally below and briefly duplicating the chip.
+  const backfillPendingAddHumanId = useCallback(
+    (key: number, humanId: string) => {
+      setPendingAdds((prev) =>
+        prev.map((entry) =>
+          entry.key === key ? { ...entry, humanId } : entry,
+        ),
+      );
+    },
+    [],
+  );
+
+  // The pending chip is already hidden once the live query lists the
+  // human; delay the removal so a slow re-emit cannot leave a gap
+  // between the pending chip and the real one.
+  const settlePendingAdd = useCallback(
+    (key: number) => {
+      setTimeout(() => removePendingAdd(key), PENDING_ADD_SETTLE_GRACE_MS);
+    },
+    [removePendingAdd],
+  );
+
   const addParticipant = useCallback(
     (option: Candidate) => {
       const key = ++pendingAddKeyRef.current;
@@ -298,35 +327,24 @@ function useParticipantMutations(
             name: option.name,
             entryPoint: "session_participants",
           });
-          // Backfill the id so the pending chip disappears as soon as the
-          // real participant row shows up, instead of lingering until the
-          // finally below and briefly duplicating the chip.
-          const resolvedHumanId = humanId;
-          setPendingAdds((prev) =>
-            prev.map((entry) =>
-              entry.key === key
-                ? { ...entry, humanId: resolvedHumanId }
-                : entry,
-            ),
-          );
+          backfillPendingAddHumanId(key, humanId);
         }
         await addSessionParticipant(sessionId, humanId);
       })().then(
-        () => {
-          // The pending chip is already hidden once the live query lists the
-          // human; delay the removal so a slow re-emit cannot leave a gap
-          // between the pending chip and the real one.
-          setTimeout(() => {
-            setPendingAdds((prev) => prev.filter((entry) => entry.key !== key));
-          }, PENDING_ADD_SETTLE_GRACE_MS);
-        },
+        () => settlePendingAdd(key),
         (error: unknown) => {
           console.error("[participants] failed to add participant", error);
-          setPendingAdds((prev) => prev.filter((entry) => entry.key !== key));
+          removePendingAdd(key);
         },
       );
     },
-    [session?.user_id, sessionId],
+    [
+      session?.user_id,
+      sessionId,
+      backfillPendingAddHumanId,
+      settlePendingAdd,
+      removePendingAdd,
+    ],
   );
 
   const deleteLastParticipant = useCallback(() => {

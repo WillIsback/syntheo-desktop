@@ -83,9 +83,11 @@ test("accepts each supported desktop platform selection", () => {
       { includeLinux: false, includeWindows: false },
     ],
   ]) {
-    verifyDesktopPlatformSets(
-      createDesktopRelease(releaseOptions),
-      verifyOptions,
+    assert.doesNotThrow(() =>
+      verifyDesktopPlatformSets(
+        createDesktopRelease(releaseOptions),
+        verifyOptions,
+      ),
     );
   }
 });
@@ -159,11 +161,15 @@ function workflowFixtures({ publicPlatforms } = {}) {
 
 test("accepts workflows that cover the release plan, including repeated downloads", () => {
   const { publishWorkflow, cdWorkflow } = workflowFixtures();
-  verifyWorkflowPlatformCoverage({ publishWorkflow, cdWorkflow });
-  verifyWorkflowPlatformCoverage({
-    publishWorkflow: `${publishWorkflow}          platform: dmg-aarch64\n`,
-    cdWorkflow,
-  });
+  assert.doesNotThrow(() =>
+    verifyWorkflowPlatformCoverage({ publishWorkflow, cdWorkflow }),
+  );
+  assert.doesNotThrow(() =>
+    verifyWorkflowPlatformCoverage({
+      publishWorkflow: `${publishWorkflow}          platform: dmg-aarch64\n`,
+      cdWorkflow,
+    }),
+  );
 });
 
 test("rejects workflows that drift from the release plan", () => {
@@ -214,7 +220,9 @@ test("repository release workflows match the authored release plan", async () =>
     readFile(".github/workflows/desktop_cd.yaml", "utf8"),
   ]);
 
-  verifyWorkflowPlatformCoverage({ publishWorkflow, cdWorkflow });
+  assert.doesNotThrow(() =>
+    verifyWorkflowPlatformCoverage({ publishWorkflow, cdWorkflow }),
+  );
 });
 
 test("stable desktop releases submit only the Microsoft Store package", async () => {

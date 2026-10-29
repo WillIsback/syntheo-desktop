@@ -58,12 +58,14 @@ def validate_path(path: Path, base_dir: Path) -> Path:
     return resolved_path
 
 
-def read_wav(path: Path, base_dir: Path) -> WavTrack:
-    path = validate_path(path, base_dir)
-    data = path.read_bytes()
+def require_riff_wave(data: bytes, path: Path) -> None:
+    """Reject buffers that are not RIFF/WAVE containers."""
     if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WAVE":
         raise ValueError(f"{path} is not a RIFF/WAVE file")
 
+
+def read_wav_chunks(data: bytes, path: Path) -> tuple[bytes | None, bytes | None]:
+    """Extract the raw fmt and data chunks from a RIFF/WAVE buffer."""
     fmt: bytes | None = None
     audio: bytes | None = None
     cursor = 12
@@ -79,10 +81,11 @@ def read_wav(path: Path, base_dir: Path) -> WavTrack:
         elif chunk_id == b"data":
             audio = data[chunk_start:chunk_end]
         cursor = chunk_end + (chunk_size % 2)
+    return fmt, audio
 
-    if fmt is None or len(fmt) < 16 or audio is None:
-        raise ValueError(f"{path} is missing required WAV chunks")
 
+def parse_wav_format(fmt: bytes, path: Path) -> tuple[int, int, int]:
+    """Validate the fmt chunk and return (audio_format, sample_rate, bits)."""
     (
         audio_format,
         channels,
@@ -99,6 +102,19 @@ def read_wav(path: Path, base_dir: Path) -> WavTrack:
     if block_align != bits_per_sample // 8:
         raise ValueError(f"{path} has an unsupported WAV block alignment")
 
+    return audio_format, sample_rate, bits_per_sample
+
+
+def read_wav(path: Path, base_dir: Path) -> WavTrack:
+    path = validate_path(path, base_dir)
+    data = path.read_bytes()
+    require_riff_wave(data, path)
+
+    fmt, audio = read_wav_chunks(data, path)
+    if fmt is None or len(fmt) < 16 or audio is None:
+        raise ValueError(f"{path} is missing required WAV chunks")
+
+    audio_format, sample_rate, bits_per_sample = parse_wav_format(fmt, path)
     samples = decode_samples(audio, audio_format, bits_per_sample)
     if not samples:
         raise ValueError(f"{path} has no audio samples")
@@ -108,42 +124,59 @@ def read_wav(path: Path, base_dir: Path) -> WavTrack:
     return WavTrack(sample_rate=sample_rate, samples=samples)
 
 
+def require_sample_alignment(data: bytes, size: int, label: str) -> None:
+    if len(data) % size:
+        raise ValueError(f"{label} WAV data is not sample-aligned")
+
+
+def decode_float32(data: bytes) -> list[float]:
+    require_sample_alignment(data, 4, "float")
+    return list(struct.unpack(f"<{len(data) // 4}f", data))
+
+
+def decode_pcm16(data: bytes) -> list[float]:
+    require_sample_alignment(data, 2, "PCM16")
+    return [sample / 32768.0 for sample in struct.unpack(f"<{len(data) // 2}h", data)]
+
+
+def decode_pcm24(data: bytes) -> list[float]:
+    require_sample_alignment(data, 3, "PCM24")
+    samples = []
+    for offset in range(0, len(data), 3):
+        value = int.from_bytes(data[offset : offset + 3], "little", signed=False)
+        if value & 0x800000:
+            value -= 1 << 24
+        samples.append(value / 8388608.0)
+    return samples
+
+
+def decode_pcm32(data: bytes) -> list[float]:
+    require_sample_alignment(data, 4, "PCM32")
+    return [
+        sample / 2147483648.0 for sample in struct.unpack(f"<{len(data) // 4}i", data)
+    ]
+
+
+PCM_DECODERS = {16: decode_pcm16, 24: decode_pcm24, 32: decode_pcm32}
+
+
 def decode_samples(data: bytes, audio_format: int, bits_per_sample: int) -> list[float]:
-    if audio_format == 3 and bits_per_sample == 32:
-        if len(data) % 4:
-            raise ValueError("float WAV data is not sample-aligned")
-        return list(struct.unpack(f"<{len(data) // 4}f", data))
+    if audio_format == 3:
+        if bits_per_sample != 32:
+            raise ValueError(
+                f"unsupported WAV format {audio_format} with {bits_per_sample} bits"
+            )
+        return decode_float32(data)
 
     if audio_format != 1:
         raise ValueError(
             f"unsupported WAV format {audio_format} with {bits_per_sample} bits"
         )
 
-    if bits_per_sample == 16:
-        if len(data) % 2:
-            raise ValueError("PCM16 WAV data is not sample-aligned")
-        return [
-            sample / 32768.0 for sample in struct.unpack(f"<{len(data) // 2}h", data)
-        ]
-    if bits_per_sample == 24:
-        if len(data) % 3:
-            raise ValueError("PCM24 WAV data is not sample-aligned")
-        samples = []
-        for offset in range(0, len(data), 3):
-            value = int.from_bytes(data[offset : offset + 3], "little", signed=False)
-            if value & 0x800000:
-                value -= 1 << 24
-            samples.append(value / 8388608.0)
-        return samples
-    if bits_per_sample == 32:
-        if len(data) % 4:
-            raise ValueError("PCM32 WAV data is not sample-aligned")
-        return [
-            sample / 2147483648.0
-            for sample in struct.unpack(f"<{len(data) // 4}i", data)
-        ]
-
-    raise ValueError(f"unsupported PCM bit depth {bits_per_sample}")
+    decoder = PCM_DECODERS.get(bits_per_sample)
+    if decoder is None:
+        raise ValueError(f"unsupported PCM bit depth {bits_per_sample}")
+    return decoder(data)
 
 
 def load_phases(

@@ -49,6 +49,56 @@ const LIVE_TRANSCRIPT_PLACEHOLDER_ID = "__live-transcript__";
 const NO_PLAYBACK = () => {};
 const NO_PLAYBACK_SEEK = (_seconds: number) => {};
 
+type SelectedEntries = Map<string, TranscriptWordSelection>;
+
+function getVisibleTranscriptIds(
+  transcriptIds: string[],
+  liveSegments: Segment[],
+): string[] {
+  if (transcriptIds.length > 0) {
+    return transcriptIds;
+  }
+  if (liveSegments.length > 0) {
+    return [LIVE_TRANSCRIPT_PLACEHOLDER_ID];
+  }
+  return [];
+}
+
+function applyShiftRangeSelection(
+  next: SelectedEntries,
+  order: string[],
+  entries: SelectedEntries,
+  anchorIndex: number,
+  targetIndex: number,
+): void {
+  const start = Math.min(anchorIndex, targetIndex);
+  const end = Math.max(anchorIndex, targetIndex);
+  for (const key of order.slice(start, end + 1)) {
+    const selection = entries.get(key);
+    if (selection) {
+      next.set(key, selection);
+    }
+  }
+}
+
+function toggleTranscriptEntry(
+  next: SelectedEntries,
+  targetKey: string,
+  entries: SelectedEntries,
+  section: HTMLElement,
+  container: HTMLElement,
+): void {
+  if (next.has(targetKey)) {
+    next.delete(targetKey);
+    return;
+  }
+  const selection =
+    entries.get(targetKey) ?? getTranscriptSectionSelection(section, container);
+  if (selection) {
+    next.set(targetKey, selection);
+  }
+}
+
 export function TranscriptViewer({
   transcriptIds,
   liveSegments,
@@ -58,7 +108,7 @@ export function TranscriptViewer({
   editMode = false,
   onEditModeChange,
   footer,
-}: {
+}: Readonly<{
   footer?: ReactNode;
   transcriptIds: string[];
   liveSegments: Segment[];
@@ -67,7 +117,7 @@ export function TranscriptViewer({
   scrollRef: RefObject<HTMLDivElement | null>;
   editMode?: boolean;
   onEditModeChange?: (editMode: boolean) => void;
-}) {
+}>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
     null,
@@ -127,12 +177,10 @@ export function TranscriptViewer({
     [transcriptIds, liveSegments, shouldAutoScroll],
     shouldAutoScroll,
   );
-  const visibleTranscriptIds =
-    transcriptIds.length > 0
-      ? transcriptIds
-      : liveSegments.length > 0
-        ? [LIVE_TRANSCRIPT_PLACEHOLDER_ID]
-        : [];
+  const visibleTranscriptIds = getVisibleTranscriptIds(
+    transcriptIds,
+    liveSegments,
+  );
   const visibleTranscriptIdsRef = useRef(visibleTranscriptIds);
   visibleTranscriptIdsRef.current = visibleTranscriptIds;
 
@@ -390,28 +438,18 @@ export function TranscriptViewer({
           const anchorIndex = order.indexOf(selectionAnchor);
           const targetIndex = order.indexOf(targetKey);
           if (anchorIndex !== -1 && targetIndex !== -1) {
-            const start = Math.min(anchorIndex, targetIndex);
-            const end = Math.max(anchorIndex, targetIndex);
-            for (const key of order.slice(start, end + 1)) {
-              const selection = entries.get(key);
-              if (selection) {
-                next.set(key, selection);
-              }
-            }
+            applyShiftRangeSelection(
+              next,
+              order,
+              entries,
+              anchorIndex,
+              targetIndex,
+            );
             return next;
           }
         }
 
-        if (next.has(targetKey)) {
-          next.delete(targetKey);
-        } else {
-          const selection =
-            entries.get(targetKey) ??
-            getTranscriptSectionSelection(section, container);
-          if (selection) {
-            next.set(targetKey, selection);
-          }
-        }
+        toggleTranscriptEntry(next, targetKey, entries, section, container);
         return next;
       });
       setSelectionAnchor(targetKey);

@@ -1,6 +1,19 @@
 const tails = new Map<string, Promise<unknown>>();
 const pending = new Set<Promise<unknown>>();
 
+interface FlushFailure {
+  reason: unknown;
+}
+
+function firstRejected(
+  results: readonly PromiseSettledResult<unknown>[],
+): FlushFailure | undefined {
+  const rejected = results.find(
+    (result): result is PromiseRejectedResult => result.status === "rejected",
+  );
+  return rejected ? { reason: rejected.reason } : undefined;
+}
+
 export function enqueueDatabaseWrite<T>(
   key: string,
   write: () => Promise<T>,
@@ -22,61 +35,16 @@ export async function flushDatabaseWrites(
   keys?: readonly string[],
 ): Promise<void> {
   if (keys) {
-    const uniqueKeys = [...new Set(keys)];
-    let failed = false;
-    let failure: unknown;
-    while (true) {
-      const activeKeys = uniqueKeys.filter((key) => tails.has(key));
-      if (activeKeys.length === 0) {
-        if (failed) throw failure;
-        return;
-      }
-      const results = await Promise.allSettled(
-        activeKeys.map(flushDatabaseWriteKey),
-      );
-      const rejected = results.find(
-        (result): result is PromiseRejectedResult =>
-          result.status === "rejected",
-      );
-      if (!failed && rejected) {
-        failed = true;
-        failure = rejected.reason;
-      }
-    }
-  }
-
-  while (pending.size > 0) {
-    const results = await Promise.allSettled(Array.from(pending));
-    const failure = results.find(
-      (result): result is PromiseRejectedResult => result.status === "rejected",
-    );
-    if (failure) throw failure.reason;
+    await drainKeys([...new Set(keys)]);
+  } else {
+    await drainPending();
   }
 }
 
 export async function flushDatabaseWritesByPrefix(
   prefixes: readonly string[],
 ): Promise<void> {
-  const uniquePrefixes = [...new Set(prefixes)];
-  let failed = false;
-  let failure: unknown;
-  while (true) {
-    const keys = [...tails.keys()].filter((key) =>
-      uniquePrefixes.some((prefix) => key.startsWith(prefix)),
-    );
-    if (keys.length === 0) {
-      if (failed) throw failure;
-      return;
-    }
-    const results = await Promise.allSettled(keys.map(flushDatabaseWriteKey));
-    const rejected = results.find(
-      (result): result is PromiseRejectedResult => result.status === "rejected",
-    );
-    if (!failed && rejected) {
-      failed = true;
-      failure = rejected.reason;
-    }
-  }
+  await drainKeysByPrefix([...new Set(prefixes)]);
 }
 
 export async function flushDatabaseWritesWithin(
@@ -101,22 +69,61 @@ export async function flushDatabaseWritesWithin(
   }
 }
 
-async function flushDatabaseWriteKey(key: string): Promise<void> {
-  let failed = false;
-  let failure: unknown;
-  while (true) {
-    const write = tails.get(key);
-    if (!write) {
-      if (failed) throw failure;
-      return;
-    }
-    try {
-      await write;
-    } catch (error) {
-      if (!failed) failure = error;
-      failed = true;
-    }
+async function drainKeys(
+  uniqueKeys: readonly string[],
+  failure?: FlushFailure,
+): Promise<void> {
+  const activeKeys = uniqueKeys.filter((key) => tails.has(key));
+  if (activeKeys.length === 0) {
+    if (failure) throw failure.reason;
+    return;
   }
+  const results = await Promise.allSettled(
+    activeKeys.map((key) => flushDatabaseWriteKey(key)),
+  );
+  return drainKeys(uniqueKeys, failure ?? firstRejected(results));
+}
+
+async function drainPending(): Promise<void> {
+  if (pending.size === 0) return;
+  const results = await Promise.allSettled(Array.from(pending));
+  const rejected = firstRejected(results);
+  if (rejected) throw rejected.reason;
+  return drainPending();
+}
+
+async function drainKeysByPrefix(
+  uniquePrefixes: readonly string[],
+  failure?: FlushFailure,
+): Promise<void> {
+  const keys = [...tails.keys()].filter((key) =>
+    uniquePrefixes.some((prefix) => key.startsWith(prefix)),
+  );
+  if (keys.length === 0) {
+    if (failure) throw failure.reason;
+    return;
+  }
+  const results = await Promise.allSettled(
+    keys.map((key) => flushDatabaseWriteKey(key)),
+  );
+  return drainKeysByPrefix(uniquePrefixes, failure ?? firstRejected(results));
+}
+
+async function flushDatabaseWriteKey(
+  key: string,
+  failure?: FlushFailure,
+): Promise<void> {
+  const write = tails.get(key);
+  if (!write) {
+    if (failure) throw failure.reason;
+    return;
+  }
+  try {
+    await write;
+  } catch (error) {
+    failure ??= { reason: error };
+  }
+  return flushDatabaseWriteKey(key, failure);
 }
 
 function finishWrite(key: string, write: Promise<unknown>) {

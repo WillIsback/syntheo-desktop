@@ -141,16 +141,21 @@ export async function readResponseTextWithLimit(
   const decoder = new TextDecoder();
   const chunks: string[] = [];
   let totalBytes = 0;
+  let overLimit = false;
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       totalBytes += value.byteLength;
       if (totalBytes > limit) {
-        await reader.cancel();
-        throw new Error(`Response body exceeds ${limit} bytes`);
+        overLimit = true;
+        break;
       }
       chunks.push(decoder.decode(value, { stream: true }));
+    }
+    if (overLimit) {
+      await reader.cancel();
+      throw new Error(`Response body exceeds ${limit} bytes`);
     }
     chunks.push(decoder.decode());
     return chunks.join("");
@@ -176,10 +181,10 @@ export const isNonChatModel = (id: string): boolean => {
   const name = modelName(id);
 
   if (/^o\d/.test(name)) return true;
-  if (/^gpt-4o-/.test(name)) return true;
-  if (/^gpt-4\.1/.test(name)) return true;
+  if (name.startsWith("gpt-4o-")) return true;
+  if (name.startsWith("gpt-4.1")) return true;
   if (name.startsWith("ft:") || lowerId.startsWith("ft:")) return true;
-  if (/^nano-banana/.test(name)) return true;
+  if (name.startsWith("nano-banana")) return true;
   // Coding-agent-only and deep-research variants, not general chat.
   if (/^grok-(?:build|code-fast)/.test(name)) return true;
   if (/multi-agent/.test(name)) return true;
@@ -206,64 +211,76 @@ export const removeNonStreamingModels = (
   };
 };
 
+// Model-name prefixes that unambiguously mark a retired model.
+const oldModelNamePrefixes = [
+  "gpt-3.5",
+  "gpt-4",
+  "gemini-3-", // The Gemini 3.0 previews are deprecated in favour of 3.x GA.
+  "open-mixtral",
+  "devstral-",
+  "glm-4",
+  "c4ai-aya",
+  "llama-guard",
+] as const;
+
+// Prefixes that must be followed by the end of the name or a dash.
+const oldModelBoundedPrefixes = [
+  "gpt-5",
+  "davinci",
+  "babbage",
+  "curie",
+  "ada",
+] as const;
+
+// Patterns matched against the raw model name.
+const oldModelNamePatterns = [
+  /^gpt-5\.[1-3]($|-)/,
+  /^gemini-[12][.-]/,
+  /^(open-)?mistral-(7b|nemo)(-|$)/,
+  /^mistral-large-(24|240|241|2502|2508)/,
+  /^mistral-medium-(2505|2508|3[.-]1)($|-)/,
+  /^mistral-small-(3|2503|2506)($|-)/,
+  /^magistral-(small|medium)-\d{4}($|-)/,
+  /^(pixtral|voxtral-mini-2507|mistral-saba|codestral-2501)/,
+  /^ministral-(3b|8b)-24/,
+  /^grok-[23]($|-)/, // Retired 2026-05-15; slugs silently redirect to grok-4.3.
+  /^grok-4($|-)/,
+  /^deepseek-(chat|reasoner)$/, // Discontinued 2026-07-24.
+  /^deepseek-(v3|r1)/,
+  /^(kimi-latest|kimi-thinking-preview|moonshot-v1)/,
+  /^kimi-k2($|-|[.p]5($|-))/,
+  /^glm-5($|-|[.p]1($|-))/,
+  /^command-r(-plus)?(-|$)/,
+  /^command(-light)?$/,
+  /^llama-?3[.-]/,
+  /^llama-?4-/,
+  /^qwen-(3|max|plus|flash|turbo)/,
+  /^qwen(2|3-)/,
+  /^(qwq|qvq)-/,
+] as const;
+
+// Patterns matched against the dotted name normalized to dashes. Negative
+// lookaheads keep the current pinned revisions (4-8 opus, 4-5 haiku).
+const oldModelDashedNamePatterns = [
+  /^claude-(2|3|instant)/,
+  /^claude-opus-4(?!-8($|-))($|-)/,
+  /^claude-sonnet-4($|-)/,
+  /^claude-haiku-4(?!-5($|-))($|-)/,
+] as const;
+
+const hasBoundedPrefix = (name: string, prefix: string): boolean =>
+  name === prefix || name.startsWith(`${prefix}-`);
+
 export const isOldModel = (id: string): boolean => {
   const name = modelName(id);
   const dashedName = name.replace(/\./g, "-");
 
-  if (/^gpt-3\.5/.test(name)) return true;
-  if (/^gpt-4/.test(name)) return true;
-  if (/^gpt-5($|-)/.test(name)) return true;
-  if (/^gpt-5\.[1-3]($|-)/.test(name)) return true;
-  if (/^(davinci|babbage|curie|ada)(-|$)/.test(name)) return true;
-  if (/^claude-(2|3|instant)/.test(dashedName)) return true;
-  if (
-    /^claude-opus-4($|-)/.test(dashedName) &&
-    !/^claude-opus-4-8($|-)/.test(dashedName)
-  ) {
-    return true;
-  }
-  if (/^claude-sonnet-4($|-)/.test(dashedName)) return true;
-  if (
-    /^claude-haiku-4($|-)/.test(dashedName) &&
-    !/^claude-haiku-4-5($|-)/.test(dashedName)
-  ) {
-    return true;
-  }
-  if (/^gemini-(1|2)(\.|-)/.test(name)) return true;
-  // The Gemini 3.0 previews are deprecated in favour of the 3.x GA line.
-  if (/^gemini-3-/.test(name)) return true;
-  if (/^(open-)?mistral-(7b|nemo)(-|$)/.test(name)) return true;
-  if (/^open-mixtral/.test(name)) return true;
-  if (/^mistral-large-(24|240|241|2502|2508)/.test(name)) return true;
-  if (/^mistral-medium-(2505|2508|3[.-]1)($|-)/.test(name)) return true;
-  if (/^mistral-small-(3|2503|2506)($|-)/.test(name)) return true;
-  if (/^magistral-(small|medium)-\d{4}($|-)/.test(name)) return true;
-  if (/^devstral-/.test(name)) return true;
-  if (/^(pixtral|voxtral-mini-2507|mistral-saba|codestral-2501)/.test(name)) {
-    return true;
-  }
-  if (/^ministral-(3b|8b)-24/.test(name)) return true;
-  // Retired 2026-05-15; the slugs silently redirect to grok-4.3.
-  if (/^grok-[23]($|-)/.test(name)) return true;
-  if (/^grok-4($|-)/.test(name)) return true;
-  // deepseek-chat / deepseek-reasoner were discontinued 2026-07-24.
-  if (/^deepseek-(chat|reasoner)$/.test(name)) return true;
-  if (/^deepseek-(v3|r1)/.test(name)) return true;
-  if (/^(kimi-latest|kimi-thinking-preview|moonshot-v1)/.test(name))
-    return true;
-  if (/^kimi-k2($|-|[.p]5($|-))/.test(name)) return true;
-  if (/^glm-4/.test(name)) return true;
-  if (/^glm-5($|-|[.p]1($|-))/.test(name)) return true;
-  if (/^command-r(-plus)?(-|$)/.test(name)) return true;
-  if (/^command(-light)?$/.test(name)) return true;
-  if (/^c4ai-aya/.test(name)) return true;
-  if (/^llama-?3[.-]/.test(name)) return true;
-  if (/^llama-?4-/.test(name)) return true;
-  if (/^llama-guard/.test(name)) return true;
-  if (/^qwen-(3|max|plus|flash|turbo)/.test(name)) return true;
-  if (/^qwen(2|3-)/.test(name)) return true;
-  if (/^(qwq|qvq)-/.test(name)) return true;
-  return false;
+  return (
+    oldModelNamePrefixes.some((prefix) => name.startsWith(prefix)) ||
+    oldModelBoundedPrefixes.some((prefix) => hasBoundedPrefix(name, prefix)) ||
+    oldModelNamePatterns.some((pattern) => pattern.test(name)) ||
+    oldModelDashedNamePatterns.some((pattern) => pattern.test(dashedName))
+  );
 };
 
 export const sortModelsByRecency = (models: string[]): string[] => {

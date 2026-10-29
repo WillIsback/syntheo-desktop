@@ -3,6 +3,10 @@ import type { JSONContent } from "@syntheo/editor/chat";
 const MAX_RETAINED_DRAFTS = 50;
 const MAX_RETAINED_DRAFT_BYTES_PER_DRAFT = 16 * 1024 * 1024;
 const MAX_RETAINED_DRAFT_BYTES = 32 * 1024 * 1024;
+const MAX_JSON_DEPTH = 256;
+const JSON_TWO_CHAR_ESCAPES = new Set([
+  0x08, 0x09, 0x0a, 0x0c, 0x0d, 0x22, 0x5c,
+]);
 
 type DraftEntry = {
   content: JSONContent;
@@ -155,12 +159,21 @@ export function measureDraftBytes(
     return bytes <= maxBytes;
   };
 
-  const visit = (value: unknown, depth: number) => {
+  const forceOverflow = () => {
+    bytes = maxBytes + 1;
+  };
+
+  const isDroppedByJson = (entry: unknown) =>
+    entry === undefined ||
+    typeof entry === "function" ||
+    typeof entry === "symbol";
+
+  function visit(value: unknown, depth: number) {
     if (bytes > maxBytes) {
       return;
     }
-    if (depth > 256) {
-      bytes = maxBytes + 1;
+    if (depth > MAX_JSON_DEPTH) {
+      forceOverflow();
       return;
     }
     if (value === null || value === undefined) {
@@ -172,66 +185,66 @@ export function measureDraftBytes(
     } else if (typeof value === "boolean") {
       addBytes(value ? 4 : 5);
     } else if (Array.isArray(value)) {
-      if (seen.has(value)) {
-        bytes = maxBytes + 1;
-        return;
-      }
-      seen.add(value);
-      addBytes(2);
-      for (let index = 0; index < value.length; index += 1) {
-        if (index > 0) {
-          addBytes(1);
-        }
-        const entry = value[index];
-        if (
-          entry === undefined ||
-          typeof entry === "function" ||
-          typeof entry === "symbol"
-        ) {
-          addBytes(4);
-        } else {
-          visit(entry, depth + 1);
-        }
-        if (bytes > maxBytes) {
-          break;
-        }
-      }
-      seen.delete(value);
+      visitArray(value, depth);
     } else if (typeof value === "object") {
-      if (seen.has(value)) {
-        bytes = maxBytes + 1;
-        return;
-      }
-      seen.add(value);
-      addBytes(2);
-      let entryCount = 0;
-      for (const key in value) {
-        if (!Object.prototype.hasOwnProperty.call(value, key)) {
-          continue;
-        }
-        const entry = (value as Record<string, unknown>)[key];
-        if (
-          entry === undefined ||
-          typeof entry === "function" ||
-          typeof entry === "symbol"
-        ) {
-          continue;
-        }
-        if (entryCount > 0) {
-          addBytes(1);
-        }
-        addBytes(measureJsonStringBytes(key, maxBytes - bytes) + 1);
-        visit(entry, depth + 1);
-        entryCount += 1;
-        if (bytes > maxBytes) {
-          break;
-        }
-      }
-      seen.delete(value);
+      visitObject(value, depth);
     } else {
-      bytes = maxBytes + 1;
+      forceOverflow();
     }
-  };
+  }
+
+  function visitArray(value: unknown[], depth: number) {
+    if (seen.has(value)) {
+      forceOverflow();
+      return;
+    }
+    seen.add(value);
+    addBytes(2);
+    for (let index = 0; index < value.length; index += 1) {
+      if (index > 0) {
+        addBytes(1);
+      }
+      const entry = value[index];
+      if (isDroppedByJson(entry)) {
+        addBytes(4);
+      } else {
+        visit(entry, depth + 1);
+      }
+      if (bytes > maxBytes) {
+        break;
+      }
+    }
+    seen.delete(value);
+  }
+
+  function visitObject(value: object, depth: number) {
+    if (seen.has(value)) {
+      forceOverflow();
+      return;
+    }
+    seen.add(value);
+    addBytes(2);
+    let entryCount = 0;
+    for (const key in value) {
+      if (!Object.prototype.hasOwnProperty.call(value, key)) {
+        continue;
+      }
+      const entry = (value as Record<string, unknown>)[key];
+      if (isDroppedByJson(entry)) {
+        continue;
+      }
+      if (entryCount > 0) {
+        addBytes(1);
+      }
+      addBytes(measureJsonStringBytes(key, maxBytes - bytes) + 1);
+      visit(entry, depth + 1);
+      entryCount += 1;
+      if (bytes > maxBytes) {
+        break;
+      }
+    }
+    seen.delete(value);
+  }
 
   visit(content, 0);
 
@@ -242,31 +255,34 @@ function measureJsonStringBytes(value: string, maxBytes: number) {
   let bytes = 2;
 
   for (let index = 0; index < value.length && bytes <= maxBytes; index += 1) {
-    const code = value.charCodeAt(index);
-    if (code === 0x22 || code === 0x5c || code === 0x08 || code === 0x09) {
-      bytes += 2;
-    } else if (code === 0x0a || code === 0x0c || code === 0x0d) {
-      bytes += 2;
-    } else if (code < 0x20) {
-      bytes += 6;
-    } else if (code < 0x80) {
-      bytes += 1;
-    } else if (code < 0x800) {
-      bytes += 2;
-    } else if (code >= 0xd800 && code <= 0xdbff) {
-      const trailing = value.charCodeAt(index + 1);
-      if (trailing >= 0xdc00 && trailing <= 0xdfff) {
-        bytes += 4;
-        index += 1;
-      } else {
-        bytes += 6;
-      }
-    } else if (code >= 0xdc00 && code <= 0xdfff) {
-      bytes += 6;
-    } else {
-      bytes += 3;
+    const code = value.codePointAt(index) ?? 0;
+    bytes += jsonStringEscapedBytes(code);
+    if (code > 0xffff) {
+      index += 1;
     }
   }
 
   return bytes;
+}
+
+function jsonStringEscapedBytes(code: number) {
+  if (JSON_TWO_CHAR_ESCAPES.has(code)) {
+    return 2;
+  }
+  if (code < 0x20) {
+    return 6;
+  }
+  if (code < 0x80) {
+    return 1;
+  }
+  if (code < 0x800) {
+    return 2;
+  }
+  if (code > 0xffff) {
+    return 4;
+  }
+  if (code >= 0xd800 && code <= 0xdfff) {
+    return 6;
+  }
+  return 3;
 }

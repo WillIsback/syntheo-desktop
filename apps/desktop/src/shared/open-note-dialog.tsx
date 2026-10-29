@@ -35,9 +35,9 @@ import { type TabInput, useTabs } from "~/store/zustand/tabs";
 const MAX_RECENT_DISPLAY = 5;
 
 interface OpenNoteDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  mainContentCenterOffset?: number;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly mainContentCenterOffset?: number;
 }
 
 type OpenNoteDialogContextValue = {
@@ -61,15 +61,65 @@ type PageResult = {
   destination: TabInput;
 };
 
+function filterPageResults(
+  query: string,
+  pageResults: PageResult[],
+  topLevelPageIds: Set<string>,
+): PageResult[] {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return pageResults.filter((page) => topLevelPageIds.has(page.id));
+  }
+  return pageResults.filter(
+    (page) =>
+      page.label.toLowerCase().includes(normalizedQuery) ||
+      page.groupLabel.toLowerCase().includes(normalizedQuery) ||
+      (page.hint?.toLowerCase().includes(normalizedQuery) ?? false),
+  );
+}
+
+function filterByTitle<T extends { title: string }>(
+  items: T[],
+  query: string,
+): T[] {
+  if (!query.trim()) return items;
+  const lowerQuery = query.toLowerCase();
+  return items.filter((item) => item.title.toLowerCase().includes(lowerQuery));
+}
+
+function compareByCreatedAtDesc(a: NoteResult, b: NoteResult): number {
+  if (!a.createdAt || !b.createdAt) return 0;
+  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+}
+
+function toSessionTabInput(note: NoteResult): TabInput {
+  return note.resourceType === "shared_session"
+    ? { type: "shared_sessions", id: note.id }
+    : { type: "sessions", id: note.id };
+}
+
+function preventCloseWhenOnDragRegion(event: {
+  detail: { originalEvent: { target: EventTarget | null } };
+  preventDefault: () => void;
+}) {
+  const target = event.detail.originalEvent.target;
+  if (
+    target instanceof Element &&
+    target.closest("[data-open-note-dialog-drag-region]")
+  ) {
+    event.preventDefault();
+  }
+}
+
 const OpenNoteDialogContext = createContext<OpenNoteDialogContextValue | null>(
   null,
 );
 
 export function OpenNoteDialogProvider({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const [open, setOpen] = useState(false);
   const mainContentCenterOffset = useMainContentCenterOffset();
 
@@ -162,16 +212,7 @@ export function OpenNoteDialog({
       group.items.flatMap((item) => ("destination" in item ? [item.id] : [])),
     ),
   ]);
-  const filteredPages = query.trim()
-    ? pageResults.filter((page) => {
-        const normalizedQuery = query.trim().toLowerCase();
-        return (
-          page.label.toLowerCase().includes(normalizedQuery) ||
-          page.groupLabel.toLowerCase().includes(normalizedQuery) ||
-          page.hint?.toLowerCase().includes(normalizedQuery)
-        );
-      })
-    : pageResults.filter((page) => topLevelPageIds.has(page.id));
+  const filteredPages = filterPageResults(query, pageResults, topLevelPageIds);
 
   const sessionsMap = useMemo(() => {
     return new Map<string, NoteResult>(
@@ -187,12 +228,10 @@ export function OpenNoteDialog({
     );
   }, [sessions, t]);
 
-  const allNotesSortedByDate = useMemo(() => {
-    return [...sessionsMap.values()].sort((a, b) => {
-      if (!a.createdAt || !b.createdAt) return 0;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [sessionsMap]);
+  const allNotesSortedByDate = useMemo(
+    () => [...sessionsMap.values()].sort(compareByCreatedAtDesc),
+    [sessionsMap],
+  );
 
   const recentSessions = useMemo(() => {
     return recentlyOpenedSessionIds
@@ -213,21 +252,15 @@ export function OpenNoteDialog({
     );
   }, [allNotesSortedByDate, recentSessionIdSet]);
 
-  const filteredRecentSessions = useMemo(() => {
-    if (!query.trim()) return recentSessions;
-    const lowerQuery = query.toLowerCase();
-    return recentSessions.filter((s) =>
-      s.title.toLowerCase().includes(lowerQuery),
-    );
-  }, [recentSessions, query]);
+  const filteredRecentSessions = useMemo(
+    () => filterByTitle(recentSessions, query),
+    [recentSessions, query],
+  );
 
-  const filteredOtherNotes = useMemo(() => {
-    if (!query.trim()) return otherNotes;
-    const lowerQuery = query.toLowerCase();
-    return otherNotes.filter((note) =>
-      note.title.toLowerCase().includes(lowerQuery),
-    );
-  }, [otherNotes, query]);
+  const filteredOtherNotes = useMemo(
+    () => filterByTitle(otherNotes, query),
+    [otherNotes, query],
+  );
 
   const hasAnyResults =
     filteredPages.length > 0 ||
@@ -263,11 +296,7 @@ export function OpenNoteDialog({
   const handleSelect = useCallback(
     (note: NoteResult) => {
       handleOpenChange(false);
-      openCurrent(
-        note.resourceType === "shared_session"
-          ? { type: "shared_sessions", id: note.id }
-          : { type: "sessions", id: note.id },
-      );
+      openCurrent(toSessionTabInput(note));
     },
     [handleOpenChange, openCurrent, query],
   );
@@ -281,17 +310,12 @@ export function OpenNoteDialog({
   );
 
   const isQueryEmpty = !query.trim();
+  const pageGroupHasPadding =
+    filteredOtherNotes.length > 0 ||
+    (!isQueryEmpty && filteredRecentSessions.length > 0);
   const pageGroup = filteredPages.length > 0 && (
     <CommandPrimitive.Group
-      className={
-        isQueryEmpty
-          ? filteredOtherNotes.length > 0
-            ? "pb-1.5"
-            : ""
-          : filteredRecentSessions.length > 0 || filteredOtherNotes.length > 0
-            ? "pb-1.5"
-            : ""
-      }
+      className={pageGroupHasPadding ? "pb-1.5" : ""}
       heading={
         <div className="flex flex-col gap-3">
           {isQueryEmpty && filteredRecentSessions.length > 0 && (
@@ -344,9 +368,7 @@ export function OpenNoteDialog({
           <div
             data-open-note-dialog-drag-region
             data-tauri-drag-region
-            role="presentation"
             className="absolute top-0 right-0 left-0 h-[15%]"
-            onClick={(event) => event.stopPropagation()}
           />
         }
         className={cn([
@@ -355,15 +377,7 @@ export function OpenNoteDialog({
           "[&>button:last-child]:hidden",
         ])}
         style={{ marginLeft: mainContentCenterOffset }}
-        onPointerDownOutside={(event) => {
-          const target = event.detail.originalEvent.target;
-          if (
-            target instanceof Element &&
-            target.closest("[data-open-note-dialog-drag-region]")
-          ) {
-            event.preventDefault();
-          }
-        }}
+        onPointerDownOutside={preventCloseWhenOnDragRegion}
       >
         <DialogTitle className="sr-only">
           <Trans>Search notes and pages...</Trans>

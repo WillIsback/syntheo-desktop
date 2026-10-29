@@ -1,11 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { createPortal } from "react-dom";
 
 import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 import { cn } from "@syntheo/utils";
 
 import { useDevtoolsMetrics } from "./metrics";
-import type { ReactToolsState } from "./react-tools";
+import type { ReactScanSettings, ReactToolsState } from "./react-tools";
 import {
   setReactInspecting,
   setReactToolbarVisible,
@@ -38,6 +43,12 @@ function captureSelection(event: ScanEvent): Selection {
   };
 }
 
+function severityClass(severity: ScanEvent["severity"]): string {
+  if (severity === "high") return "bg-destructive";
+  if (severity === "needs-improvement") return "bg-amber-500";
+  return "bg-blue-500";
+}
+
 export function ScanPanel({
   state,
   copyText,
@@ -68,81 +79,21 @@ export function ScanPanel({
       className="border-border bg-background text-foreground flex min-h-0 flex-col overflow-hidden rounded-[22px] border font-mono text-[11px] leading-snug shadow-xl"
     >
       <div className="flex min-h-0 flex-1">
-        <aside
-          aria-label="Slowdown history"
-          className="bg-background/15 border-border/40 flex w-[28%] max-w-[300px] min-w-[180px] shrink-0 flex-col border-r"
-        >
-          <div
-            onPointerDown={layout.drag}
-            className="border-border/40 flex h-10 shrink-0 cursor-move touch-none items-center gap-2 border-b pr-3 pl-6"
-          >
-            <span className="min-w-0 flex-1 truncate">
-              History{" "}
-              {state.settings.showNotificationCount
-                ? `(${data.events.length})`
-                : ""}
-            </span>
-            <button
-              type="button"
-              className={buttonClass}
-              disabled={!data.events.length}
-              onClick={() => {
-                setSelection(null);
-                clearScanHistory();
-              }}
-            >
-              Clear
-            </button>
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-2">
-            {data.events.map((event) => (
-              <button
-                key={event.id}
-                type="button"
-                aria-pressed={event.id === selected?.id}
-                title={event.label}
-                className={cn([
-                  "hover:bg-background/50 mb-0.5 flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left",
-                  event.id === selected?.id &&
-                    "bg-background/60 ring-border/30 shadow-sm ring-1",
-                ])}
-                onClick={() => {
-                  setSelection(captureSelection(event));
-                  setReactInspecting(false);
-                }}
-              >
-                <span
-                  aria-hidden="true"
-                  className={cn([
-                    "size-1.5 shrink-0 rounded-full",
-                    event.severity === "high"
-                      ? "bg-destructive"
-                      : event.severity === "needs-improvement"
-                        ? "bg-amber-500"
-                        : "bg-blue-500",
-                  ])}
-                />
-                <span className="min-w-0 flex-1 truncate">{event.label}</span>
-                <span className="text-muted-foreground shrink-0 tabular-nums">
-                  {event.fps === null
-                    ? `${ms(event.duration)}ms`
-                    : `${Math.round(event.fps)} FPS`}
-                </span>
-              </button>
-            ))}
-            {!data.events.length ? (
-              <p className="text-muted-foreground px-2 py-3">
-                Interact with the app to capture clicks, typing, and frame
-                drops.
-              </p>
-            ) : null}
-          </div>
-          {state.settings.showFPS ? (
-            <div className="border-border/40 flex shrink-0 items-center border-t px-3 py-2">
-              <PanelFps />
-            </div>
-          ) : null}
-        </aside>
+        <HistorySidebar
+          events={data.events}
+          showCount={state.settings.showNotificationCount}
+          showFps={state.settings.showFPS}
+          selectedId={selected?.id}
+          onDragStart={layout.drag}
+          onSelect={(event) => {
+            setSelection(captureSelection(event));
+            setReactInspecting(false);
+          }}
+          onClear={() => {
+            setSelection(null);
+            clearScanHistory();
+          }}
+        />
         <div className="flex min-w-0 flex-1 flex-col">
           <div
             onPointerDown={layout.drag}
@@ -187,100 +138,15 @@ export function ScanPanel({
               ×
             </button>
           </div>
-          {view === "settings" && !state.inspecting ? (
-            <div className="space-y-3 overflow-auto p-3">
-              <p>React Scan {state.version}</p>
-              <label className="flex items-center justify-between gap-3">
-                Animation speed
-                <select
-                  aria-label="Animation speed"
-                  value={state.settings.animationSpeed}
-                  onChange={(event) => {
-                    const animationSpeed = event.target.value;
-                    if (
-                      animationSpeed === "fast" ||
-                      animationSpeed === "slow" ||
-                      animationSpeed === "off"
-                    )
-                      setReactScanSettings({ animationSpeed });
-                  }}
-                >
-                  <option value="fast">Fast</option>
-                  <option value="slow">Slow</option>
-                  <option value="off">Off</option>
-                </select>
-              </label>
-              {(
-                [
-                  ["log", "Log renders to console"],
-                  ["showFPS", "Show panel FPS"],
-                  ["showNotificationCount", "Show slowdown count"],
-                ] as const
-              ).map(([key, label]) => (
-                <label
-                  key={key}
-                  className="flex items-center justify-between gap-3"
-                >
-                  {label}
-                  <input
-                    type="checkbox"
-                    checked={state.settings[key]}
-                    onChange={(event) =>
-                      setReactScanSettings({ [key]: event.target.checked })
-                    }
-                  />
-                </label>
-              ))}
-              <p className="text-muted-foreground">
-                Console logging and render outlines add profiling overhead.
-                Browser timing support varies; unavailable event timings are not
-                evidence of zero work.
-              </p>
-            </div>
-          ) : state.inspecting ? (
-            <Inspector />
-          ) : selected ? (
-            <div
-              role="tabpanel"
-              aria-label={view}
-              className="flex min-h-0 flex-1 flex-col"
-            >
-              <div className="border-border/40 flex shrink-0 items-center gap-2 border-b px-3 py-2">
-                <span
-                  className="truncate font-semibold"
-                  title={selected.path.join(" → ")}
-                >
-                  {selected.label}
-                </span>
-                <span className="text-muted-foreground ml-auto shrink-0 tabular-nums">
-                  {ms(selected.duration)}ms
-                  {selected.fps === null
-                    ? " processing"
-                    : ` · ${Math.round(selected.fps)} FPS`}
-                </span>
-              </div>
-              {view === "prompts" ? (
-                <Prompts
-                  key={selected.id}
-                  prompts={(selection ?? captureSelection(selected)).prompts}
-                  copyText={copyText}
-                />
-              ) : (
-                <div className="min-h-0 flex-1 overflow-auto p-3">
-                  {view === "ranked" ? (
-                    <Ranked event={selected} />
-                  ) : (
-                    <Overview event={selected} />
-                  )}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-muted-foreground p-4">
-              Select a captured event to inspect its timings and copy a
-              performance prompt.
-            </div>
-          )}
+          <MainView
+            view={view}
+            inspecting={state.inspecting}
+            version={state.version}
+            settings={state.settings}
+            selected={selected}
+            selection={selection}
+            copyText={copyText}
+          />
         </div>
       </div>
       {RESIZE_HANDLES.map(([edge, className]) => (
@@ -300,6 +166,246 @@ export function ScanPanel({
       ))}
     </section>,
     document.body,
+  );
+}
+
+function HistorySidebar({
+  events,
+  showCount,
+  showFps,
+  selectedId,
+  onDragStart,
+  onSelect,
+  onClear,
+}: Readonly<{
+  events: readonly ScanEvent[];
+  showCount: boolean;
+  showFps: boolean;
+  selectedId?: string;
+  onDragStart: (event: ReactPointerEvent<HTMLElement>) => void;
+  onSelect: (event: ScanEvent) => void;
+  onClear: () => void;
+}>) {
+  return (
+    <aside
+      aria-label="Slowdown history"
+      className="bg-background/15 border-border/40 flex w-[28%] max-w-[300px] min-w-[180px] shrink-0 flex-col border-r"
+    >
+      <div
+        onPointerDown={onDragStart}
+        className="border-border/40 flex h-10 shrink-0 cursor-move touch-none items-center gap-2 border-b pr-3 pl-6"
+      >
+        <span className="min-w-0 flex-1 truncate">
+          History {showCount ? `(${events.length})` : ""}
+        </span>
+        <button
+          type="button"
+          className={buttonClass}
+          disabled={!events.length}
+          onClick={onClear}
+        >
+          Clear
+        </button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        {events.map((event) => (
+          <EventRow
+            key={event.id}
+            event={event}
+            selected={event.id === selectedId}
+            onSelect={onSelect}
+          />
+        ))}
+        {!events.length ? (
+          <p className="text-muted-foreground px-2 py-3">
+            Interact with the app to capture clicks, typing, and frame drops.
+          </p>
+        ) : null}
+      </div>
+      {showFps ? (
+        <div className="border-border/40 flex shrink-0 items-center border-t px-3 py-2">
+          <PanelFps />
+        </div>
+      ) : null}
+    </aside>
+  );
+}
+
+function EventRow({
+  event,
+  selected,
+  onSelect,
+}: Readonly<{
+  event: ScanEvent;
+  selected: boolean;
+  onSelect: (event: ScanEvent) => void;
+}>) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      title={event.label}
+      className={cn([
+        "hover:bg-background/50 mb-0.5 flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left",
+        selected && "bg-background/60 ring-border/30 shadow-sm ring-1",
+      ])}
+      onClick={() => onSelect(event)}
+    >
+      <span
+        aria-hidden="true"
+        className={cn([
+          "size-1.5 shrink-0 rounded-full",
+          severityClass(event.severity),
+        ])}
+      />
+      <span className="min-w-0 flex-1 truncate">{event.label}</span>
+      <span className="text-muted-foreground shrink-0 tabular-nums">
+        {event.fps === null
+          ? `${ms(event.duration)}ms`
+          : `${Math.round(event.fps)} FPS`}
+      </span>
+    </button>
+  );
+}
+
+function MainView({
+  view,
+  inspecting,
+  version,
+  settings,
+  selected,
+  selection,
+  copyText,
+}: Readonly<{
+  view: View;
+  inspecting: boolean;
+  version: string | null;
+  settings: ReactScanSettings;
+  selected: ScanEvent | undefined;
+  selection: Selection | null;
+  copyText?: (text: string) => Promise<void>;
+}>) {
+  if (view === "settings" && !inspecting)
+    return <SettingsView version={version} settings={settings} />;
+  if (inspecting) return <Inspector />;
+  if (!selected)
+    return (
+      <div className="text-muted-foreground p-4">
+        Select a captured event to inspect its timings and copy a performance
+        prompt.
+      </div>
+    );
+  return (
+    <EventDetails
+      view={view}
+      selected={selected}
+      selection={selection}
+      copyText={copyText}
+    />
+  );
+}
+
+const SETTINGS_TOGGLES = [
+  ["log", "Log renders to console"],
+  ["showFPS", "Show panel FPS"],
+  ["showNotificationCount", "Show slowdown count"],
+] as const;
+
+function SettingsView({
+  version,
+  settings,
+}: Readonly<{ version: string | null; settings: ReactScanSettings }>) {
+  return (
+    <div className="space-y-3 overflow-auto p-3">
+      <p>React Scan {version}</p>
+      <label className="flex items-center justify-between gap-3">
+        <span>Animation speed</span>
+        <select
+          aria-label="Animation speed"
+          value={settings.animationSpeed}
+          onChange={(event) => {
+            const animationSpeed = event.target.value;
+            if (
+              animationSpeed === "fast" ||
+              animationSpeed === "slow" ||
+              animationSpeed === "off"
+            )
+              setReactScanSettings({ animationSpeed });
+          }}
+        >
+          <option value="fast">Fast</option>
+          <option value="slow">Slow</option>
+          <option value="off">Off</option>
+        </select>
+      </label>
+      {SETTINGS_TOGGLES.map(([key, label]) => (
+        <label key={key} className="flex items-center justify-between gap-3">
+          {label}
+          <input
+            type="checkbox"
+            checked={settings[key]}
+            onChange={(event) =>
+              setReactScanSettings({ [key]: event.target.checked })
+            }
+          />
+        </label>
+      ))}
+      <p className="text-muted-foreground">
+        Console logging and render outlines add profiling overhead. Browser
+        timing support varies; unavailable event timings are not evidence of
+        zero work.
+      </p>
+    </div>
+  );
+}
+
+function EventDetails({
+  view,
+  selected,
+  selection,
+  copyText,
+}: Readonly<{
+  view: View;
+  selected: ScanEvent;
+  selection: Selection | null;
+  copyText?: (text: string) => Promise<void>;
+}>) {
+  return (
+    <div
+      role="tabpanel"
+      aria-label={view}
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      <div className="border-border/40 flex shrink-0 items-center gap-2 border-b px-3 py-2">
+        <span
+          className="truncate font-semibold"
+          title={selected.path.join(" → ")}
+        >
+          {selected.label}
+        </span>
+        <span className="text-muted-foreground ml-auto shrink-0 tabular-nums">
+          {ms(selected.duration)}ms
+          {selected.fps === null
+            ? " processing"
+            : ` · ${Math.round(selected.fps)} FPS`}
+        </span>
+      </div>
+      {view === "prompts" ? (
+        <Prompts
+          key={selected.id}
+          prompts={(selection ?? captureSelection(selected)).prompts}
+          copyText={copyText}
+        />
+      ) : (
+        <div className="min-h-0 flex-1 overflow-auto p-3">
+          {view === "ranked" ? (
+            <Ranked event={selected} />
+          ) : (
+            <Overview event={selected} />
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -361,15 +467,19 @@ function Prompts({
         value={prompt}
         className="border-border/40 bg-background/55 focus:border-ring min-h-0 flex-1 resize-none rounded-xl border p-3 text-[11px] leading-relaxed outline-none"
       />
-      <p role="status" className="text-muted-foreground shrink-0">
-        {error
-          ? "Could not copy. Select the prompt text and copy it manually."
-          : prompt
-            ? "React Scan's prompt for this event. Paste it into your coding assistant."
-            : "This event has left the capture buffer. Select a more recent event."}
-      </p>
+      <output className="text-muted-foreground shrink-0">
+        {promptStatusMessage(error, prompt)}
+      </output>
     </div>
   );
+}
+
+function promptStatusMessage(error: boolean, prompt: string): string {
+  if (error)
+    return "Could not copy. Select the prompt text and copy it manually.";
+  if (prompt)
+    return "React Scan's prompt for this event. Paste it into your coding assistant.";
+  return "This event has left the capture buffer. Select a more recent event.";
 }
 
 function Ranked({ event }: Readonly<{ event: ScanEvent }>) {

@@ -50,6 +50,50 @@ import { useListener } from "~/stt/contexts";
 // Partage retiré (cloud) : aucune session partagée gérée.
 const NO_MANAGED_SHARES: ReadonlySet<string> = new Set();
 
+function getTopSpacerClassName({
+  reserveOpenCalendarChipSpace,
+  topChipsOverlapHeader,
+  topChromeInset,
+}: {
+  reserveOpenCalendarChipSpace: boolean;
+  topChipsOverlapHeader: boolean;
+  topChromeInset: boolean;
+}): string {
+  if (topChromeInset) {
+    return reserveOpenCalendarChipSpace ? "h-14" : "h-12";
+  }
+  if (topChipsOverlapHeader) {
+    return "h-9";
+  }
+  return "h-8";
+}
+
+function getBucketHeaderTopClassName({
+  showOpenCalendarChip,
+  topChromeInset,
+}: {
+  showOpenCalendarChip: boolean;
+  topChromeInset: boolean;
+}): string {
+  if (!topChromeInset) {
+    return "top-0";
+  }
+  return showOpenCalendarChip ? "top-14" : "top-12";
+}
+
+function getTopChipStackTopClassName({
+  topChipsOverlapHeader,
+  topChromeInset,
+}: {
+  topChipsOverlapHeader: boolean;
+  topChromeInset: boolean;
+}): string {
+  if (topChromeInset) {
+    return "top-4";
+  }
+  return topChipsOverlapHeader ? "top-1" : "top-2";
+}
+
 export const TimelineView = memo(function TimelineView({
   folderFilter = null,
   showOpenCalendarButton = true,
@@ -236,23 +280,19 @@ export const TimelineView = memo(function TimelineView({
     !showUpcomingMeetingChip &&
     !isTodayVisible &&
     isScrolledPastToday;
-  const topSpacerClassName = topChromeInset
-    ? reserveOpenCalendarChipSpace
-      ? "h-14"
-      : "h-12"
-    : topChipsOverlapHeader
-      ? "h-9"
-      : "h-8";
-  const bucketHeaderTopClassName = topChromeInset
-    ? showOpenCalendarChip
-      ? "top-14"
-      : "top-12"
-    : "top-0";
-  const topChipStackTopClassName = topChromeInset
-    ? "top-4"
-    : topChipsOverlapHeader
-      ? "top-1"
-      : "top-2";
+  const topSpacerClassName = getTopSpacerClassName({
+    reserveOpenCalendarChipSpace,
+    topChipsOverlapHeader,
+    topChromeInset,
+  });
+  const bucketHeaderTopClassName = getBucketHeaderTopClassName({
+    showOpenCalendarChip,
+    topChromeInset,
+  });
+  const topChipStackTopClassName = getTopChipStackTopClassName({
+    topChipsOverlapHeader,
+    topChromeInset,
+  });
   const selectedSessionScrollFrameRef = useRef<number | null>(null);
   const scrollSelectedSessionIntoView = useCallback<
     RefCallback<HTMLDivElement>

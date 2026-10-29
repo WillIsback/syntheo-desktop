@@ -94,6 +94,7 @@ type ItemBaseProps = {
   itemNodeRef?: RefCallback<HTMLDivElement>;
   timelineSessionId?: string;
   isUpcoming?: boolean;
+  upcomingLabel?: string;
   upcomingProgress?: number;
   onPreload?: () => void;
 };
@@ -110,6 +111,7 @@ export const TimelineItemComponent = memo(
     selectedNodeRef,
     itemNodeRef,
     isUpcoming,
+    upcomingLabel,
     upcomingProgress,
   }: {
     item: TimelineItem;
@@ -140,6 +142,7 @@ export const TimelineItemComponent = memo(
           selectedNodeRef={selectedNodeRef}
           itemNodeRef={itemNodeRef}
           isUpcoming={isUpcoming}
+          upcomingLabel={upcomingLabel}
           upcomingProgress={upcomingProgress}
         />
       );
@@ -155,11 +158,138 @@ export const TimelineItemComponent = memo(
         selectedNodeRef={selectedNodeRef}
         itemNodeRef={itemNodeRef}
         isUpcoming={isUpcoming}
+        upcomingLabel={upcomingLabel}
         upcomingProgress={upcomingProgress}
       />
     );
   },
 );
+
+function guardedHandler<T>(
+  blocked: boolean | undefined,
+  handler: T | undefined,
+): T | undefined {
+  return blocked ? undefined : handler;
+}
+
+function containIntrinsicSizeClass(extraRows: number): string {
+  if (extraRows === 2) {
+    return "[contain-intrinsic-size:auto_88px]";
+  }
+  if (extraRows === 1) {
+    return "[contain-intrinsic-size:auto_72px]";
+  }
+  return "[contain-intrinsic-size:auto_56px]";
+}
+
+function mutedTextClass(isLive: boolean | undefined): string {
+  return isLive ? "text-destructive-foreground/65" : "text-muted-foreground";
+}
+
+function resolveUpcomingGaugePercent(
+  upcomingProgress: number | undefined,
+): number {
+  if (typeof upcomingProgress !== "number") {
+    return 0;
+  }
+  return Math.round(Math.max(0, Math.min(upcomingProgress, 1)) * 100);
+}
+
+function itemBaseClassNames(args: {
+  ignored?: boolean;
+  isLive?: boolean;
+  isUpcoming?: boolean;
+  multiSelected: boolean;
+  muted?: boolean;
+  selected: boolean;
+  showLiveStop: boolean;
+  showUpcomingGauge: boolean;
+}) {
+  const {
+    ignored,
+    isLive,
+    isUpcoming,
+    multiSelected,
+    muted,
+    selected,
+    showLiveStop,
+    showUpcomingGauge,
+  } = args;
+  return [
+    "w-full rounded-lg px-3 py-2 text-left",
+    showUpcomingGauge && "pl-4",
+    showLiveStop && "pr-10",
+    ignored ? "cursor-default" : "cursor-pointer",
+    multiSelected && "bg-accent",
+    !multiSelected && selected && "bg-accent",
+    !multiSelected && !selected && "hover:bg-accent/50",
+    isUpcoming &&
+      !isLive && [
+        "bg-destructive/8 text-foreground",
+        "focus-visible:ring-destructive/25",
+      ],
+    isLive && [
+      "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+      "focus-visible:ring-destructive/40 focus-visible:ring-2 focus-visible:outline-hidden",
+    ],
+    ignored && "opacity-40",
+    !ignored && muted && !isLive && !isUpcoming && "opacity-65",
+  ];
+}
+
+function LockIndicator({
+  revealed,
+  revealedLabel,
+  lockedLabel,
+}: {
+  revealed?: boolean;
+  revealedLabel: string;
+  lockedLabel: string;
+}) {
+  if (!revealed) {
+    return (
+      <Lock
+        aria-label={lockedLabel}
+        className="text-muted-foreground size-3.5 shrink-0"
+      />
+    );
+  }
+  return (
+    <LockOpen
+      aria-label={revealedLabel}
+      className="text-muted-foreground size-3.5 shrink-0"
+    />
+  );
+}
+
+function StatusIndicator({
+  showSpinner,
+  isShared,
+  sharedLabel,
+}: {
+  showSpinner?: boolean;
+  isShared?: boolean;
+  sharedLabel: string;
+}) {
+  if (showSpinner) {
+    return (
+      <Spinner
+        size={14}
+        aria-hidden
+        className="text-muted-foreground shrink-0"
+      />
+    );
+  }
+  if (isShared) {
+    return (
+      <Users
+        aria-label={sharedLabel}
+        className="text-muted-foreground size-3.5 shrink-0"
+      />
+    );
+  }
+  return null;
+}
 
 const ItemBase = memo(function ItemBase({
   title,
@@ -167,7 +297,7 @@ const ItemBase = memo(function ItemBase({
   folder,
   tags,
   isLive,
-  amplitude,
+  amplitude = 0.25,
   showSpinner,
   isShared,
   isLocked,
@@ -188,6 +318,7 @@ const ItemBase = memo(function ItemBase({
   itemNodeRef,
   timelineSessionId,
   isUpcoming,
+  upcomingLabel,
   upcomingProgress,
   onPreload,
 }: ItemBaseProps) {
@@ -199,10 +330,7 @@ const ItemBase = memo(function ItemBase({
     Boolean(isUpcoming) &&
     !isLive &&
     !showSpinner;
-  const upcomingGaugePercent =
-    typeof upcomingProgress === "number"
-      ? Math.round(Math.max(0, Math.min(upcomingProgress, 1)) * 100)
-      : 0;
+  const upcomingGaugePercent = resolveUpcomingGaugePercent(upcomingProgress);
   const folderLabel = folder ?? "";
   const tagLine = formatSidebarItemTags(tags ?? []);
   const extraRows = Number(Boolean(folderLabel)) + Number(Boolean(tagLine));
@@ -218,44 +346,33 @@ const ItemBase = memo(function ItemBase({
     <div
       ref={setItemRef}
       data-sidebar-timeline-session-id={timelineSessionId}
+      data-upcoming-label={upcomingLabel}
       onFocus={onPreload}
       onPointerDown={onPreload}
       className={cn([
         "group/sidebar-live-item relative [content-visibility:auto]",
-        extraRows === 2
-          ? "[contain-intrinsic-size:auto_88px]"
-          : extraRows === 1
-            ? "[contain-intrinsic-size:auto_72px]"
-            : "[contain-intrinsic-size:auto_56px]",
+        containIntrinsicSizeClass(extraRows),
       ])}
     >
       <InteractiveButton
-        onClick={ignored ? undefined : onClick}
-        onDoubleClick={ignored ? undefined : onDoubleClick}
-        onCmdClick={ignored ? undefined : onCmdClick}
-        onShiftClick={ignored ? undefined : onShiftClick}
+        onClick={guardedHandler(ignored, onClick)}
+        onDoubleClick={guardedHandler(ignored, onDoubleClick)}
+        onCmdClick={guardedHandler(ignored, onCmdClick)}
+        onShiftClick={guardedHandler(ignored, onShiftClick)}
         onDragStart={onDragStart}
-        contextMenu={hasSelection ? undefined : contextMenu}
-        className={cn([
-          "w-full rounded-lg px-3 py-2 text-left",
-          showUpcomingGauge && "pl-4",
-          showLiveStop && "pr-10",
-          ignored ? "cursor-default" : "cursor-pointer",
-          multiSelected && "bg-accent",
-          !multiSelected && selected && "bg-accent",
-          !multiSelected && !selected && "hover:bg-accent/50",
-          isUpcoming &&
-            !isLive && [
-              "bg-destructive/8 text-foreground",
-              "focus-visible:ring-destructive/25",
-            ],
-          isLive && [
-            "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-            "focus-visible:ring-destructive/40 focus-visible:ring-2 focus-visible:outline-hidden",
-          ],
-          ignored && "opacity-40",
-          !ignored && muted && !isLive && !isUpcoming && "opacity-65",
-        ])}
+        contextMenu={guardedHandler(hasSelection, contextMenu)}
+        className={cn(
+          itemBaseClassNames({
+            ignored,
+            isLive,
+            isUpcoming,
+            multiSelected,
+            muted,
+            selected,
+            showLiveStop: Boolean(showLiveStop),
+            showUpcomingGauge,
+          }),
+        )}
         draggable={draggable}
       >
         <div className="flex items-center gap-2">
@@ -264,9 +381,7 @@ const ItemBase = memo(function ItemBase({
               <div
                 className={cn([
                   "pointer-events-none flex min-w-0 items-center gap-1 text-[11px] leading-4",
-                  isLive
-                    ? "text-destructive-foreground/65"
-                    : "text-muted-foreground",
+                  mutedTextClass(isLive),
                 ])}
               >
                 <FolderSimple className="size-3 shrink-0" aria-hidden />
@@ -283,12 +398,7 @@ const ItemBase = memo(function ItemBase({
             </div>
             {displayTime && (
               <div
-                className={cn([
-                  "font-mono text-xs",
-                  isLive
-                    ? "text-destructive-foreground/65"
-                    : "text-muted-foreground",
-                ])}
+                className={cn(["font-mono text-xs", mutedTextClass(isLive)])}
               >
                 {displayTime}
               </div>
@@ -297,9 +407,7 @@ const ItemBase = memo(function ItemBase({
               <div
                 className={cn([
                   "pointer-events-none min-w-0 truncate text-[11px] leading-4",
-                  isLive
-                    ? "text-destructive-foreground/65"
-                    : "text-muted-foreground",
+                  mutedTextClass(isLive),
                 ])}
               >
                 {tagLine}
@@ -307,30 +415,17 @@ const ItemBase = memo(function ItemBase({
             ) : null}
           </div>
           {isLocked ? (
-            isLockRevealed ? (
-              <LockOpen
-                aria-label={t`Unlock Note`}
-                className="text-muted-foreground size-3.5 shrink-0"
-              />
-            ) : (
-              <Lock
-                aria-label={t`Locked note`}
-                className="text-muted-foreground size-3.5 shrink-0"
-              />
-            )
-          ) : null}
-          {showSpinner ? (
-            <Spinner
-              size={14}
-              aria-hidden
-              className="text-muted-foreground shrink-0"
-            />
-          ) : isShared ? (
-            <Users
-              aria-label={t`Shared note`}
-              className="text-muted-foreground size-3.5 shrink-0"
+            <LockIndicator
+              revealed={isLockRevealed}
+              revealedLabel={t`Unlock Note`}
+              lockedLabel={t`Locked note`}
             />
           ) : null}
+          <StatusIndicator
+            showSpinner={showSpinner}
+            isShared={isShared}
+            sharedLabel={t`Shared note`}
+          />
         </div>
       </InteractiveButton>
       {showUpcomingGauge ? (
@@ -366,7 +461,7 @@ const ItemBase = memo(function ItemBase({
             className="flex items-center justify-center group-hover/sidebar-live-item:hidden"
           >
             <DancingSticks
-              amplitude={amplitude ?? 0.25}
+              amplitude={amplitude}
               color="currentColor"
               height={14}
               width={13}
@@ -414,6 +509,7 @@ function itemBasePropsAreEqual(prev: ItemBaseProps, next: ItemBaseProps) {
     prev.itemNodeRef === next.itemNodeRef &&
     prev.timelineSessionId === next.timelineSessionId &&
     prev.isUpcoming === next.isUpcoming &&
+    prev.upcomingLabel === next.upcomingLabel &&
     prev.upcomingProgress === next.upcomingProgress &&
     prev.onPreload === next.onPreload
   );
@@ -430,6 +526,7 @@ const EventItem = memo(
     selectedNodeRef,
     itemNodeRef,
     isUpcoming,
+    upcomingLabel,
     upcomingProgress,
   }: {
     item: EventTimelineItem;
@@ -441,6 +538,7 @@ const EventItem = memo(
     selectedNodeRef?: RefCallback<HTMLDivElement>;
     itemNodeRef?: RefCallback<HTMLDivElement>;
     isUpcoming?: boolean;
+    upcomingLabel?: string;
     upcomingProgress?: number;
   }) => {
     const { t } = useLingui();
@@ -595,6 +693,7 @@ const EventItem = memo(
         selectedNodeRef={selected ? selectedNodeRef : undefined}
         itemNodeRef={itemNodeRef}
         isUpcoming={isUpcoming}
+        upcomingLabel={upcomingLabel}
         upcomingProgress={upcomingProgress}
       />
     );
@@ -612,6 +711,7 @@ const SessionItem = memo(
     selectedNodeRef,
     itemNodeRef,
     isUpcoming,
+    upcomingLabel,
     upcomingProgress,
   }: {
     item: SessionTimelineItem;
@@ -623,6 +723,7 @@ const SessionItem = memo(
     selectedNodeRef?: RefCallback<HTMLDivElement>;
     itemNodeRef?: RefCallback<HTMLDivElement>;
     isUpcoming?: boolean;
+    upcomingLabel?: string;
     upcomingProgress?: number;
   }) => {
     const { t } = useLingui();
@@ -831,6 +932,7 @@ const SessionItem = memo(
         itemNodeRef={itemNodeRef}
         timelineSessionId={sessionId}
         isUpcoming={isUpcoming}
+        upcomingLabel={upcomingLabel}
         upcomingProgress={upcomingProgress}
         onPreload={handlePreload}
         draggable

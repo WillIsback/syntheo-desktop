@@ -192,7 +192,9 @@ test("never caches a failed verification as accepted", async () => {
 });
 
 test("native streaming providers validate input without requiring a model catalog", async () => {
+  let calls = 0;
   const fetcher = async () => {
+    calls++;
     throw new Error("No documented credential probe");
   };
   for (const provider of ["openai", "nvidia"]) {
@@ -211,6 +213,7 @@ test("native streaming providers validate input without requiring a model catalo
     },
     fetcher,
   );
+  assert.equal(calls, 0, "Native streaming providers must not probe a catalog");
 });
 
 test("custom_llm_without_key_lists_models", async () => {

@@ -74,17 +74,17 @@ export type ChatSessionRenderProps = {
 type ChatTransportPreflight = NonNullable<ChatSendOptions["beforeSend"]>;
 
 interface ChatSessionProps {
-  sessionId: string;
-  chatGroupId?: string;
-  currentSessionId?: string;
-  folderId?: string;
-  hasAvailableTranscript?: boolean;
-  isBatchTranscriptionPending?: boolean;
-  modelOverride?: LanguageModel;
-  extraTools?: ToolSet;
-  systemPromptOverride?: string;
-  unstyled?: boolean;
-  children: (props: ChatSessionRenderProps) => ReactNode;
+  readonly sessionId: string;
+  readonly chatGroupId?: string;
+  readonly currentSessionId?: string;
+  readonly folderId?: string;
+  readonly hasAvailableTranscript?: boolean;
+  readonly isBatchTranscriptionPending?: boolean;
+  readonly modelOverride?: LanguageModel;
+  readonly extraTools?: ToolSet;
+  readonly systemPromptOverride?: string;
+  readonly unstyled?: boolean;
+  readonly children: (props: ChatSessionRenderProps) => ReactNode;
 }
 
 function areMessagesEqual(a: SyntheoUIMessage[], b: SyntheoUIMessage[]) {
@@ -658,7 +658,7 @@ function ChatSessionLifecycle({
           persistOnCancel: false,
         });
         pendingTransportPreflightsRef.current.set(submittedUser.id, queue);
-      } else if (!currentTarget || currentTarget.chatGroupId !== chatGroupId) {
+      } else if (currentTarget?.chatGroupId !== chatGroupId) {
         initializeTarget();
       }
       regenerateRequestInFlightRef.current = true;
@@ -702,10 +702,10 @@ function ChatSessionLifecycle({
         continue;
       }
 
-      void runRegenerate(messages[i].id);
+      runRegenerate(messages[i].id);
       return;
     }
-    void runRegenerate();
+    runRegenerate();
   }, [chatGroupId, messages, chatRegenerate, isTranscriptUnavailable, status]);
 
   const stop = useCallback(() => {
@@ -779,8 +779,6 @@ function ChatSessionLifecycle({
 }
 
 const unavailableChatTransport: ChatTransport<SyntheoUIMessage> = {
-  sendMessages: async () => {
-    throw new Error("Chat model is not ready");
-  },
-  reconnectToStream: async () => null,
+  sendMessages: () => Promise.reject(new Error("Chat model is not ready")),
+  reconnectToStream: () => Promise.resolve(null),
 };

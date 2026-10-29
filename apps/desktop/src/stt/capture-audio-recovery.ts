@@ -45,7 +45,7 @@ export function createCaptureAudioRecovery(options: {
   const now = options.now ?? Date.now;
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
-  let running: Promise<boolean> | undefined;
+  let running: Promise<boolean | undefined> | undefined;
   let active = false;
   let online = true;
   let confirmedThrough = 0;
@@ -102,67 +102,104 @@ export function createCaptureAudioRecovery(options: {
       repaired,
     );
 
+  // « continue » : chunk suivant ; « done » : traité ; « retry » : on stoppe
+  // la passe et on réessaiera plus tard (false hors settle, resserre côté stop).
+  type ChunkOutcome = "continue" | "done" | "retry";
+
+  const clippedIntervals = (range: RecoveryInterval): RecoveryInterval[] =>
+    [
+      ...gaps,
+      ...(recoverThrough > range.start
+        ? [{ start: range.start, end: recoverThrough }]
+        : []),
+      ...(gapStart === undefined ? [] : [{ start: gapStart, end: elapsed() }]),
+    ]
+      .map((gap) => ({
+        start: Math.max(gap.start, range.start),
+        end: Math.min(gap.end, range.end),
+      }))
+      .filter((gap) => gap.start < gap.end);
+
+  const fullyCovered = (
+    intervals: RecoveryInterval[],
+    range: RecoveryInterval,
+  ): boolean => {
+    let coveredThrough = Math.max(range.start, confirmedThrough);
+    for (const interval of [...intervals].sort((a, b) => a.start - b.start)) {
+      if (interval.start <= coveredThrough)
+        coveredThrough = Math.max(coveredThrough, interval.end);
+    }
+    return coveredThrough >= range.end;
+  };
+
+  const repairInherited = async (
+    chunk: RecoveryAudioChunk,
+  ): Promise<ChunkOutcome> => {
+    pending = true;
+    if (!online || now() < retryAt) return "retry";
+    await options.repair(chunk, [], controller.signal);
+    controller.signal.throwIfAborted();
+    await options.acknowledge(chunk);
+    return "done";
+  };
+
+  const processChunk = async (
+    chunk: RecoveryAudioChunk,
+    settle: boolean,
+  ): Promise<ChunkOutcome> => {
+    if (options.inherited?.(chunk)) return repairInherited(chunk);
+    const range = chunkInterval(chunk, options.startedAt);
+    if (!settle && range.end > elapsed() - 10_000) return "continue";
+    if (batchFromRetainedAudio) {
+      await options.acknowledge(chunk);
+      return "done";
+    }
+    await options.flush();
+    controller.signal.throwIfAborted();
+    const repairRevision = revision;
+    const intervals = clippedIntervals(range);
+    if (!settle && !fullyCovered(intervals, range)) return "continue";
+    if (intervals.length > 0) {
+      pending = true;
+      if (!online || now() < retryAt) return "retry";
+      await options.repair(chunk, intervals, controller.signal);
+      controller.signal.throwIfAborted();
+      repaired.push(...intervals);
+    }
+    if (repairRevision !== revision) return "retry";
+    // Network success alone is insufficient: repair resolves after SQLite commits.
+    await options.acknowledge(chunk);
+    acknowledgedThrough = Math.max(acknowledgedThrough, range.end);
+    gaps = gaps.flatMap((gap) =>
+      gap.end <= range.end
+        ? []
+        : [{ start: Math.max(gap.start, range.end), end: gap.end }],
+    );
+    if (gapStart !== undefined) gapStart = Math.max(gapStart, range.end);
+    return "done";
+  };
+
+  // Passe séquentielle volontaire (réparer puis acquitter dans l'ordre du
+  // flux) : récursion plutôt que `await` dans une boucle.
+  const processChunks = async (
+    chunks: RecoveryAudioChunk[],
+    settle: boolean,
+  ): Promise<boolean> => {
+    let index = 0;
+    const step = async (): Promise<boolean> => {
+      if (index >= chunks.length) return true;
+      controller.signal.throwIfAborted();
+      const outcome = await processChunk(chunks[index++], settle);
+      return outcome === "retry" ? false : step();
+    };
+    return step();
+  };
+
   const process = async (settle: boolean) => {
     const chunks = await options.list();
     if (chunks.length > 0) sawAudio = true;
     pending = gapStart !== undefined || gaps.length > 0;
-    for (const chunk of chunks) {
-      controller.signal.throwIfAborted();
-      if (options.inherited?.(chunk)) {
-        pending = true;
-        if (!online || now() < retryAt) return false;
-        await options.repair(chunk, [], controller.signal);
-        controller.signal.throwIfAborted();
-        await options.acknowledge(chunk);
-        continue;
-      }
-      const range = chunkInterval(chunk, options.startedAt);
-      if (!settle && range.end > elapsed() - 10_000) continue;
-      if (batchFromRetainedAudio) {
-        await options.acknowledge(chunk);
-        continue;
-      }
-      await options.flush();
-      controller.signal.throwIfAborted();
-      const repairRevision = revision;
-      const intervals = [
-        ...gaps,
-        ...(recoverThrough > range.start
-          ? [{ start: range.start, end: recoverThrough }]
-          : []),
-        ...(gapStart === undefined
-          ? []
-          : [{ start: gapStart, end: elapsed() }]),
-      ]
-        .map((gap) => ({
-          start: Math.max(gap.start, range.start),
-          end: Math.min(gap.end, range.end),
-        }))
-        .filter((gap) => gap.start < gap.end);
-      let coveredThrough = Math.max(range.start, confirmedThrough);
-      for (const interval of [...intervals].sort((a, b) => a.start - b.start)) {
-        if (interval.start <= coveredThrough)
-          coveredThrough = Math.max(coveredThrough, interval.end);
-      }
-      if (!settle && coveredThrough < range.end) continue;
-      if (intervals.length > 0) {
-        pending = true;
-        if (!online || now() < retryAt) return false;
-        await options.repair(chunk, intervals, controller.signal);
-        controller.signal.throwIfAborted();
-        repaired.push(...intervals);
-      }
-      if (repairRevision !== revision) return false;
-      // Network success alone is insufficient: repair resolves after SQLite commits.
-      await options.acknowledge(chunk);
-      acknowledgedThrough = Math.max(acknowledgedThrough, range.end);
-      gaps = gaps.flatMap((gap) =>
-        gap.end <= range.end
-          ? []
-          : [{ start: Math.max(gap.start, range.end), end: gap.end }],
-      );
-      if (gapStart !== undefined) gapStart = Math.max(gapStart, range.end);
-    }
+    if (!(await processChunks(chunks, settle))) return false;
     if (settle && chunks.length < 128) gaps = [];
     pending = gapStart !== undefined || gaps.length > 0 || chunks.length >= 128;
     return settle && chunks.length >= 128;
@@ -172,7 +209,8 @@ export function createCaptureAudioRecovery(options: {
     if (running) return running;
     running = process(settle)
       .catch((error) => {
-        if (controller.signal.aborted) return false;
+        // Abandon silencieux : `undefined` = aucun résultat de passe.
+        if (controller.signal.aborted) return undefined;
         pending = true;
         retryAt = now() + 30_000;
         console.warn("[listener] audio recovery deferred", error);
@@ -183,6 +221,14 @@ export function createCaptureAudioRecovery(options: {
         if (active) timer = setTimeout(() => void tick(), 5_000);
       });
     return running;
+  };
+
+  // Récursion plutôt que `await` dans une boucle : chaque passe de
+  // finalisation dépend de la précédente (128 chunks conservés par lot).
+  const settleAll = async (): Promise<void> => {
+    if (!(await tick(true))) return;
+    controller.signal.throwIfAborted();
+    return settleAll();
   };
 
   return {
@@ -264,9 +310,7 @@ export function createCaptureAudioRecovery(options: {
       closeGap();
       const missing = interruptions();
       await running;
-      while (await tick(true)) {
-        controller.signal.throwIfAborted();
-      }
+      await settleAll();
       if (sawAudio) return { incomplete: pending || failed, interruptions: [] };
       // Sans audio, une coupure n'est pas réparable : c'est un résultat final
       // (trou daté), pas un transcript « à réparer ».

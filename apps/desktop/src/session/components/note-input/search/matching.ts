@@ -290,57 +290,57 @@ function isWordBoundaryChar(text: string, index: number): boolean {
   return !/\w/.test(text[index]);
 }
 
-export function createHighlightSegments(
-  rawText: string,
-  query: string,
-  caseSensitive: boolean,
+type HighlightRange = { start: number; end: number };
+type HighlightSegment = { text: string; isMatch: boolean };
+
+function isWholeWordOccurrence(
+  text: string,
+  start: number,
+  end: number,
+): boolean {
+  return isWordBoundaryChar(text, start - 1) && isWordBoundaryChar(text, end);
+}
+
+function collectTokenRanges(
+  searchText: string,
+  tokens: string[],
   wholeWord: boolean,
-): { text: string; isMatch: boolean }[] {
-  const text = rawText.normalize("NFC");
-  const searchText = caseSensitive ? text : text.toLowerCase();
-
-  const tokens = query
-    .normalize("NFC")
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((t) => (caseSensitive ? t : t.toLowerCase()));
-  if (tokens.length === 0) return [{ text, isMatch: false }];
-
-  const ranges: { start: number; end: number }[] = [];
+): HighlightRange[] {
+  const ranges: HighlightRange[] = [];
   for (const token of tokens) {
     let cursor = 0;
     let index = searchText.indexOf(token, cursor);
     while (index !== -1) {
-      if (wholeWord) {
-        const beforeOk = isWordBoundaryChar(searchText, index - 1);
-        const afterOk = isWordBoundaryChar(searchText, index + token.length);
-        if (beforeOk && afterOk) {
-          ranges.push({ start: index, end: index + token.length });
-        }
-      } else {
-        ranges.push({ start: index, end: index + token.length });
+      const end = index + token.length;
+      if (!wholeWord || isWholeWordOccurrence(searchText, index, end)) {
+        ranges.push({ start: index, end });
       }
       cursor = index + 1;
       index = searchText.indexOf(token, cursor);
     }
   }
+  return ranges;
+}
 
-  if (ranges.length === 0) {
-    return [{ text, isMatch: false }];
-  }
-
-  ranges.sort((a, b) => a.start - b.start);
-  const merged: { start: number; end: number }[] = [{ ...ranges[0] }];
-  for (let i = 1; i < ranges.length; i++) {
+function mergeRanges(ranges: HighlightRange[]): HighlightRange[] {
+  const sorted = [...ranges].sort((a, b) => a.start - b.start);
+  const merged: HighlightRange[] = [{ ...sorted[0] }];
+  for (let i = 1; i < sorted.length; i++) {
     const last = merged[merged.length - 1];
-    if (ranges[i].start <= last.end) {
-      last.end = Math.max(last.end, ranges[i].end);
+    if (sorted[i].start <= last.end) {
+      last.end = Math.max(last.end, sorted[i].end);
     } else {
-      merged.push({ ...ranges[i] });
+      merged.push({ ...sorted[i] });
     }
   }
+  return merged;
+}
 
-  const segments: { text: string; isMatch: boolean }[] = [];
+function buildHighlightSegments(
+  text: string,
+  merged: HighlightRange[],
+): HighlightSegment[] {
+  const segments: HighlightSegment[] = [];
   let cursor = 0;
   for (const range of merged) {
     if (range.start > cursor) {
@@ -352,6 +352,30 @@ export function createHighlightSegments(
   if (cursor < text.length) {
     segments.push({ text: text.slice(cursor), isMatch: false });
   }
+  return segments;
+}
 
+export function createHighlightSegments(
+  rawText: string,
+  query: string,
+  caseSensitive: boolean,
+  wholeWord: boolean,
+): HighlightSegment[] {
+  const text = rawText.normalize("NFC");
+  const searchText = caseSensitive ? text : text.toLowerCase();
+
+  const tokens = query
+    .normalize("NFC")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((t) => (caseSensitive ? t : t.toLowerCase()));
+  if (tokens.length === 0) return [{ text, isMatch: false }];
+
+  const ranges = collectTokenRanges(searchText, tokens, wholeWord);
+  if (ranges.length === 0) {
+    return [{ text, isMatch: false }];
+  }
+
+  const segments = buildHighlightSegments(text, mergeRanges(ranges));
   return segments.length ? segments : [{ text, isMatch: false }];
 }

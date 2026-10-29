@@ -58,17 +58,19 @@ type RunOptions = {
   numSpeakers?: number;
   minSpeakers?: number;
   maxSpeakers?: number;
-  promotion?:
-    | { scope: "preserve_existing" }
-    | { scope: "whole_session" }
-    | {
-        scope: "current_capture";
-        audioOffsetMs: number;
-        replaceTranscriptId?: string;
-        startedAt: number;
-      };
+  promotion?: RunOptionsPromotion;
   captureInterval?: { startedAtMs: number; stoppedAtMs: number };
 };
+
+type RunOptionsPromotion =
+  | { scope: "preserve_existing" }
+  | { scope: "whole_session" }
+  | {
+      scope: "current_capture";
+      audioOffsetMs: number;
+      replaceTranscriptId?: string;
+      startedAt: number;
+    };
 
 function toStoredTranscriptWord(word: WordWithId): StoredTranscriptWord {
   return {
@@ -125,6 +127,8 @@ export const EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE =
   "Batch transcription did not include the current recording.";
 const INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE =
   "The new transcription returned much less text. Your saved transcript and recording were kept. Try transcribing again.";
+const NO_SPEECH_RECOVERY_ERROR_MESSAGE = "No speech was detected in the audio.";
+
 export function getBatchProvider(
   provider: string,
   _model: string,
@@ -193,15 +197,51 @@ export function getSessionSpeakerCount(
   participantHumanIds: Iterable<string>,
   selfHumanId?: string | null,
 ): number | undefined {
-  const humanIds = new Set(
-    Array.from(participantHumanIds).filter((humanId) => Boolean(humanId)),
-  );
+  const humanIds = new Set(Array.from(participantHumanIds).filter(Boolean));
 
   if (typeof selfHumanId === "string" && selfHumanId) {
     humanIds.add(selfHumanId);
   }
 
   return humanIds.size > 1 ? humanIds.size : undefined;
+}
+
+function isRecoveryNoSpeechError(
+  options: RunOptions | undefined,
+  error: unknown,
+): boolean {
+  return (
+    Boolean(options?.recovery) &&
+    error instanceof Error &&
+    error.message === NO_SPEECH_RECOVERY_ERROR_MESSAGE
+  );
+}
+
+function isTerminalBatchSaveError(error: unknown): boolean {
+  if (error instanceof BatchResponseProcessingError) {
+    return true;
+  }
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return (
+    error.message === EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE ||
+    error.message === INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE
+  );
+}
+
+function toBatchTranscriptPromotion(
+  promotion: RunOptionsPromotion,
+): BatchTranscriptPromotion {
+  if (promotion.scope === "current_capture") {
+    return {
+      scope: "current_capture",
+      audio_offset_ms: promotion.audioOffsetMs,
+      replace_transcript_id: promotion.replaceTranscriptId,
+      started_at: promotion.startedAt,
+    };
+  }
+  return { scope: promotion.scope };
 }
 
 export const useRunBatch = (sessionId: string) => {
@@ -254,6 +294,7 @@ export const useRunBatch = (sessionId: string) => {
         : false;
       options?.signal?.throwIfAborted();
       // Aucun repli : sans endpoint on-prem capable de batch, l'import échoue.
+      const fallbackTarget = selectedTargetSupported ? selectedTarget : null;
       const target = options?.resume
         ? {
             provider: options.resume.provider,
@@ -262,9 +303,7 @@ export const useRunBatch = (sessionId: string) => {
             apiKey: conn?.apiKey ?? "",
             label: options.resume.model,
           }
-        : selectedTargetSupported
-          ? selectedTarget
-          : null;
+        : fallbackTarget;
 
       if (!target) {
         throw new Error(
@@ -304,7 +343,7 @@ export const useRunBatch = (sessionId: string) => {
       let stagedWords: WordWithId[] = [];
       let stagedHints: SpeakerHintWithId[] = [];
 
-      const persist =
+      const persist: BatchPersistCallback =
         handlePersist ??
         ((words, hints, persistOptions) => {
           if (words.length === 0) {
@@ -366,64 +405,106 @@ export const useRunBatch = (sessionId: string) => {
           stagedHints.push(...newHints);
         });
 
+      const jobId = options?.recovery ? `${sessionId}:recovery` : sessionId;
+      const resumeContext =
+        !handlePersist &&
+        !options?.recovery &&
+        !options?.deferAudioFinalization &&
+        options?.promotion?.scope === "whole_session"
+          ? serializeBatchResumeContext({ promotion: "whole_session" })
+          : null;
+      const params: TranscriptionParams = {
+        session_id: jobId,
+        provider: target.provider,
+        file_path: filePath,
+        audio: options?.audio,
+        model: target.model,
+        base_url: target.baseUrl,
+        api_key: target.apiKey,
+        keywords,
+        languages,
+        num_speakers: options?.numSpeakers ?? inferredNumSpeakers,
+        min_speakers: options?.minSpeakers,
+        max_speakers: options?.maxSpeakers,
+        resume_context: resumeContext,
+      };
+
+      const run = async (batchParams: TranscriptionParams) => {
+        options?.signal?.throwIfAborted();
+        try {
+          await startTranscription(batchParams, {
+            signal: options?.signal,
+            handlePersist: (...args) => {
+              if (options?.signal?.aborted) return;
+              return persist(...args);
+            },
+            notifyOnCompletion: false,
+            recovery: Boolean(options?.recovery),
+          });
+          options?.signal?.throwIfAborted();
+        } finally {
+          if (options?.signal?.aborted) {
+            await stopTranscription(jobId).catch(() => {});
+          }
+        }
+      };
+
+      const saveBatchResults = async () => {
+        const promotion = options?.promotion ?? {
+          scope: "preserve_existing",
+        };
+        const refinementPromotion = toBatchTranscriptPromotion(promotion);
+        const saved = await persistTranscriptWrite(async () => {
+          const result = await transcriptionCommands.saveBatchTranscript({
+            session_id: sessionId,
+            transcript_id: transcriptId,
+            owner_user_id: session?.user_id ?? "",
+            created_at: createdAt,
+            started_at: startedAt,
+            memo: memoMd,
+            provider: target.provider,
+            model: target.model,
+            words: stagedWords.map(toStoredTranscriptWord),
+            hints: stagedHints.map(toStoredSpeakerHint),
+            promotion: refinementPromotion,
+            mark_audio_complete: !options?.deferAudioFinalization,
+          });
+          if (result.status === "error") {
+            throw new Error(result.error);
+          }
+          return result.data;
+        });
+        if (saved.status === "empty_current_capture") {
+          throw new Error(EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE);
+        }
+        if (saved.status === "truncated") {
+          throw new Error(INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE);
+        }
+        if (
+          saved.status === "saved" &&
+          saved.transcript_id &&
+          options?.captureInterval
+        ) {
+          await persistTranscriptWrite(() =>
+            completeCaptureTranscript(
+              sessionId,
+              saved.transcript_id!,
+              options.captureInterval!.stoppedAtMs,
+            ),
+          );
+        }
+      };
+
       const cloudsyncLeaseKey = `${sessionId}:${id()}`;
       return withCloudsyncActivity(
         "transcription",
         cloudsyncLeaseKey,
         async () => {
-          const jobId = options?.recovery ? `${sessionId}:recovery` : sessionId;
-          const params: TranscriptionParams = {
-            session_id: jobId,
-            provider: target.provider,
-            file_path: filePath,
-            audio: options?.audio,
-            model: target.model,
-            base_url: target.baseUrl,
-            api_key: target.apiKey,
-            keywords,
-            languages,
-            num_speakers: options?.numSpeakers ?? inferredNumSpeakers,
-            min_speakers: options?.minSpeakers,
-            max_speakers: options?.maxSpeakers,
-            resume_context:
-              !handlePersist &&
-              !options?.recovery &&
-              !options?.deferAudioFinalization &&
-              options?.promotion?.scope === "whole_session"
-                ? serializeBatchResumeContext({ promotion: "whole_session" })
-                : null,
-          };
-
-          const run = async (params: TranscriptionParams) => {
-            options?.signal?.throwIfAborted();
-            try {
-              await startTranscription(params, {
-                signal: options?.signal,
-                handlePersist: (...args) => {
-                  if (options?.signal?.aborted) return;
-                  return persist(...args);
-                },
-                notifyOnCompletion: false,
-                recovery: Boolean(options?.recovery),
-              });
-              options?.signal?.throwIfAborted();
-            } finally {
-              if (options?.signal?.aborted) {
-                await stopTranscription(jobId).catch(() => {});
-              }
-            }
-          };
           try {
             await run(params);
           } catch (error) {
             options?.signal?.throwIfAborted();
-            if (
-              !(
-                options?.recovery &&
-                error instanceof Error &&
-                error.message === "No speech was detected in the audio."
-              )
-            ) {
+            if (!isRecoveryNoSpeechError(options, error)) {
               throw error;
             }
           }
@@ -437,67 +518,13 @@ export const useRunBatch = (sessionId: string) => {
 
           try {
             if (!handlePersist) {
-              const promotion = options?.promotion ?? {
-                scope: "preserve_existing",
-              };
-              const refinementPromotion: BatchTranscriptPromotion =
-                promotion.scope === "current_capture"
-                  ? {
-                      scope: "current_capture",
-                      audio_offset_ms: promotion.audioOffsetMs,
-                      replace_transcript_id: promotion.replaceTranscriptId,
-                      started_at: promotion.startedAt,
-                    }
-                  : { scope: promotion.scope };
-              const saved = await persistTranscriptWrite(async () => {
-                const result = await transcriptionCommands.saveBatchTranscript({
-                  session_id: sessionId,
-                  transcript_id: transcriptId,
-                  owner_user_id: session?.user_id ?? "",
-                  created_at: createdAt,
-                  started_at: startedAt,
-                  memo: memoMd,
-                  provider: target.provider,
-                  model: target.model,
-                  words: stagedWords.map(toStoredTranscriptWord),
-                  hints: stagedHints.map(toStoredSpeakerHint),
-                  promotion: refinementPromotion,
-                  mark_audio_complete: !options?.deferAudioFinalization,
-                });
-                if (result.status === "error") {
-                  throw new Error(result.error);
-                }
-                return result.data;
-              });
-              if (saved.status === "empty_current_capture") {
-                throw new Error(EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE);
-              }
-              if (saved.status === "truncated") {
-                throw new Error(INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE);
-              }
-              if (saved.status === "saved" && saved.transcript_id) {
-                if (options?.captureInterval) {
-                  await persistTranscriptWrite(() =>
-                    completeCaptureTranscript(
-                      sessionId,
-                      saved.transcript_id!,
-                      options.captureInterval!.stoppedAtMs,
-                    ),
-                  );
-                }
-              }
+              await saveBatchResults();
             }
             if (!options?.deferAudioFinalization) {
               await deleteProcessedAudioForRetention(audioRetention, sessionId);
             }
           } catch (error) {
-            if (
-              error instanceof BatchResponseProcessingError ||
-              (error instanceof Error &&
-                (error.message ===
-                  EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE ||
-                  error.message === INCOMPLETE_BATCH_TRANSCRIPT_ERROR_MESSAGE))
-            ) {
+            if (isTerminalBatchSaveError(error)) {
               throw error;
             }
             throw new BatchResponseProcessingError(error);

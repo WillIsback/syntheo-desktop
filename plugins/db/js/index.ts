@@ -50,79 +50,79 @@ export type QueryEvent<T = Record<string, unknown>> =
   | { event: "result"; data: T[] }
   | { event: "error"; data: string };
 
-export async function listMeetings(
-  input: ListMeetingsInput,
-): Promise<MeetingPage> {
+export function listMeetings(input: ListMeetingsInput): Promise<MeetingPage> {
   return invoke("plugin:db|list_meetings", { input });
 }
 
-export async function getMeeting(input: GetMeetingInput): Promise<Meeting> {
+export function getMeeting(input: GetMeetingInput): Promise<Meeting> {
   return invoke("plugin:db|get_meeting", { input });
 }
 
-export async function getMeetingTranscript(
+export function getMeetingTranscript(
   input: GetMeetingTranscriptInput,
 ): Promise<TranscriptPage> {
   return invoke("plugin:db|get_meeting_transcript", { input });
 }
 
-export async function getRecurringMeetingHistory(
+export function getRecurringMeetingHistory(
   input: GetRecurringMeetingHistoryInput,
 ): Promise<MeetingPage> {
   return invoke("plugin:db|get_recurring_meeting_history", { input });
 }
 
 // Generic query path: returns named object rows for app-level SQL consumers.
-export async function execute<T = Record<string, unknown>>(
+export function execute<T = Record<string, unknown>>(
   sql: string,
   params: unknown[] = [],
 ): Promise<T[]> {
   return invoke("plugin:db|execute", { sql, params });
 }
 
-export async function executeTransaction(
+export function executeTransaction(
   statements: TransactionStatement[],
 ): Promise<number[]> {
   return invoke("plugin:db|execute_transaction", { statements });
 }
 
 // Drizzle proxy path: returns raw positional rows in sqlite-proxy format.
-export async function executeProxy(
+// `params` est obligatoire (même contrat que `DrizzleProxyClient` dans
+// `@syntheo/db-runtime`) pour garder le paramètre optionnel en dernier.
+export function executeProxy(
   sql: string,
-  params: unknown[] = [],
+  params: unknown[],
   method: "run" | "all" | "get" | "values",
 ): Promise<{ rows: unknown[] }> {
   return invoke("plugin:db|execute_proxy", { sql, params, method });
 }
 
-export async function getLegacyImportReport(): Promise<LegacyImportReport> {
+export function getLegacyImportReport(): Promise<LegacyImportReport> {
   return invoke("plugin:db|get_legacy_import_report");
 }
 
-export async function getLegacyCleanupStatus(): Promise<LegacyCleanupStatus> {
+export function getLegacyCleanupStatus(): Promise<LegacyCleanupStatus> {
   return invoke("plugin:db|get_legacy_cleanup_status");
 }
 
-export async function cleanupLegacyFiles(): Promise<LegacyCleanupResult> {
+export function cleanupLegacyFiles(): Promise<LegacyCleanupResult> {
   return invoke("plugin:db|cleanup_legacy_files");
 }
 
-export async function runLegacyImport(dryRun = false): Promise<string> {
+export function runLegacyImport(dryRun = false): Promise<string> {
   return invoke("plugin:db|run_legacy_import", { dryRun });
 }
 
-export async function applySessionIngest(
+export function applySessionIngest(
   workspaceId: string,
   envelope: Record<string, unknown>,
 ): Promise<SessionIngestApplyResult> {
   return invoke("plugin:db|apply_session_ingest", { workspaceId, envelope });
 }
 
-export async function waitUntilReady(): Promise<void> {
+export function waitUntilReady(): Promise<void> {
   return invoke("plugin:db|wait_until_ready");
 }
 
-export async function getStartupStatus(): Promise<StartupStatus> {
+export function getStartupStatus(): Promise<StartupStatus> {
   return invoke("plugin:db|get_startup_status");
 }
 
@@ -136,15 +136,23 @@ export function isCloudsyncActivityDeferredError(error: unknown) {
   return message === CLOUDSYNC_ACTIVITY_DEFERRED_ERROR;
 }
 
-export async function beginCloudsyncActivity(
+export function beginCloudsyncActivity(
   _activity: string,
   _key: string,
-): Promise<void> {}
+): Promise<void> {
+  // Volontairement sans effet : plus aucun report d'activité CloudSync côté
+  // serveur. Conserve comme no-op résolu pour les appelants existants.
+  return Promise.resolve();
+}
 
-export async function endCloudsyncActivity(
+export function endCloudsyncActivity(
   _activity: string,
   _key: string,
-): Promise<void> {}
+): Promise<void> {
+  // Volontairement sans effet : contrepartie de `beginCloudsyncActivity`,
+  // conservée comme no-op résolu pour les appelants existants.
+  return Promise.resolve();
+}
 
 export async function subscribe<T = Record<string, unknown>>(
   sql: string,

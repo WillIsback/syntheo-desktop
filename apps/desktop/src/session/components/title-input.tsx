@@ -2,6 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { usePrevious } from "@uidotdev/usehooks";
 import {
   type CSSProperties,
+  type ForwardedRef,
   forwardRef,
   memo,
   useCallback,
@@ -133,20 +134,19 @@ export const TitleInput = forwardRef<
   },
 );
 
+interface TitleInputInnerProps {
+  sessionId: string;
+  editorId: string;
+  placeholder?: string;
+  onTransferContentToEditor?: (content: string) => void;
+  onFocusEditorAtStart?: () => void;
+  onFocusEditorAtPixelWidth?: (pixelWidth: number) => void;
+  variant: "title" | "breadcrumb";
+}
+
 const TitleInputInner = memo(
-  forwardRef<
-    TitleInputHandle,
-    {
-      sessionId: string;
-      editorId: string;
-      placeholder?: string;
-      onTransferContentToEditor?: (content: string) => void;
-      onFocusEditorAtStart?: () => void;
-      onFocusEditorAtPixelWidth?: (pixelWidth: number) => void;
-      variant: "title" | "breadcrumb";
-    }
-  >(
-    (
+  forwardRef<TitleInputHandle, TitleInputInnerProps>(
+    function TitleInputInnerRender(
       {
         sessionId,
         editorId,
@@ -155,9 +155,9 @@ const TitleInputInner = memo(
         onFocusEditorAtStart,
         onFocusEditorAtPixelWidth,
         variant,
-      },
-      ref,
-    ) => {
+      }: TitleInputInnerProps,
+      ref: ForwardedRef<TitleInputHandle>,
+    ) {
       const { t } = useLingui();
       const untitled = placeholder ?? t`Untitled`;
       const storeTitle = useSession(sessionId)?.title;
@@ -255,7 +255,7 @@ const TitleInputInner = memo(
           },
           focusAtPixelWidth: (pixelWidth: number) => {
             const input = internalRef.current;
-            if (input && input.value) {
+            if (input?.value) {
               input.focus();
               const titleStyle = window.getComputedStyle(input);
               const canvas = document.createElement("canvas");
@@ -320,6 +320,69 @@ const TitleInputInner = memo(
         ],
       );
 
+      const handleEnterKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (!onTransferContentToEditor && !onFocusEditorAtStart) {
+          editRevisionRef.current += 1;
+          e.currentTarget.blur();
+          return;
+        }
+
+        const input = internalRef.current;
+        if (!input) return;
+
+        const cursorPos = input.selectionStart ?? input.value.length;
+        const beforeCursor = input.value.slice(0, cursorPos);
+        const afterCursor = input.value.slice(cursorPos);
+
+        editRevisionRef.current += 1;
+        setDraftTitle(beforeCursor);
+        setLiveTitle(sessionId, beforeCursor);
+        void persistTitle(beforeCursor);
+
+        if (afterCursor) {
+          setTimeout(() => onTransferContentToEditor?.(afterCursor), 0);
+        } else {
+          setTimeout(() => onFocusEditorAtStart?.(), 0);
+        }
+      };
+
+      const handleTabKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        setTimeout(() => onFocusEditorAtStart?.(), 0);
+      };
+
+      const handleArrowRightKey = (
+        e: React.KeyboardEvent<HTMLInputElement>,
+      ) => {
+        const input = internalRef.current;
+        if (!input) return;
+        const cursorPos = input.selectionStart ?? 0;
+        if (
+          cursorPos === input.value.length &&
+          input.selectionEnd === cursorPos
+        ) {
+          e.preventDefault();
+          setTimeout(() => onFocusEditorAtStart?.(), 0);
+        }
+      };
+
+      const handleArrowDownKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        const input = internalRef.current;
+        if (!input) return;
+
+        const cursorPos = input.selectionStart ?? 0;
+        const textBeforeCursor = input.value.slice(0, cursorPos);
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const titleStyle = window.getComputedStyle(input);
+        ctx.font = `${titleStyle.fontWeight} ${titleStyle.fontSize} ${titleStyle.fontFamily}`;
+        const titleWidth = ctx.measureText(textBeforeCursor).width;
+        setTimeout(() => onFocusEditorAtPixelWidth?.(titleWidth), 0);
+      };
+
       const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (isComposingKeyEvent(e)) {
           return;
@@ -332,59 +395,13 @@ const TitleInputInner = memo(
 
         if (e.key === "Enter") {
           e.preventDefault();
-          if (!onTransferContentToEditor && !onFocusEditorAtStart) {
-            editRevisionRef.current += 1;
-            e.currentTarget.blur();
-            return;
-          }
-
-          const input = internalRef.current;
-          if (!input) return;
-
-          const cursorPos = input.selectionStart ?? input.value.length;
-          const beforeCursor = input.value.slice(0, cursorPos);
-          const afterCursor = input.value.slice(cursorPos);
-
-          editRevisionRef.current += 1;
-          setDraftTitle(beforeCursor);
-          setLiveTitle(sessionId, beforeCursor);
-          void persistTitle(beforeCursor);
-
-          if (afterCursor) {
-            setTimeout(() => onTransferContentToEditor?.(afterCursor), 0);
-          } else {
-            setTimeout(() => onFocusEditorAtStart?.(), 0);
-          }
+          handleEnterKey(e);
         } else if (e.key === "Tab" && onFocusEditorAtStart) {
-          e.preventDefault();
-          setTimeout(() => onFocusEditorAtStart?.(), 0);
+          handleTabKey(e);
         } else if (e.key === "ArrowRight" && onFocusEditorAtStart) {
-          const input = internalRef.current;
-          if (!input) return;
-          const cursorPos = input.selectionStart ?? 0;
-          if (
-            cursorPos === input.value.length &&
-            input.selectionEnd === cursorPos
-          ) {
-            e.preventDefault();
-            setTimeout(() => onFocusEditorAtStart?.(), 0);
-          }
+          handleArrowRightKey(e);
         } else if (e.key === "ArrowDown" && onFocusEditorAtPixelWidth) {
-          e.preventDefault();
-          const input = internalRef.current;
-          if (!input) return;
-
-          const cursorPos = input.selectionStart ?? 0;
-          const textBeforeCursor = input.value.slice(0, cursorPos);
-
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            const titleStyle = window.getComputedStyle(input);
-            ctx.font = `${titleStyle.fontWeight} ${titleStyle.fontSize} ${titleStyle.fontFamily}`;
-            const titleWidth = ctx.measureText(textBeforeCursor).width;
-            setTimeout(() => onFocusEditorAtPixelWidth?.(titleWidth), 0);
-          }
+          handleArrowDownKey(e);
         }
       };
 

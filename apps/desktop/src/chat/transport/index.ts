@@ -39,20 +39,69 @@ export type ResolvedChatContext =
 
 export class CustomChatTransport implements ChatTransport<SyntheoUIMessage> {
   constructor(
-    private model: LanguageModel,
-    private tools: ToolSet,
-    private systemPrompt?: string,
-    private resolveContextRef?: (
+    private readonly model: LanguageModel,
+    private readonly tools: ToolSet,
+    private readonly systemPrompt?: string,
+    private readonly resolveContextRef?: (
       ref: ContextRef,
     ) => Promise<ResolvedChatContext | null>,
   ) {}
+
+  private async collectContexts(
+    contextRefs: ContextRef[],
+    resolve: (ref: ContextRef) => Promise<ResolvedChatContext | null>,
+  ): Promise<{
+    sessionContexts: SessionContext[];
+    textContexts: string[];
+  }> {
+    const seen = new Set<string>();
+    const uniqueRefs: ContextRef[] = [];
+    for (const ref of contextRefs) {
+      if (seen.has(ref.key)) continue;
+      seen.add(ref.key);
+      uniqueRefs.push(ref);
+    }
+
+    const contexts = await Promise.all(uniqueRefs.map((ref) => resolve(ref)));
+
+    const sessionContexts: SessionContext[] = [];
+    const textContexts: string[] = [];
+    for (const context of contexts) {
+      if (!context) continue;
+      if (context.kind === "session") {
+        sessionContexts.push(context.context);
+      } else if (context.text.trim()) {
+        textContexts.push(context.text.trim());
+      }
+    }
+
+    return { sessionContexts, textContexts };
+  }
+
+  private async renderSessionContexts(
+    sessionContexts: SessionContext[],
+    currentSessionId?: string,
+  ): Promise<string | null> {
+    // Rendered by Rust-side template engine via Tauri plugin
+    const rendered = await templateCommands.render({
+      contextBlock: {
+        contexts: sessionContexts,
+        currentSessionId: currentSessionId ?? null,
+      },
+    });
+    if (rendered.status === "ok" && rendered.data.trim()) {
+      return rendered.data.trim();
+    }
+    return null;
+  }
 
   private async renderContextBlock(
     contextRefs: ContextRef[],
     cache: Map<string, string | null>,
     currentSessionId?: string,
   ): Promise<string | null> {
-    if (!this.resolveContextRef || contextRefs.length === 0) {
+    const resolve = this.resolveContextRef;
+    if (!resolve || contextRefs.length === 0) {
       return null;
     }
 
@@ -61,23 +110,10 @@ export class CustomChatTransport implements ChatTransport<SyntheoUIMessage> {
       return cache.get(cacheKey) ?? null;
     }
 
-    const seen = new Set<string>();
-    const sessionContexts: SessionContext[] = [];
-    const textContexts: string[] = [];
-    for (const ref of contextRefs) {
-      if (seen.has(ref.key)) continue;
-      seen.add(ref.key);
-      const context = await this.resolveContextRef(ref);
-      if (!context) {
-        continue;
-      }
-
-      if (context.kind === "session") {
-        sessionContexts.push(context.context);
-      } else if (context.text.trim()) {
-        textContexts.push(context.text.trim());
-      }
-    }
+    const { sessionContexts, textContexts } = await this.collectContexts(
+      contextRefs,
+      resolve,
+    );
 
     if (sessionContexts.length === 0 && textContexts.length === 0) {
       cache.set(cacheKey, null);
@@ -87,15 +123,12 @@ export class CustomChatTransport implements ChatTransport<SyntheoUIMessage> {
     const blocks: string[] = [];
 
     if (sessionContexts.length > 0) {
-      // Rendered by Rust-side template engine via Tauri plugin
-      const rendered = await templateCommands.render({
-        contextBlock: {
-          contexts: sessionContexts,
-          currentSessionId: currentSessionId ?? null,
-        },
-      });
-      if (rendered.status === "ok" && rendered.data.trim()) {
-        blocks.push(rendered.data.trim());
+      const rendered = await this.renderSessionContexts(
+        sessionContexts,
+        currentSessionId,
+      );
+      if (rendered) {
+        blocks.push(rendered);
       }
     }
 
@@ -226,7 +259,7 @@ export class CustomChatTransport implements ChatTransport<SyntheoUIMessage> {
         mentionedFolderPaths,
       } satisfies ChatToolContext,
       stopWhen: stepCountIs(MAX_TOOL_STEPS),
-      prepareStep: async ({ messages, stepNumber }) => {
+      prepareStep: ({ messages, stepNumber }) => {
         const finalStep = stepNumber >= MAX_TOOL_STEPS - 1;
         const progressReport = finalStep
           ? {
@@ -249,53 +282,60 @@ export class CustomChatTransport implements ChatTransport<SyntheoUIMessage> {
             lastUserIndex < 0
               ? 0
               : Math.min(lastUserIndex, messages.length - MESSAGE_WINDOW_SIZE);
-          return { ...progressReport, messages: messages.slice(start) };
+          return Promise.resolve({
+            ...progressReport,
+            messages: messages.slice(start),
+          });
         }
-        return progressReport;
+        return Promise.resolve(progressReport);
       },
     });
 
-    const messagesWithContext: SyntheoUIMessage[] = [];
+    const messagesWithContext: SyntheoUIMessage[] = await Promise.all(
+      options.messages.map(async (msg, index): Promise<SyntheoUIMessage> => {
+        if (msg.role === "user") {
+          if (
+            !effectiveContextBlock ||
+            lastUserMessageIndex === -1 ||
+            index !== lastUserMessageIndex
+          ) {
+            return msg;
+          }
 
-    for (const [index, msg] of options.messages.entries()) {
-      if (msg.role === "user") {
-        if (
-          !effectiveContextBlock ||
-          lastUserMessageIndex === -1 ||
-          index !== lastUserMessageIndex
-        ) {
-          messagesWithContext.push(msg);
-          continue;
+          return {
+            ...msg,
+            parts: [
+              {
+                type: "text" as const,
+                text: `${effectiveContextBlock}\n\n`,
+              },
+              ...msg.parts,
+            ],
+          };
         }
 
-        messagesWithContext.push({
-          ...msg,
-          parts: [
-            { type: "text" as const, text: `${effectiveContextBlock}\n\n` },
-            ...msg.parts,
-          ],
-        });
-      } else if (msg.role === "assistant") {
-        const expandedParts = await Promise.all(
-          msg.parts.map((part) => {
-            if (
-              isToolOutputPart(part) &&
-              (part.type === "tool-search_meetings" ||
-                part.type === "tool-search_sessions")
-            ) {
-              return this.expandSearchMeetingsOutput(part, cache);
-            }
-            return part;
-          }),
-        );
-        messagesWithContext.push({
-          ...msg,
-          parts: expandedParts as SyntheoUIMessage["parts"],
-        });
-      } else {
-        messagesWithContext.push(msg);
-      }
-    }
+        if (msg.role === "assistant") {
+          const expandedParts = await Promise.all(
+            msg.parts.map((part) => {
+              if (
+                isToolOutputPart(part) &&
+                (part.type === "tool-search_meetings" ||
+                  part.type === "tool-search_sessions")
+              ) {
+                return this.expandSearchMeetingsOutput(part, cache);
+              }
+              return part;
+            }),
+          );
+          return {
+            ...msg,
+            parts: expandedParts as SyntheoUIMessage["parts"],
+          };
+        }
+
+        return msg;
+      }),
+    );
 
     const result = await agent.stream({
       messages: await convertToModelMessages(messagesWithContext, { tools }),
@@ -332,7 +372,5 @@ export class CustomChatTransport implements ChatTransport<SyntheoUIMessage> {
   };
 
   reconnectToStream: ChatTransport<SyntheoUIMessage>["reconnectToStream"] =
-    async () => {
-      return null;
-    };
+    () => Promise.resolve(null);
 }

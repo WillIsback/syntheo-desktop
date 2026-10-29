@@ -256,40 +256,107 @@ function parseCsvExport(content: string, fallbackTitle: string) {
   });
 }
 
+type CsvState = {
+  rows: string[][];
+  row: string[];
+  cell: string;
+  quoted: boolean;
+};
+
+function isRowBreak(character: string) {
+  return character === "\n" || character === "\r";
+}
+
+function pushCell(state: CsvState) {
+  state.row.push(state.cell);
+  state.cell = "";
+}
+
+function flushRow(state: CsvState) {
+  pushCell(state);
+  state.rows.push(state.row);
+  state.row = [];
+}
+
+// Guillemet échappée (« "" ») à l'intérieur d'une cellule entre guillemets,
+// sinon ouverture / fermeture de la cellule. Renvoie l'index suivant à traiter.
+function consumeQuote(input: string, index: number, state: CsvState) {
+  if (state.quoted && input[index + 1] === '"') {
+    state.cell += '"';
+    return index + 1;
+  }
+  state.quoted = !state.quoted;
+  return index;
+}
+
+// Termine la ligne courante ; « \r\n » compte comme un seul saut de ligne.
+function consumeLineBreak(input: string, index: number, state: CsvState) {
+  const paired = input[index] === "\r" && input[index + 1] === "\n";
+  flushRow(state);
+  return paired ? index + 1 : index;
+}
+
+function consumeUnquoted(input: string, index: number, state: CsvState) {
+  const character = input[index]!;
+  if (character === ",") {
+    pushCell(state);
+    return index;
+  }
+  if (!isRowBreak(character)) {
+    state.cell += character;
+    return index;
+  }
+  return consumeLineBreak(input, index, state);
+}
+
 export function parseCsvRows(input: string): string[][] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cell = "";
-  let quoted = false;
+  const state: CsvState = { rows: [], row: [], cell: "", quoted: false };
 
   for (let index = 0; index < input.length; index += 1) {
     const character = input[index]!;
     if (character === '"') {
-      if (quoted && input[index + 1] === '"') {
-        cell += '"';
-        index += 1;
-      } else {
-        quoted = !quoted;
-      }
-    } else if (character === "," && !quoted) {
-      row.push(cell);
-      cell = "";
-    } else if ((character === "\n" || character === "\r") && !quoted) {
-      if (character === "\r" && input[index + 1] === "\n") index += 1;
-      row.push(cell);
-      rows.push(row);
-      row = [];
-      cell = "";
+      index = consumeQuote(input, index, state);
+    } else if (state.quoted) {
+      state.cell += character;
     } else {
-      cell += character;
+      index = consumeUnquoted(input, index, state);
     }
   }
 
-  if (cell || row.length > 0) {
-    row.push(cell);
-    rows.push(row);
-  }
-  return rows;
+  if (state.cell || state.row.length > 0) flushRow(state);
+  return state.rows;
+}
+
+const SPEAKER_PREFIX_MAX_LENGTH = 60;
+
+function leadingWhitespaceLength(value: string) {
+  return value.length - value.trimStart().length;
+}
+
+// Équivalent linéaire de /^<v\s+([^>]+)>(.*)$/u (balise vocale WebVTT) :
+// la séparation explicite « espaces » / « corps » évite tout backtracking.
+function matchVoiceTag(value: string) {
+  if (!value.startsWith("<v")) return null;
+  const body = value.slice(2);
+  const spaces = leadingWhitespaceLength(body);
+  if (spaces === 0) return null;
+  const close = body.indexOf(">", spaces);
+  if (close === -1) return null;
+  return {
+    speaker: body.slice(spaces, close).trim(),
+    text: body.slice(close + 1),
+  };
+}
+
+// Équivalent linéaire de /^([^:]{1,60}):\s+(.+)$/u : préfixe « orateur: »,
+// sans quantificateurs chevauchants donc sans backtracking super-linéaire.
+function matchSpeakerPrefix(value: string) {
+  const colon = value.indexOf(":");
+  if (colon < 1 || colon > SPEAKER_PREFIX_MAX_LENGTH) return null;
+  const body = value.slice(colon + 1);
+  const spaces = leadingWhitespaceLength(body);
+  if (spaces === 0 || body.length < 2) return null;
+  return { speaker: value.slice(0, colon).trim(), text: body.slice(spaces) };
 }
 
 function parseCaptionTranscript(content: string) {
@@ -305,14 +372,11 @@ function parseCaptionTranscript(content: string) {
     if (timingIndex === -1) return [];
     const [start, end] = lines[timingIndex]!.split("-->");
     const rawText = lines.slice(timingIndex + 1).join(" ");
-    const voiceMatch = rawText.match(/^<v\s+([^>]+)>(.*)$/u);
-    const speakerMatch = rawText.match(/^([^:]{1,60}):\s+(.+)$/u);
+    const labelled = matchVoiceTag(rawText) ?? matchSpeakerPrefix(rawText);
     return [
       {
-        speaker: voiceMatch?.[1]?.trim() ?? speakerMatch?.[1]?.trim() ?? "",
-        text: stripCaptionMarkup(
-          voiceMatch?.[2] ?? speakerMatch?.[2] ?? rawText,
-        ),
+        speaker: labelled?.speaker ?? "",
+        text: stripCaptionMarkup(labelled?.text ?? rawText),
         startMs: parseTimestamp(start?.trim() ?? ""),
         endMs: parseTimestamp(end?.trim().split(/\s/u)[0] ?? ""),
       },
@@ -326,10 +390,10 @@ function parseTextTranscript(content: string) {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line, index) => {
-      const match = line.match(/^([^:]{1,60}):\s+(.+)$/u);
+      const match = matchSpeakerPrefix(line);
       return {
-        speaker: match?.[1]?.trim() ?? "",
-        text: match?.[2]?.trim() ?? line,
+        speaker: match?.speaker ?? "",
+        text: match?.text.trim() ?? line,
         startMs: index * 1_000,
         endMs: (index + 1) * 1_000,
       };
@@ -526,11 +590,8 @@ function toMilliseconds(value: unknown) {
   if (typeof value !== "string" || !value.trim()) return undefined;
   if (value.includes(":")) return parseTimestamp(value);
   const parsed = Number(value);
-  return Number.isFinite(parsed)
-    ? parsed < 100_000
-      ? parsed * 1_000
-      : parsed
-    : undefined;
+  if (!Number.isFinite(parsed)) return undefined;
+  return parsed < 100_000 ? parsed * 1_000 : parsed;
 }
 
 function numericValue(value: unknown) {
@@ -546,6 +607,23 @@ function parseTimestamp(value: string) {
   return Math.round((hours * 3_600 + minutes * 60 + seconds) * 1_000);
 }
 
+// Équivalent linéaire de value.replace(/<[^>]*>/gu, "") : chaque span est
+// délimité par le premier « > » qui suit le « < », donc aucune reprise
+// backtracking sur les chevrons non appariés.
+function removeTagSpans(value: string) {
+  let output = "";
+  let cursor = 0;
+  while (cursor < value.length) {
+    const open = value.indexOf("<", cursor);
+    if (open === -1) break;
+    const close = value.indexOf(">", open + 1);
+    if (close === -1) break;
+    output += value.slice(cursor, open);
+    cursor = close + 1;
+  }
+  return output + value.slice(cursor);
+}
+
 function stripCaptionMarkup(value: string) {
   // Suppression itérée jusqu'à stabilisation : une passe unique permettrait de
   // reconstituer une balise à partir des fragments restants (« <<x>script> »
@@ -554,7 +632,7 @@ function stripCaptionMarkup(value: string) {
   let previous: string;
   do {
     previous = sanitized;
-    sanitized = previous.replace(/<[^>]*>/gu, "");
+    sanitized = removeTagSpans(previous);
   } while (sanitized !== previous);
   // Neutralise les chevrons non appariés restants (ex. « <script » sans « > »),
   // pour qu'aucune séquence « <script » ne puisse subsister dans le texte importé.

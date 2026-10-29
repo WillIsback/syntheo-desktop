@@ -6,6 +6,10 @@ let sentTranscriptSessionId: string | null = null;
 let sentTranscriptBubbles: FloatingRouteState["transcriptBubbles"] | null =
   null;
 
+type FloatingSyncOutcome =
+  | { kind: "synced"; sessionId: string | null }
+  | { kind: "unavailable" };
+
 export function createFloatingMeetingWindowSynchronizer(
   onPresented?: (state: FloatingRouteState | null) => void,
 ) {
@@ -23,52 +27,59 @@ export function createFloatingMeetingWindowSynchronizer(
   const resolveIdleWaiters = () => {
     idleWaiters.splice(0).forEach((resolve) => resolve());
   };
-  const drain = async () => {
-    while (appliedRevision < desiredRevision) {
-      const revision = desiredRevision;
-      const routeState = desiredRouteState;
+  const applyDesiredRevision = async () => {
+    const revision = desiredRevision;
+    const routeState = desiredRouteState;
 
-      if (nativeCommandsUnavailable && routeState) {
-        appliedRevision = revision;
-        continue;
-      }
-
-      let nextShownSessionId: string | null | "unavailable";
-      try {
-        nextShownSessionId = await syncFloatingMeetingWindow(
-          routeState,
-          shownSessionId,
-          appliedRouteState,
-          () => revision === desiredRevision || desiredRouteState !== null,
-        );
-      } catch (error) {
-        console.error("Failed to synchronize floating meeting panel:", error);
-        if (revision === desiredRevision) {
-          appliedRevision = revision;
-        }
-        continue;
-      }
-      if (revision !== desiredRevision) {
-        if (desiredRouteState && nextShownSessionId !== "unavailable") {
-          shownSessionId = nextShownSessionId;
-          appliedRouteState = routeState;
-        }
-        continue;
-      }
-
+    if (nativeCommandsUnavailable && routeState) {
       appliedRevision = revision;
-      if (nextShownSessionId === "unavailable") {
-        nativeCommandsUnavailable = true;
-      } else {
-        shownSessionId = nextShownSessionId;
-        appliedRouteState = routeState;
-        onPresented?.(routeState);
-      }
+      return;
     }
 
-    if (disposeRequested) {
-      disposed = true;
+    let outcome: FloatingSyncOutcome;
+    try {
+      outcome = await syncFloatingMeetingWindow(
+        routeState,
+        shownSessionId,
+        appliedRouteState,
+        () => revision === desiredRevision || desiredRouteState !== null,
+      );
+    } catch (error) {
+      console.error("Failed to synchronize floating meeting panel:", error);
+      if (revision === desiredRevision) {
+        appliedRevision = revision;
+      }
+      return;
     }
+
+    if (revision !== desiredRevision) {
+      if (desiredRouteState && outcome.kind !== "unavailable") {
+        shownSessionId = outcome.sessionId;
+        appliedRouteState = routeState;
+      }
+      return;
+    }
+
+    appliedRevision = revision;
+    if (outcome.kind === "unavailable") {
+      nativeCommandsUnavailable = true;
+      return;
+    }
+
+    shownSessionId = outcome.sessionId;
+    appliedRouteState = routeState;
+    onPresented?.(routeState);
+  };
+  const drain = async (): Promise<void> => {
+    if (appliedRevision >= desiredRevision) {
+      if (disposeRequested) {
+        disposed = true;
+      }
+      return;
+    }
+
+    await applyDesiredRevision();
+    return drain();
   };
   const schedule = () => {
     if (running || disposed) {
@@ -120,14 +131,14 @@ async function syncFloatingMeetingWindow(
   shownSessionId: string | null,
   appliedRouteState: FloatingRouteState | null,
   shouldContinue: () => boolean,
-): Promise<string | null | "unavailable"> {
+): Promise<FloatingSyncOutcome> {
   if (!shouldContinue()) {
-    return null;
+    return { kind: "synced", sessionId: null };
   }
 
   if (!routeState) {
     await hideFloatingMeetingPanel();
-    return null;
+    return { kind: "synced", sessionId: null };
   }
 
   const ready = await showFloatingMeetingWindow(
@@ -138,10 +149,12 @@ async function syncFloatingMeetingWindow(
   );
   if (!shouldContinue()) {
     await hideFloatingMeetingPanel();
-    return null;
+    return { kind: "synced", sessionId: null };
   }
 
-  return ready ? routeState.sessionId : "unavailable";
+  return ready
+    ? { kind: "synced", sessionId: routeState.sessionId }
+    : { kind: "unavailable" };
 }
 
 export async function showFloatingMeetingWindow(
