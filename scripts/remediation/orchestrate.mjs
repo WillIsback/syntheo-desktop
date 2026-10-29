@@ -34,8 +34,14 @@ const REMEDIATION_DIR =
   process.env.REMEDIATION_DIR ||
   join(tmpdir(), "opencode", "syntheo-remediation");
 const LOG_DIR = join(REMEDIATION_DIR, "logs");
-const INTEGRATION_BRANCH = "fix/master-remediation";
-const INTEGRATION_WT = join(repoRoot, ".worktrees", "wt-integration");
+const INTEGRATION_BRANCH =
+  process.env.REMEDIATION_INTEGRATION_BRANCH || "fix/master-remediation";
+const INTEGRATION_WT = join(
+  repoRoot,
+  ".worktrees",
+  process.env.REMEDIATION_WORKTREE ||
+    `wt-${INTEGRATION_BRANCH.replace(/[/]/g, "-")}`,
+);
 const MODEL =
   process.env.REMEDIATION_MODEL ||
   "myprovider/nvidia/Qwen3.8-Flash-Next-FP4-Local";
@@ -56,8 +62,11 @@ const ONLY = option("--only", null);
 const ONLY_TASK = option("--task", null);
 const LIMIT = Number(option("--limit", "0")) || Infinity;
 
-const STATE_FILE = join(REMEDIATION_DIR, "state.json");
-const NEEDS_HUMAN_FILE = join(REMEDIATION_DIR, "needs-human.json");
+const STATE_FILE =
+  process.env.REMEDIATION_STATE || join(REMEDIATION_DIR, "state.json");
+const NEEDS_HUMAN_FILE =
+  process.env.REMEDIATION_NEEDS_HUMAN ||
+  join(REMEDIATION_DIR, "needs-human.json");
 const TASKS_FILE =
   process.env.REMEDIATION_TASKS || join(REMEDIATION_DIR, "tasks.json");
 

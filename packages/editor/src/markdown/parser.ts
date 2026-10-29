@@ -1,7 +1,10 @@
 import MarkdownIt from "markdown-it";
-import type StateBlock from "markdown-it/lib/rules_block/state_block.mjs";
-import type StateInline from "markdown-it/lib/rules_inline/state_inline.mjs";
-import type Token from "markdown-it/lib/token.mjs";
+import type {
+  MarkdownIt as MarkdownItInstance,
+  StateBlock,
+  StateInline,
+  Token,
+} from "markdown-it";
 import { MarkdownParser } from "prosemirror-markdown";
 
 import {
@@ -12,7 +15,7 @@ import { markdownSchema } from "./schema";
 
 // ---------------------------------------------------------------------------
 
-function strikethroughPlugin(md: MarkdownIt) {
+function strikethroughPlugin(md: MarkdownItInstance) {
   md.inline.ruler.before(
     "emphasis",
     "strikethrough",
@@ -42,7 +45,7 @@ function strikethroughPlugin(md: MarkdownIt) {
   );
 }
 
-function underlinePlugin(md: MarkdownIt) {
+function underlinePlugin(md: MarkdownItInstance) {
   md.inline.ruler.before(
     "emphasis",
     "underline",
@@ -92,7 +95,7 @@ function underlinePlugin(md: MarkdownIt) {
   );
 }
 
-function highlightPlugin(md: MarkdownIt) {
+function highlightPlugin(md: MarkdownItInstance) {
   md.inline.ruler.before(
     "emphasis",
     "highlight",
@@ -123,7 +126,7 @@ function highlightPlugin(md: MarkdownIt) {
   );
 }
 
-function hardBreakTagPlugin(md: MarkdownIt) {
+function hardBreakTagPlugin(md: MarkdownItInstance) {
   md.inline.ruler.before(
     "html_inline",
     "hardbreak_tag",
@@ -142,7 +145,7 @@ function hardBreakTagPlugin(md: MarkdownIt) {
   );
 }
 
-function taskListPlugin(md: MarkdownIt) {
+function taskListPlugin(md: MarkdownItInstance) {
   md.core.ruler.after("inline", "task_lists", (state) => {
     const tokens = state.tokens;
     for (let i = 0; i < tokens.length; i++) {
@@ -221,7 +224,7 @@ function taskListPlugin(md: MarkdownIt) {
   });
 }
 
-function tableCellParagraphsPlugin(md: MarkdownIt) {
+function tableCellParagraphsPlugin(md: MarkdownItInstance) {
   md.core.ruler.after("inline", "table_cell_paragraphs", (state) => {
     const tokens = state.tokens;
     const out: Token[] = [];
@@ -305,7 +308,7 @@ function stripTaskPrefix(children: Token[], prefixLen: number) {
   }
 }
 
-function clipPlugin(md: MarkdownIt) {
+function clipPlugin(md: MarkdownItInstance) {
   md.block.ruler.before(
     "html_block",
     "clip",
@@ -352,7 +355,7 @@ function clipPlugin(md: MarkdownIt) {
   );
 }
 
-function fileAttachmentPlugin(md: MarkdownIt) {
+function fileAttachmentPlugin(md: MarkdownItInstance) {
   md.block.ruler.before(
     "paragraph",
     "file_attachment",
@@ -419,7 +422,7 @@ function fileAttachmentPlugin(md: MarkdownIt) {
   );
 }
 
-function mentionPlugin(md: MarkdownIt) {
+function mentionPlugin(md: MarkdownItInstance) {
   md.inline.ruler.before(
     "html_inline",
     "mention",
@@ -452,7 +455,7 @@ function mentionPlugin(md: MarkdownIt) {
 // on roundtrip. We use the line maps that markdown-it attaches to top-level
 // block tokens to detect blank lines (leading, trailing, and between blocks)
 // and emit explicit empty paragraph tokens.
-function emptyParagraphsPlugin(md: MarkdownIt) {
+function emptyParagraphsPlugin(md: MarkdownItInstance) {
   md.core.ruler.after("block", "empty_paragraphs", (state) => {
     const tokens = state.tokens;
     const out: Token[] = [];
@@ -530,93 +533,100 @@ export function getParser(): MarkdownParser {
   md.use(mentionPlugin);
   md.use(emptyParagraphsPlugin);
 
-  _parser = new MarkdownParser(markdownSchema, md, {
-    blockquote: { block: "blockquote" },
-    paragraph: { block: "paragraph" },
-    list_item: { block: "listItem" },
-    bullet_list: { block: "bulletList" },
-    ordered_list: {
-      block: "orderedList",
-      getAttrs: (tok) => ({ start: +tok.attrGet("start")! || 1 }),
-    },
-    heading: {
-      block: "heading",
-      getAttrs: (tok) => ({ level: +tok.tag.slice(1) }),
-    },
-    code_block: { block: "codeBlock", noCloseToken: true },
-    fence: {
-      block: "codeBlock",
-      getAttrs: (tok) => ({ language: tok.info || "" }),
-      noCloseToken: true,
-    },
-    hr: { node: "horizontalRule" },
-    image: {
-      node: "image",
-      getAttrs: (tok) => {
-        const rawTitle = tok.attrGet("title") || undefined;
-        const metadata = parseImageTitleMetadata(rawTitle);
-        return {
+  // prosemirror-markdown 1.13 type encore contre @types/markdown-it 14, alors
+  // que markdown-it 15 fournit ses propres types. Le runtime est compatible ;
+  // on contourne uniquement la frontière de types.
+  _parser = new MarkdownParser(
+    markdownSchema,
+    md as unknown as ConstructorParameters<typeof MarkdownParser>[1],
+    {
+      blockquote: { block: "blockquote" },
+      paragraph: { block: "paragraph" },
+      list_item: { block: "listItem" },
+      bullet_list: { block: "bulletList" },
+      ordered_list: {
+        block: "orderedList",
+        getAttrs: (tok) => ({ start: +tok.attrGet("start")! || 1 }),
+      },
+      heading: {
+        block: "heading",
+        getAttrs: (tok) => ({ level: +tok.tag.slice(1) }),
+      },
+      code_block: { block: "codeBlock", noCloseToken: true },
+      fence: {
+        block: "codeBlock",
+        getAttrs: (tok) => ({ language: tok.info || "" }),
+        noCloseToken: true,
+      },
+      hr: { node: "horizontalRule" },
+      image: {
+        node: "image",
+        getAttrs: (tok) => {
+          const rawTitle = tok.attrGet("title") || undefined;
+          const metadata = parseImageTitleMetadata(rawTitle);
+          return {
+            src: tok.attrGet("src"),
+            alt: (tok.children?.[0] && tok.children[0].content) || "",
+            title: metadata.title,
+            attachmentId: null,
+            editorWidth: metadata.editorWidth ?? DEFAULT_EDITOR_WIDTH,
+          };
+        },
+      },
+      hardbreak: { node: "hardBreak" },
+      table: { block: "table" },
+      thead: { ignore: true },
+      tbody: { ignore: true },
+      tr: { block: "tableRow" },
+      th: { block: "tableHeader" },
+      td: { block: "tableCell" },
+
+      em: { mark: "italic" },
+      strong: { mark: "bold" },
+      s: { mark: "strike" },
+      link: {
+        mark: "link",
+        getAttrs: (tok) => ({
+          href: tok.attrGet("href"),
+          target: tok.attrGet("target"),
+        }),
+      },
+      code_inline: { mark: "code", noCloseToken: true },
+
+      underline: { mark: "underline" },
+      highlight: { mark: "highlight" },
+      task_list: { block: "taskList" },
+      task_item: {
+        block: "taskItem",
+        getAttrs: (tok) => ({
+          checked: tok.attrGet("checked") === "true",
+        }),
+      },
+      clip: {
+        node: "clip",
+        getAttrs: (tok) => ({ src: tok.attrGet("src") }),
+      },
+      file_attachment: {
+        node: "fileAttachment",
+        getAttrs: (tok) => ({
+          attachmentId: tok.attrGet("attachment-id"),
+          name: tok.attrGet("name") ?? "",
+          mimeType: "",
           src: tok.attrGet("src"),
-          alt: (tok.children?.[0] && tok.children[0].content) || "",
-          title: metadata.title,
-          attachmentId: null,
-          editorWidth: metadata.editorWidth ?? DEFAULT_EDITOR_WIDTH,
-        };
+          path: null,
+          size: null,
+        }),
+      },
+      mention: {
+        node: "mention-@",
+        getAttrs: (tok) => ({
+          id: tok.attrGet("data-id"),
+          type: tok.attrGet("data-type"),
+          label: tok.attrGet("data-label"),
+        }),
       },
     },
-    hardbreak: { node: "hardBreak" },
-    table: { block: "table" },
-    thead: { ignore: true },
-    tbody: { ignore: true },
-    tr: { block: "tableRow" },
-    th: { block: "tableHeader" },
-    td: { block: "tableCell" },
-
-    em: { mark: "italic" },
-    strong: { mark: "bold" },
-    s: { mark: "strike" },
-    link: {
-      mark: "link",
-      getAttrs: (tok) => ({
-        href: tok.attrGet("href"),
-        target: tok.attrGet("target"),
-      }),
-    },
-    code_inline: { mark: "code", noCloseToken: true },
-
-    underline: { mark: "underline" },
-    highlight: { mark: "highlight" },
-    task_list: { block: "taskList" },
-    task_item: {
-      block: "taskItem",
-      getAttrs: (tok) => ({
-        checked: tok.attrGet("checked") === "true",
-      }),
-    },
-    clip: {
-      node: "clip",
-      getAttrs: (tok) => ({ src: tok.attrGet("src") }),
-    },
-    file_attachment: {
-      node: "fileAttachment",
-      getAttrs: (tok) => ({
-        attachmentId: tok.attrGet("attachment-id"),
-        name: tok.attrGet("name") ?? "",
-        mimeType: "",
-        src: tok.attrGet("src"),
-        path: null,
-        size: null,
-      }),
-    },
-    mention: {
-      node: "mention-@",
-      getAttrs: (tok) => ({
-        id: tok.attrGet("data-id"),
-        type: tok.attrGet("data-type"),
-        label: tok.attrGet("data-label"),
-      }),
-    },
-  });
+  );
 
   return _parser;
 }
