@@ -76,7 +76,7 @@ pub async fn apply_managed_settings(pool: &SqlitePool) -> Result<(), sqlx::Error
         .parent()
         .ok_or_else(invalid)?
         .join("managed_settings.json");
-    let settings = match std::fs::read(path) {
+    let settings = match tokio::fs::read(path).await {
         Ok(bytes) => validate(&bytes)?.settings,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => BTreeMap::new(),
         Err(e) => return Err(sqlx::Error::Io(e)),

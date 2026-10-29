@@ -12,7 +12,8 @@ const DB_OPEN_LOCK_RETRY_DELAY: std::time::Duration = std::time::Duration::from_
 pub async fn open_desktop_db(identifier: &str) -> Result<Arc<Db>, String> {
     let dir = desktop_db_dir(identifier)
         .ok_or_else(|| "application data directory is unavailable".to_string())?;
-    std::fs::create_dir_all(&dir)
+    tokio::fs::create_dir_all(&dir)
+        .await
         .map_err(|error| format!("failed to create application data directory: {error}"))?;
 
     match apply_pending_database_reset(&dir) {

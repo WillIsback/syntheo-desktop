@@ -24,7 +24,7 @@ serde_json = { workspace = true }
 sha2 = { workspace = true }
 sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 thiserror = { workspace = true }
-tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["fs", "io-std", "macros", "rt-multi-thread"] }
 url = { workspace = true }
 
 [dev-dependencies]

@@ -91,7 +91,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         let index_path = vault_base.join(&config.path).into_std_path_buf();
         let version_path = index_path.join("schema_version");
 
-        std::fs::create_dir_all(&index_path)?;
+        tokio::fs::create_dir_all(&index_path).await?;
 
         let state = self.manager.state::<IndexState>();
         let mut guard = state.inner.write().await;
@@ -104,7 +104,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         let schema = (config.schema_builder)();
 
         let needs_reindex = if index_path.join("meta.json").exists() {
-            let stored_version = std::fs::read_to_string(&version_path)
+            let stored_version = tokio::fs::read_to_string(&version_path)
+                .await
                 .ok()
                 .and_then(|s| s.trim().parse::<u32>().ok())
                 .unwrap_or(0);
@@ -121,13 +122,13 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
                     "Schema version changed for collection '{}', re-creating index",
                     config.name
                 );
-                std::fs::remove_dir_all(&index_path)?;
-                std::fs::create_dir_all(&index_path)?;
+                tokio::fs::remove_dir_all(&index_path).await?;
+                tokio::fs::create_dir_all(&index_path).await?;
             }
             Index::create_in_dir(&index_path, schema.clone())?
         };
 
-        std::fs::write(&version_path, config.schema_version.to_string())?;
+        tokio::fs::write(&version_path, config.schema_version.to_string()).await?;
 
         register_tokenizers(&index);
 

@@ -93,7 +93,8 @@ pub async fn read_text_files(paths: Vec<String>) -> Result<Vec<ImportTextFile>, 
             return Err(format!("{name} is not a supported meeting export"));
         }
 
-        let metadata = std::fs::metadata(&path_buf)
+        let metadata = tokio::fs::metadata(&path_buf)
+            .await
             .map_err(|error| format!("could not inspect {name}: {error}"))?;
         if !metadata.is_file() {
             return Err(format!("{name} is not a file"));
@@ -106,7 +107,8 @@ pub async fn read_text_files(paths: Vec<String>) -> Result<Vec<ImportTextFile>, 
             return Err("selected import files are larger than 100 MB total".to_string());
         }
 
-        let content = std::fs::read_to_string(&path_buf)
+        let content = tokio::fs::read_to_string(&path_buf)
+            .await
             .map_err(|error| format!("could not read {name}: {error}"))?;
         files.push(ImportTextFile {
             path,

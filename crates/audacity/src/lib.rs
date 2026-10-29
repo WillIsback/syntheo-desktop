@@ -84,8 +84,10 @@ impl Project {
         {
             use std::os::unix::fs::PermissionsExt;
 
+            // The helper script only needs to run as its owner; keep it out of
+            // reach of other users (no group/world bits).
             let mut permissions = fs::metadata(&script_path)?.permissions();
-            permissions.set_mode(0o755);
+            permissions.set_mode(0o700);
             fs::set_permissions(&script_path, permissions)?;
         }
 

@@ -238,6 +238,23 @@ function trimEventText(value: string | undefined): string {
   return stripHtml(value).trim().slice(0, MAX_EVENT_TEXT_CHARS);
 }
 
+// Email markers in angle brackets are stripped repeatedly until the string
+// stops changing: a single pass can leave a residual marker when the input
+// nests angle brackets, which is what CodeQL flags as incomplete
+// multi-character sanitization. The pattern is a single, unambiguous character
+// class (linear) and the email check happens in the callback.
+function stripEmailMarkers(value: string): string {
+  let current = value;
+  let previous: string;
+  do {
+    previous = current;
+    current = current.replace(/<[^<>]*>/g, (tag) =>
+      tag.includes("@") ? "" : tag,
+    );
+  } while (current !== previous);
+  return current;
+}
+
 function inferContactsFromEventText(
   context: EventContactExtractionContext,
 ): ExtractedEventContact[] {
@@ -249,10 +266,11 @@ function inferContactsFromEventText(
 
   const addName = (value: string) => {
     const name = cleanNameHint(
-      value
-        .replace(/^[\w\s]+:\s*/, "")
-        .replace(/<[^>]*@[^>]*>/g, "")
-        .replace(/\([^)]*(organizer|host|required|optional)[^)]*\)/gi, ""),
+      stripEmailMarkers(
+        value
+          .replace(/^[\w\s]+:\s*/, "")
+          .replace(/\([^)]*(organizer|host|required|optional)[^)]*\)/gi, ""),
+      ),
     );
     const key = normalizeName(name);
     if (

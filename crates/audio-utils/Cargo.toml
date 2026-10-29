@@ -5,7 +5,7 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
-audioadapter-buffers = "2.0"
+audioadapter-buffers = "5.2"
 bytes = { workspace = true }
 futures-util = { workspace = true }
 syntheo-audio-interface = { workspace = true }

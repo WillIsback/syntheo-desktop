@@ -23,6 +23,10 @@ updates:
       - dependency-name: "extract-zip" # aucun correctif publié (patch local)
       - dependency-name: "zod"
         versions: ["3.x"] # correctif uniquement en 4.x, tiré par des tiers
+      - dependency-name: "@lobehub/icons"
+        update-types: [
+          "version-update:semver-major",
+        ] # 6.x exige @lobehub/ui 6, le dépôt est sur @lobehub/ui 3.4
 
   - package-ecosystem: "cargo"
     directory: "/"
@@ -42,7 +46,17 @@ updates:
     # Voir .github/security-exceptions.yml (expire le 2027-01-31).
     ignore:
       - dependency-name: "glib"
-        versions: ["0.18.x"]
+        versions: [
+          ">= 0.19",
+        ] # gtk3-rs s'arrête à 0.18 ; notification-linux doit rester aligné
+      - dependency-name: "earshot"
+        update-types: [
+          "version-update:semver-major",
+        ] # 1.x impose des trames de 256 échantillons, incompatible avec le wrapper vad 10/20/30 ms
+      - dependency-name: "minijinja-contrib"
+        update-types: [
+          "version-update:semver-major",
+        ] # 3.x exige minijinja 3 ; bumper les deux ensemble
 
   - package-ecosystem: "github-actions"
     directories: ["/", "/.github/actions/*"]

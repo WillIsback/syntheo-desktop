@@ -15,6 +15,7 @@ serde_json = { workspace = true }
 sha2 = { workspace = true }
 sqlx = { workspace = true, features = ["runtime-tokio", "sqlite", "sqlite-unbundled", "macros"] }
 thiserror = { workspace = true }
+tokio = { workspace = true, features = ["fs", "rt"] }
 url = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 
@@ -24,4 +25,4 @@ cli = []
 
 [dev-dependencies]
 tempfile = { workspace = true }
-tokio = { workspace = true, features = ["rt", "macros", "time"] }
+tokio = { workspace = true, features = ["fs", "rt", "macros", "time"] }
