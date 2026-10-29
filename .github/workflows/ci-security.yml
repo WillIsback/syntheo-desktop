@@ -45,6 +45,10 @@ jobs:
           fail-on-scopes: "runtime"
           fail-on-severity: "high"
           deny-licenses: "GPL-2.0-only, GPL-2.0-or-later, GPL-3.0-only, GPL-3.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later, SSPL-1.0"
+          # @pierre/* déclare « apache-2.0 » en minuscules, une expression SPDX
+          # invalide (l'action refuse de l'évaluer). Licence permissive réelle :
+          # on les sort du contrôle de licence.
+          allow-dependencies-licenses: "pkg:npm/@pierre/diffs, pkg:npm/@pierre/highlights, pkg:npm/@pierre/theme, pkg:npm/@pierre/theming"
 
       - name: Valider le registre des exceptions de sécurité
         shell: bash
