@@ -11,13 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as AppIndexRouteImport } from './routes/app/index'
-import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
-import { Route as AppLiveCaptionRouteImport } from './routes/app/live-caption'
-import { Route as AppInstructionRouteImport } from './routes/app/instruction'
-import { Route as AppFloatingBarRouteImport } from './routes/app/floating-bar'
 import { Route as AppComposerRouteImport } from './routes/app/composer'
-import { Route as AppNoteSessionIdRouteImport } from './routes/app/note.$sessionId'
+import { Route as AppFloatingBarRouteImport } from './routes/app/floating-bar'
+import { Route as AppInstructionRouteImport } from './routes/app/instruction'
+import { Route as AppLiveCaptionRouteImport } from './routes/app/live-caption'
+import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
+import { Route as AppNoteSessionIdRouteImport } from './routes/app/note.$sessionId'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layout.index'
 
 const AppRouteRoute = AppRouteRouteImport.update({
@@ -30,19 +30,9 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppOnboardingRoute = AppOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppLiveCaptionRoute = AppLiveCaptionRouteImport.update({
-  id: '/live-caption',
-  path: '/live-caption',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppInstructionRoute = AppInstructionRouteImport.update({
-  id: '/instruction',
-  path: '/instruction',
+const AppComposerRoute = AppComposerRouteImport.update({
+  id: '/composer',
+  path: '/composer',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppFloatingBarRoute = AppFloatingBarRouteImport.update({
@@ -50,19 +40,29 @@ const AppFloatingBarRoute = AppFloatingBarRouteImport.update({
   path: '/floating-bar',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppComposerRoute = AppComposerRouteImport.update({
-  id: '/composer',
-  path: '/composer',
+const AppInstructionRoute = AppInstructionRouteImport.update({
+  id: '/instruction',
+  path: '/instruction',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppNoteSessionIdRoute = AppNoteSessionIdRouteImport.update({
-  id: '/note/$sessionId',
-  path: '/note/$sessionId',
+const AppLiveCaptionRoute = AppLiveCaptionRouteImport.update({
+  id: '/live-caption',
+  path: '/live-caption',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
   id: '/main/_layout',
   path: '/main',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppNoteSessionIdRoute = AppNoteSessionIdRouteImport.update({
+  id: '/note/$sessionId',
+  path: '/note/$sessionId',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
@@ -163,25 +163,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/app/onboarding': {
-      id: '/app/onboarding'
-      path: '/onboarding'
-      fullPath: '/app/onboarding'
-      preLoaderRoute: typeof AppOnboardingRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/live-caption': {
-      id: '/app/live-caption'
-      path: '/live-caption'
-      fullPath: '/app/live-caption'
-      preLoaderRoute: typeof AppLiveCaptionRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
-    '/app/instruction': {
-      id: '/app/instruction'
-      path: '/instruction'
-      fullPath: '/app/instruction'
-      preLoaderRoute: typeof AppInstructionRouteImport
+    '/app/composer': {
+      id: '/app/composer'
+      path: '/composer'
+      fullPath: '/app/composer'
+      preLoaderRoute: typeof AppComposerRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/floating-bar': {
@@ -191,18 +177,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFloatingBarRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/app/composer': {
-      id: '/app/composer'
-      path: '/composer'
-      fullPath: '/app/composer'
-      preLoaderRoute: typeof AppComposerRouteImport
+    '/app/instruction': {
+      id: '/app/instruction'
+      path: '/instruction'
+      fullPath: '/app/instruction'
+      preLoaderRoute: typeof AppInstructionRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/app/note/$sessionId': {
-      id: '/app/note/$sessionId'
-      path: '/note/$sessionId'
-      fullPath: '/app/note/$sessionId'
-      preLoaderRoute: typeof AppNoteSessionIdRouteImport
+    '/app/live-caption': {
+      id: '/app/live-caption'
+      path: '/live-caption'
+      fullPath: '/app/live-caption'
+      preLoaderRoute: typeof AppLiveCaptionRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/onboarding': {
+      id: '/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/main/_layout': {
@@ -210,6 +203,13 @@ declare module '@tanstack/react-router' {
       path: '/main'
       fullPath: '/app/main'
       preLoaderRoute: typeof AppMainLayoutRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/note/$sessionId': {
+      id: '/app/note/$sessionId'
+      path: '/note/$sessionId'
+      fullPath: '/app/note/$sessionId'
+      preLoaderRoute: typeof AppNoteSessionIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/main/_layout/': {

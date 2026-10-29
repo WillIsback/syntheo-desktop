@@ -33,7 +33,9 @@ export async function listOpenAIModels(
 
   return pipe(
     fetchJson(`${baseUrl}/models`, { Authorization: `Bearer ${apiKey}` }),
-    Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
+    Effect.andThen((json) =>
+      Schema.decodeUnknownEffect(OpenAIModelSchema)(json),
+    ),
     Effect.map(({ data }) => {
       const result = partition(
         data,
@@ -67,7 +69,7 @@ export async function listOpenAIModels(
       };
     }),
     Effect.timeout(REQUEST_TIMEOUT),
-    Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
+    Effect.catch(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,
   );
 }
@@ -83,10 +85,12 @@ export async function listGenericModels(
 
   return pipe(
     fetchJson(`${baseUrl}/models`, { Authorization: `Bearer ${apiKey}` }),
-    Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
+    Effect.andThen((json) =>
+      Schema.decodeUnknownEffect(OpenAIModelSchema)(json),
+    ),
     Effect.map(({ data }) => processGenericModels(data, options)),
     Effect.timeout(REQUEST_TIMEOUT),
-    Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
+    Effect.catch(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,
   );
 }
@@ -143,10 +147,12 @@ export function listCustomModels(
       `${baseUrl}/models`,
       apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
     ),
-    Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
+    Effect.andThen((json) =>
+      Schema.decodeUnknownEffect(OpenAIModelSchema)(json),
+    ),
     Effect.map(({ data }) => processCustomModels(data)),
     Effect.timeout(REQUEST_TIMEOUT),
-    Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
+    Effect.catch(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,
   );
 }

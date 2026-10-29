@@ -22,14 +22,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
+    "@handlewithcare/react-prosemirror": "^3.2.11",
     "@syntheo/plugin-opener2": "workspace:*",
     "@syntheo/store": "workspace:*",
     "@syntheo/ui": "workspace:^",
     "@syntheo/utils": "workspace:^",
-    "@floating-ui/dom": "^1.8.0",
-    "@handlewithcare/react-prosemirror": "^3.2.11",
     "facehash": "^0.1.0",
-    "markdown-it": "^14.3.3",
+    "markdown-it": "^15.0.3",
     "node-emoji": "2.2.0",
     "prosemirror-commands": "^1.7.2",
     "prosemirror-dropcursor": "^1.8.4",

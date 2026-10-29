@@ -47,6 +47,14 @@ export default defineConfig(() => ({
       return type === "stderr";
     },
     exclude: ["**/node_modules/**", "**/src-tauri/**"],
+    // @lobehub/ui (tiré par @lobehub/icons) publie un build `es` avec des
+    // imports de répertoires (`./Accordion`) que Node ESM ne résout pas.
+    // On l'inline pour que Vite le transforme.
+    server: {
+      deps: {
+        inline: [/@lobehub\/ui/, /@lobehub\/icons/],
+      },
+    },
   },
   ...tauri,
 }));
