@@ -44,6 +44,16 @@ impl std::fmt::Debug for Db {
     }
 }
 
+/// Ensure the directory holding a database file exists.
+async fn ensure_parent_dir(path: &Path) -> Result<(), sqlx::Error> {
+    if let Some(parent) = path.parent() {
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(sqlx::Error::Io)?;
+    }
+    Ok(())
+}
+
 impl Db {
     pub async fn open(options: DbOpenOptions<'_>) -> Result<Self, DbOpenError> {
         let (change_notifier, pool_options) = match options.storage {
@@ -58,11 +68,7 @@ impl Db {
     }
 
     pub async fn connect_local(path: impl AsRef<Path>) -> Result<Self, sqlx::Error> {
-        if let Some(parent) = path.as_ref().parent() {
-            tokio::fs::create_dir_all(parent)
-                .await
-                .map_err(sqlx::Error::Io)?;
-        }
+        ensure_parent_dir(path.as_ref()).await?;
         let options = apply_internal_connect_policy(SqliteConnectOptions::new())
             .filename(path)
             .create_if_missing(true)
@@ -94,11 +100,7 @@ impl Db {
     }
 
     pub async fn connect_local_plain(path: impl AsRef<Path>) -> Result<Self, sqlx::Error> {
-        if let Some(parent) = path.as_ref().parent() {
-            tokio::fs::create_dir_all(parent)
-                .await
-                .map_err(sqlx::Error::Io)?;
-        }
+        ensure_parent_dir(path.as_ref()).await?;
         let options = apply_internal_connect_policy(SqliteConnectOptions::new())
             .filename(path)
             .create_if_missing(true)
