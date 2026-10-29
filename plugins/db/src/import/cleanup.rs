@@ -63,7 +63,7 @@ pub async fn execute(pool: &SqlitePool) -> crate::Result<crate::LegacyCleanupRes
     let mut parent_directories = Vec::new();
 
     for file in &plan.files {
-        let bytes = std::fs::read(&file.path)?;
+        let bytes = tokio::fs::read(&file.path).await?;
         if sha256(&bytes) != file.expected_sha256 {
             return Err(std::io::Error::other(format!(
                 "legacy file changed after cleanup verification: {}",
@@ -74,7 +74,7 @@ pub async fn execute(pool: &SqlitePool) -> crate::Result<crate::LegacyCleanupRes
     }
 
     for file in &plan.files {
-        std::fs::remove_file(&file.path)?;
+        tokio::fs::remove_file(&file.path).await?;
         deleted_file_count += 1;
         deleted_bytes += file.size_bytes;
         if let Some(parent) = file.path.parent() {
@@ -211,7 +211,7 @@ async fn build_plan(pool: &SqlitePool) -> crate::Result<CleanupPlan> {
             }
         };
 
-        let bytes = match std::fs::read(&path) {
+        let bytes = match tokio::fs::read(&path).await {
             Ok(bytes) => bytes,
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
             Err(error) => {

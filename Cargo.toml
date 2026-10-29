@@ -230,7 +230,7 @@ markdown = "1"
 # Vendored 0.0.2 with byte-indexed Unicode escaping fixed; upstream still uses chars().nth(byte_offset).
 mdast_util_to_markdown = { path = "crates/tiptap/vendor/mdast_util_to_markdown" }
 minijinja = "2.7.0"
-minijinja-contrib = "3.0.3"
+minijinja-contrib = "2.7.0"
 
 env_logger = "0.11.8"
 log = "0.4"
@@ -247,7 +247,7 @@ tauri-specta = "2.0.0-rc.21"
 cidre = { version = "0.15", default-features = false, features = ["app", "async", "av", "ax", "blocks", "cm", "core_audio", "dispatch", "io_kit", "io_pm", "macos_15_0"] }
 cpal = "0.17"
 dasp = { version = "0.11.0", features = ["interpolate", "interpolate-linear"] }
-earshot = "1.2.2"
+earshot = "0.1.0"
 hound = "3.5.1"
 htmd = "0.5.0"
 macos-accessibility-client = "0.0.2"

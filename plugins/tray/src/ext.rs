@@ -150,7 +150,7 @@ fn linux_tray_backend_available() -> bool {
         "libappindicator3.so",
     ]
     .iter()
-    .any(|name| unsafe { libloading::Library::new(name) }.is_ok())
+    .any(|name| unsafe { libloading::Library::new(*name) }.is_ok())
 }
 
 impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {

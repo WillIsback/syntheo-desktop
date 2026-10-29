@@ -25,3 +25,4 @@ serde = { workspace = true }
 specta = { workspace = true }
 
 thiserror = { workspace = true }
+tokio = { workspace = true, features = ["fs", "rt"] }

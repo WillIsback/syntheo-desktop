@@ -143,12 +143,10 @@ fn with_cpal_host_lock<T>(f: impl FnOnce() -> T) -> T {
 }
 
 fn drop_quietly<T>(value: T) {
-    if std::thread::panicking() {
-        std::mem::forget(value);
-        return;
-    }
-
-    if std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| drop(value))).is_err() {
+    // A panic inside `Drop` must never abort the process, including while the
+    // thread is already unwinding. `catch_unwind` contains it and the value is
+    // still dropped, so its resources are released instead of leaked.
+    if std::panic::catch_unwind(std::panic::AssertUnwindSafe(move || drop(value))).is_err() {
         tracing::error!("audio_backend_drop_panicked");
     }
 }
@@ -986,7 +984,7 @@ mod tests {
     }
 
     #[test]
-    fn drop_quietly_forgets_values_during_unwind() {
+    fn drop_quietly_contains_drop_panic_during_unwind() {
         struct Boom;
         impl Drop for Boom {
             fn drop(&mut self) {

@@ -27,7 +27,7 @@
     "@iconify-icon/react": "^3.0.5",
     "@lingui/core": "^6.10.1",
     "@lingui/react": "^6.10.1",
-    "@lobehub/icons": "^6.10.0",
+    "@lobehub/icons": "^3.0.2",
     "@pierre/diffs": "^1.6.1",
     "@radix-ui/react-hover-card": "^1.2.1",
     "@syntheo/changelog": "workspace:^",

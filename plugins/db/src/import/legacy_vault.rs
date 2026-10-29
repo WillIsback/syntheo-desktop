@@ -46,7 +46,7 @@ pub async fn import_legacy_vault(
     let mut document_variants = DocumentVariants::default();
 
     for source in discovery.files {
-        let bytes = match std::fs::read(&source.path) {
+        let bytes = match tokio::fs::read(&source.path).await {
             Ok(bytes) => bytes,
             Err(error) => {
                 let item_id = stable_id(&format!("{run_id}:{}", source.relative_path));

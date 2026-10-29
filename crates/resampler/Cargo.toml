@@ -14,7 +14,7 @@ async-source = [
 ]
 
 [dependencies]
-audioadapter-buffers = "2.0"
+audioadapter-buffers = "5.2"
 dasp = { workspace = true, optional = true }
 futures-util = { workspace = true, optional = true }
 pin-project = { workspace = true, optional = true }

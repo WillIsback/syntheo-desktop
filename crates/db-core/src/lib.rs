@@ -59,7 +59,9 @@ impl Db {
 
     pub async fn connect_local(path: impl AsRef<Path>) -> Result<Self, sqlx::Error> {
         if let Some(parent) = path.as_ref().parent() {
-            std::fs::create_dir_all(parent).map_err(sqlx::Error::Io)?;
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(sqlx::Error::Io)?;
         }
         let options = apply_internal_connect_policy(SqliteConnectOptions::new())
             .filename(path)
@@ -93,7 +95,9 @@ impl Db {
 
     pub async fn connect_local_plain(path: impl AsRef<Path>) -> Result<Self, sqlx::Error> {
         if let Some(parent) = path.as_ref().parent() {
-            std::fs::create_dir_all(parent).map_err(sqlx::Error::Io)?;
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(sqlx::Error::Io)?;
         }
         let options = apply_internal_connect_policy(SqliteConnectOptions::new())
             .filename(path)
@@ -181,7 +185,7 @@ async fn connect_with_options(
     let mut connect_options = match options.storage {
         DbStorage::Local(path) => {
             if let Some(parent) = path.parent() {
-                std::fs::create_dir_all(parent)?;
+                tokio::fs::create_dir_all(parent).await?;
             }
             apply_internal_connect_policy(SqliteConnectOptions::new())
                 .filename(path)

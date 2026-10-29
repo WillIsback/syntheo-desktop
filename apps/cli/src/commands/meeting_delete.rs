@@ -247,7 +247,7 @@ pub async fn run(args: &Args, id: &str, expected: &str, json: bool) -> Result<()
     // gone. Retrying the same snapshot resumes after an interrupted removal.
     for relative in paths {
         let target = contained(&base, &relative)?;
-        match std::fs::remove_dir_all(&target) {
+        match tokio::fs::remove_dir_all(&target).await {
             Ok(()) => (),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => (),
             Err(_) => return Err(invalid("recording cleanup awaits retry")),
