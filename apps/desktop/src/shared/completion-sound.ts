@@ -9,9 +9,20 @@ const COMPLETION_SOUND_NAMES = [
   "chime",
   "sparkle",
   "bloom",
-] as const satisfies readonly SoundName[];
+] as const;
 
 export type CompletionSoundName = (typeof COMPLETION_SOUND_NAMES)[number];
+
+// cuelume 0.2.8 a remplacé ces cues par des noms canoniques ; les anciens noms
+// restent des alias. On mappe explicitement pour garder les préférences
+// existantes tout en jouant un cue valide.
+const PLAYED_SOUNDS: Record<CompletionSoundName, SoundName> = {
+  ready: "ready",
+  success: "success",
+  chime: "success",
+  sparkle: "success",
+  bloom: "open",
+};
 
 const DEFAULT_COMPLETION_SOUND: CompletionSoundName = "ready";
 const COMPLETION_SOUND_VOLUME = 0.7;
@@ -25,7 +36,7 @@ export function normalizeCompletionSoundName(
 }
 
 export function previewCompletionSound(sound: CompletionSoundName): void {
-  play(sound, { volume: COMPLETION_SOUND_VOLUME });
+  play(PLAYED_SOUNDS[sound], { volume: COMPLETION_SOUND_VOLUME });
 }
 
 export async function playCompletionSound(): Promise<void> {
