@@ -121,7 +121,7 @@ export function ParticipantInput({
     <div className="relative" ref={setContainerRef}>
       <div
         className="flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2"
-        onClick={() => inputRef.current?.focus()}
+        onMouseDown={() => inputRef.current?.focus()}
       >
         {mappingIds.map((mappingId) => (
           <ParticipantChip
