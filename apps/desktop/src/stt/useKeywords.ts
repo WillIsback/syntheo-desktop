@@ -1,5 +1,5 @@
 import { Effect, Option, pipe } from "effect";
-import type { UnknownException } from "effect/Cause";
+import type { UnknownError } from "effect/Cause";
 import { toString } from "nlcst-to-string";
 import retextEnglish from "retext-english";
 import type { Keyphrase, Keyword } from "retext-keywords";
@@ -163,7 +163,7 @@ export const extractKeywordsFromMarkdown = (
         : pipe(
             processMarkdown(cleaned),
             Effect.map((file) => gatherKeywords(file, hashtags)),
-            Effect.orElse(() =>
+            Effect.catch(() =>
               Effect.succeed({
                 keywords: hashtags,
                 keyphrases: [],
@@ -176,7 +176,7 @@ export const extractKeywordsFromMarkdown = (
 
 const processMarkdown = (
   markdown: string,
-): Effect.Effect<VFile, UnknownException, never> =>
+): Effect.Effect<VFile, UnknownError, never> =>
   Effect.try(() =>
     unified()
       .use(retextEnglish)
@@ -191,13 +191,13 @@ const gatherKeywords = (
   hashtags: string[],
 ): { keywords: string[]; keyphrases: string[] } => {
   const keywords = pipe(
-    Option.fromNullable(file.data.keywords),
+    Option.fromNullishOr(file.data.keywords),
     Option.map((entries) => entries.flatMap(extractKeywordMatches)),
     Option.getOrElse(() => [] as string[]),
   );
 
   const keyphrases = pipe(
-    Option.fromNullable(file.data.keyphrases),
+    Option.fromNullishOr(file.data.keyphrases),
     Option.map((entries) => entries.flatMap(extractKeyphraseMatches)),
     Option.getOrElse(() => [] as string[]),
   );
