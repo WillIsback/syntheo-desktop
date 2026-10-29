@@ -1,10 +1,13 @@
 # Workflow : Qualité du code
 # Formatage, lint TS/Rust, typage, cohérence des commits, des workflows et des lockfiles
 #
-# Le job Rust (clippy + tests, ~20 min à froid) ne tourne PAS sur les PR : il
-# est déplacé sur `push` vers main (+ hebdo + manuel), comme le Rust de CodeQL.
-# Les PR gardent un contrôle Rust quasi gratuit (`cargo metadata --locked`,
-# dans le job TypeScript) et le reste de la qualité. Objectif : PR < ~5 min.
+# Le job Rust (clippy + tests, ~20 min à froid) ne tourne PAS sur les PR
+# humaines : il est déplacé sur `push` vers main (+ hebdo + manuel), comme le
+# Rust de CodeQL. Les PR gardent un contrôle Rust quasi gratuit (`cargo
+# metadata --locked`, dans le job TypeScript) et le reste de la qualité.
+# EXCEPTION : les PR ouvertes par Dependabot exécutent le job Rust complet. Un
+# bump de dépendance cassant ne doit pas pouvoir atteindre main sans avoir été
+# compilé (cf. la régression qui a cassé le build desktop, corrigée en #178).
 name: ci-code-quality
 
 on:
@@ -96,7 +99,9 @@ jobs:
   # l'hebdo et le déclenchement manuel pour ne pas allonger les PR.
   rust:
     name: ci-code-quality (Rust)
-    if: github.event_name != 'pull_request'
+    # Hors PR (voir l'en-tête), sauf les PR Dependabot : un bump de dépendance
+    # doit être compilé/testé avant d'atteindre main.
+    if: github.event_name != 'pull_request' || github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
