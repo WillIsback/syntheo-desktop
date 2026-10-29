@@ -153,8 +153,7 @@ def decode_pcm24(data: bytes) -> list[float]:
 def decode_pcm32(data: bytes) -> list[float]:
     require_sample_alignment(data, 4, "PCM32")
     return [
-        sample / 2147483648.0
-        for sample in struct.unpack(f"<{len(data) // 4}i", data)
+        sample / 2147483648.0 for sample in struct.unpack(f"<{len(data) // 4}i", data)
     ]
 
 

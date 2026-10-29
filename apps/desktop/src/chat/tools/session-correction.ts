@@ -256,7 +256,7 @@ function replaceTranscriptWords(
 
   const nextWords: TranscriptWord[] = [];
   let count = 0;
-  for (let index = 0; index < words.length; ) {
+  for (let index = 0; index < words.length;) {
     if (target.length === 1 && replacementTokens.length === 1) {
       const word = words[index];
       const replaced = replaceBoundedExact(word.text ?? "", oldText, newText);
@@ -314,7 +314,7 @@ function replaceLoosePhrase(
   let cursor = 0;
   let count = 0;
 
-  for (let index = 0; index < tokens.length; ) {
+  for (let index = 0; index < tokens.length;) {
     const matches = target.every(
       (text, offset) => tokens[index + offset]?.text === text,
     );
