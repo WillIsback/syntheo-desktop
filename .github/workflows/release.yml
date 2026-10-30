@@ -239,6 +239,25 @@ jobs:
           name: syntheo-desktop-windows
           path: dist
 
+      - name: Créer les alias d'assets stables
+        shell: bash
+        env:
+          VERSION: ${{ needs.detect.outputs.version }}
+        run: |
+          set -euo pipefail
+          v="${VERSION#v}"
+          cd dist
+          # Noms stables : `releases/latest/download/<nom>` reste valable à chaque release.
+          cp "Syntheo_${v}_amd64.deb" "Syntheo-linux-amd64.deb"
+          cp "Syntheo_${v}_amd64.AppImage" "Syntheo-linux-x86_64.AppImage"
+          cp "Syntheo_${v}_x64-setup.exe" "Syntheo-windows-x64-setup.exe"
+          cp "Syntheo_${v}_x64_en-US.msi" "Syntheo-windows-x64.msi"
+          # Régénère les sommes en incluant les alias.
+          rm -f SHA256SUMS SHA256SUMS-windows
+          sha256sum ./*.deb ./*.AppImage ./*.msi ./*.exe > SHA256SUMS
+          sha256sum ./*.msi ./*.exe > SHA256SUMS-windows
+          cat SHA256SUMS SHA256SUMS-windows
+
       - name: Attestation de provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:

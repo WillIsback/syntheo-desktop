@@ -9,6 +9,13 @@
   open-weight de <i>votre</i> infrastructure. Aucun cloud, aucun audio conservé.
 </p>
 
+<p>
+  <a href="https://github.com/WillIsback/syntheo-desktop/releases/latest/download/Syntheo-windows-x64-setup.exe"><img alt="Télécharger pour Windows" src="https://img.shields.io/badge/Windows-t%C3%A9l%C3%A9charger-0078D4?logo=windows11&logoColor=white" /></a>
+  <a href="https://github.com/WillIsback/syntheo-desktop/releases/latest/download/Syntheo-linux-x86_64.AppImage"><img alt="Télécharger pour Linux" src="https://img.shields.io/badge/Linux-t%C3%A9l%C3%A9charger-FCC624?logo=linux&logoColor=black" /></a>
+  <a href="https://github.com/WillIsback/syntheo-desktop/releases/latest"><img alt="Signé par Azure Artifact Signing" src="https://img.shields.io/badge/code%20sign%C3%A9-Azure%20Artifact%20Signing-0078D4?logo=microsoftazure&logoColor=white" /></a>
+  <a href="LICENSE"><img alt="Licence MIT" src="https://img.shields.io/badge/licence-MIT-green" /></a>
+</p>
+
 </div>
 
 > **Statut** : en cours de construction. Le code de départ est celui d'Syntheo
@@ -66,8 +73,9 @@ sudo apt install ~/.local/bin/Syntheo_*_amd64.deb   # ou : sudo apt install ./Sy
 ### Windows
 
 **Télécharger l'installeur** (recommandé si tu n'utilises pas le terminal) :
-[dernière release](https://github.com/WillIsback/syntheo-desktop/releases/latest)
-→ `Syntheo_<version>_x64-setup.exe`.
+[`Syntheo-windows-x64-setup.exe`](https://github.com/WillIsback/syntheo-desktop/releases/latest/download/Syntheo-windows-x64-setup.exe)
+— ou le `.msi` :
+[`Syntheo-windows-x64.msi`](https://github.com/WillIsback/syntheo-desktop/releases/latest/download/Syntheo-windows-x64.msi).
 
 L'installeur est **signé** (Azure Artifact Signing) : Windows l'attribue à
 **William Derue**. SmartScreen peut encore afficher un avertissement sur les
