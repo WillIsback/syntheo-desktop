@@ -63,17 +63,35 @@ curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scr
 sudo apt install ~/.local/bin/Syntheo_*_amd64.deb   # ou : sudo apt install ./Syntheo_*.deb
 ```
 
+### Windows — script en une ligne (NSIS)
+
+```powershell
+irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.ps1 | iex
+```
+
+Le script télécharge l'installeur NSIS (`.exe`) de la dernière release, vérifie
+sa somme SHA256 (`SHA256SUMS-windows`) et l'installe silencieusement (portée
+utilisateur, sans élévation). Pour **tester une release précise** :
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.ps1))) -Version v0.3.0
+```
+
+> L'installeur Windows **n'est pas encore signé** : SmartScreen affiche un
+> avertissement au premier lancement (*Informations complémentaires › Exécuter
+> quand même*).
+
 ### Paquets
 
-Les `.deb` et AppImage sont aussi téléchargeables depuis la page
+Les `.deb`, AppImage, `.msi` et `.exe` sont aussi téléchargeables depuis la page
 [Releases](https://github.com/WillIsback/syntheo-desktop/releases) (chaque
-release publie `SHA256SUMS` et une attestation de provenance vérifiable avec
-`gh attestation verify`).
+release publie `SHA256SUMS` et `SHA256SUMS-windows`, ainsi qu'une attestation de
+provenance vérifiable avec `gh attestation verify`).
 
-### Windows / macOS
+### macOS
 
-Les paquets Windows et macOS ne sont pas encore publiés. En attendant,
-l'application se construit depuis les sources :
+Les paquets macOS ne sont pas encore publiés. En attendant, l'application se
+construit depuis les sources :
 [CONTRIBUTING.md › Construire depuis les sources](CONTRIBUTING.md#construire-depuis-les-sources).
 
 ## Développement

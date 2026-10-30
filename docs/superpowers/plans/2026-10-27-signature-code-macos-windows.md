@@ -1,8 +1,12 @@
 # Signature de code macOS / Windows — plan d'implémentation
 
 > **Statut :** décision prise (Will, 2026-10-27) — la distribution **doit** avoir une signature de
-> code macOS/Windows. Ce plan est **à exécuter** une fois les secrets fournis. Rien n'est encore
-> implémenté dans `release.yml` (Linux-only aujourd'hui).
+> code macOS/Windows. Ce plan reste **à exécuter** pour la signature (secrets à fournir).
+>
+> **Avancement (2026-10-30) :** le build Windows **non signé** est en place
+> (`.github/workflows/build-windows.yml`) et **publié** par `release.yml` (job `build-windows` :
+> NSIS + MSI + `SHA256SUMS-windows`), avec un one-liner `scripts/install.ps1`. Reste : signature
+> Windows (Task 2), signature/notarisation macOS (Task 1), extension aux stores.
 
 **Goal:** produire des paquets **signés** macOS (Developer ID + notarisation) et Windows
 (certificat de signature de code) depuis `release.yml`, en plus du deb/AppImage Linux.
@@ -93,10 +97,11 @@ et `notify-failure` en conséquence.
 
 **Files:** `.github/workflows/release.yml`.
 
-- [ ] **Step 1:** `publish.needs += [build-macos, build-windows]` ; télécharger les 3 artefacts.
-- [ ] **Step 2:** étendre `attest-build-provenance.subject-path` (dmg/msi/exe) et l'upload
-      `gh release create`.
-- [ ] **Step 3:** étendre `notify-failure` (statut des nouveaux jobs).
+- [x] **Step 1 (Windows) :** `publish.needs += [build-windows]` ; téléchargement de l'artefact
+      `syntheo-desktop-windows-unsigned`. *(macOS : à faire.)*
+- [x] **Step 2 :** `attest-build-provenance.subject-path` étendu (`msi`/`exe`/`dmg`) ; l'upload
+      `gh release create dist/*` publie déjà les nouveaux artefacts.
+- [x] **Step 3 :** `notify-failure` étendu (statut du job `build-windows`).
 - [ ] **Step 4:** run de validation `workflow_dispatch` en `dry_run: true`.
 
 ### Task 4: Documentation
