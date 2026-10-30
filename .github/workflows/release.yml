@@ -286,13 +286,28 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.detect.outputs.version }}
+          TARGET: ${{ github.sha }}
         run: |
           set -euo pipefail
-          gh release create "$VERSION" dist/* \
-            --target "$GITHUB_SHA" \
-            --title "Syntheo Desktop $VERSION" \
-            --notes-file changelog-tmp.md \
-            --latest
+          # Le tag est créé explicitement sur le commit de release via l'API git
+          # refs. On crée ensuite la release SANS `--target` : `target_commitish`
+          # déclenche un contrôle de scope « workflows » (403 dès que
+          # .github/workflows a changé entre la cible et HEAD).
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${VERSION} déjà présent."
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f ref="refs/tags/${VERSION}" -f sha="${TARGET}" >/dev/null
+          fi
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "Release ${VERSION} déjà présente : mise à jour des assets."
+            gh release upload "$VERSION" dist/* --clobber
+          else
+            gh release create "$VERSION" dist/* \
+              --title "Syntheo Desktop $VERSION" \
+              --notes-file changelog-tmp.md \
+              --latest
+          fi
           echo "✅ Release $VERSION publiée."
 
   notify-failure:
