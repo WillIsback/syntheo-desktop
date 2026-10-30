@@ -9,6 +9,95 @@ use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 use syntheo_ws_client::client::Message;
 
+/// Riva/NIM only runs inference after an explicit `input_audio_buffer.commit`:
+/// an `append` on its own just buffers audio. The client never sends a commit
+/// itself, so every appended chunk is followed by one to keep audio flowing.
+///
+/// `SpeechContext.boost` is documented as 0.5–2.0 for RNNT/TDT models, and the
+/// parakeet/cache-aware NIM here is an RNNT. Larger values (a previous proxy
+/// used 10) push the decoder into repetition loops on ordinary note phrases.
+const WORD_BOOST: f64 = 1.0;
+
+/// The multilingual NIM accepts only specific BCP-47 locales: a bare tag such
+/// as `fr` is rejected ("doesn't match model language codes …"). This is the
+/// locale list the served model advertises, keyed by ISO-639 code with one
+/// region chosen per language. A language that already carries a region is used
+/// verbatim; anything unknown falls back to the bare tag.
+const LOCALES: &[(&str, &str)] = &[
+    ("ar", "ar-AR"),
+    ("bg", "bg-BG"),
+    ("cs", "cs-CZ"),
+    ("da", "da-DK"),
+    ("de", "de-DE"),
+    ("el", "el-GR"),
+    ("en", "en-US"),
+    ("es", "es-ES"),
+    ("et", "et-EE"),
+    ("fi", "fi-FI"),
+    ("fr", "fr-FR"),
+    ("he", "he-IL"),
+    ("hi", "hi-IN"),
+    ("hr", "hr-HR"),
+    ("hu", "hu-HU"),
+    ("it", "it-IT"),
+    ("ja", "ja-JP"),
+    ("ko", "ko-KR"),
+    ("lt", "lt-LT"),
+    ("lv", "lv-LV"),
+    ("mt", "mt-MT"),
+    ("nb", "nb-NO"),
+    ("nl", "nl-NL"),
+    ("nn", "nn-NO"),
+    ("pl", "pl-PL"),
+    ("pt", "pt-BR"),
+    ("ro", "ro-RO"),
+    ("ru", "ru-RU"),
+    ("sk", "sk-SK"),
+    ("sl", "sl-SI"),
+    ("sv", "sv-SE"),
+    ("th", "th-TH"),
+    ("tr", "tr-TR"),
+    ("uk", "uk-UA"),
+    ("vi", "vi-VN"),
+    ("zh", "zh-CN"),
+];
+
+const MAX_SEGMENT_BYTES: usize = 1024 * 1024;
+
+fn localized_language(lang: &syntheo_language::Language) -> String {
+    if lang.region().is_some() {
+        return lang.bcp47_code();
+    }
+    let code = lang.iso639().code();
+    if code == "auto" {
+        return "auto".to_string();
+    }
+    LOCALES
+        .iter()
+        .find(|(iso, _)| *iso == code)
+        .map(|(_, locale)| (*locale).to_string())
+        .unwrap_or_else(|| lang.bcp47_code())
+}
+
+/// Builds the `word_boosting` block. The NIM types `word_boosting_list` as a
+/// list of `SpeechContext` objects (`extra="forbid"`), so bare strings are
+/// rejected; phrases are grouped into a single context at the RNNT boost scale.
+fn word_boosting(keywords: &[String]) -> Value {
+    let phrases: Vec<&str> = keywords
+        .iter()
+        .map(|keyword| keyword.trim())
+        .filter(|keyword| !keyword.is_empty())
+        .collect();
+    if phrases.is_empty() {
+        json!({ "enable_word_boosting": false, "word_boosting_list": [] })
+    } else {
+        json!({
+            "enable_word_boosting": true,
+            "word_boosting_list": [{ "phrases": phrases, "boost": WORD_BOOST }],
+        })
+    }
+}
+
 #[derive(Clone, Default)]
 pub struct NvidiaAdapter {
     state: Arc<Mutex<SegmentState>>,
@@ -110,16 +199,31 @@ impl RealtimeSttAdapter for NvidiaAdapter {
         segment::message(json!({"type":"input_audio_buffer.done"}))
     }
     fn initial_message(&self, _: Option<&str>, params: &ListenParams, _: u8) -> Option<Message> {
-        Some(segment::message(
-            json!({"type":"transcription_session.update","session":{
-                "modalities":["text"],"input_audio_format":"pcm16",
-                "input_audio_transcription":{"model":params.model.as_deref().unwrap_or("nemotron-asr-streaming"),"language":params.languages.first().map(|lang| if lang.iso639().code() == "en" && lang.region().is_none() { "en-US".into() } else { lang.bcp47_code() }).unwrap_or_else(|| "en-US".into())},
-                "input_audio_params":{"sample_rate_hz":16000,"num_channels":1},
-                "recognition_config":{"enable_automatic_punctuation":true,"enable_word_time_offsets":true},
-                "speaker_diarization":{"enable_speaker_diarization":params.num_speakers != Some(1)},
-                "word_boosting":{"enable_word_boosting":!params.keywords.is_empty(),"word_boosting_list":params.keywords}
-            }}),
-        ))
+        let language = params
+            .languages
+            .first()
+            .map(localized_language)
+            .unwrap_or_else(|| "en-US".to_string());
+        Some(segment::message(json!({
+            "type": "transcription_session.update",
+            "session": {
+                "modalities": ["text"],
+                "input_audio_format": "pcm16",
+                "input_audio_transcription": {
+                    "model": params.model.as_deref().unwrap_or(""),
+                    "language": language,
+                },
+                "input_audio_params": {"sample_rate_hz": 16000, "num_channels": 1},
+                "recognition_config": {
+                    "enable_automatic_punctuation": true,
+                    "enable_word_time_offsets": true,
+                },
+                "speaker_diarization": {
+                    "enable_speaker_diarization": params.num_speakers != Some(1),
+                },
+                "word_boosting": word_boosting(&params.keywords),
+            }
+        })))
     }
     fn audio_to_message(&self, audio: bytes::Bytes) -> Message {
         self.state
@@ -127,6 +231,13 @@ impl RealtimeSttAdapter for NvidiaAdapter {
             .unwrap_or_else(|e| e.into_inner())
             .audio(audio.len(), 16000);
         segment::message(json!({"type":"input_audio_buffer.append","audio":STANDARD.encode(audio)}))
+    }
+    fn audio_messages(&self, audio: bytes::Bytes) -> Vec<Message> {
+        // Flush after every append: the NIM buffers audio until it sees a commit.
+        vec![
+            self.audio_to_message(audio),
+            segment::message(json!({"type":"input_audio_buffer.commit"})),
+        ]
     }
     fn parse_response(&self, raw: &str) -> Vec<StreamResponse> {
         let Ok(value) = serde_json::from_str::<Value>(raw) else {
@@ -141,22 +252,33 @@ impl RealtimeSttAdapter for NvidiaAdapter {
                 let Some(text) = value["delta"].as_str() else {
                     return vec![];
                 };
-                if state.text.len() + text.len() > 1024 * 1024 {
+                if text.len() > MAX_SEGMENT_BYTES {
                     return vec![segment::error(
                         "nvidia",
                         &json!({"message":"Unterminated transcript segment exceeds the size limit"}),
                     )];
                 }
+                // Riva repeats the whole hypothesis of the open segment on each
+                // delta, while the consumer expects the full current segment in
+                // every partial: replace rather than append.
+                state.text.clear();
                 state.text.push_str(text);
                 let text = state.text.clone();
                 let end = state.end(16000);
                 vec![state.response(&text, end, false)]
             }
             "conversation.item.input_audio_transcription.completed" => {
+                let end = state.end(16000);
+                // The end-of-stream result (`is_last_result`) replays every
+                // segment already delivered: keep only the stop signal so it is
+                // not appended a second time.
+                if value["is_last_result"].as_bool() == Some(true) {
+                    state.text.clear();
+                    return vec![segment::finished(end)];
+                }
                 let Some(text) = value["transcript"].as_str() else {
                     return vec![];
                 };
-                let end = state.end(16000);
                 let mut response = state.response(text, end, true);
                 if let Some(words) = value["words_info"]["words"].as_array() {
                     let words: Vec<_> = words
@@ -190,11 +312,7 @@ impl RealtimeSttAdapter for NvidiaAdapter {
                         channel.alternatives[0].words = words;
                     }
                 }
-                let mut responses = vec![response];
-                if value["is_last_result"].as_bool() == Some(true) {
-                    responses.push(segment::finished(end));
-                }
-                responses
+                vec![response]
             }
             _ => vec![],
         }

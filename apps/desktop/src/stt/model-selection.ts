@@ -16,6 +16,11 @@ export const NVIDIA_NIM_ASR_MODELS = [
   "nemotron-asr-streaming",
   "parakeet-tdt-0.6b-v3",
   "parakeet-tdt-0.6b-v2",
+  // Multilingual Nemotron ASR Streaming NIM (`type=multi`, fr-FR included).
+  // Deployments that serve the multilingual container expose this id, which is
+  // the one the realtime WebSocket accepts (`nemotron-asr-streaming` is only a
+  // label the container no longer answers to directly).
+  "cache-aware-parakeet-rnnt-multi-asr-streaming-sortformer",
 ] as const;
 
 const DEFAULT_EXTERNAL_STT_MODELS: Record<string, string> = {

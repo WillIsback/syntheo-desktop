@@ -374,13 +374,18 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
         let ws =
             websocket_client_with_keep_alive(&self.request, &self.adapter, self.connect_policy);
 
-        // Transform audio stream to use adapter's audio_to_message method
+        // Transform audio stream to use adapter's audio_messages method
         let adapter_for_transform = self.adapter.clone();
-        let transformed_stream = audio_stream.map(move |input| match input {
-            MixedMessage::Audio(data) => {
-                TransformedInput::Audio(adapter_for_transform.audio_to_message(data))
-            }
-            MixedMessage::Control(control) => TransformedInput::Control(control),
+        let transformed_stream = audio_stream.flat_map(move |input| {
+            let messages: Vec<TransformedInput> = match input {
+                MixedMessage::Audio(data) => adapter_for_transform
+                    .audio_messages(data)
+                    .into_iter()
+                    .map(TransformedInput::Audio)
+                    .collect(),
+                MixedMessage::Control(control) => vec![TransformedInput::Control(control)],
+            };
+            futures_util::stream::iter(messages)
         });
 
         let (raw_stream, inner) = ws
@@ -555,12 +560,20 @@ async fn forward_dual_to_single<A: RealtimeSttAdapter>(
     while let Some(msg) = stream.next().await {
         match msg {
             MixedMessage::Audio((mic, spk)) => {
-                let mic_msg = mic_adapter.audio_to_message(mic);
-                let spk_msg = spk_adapter.audio_to_message(spk);
-                if mic_tx.send(MixedMessage::Audio(mic_msg)).await.is_err() {
-                    break;
+                let mut closed = false;
+                for message in mic_adapter.audio_messages(mic) {
+                    if mic_tx.send(MixedMessage::Audio(message)).await.is_err() {
+                        closed = true;
+                        break;
+                    }
                 }
-                if spk_tx.send(MixedMessage::Audio(spk_msg)).await.is_err() {
+                for message in spk_adapter.audio_messages(spk) {
+                    if spk_tx.send(MixedMessage::Audio(message)).await.is_err() {
+                        closed = true;
+                        break;
+                    }
+                }
+                if closed {
                     break;
                 }
             }
