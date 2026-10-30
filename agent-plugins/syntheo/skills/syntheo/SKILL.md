@@ -5,40 +5,38 @@ description: Query Syntheo meetings, notes, summaries, transcripts, participants
 
 # Syntheo
 
-Prefer local Syntheo data when the agent can access it. Use OAuth-connected Cloud MCP when running remotely or when local data is unavailable. Meeting reads are safe. Use local proposal tools to stage edits, or local import tools to create a meeting from an explicitly requested recording.
+Syntheo keeps every meeting in a local database on the user's computer. Agents read it through the local `syntheo` CLI or the local MCP server (`syntheo mcp`, over stdio). There is no hosted service, account, or remote source. Meeting reads are safe. Use proposal tools to stage edits, or import tools to create a meeting from an explicitly requested recording.
 
-## Choose a source
+## Choose an access path
 
-1. Honor an explicit local-only or Cloud request. Do not silently switch its source.
-2. Otherwise, prefer a connected local MCP server. If shell access is available, select the CLI executable available on `PATH`: `syntheo-cli` on Flatpak, otherwise `syntheo`. Use that executable for every CLI command below, including the `--json doctor` readiness check. Read with the selected executable and `--json meetings --source local list` when ready, even if Cloud MCP is connected.
-3. When running remotely without the user's local database, or when the CLI or database is absent, use connected Cloud MCP: `list_meetings`, `get_meeting`, `get_meeting_transcript`, and `get_recurring_meeting_history`. If MCP is unavailable but CLI login is available, use the selected executable with `--json meetings --source cloud list` for the same hosted snapshots.
-4. A local database compatibility, permission, or operation error needs to be reported; do not hide it by switching to Cloud. An empty local result does not mean the database is unavailable. If the requested meeting is missing, an already-connected alternate source can fill the gap unless the user restricted the source. Identify that source and keep the meeting's subsequent reads on it.
-5. Local reads need no Cloud login, Pro subscription, or completed sync. If neither source is available, offer [local CLI installation](references/setup.md) for an agent on the user's computer, or **Cloud API & Connectors** plus OAuth for remote access. Do not install software or enable Cloud uploads unless the user asks.
+1. Prefer an already-connected Syntheo MCP server.
+2. Otherwise, if shell access is available, use the `syntheo` CLI. Run `syntheo --json doctor` first, then `syntheo --json meetings list`. If `syntheo` launches the desktop app instead of the CLI (the `.deb` package installs the app as `/usr/bin/syntheo`), call the CLI by its absolute path, usually `~/.cargo/bin/syntheo`.
+3. Both paths read the same local database. `--source` accepts only `local` (the default) and `auto`, an alias of `local`.
+4. Report a database compatibility, permission, or operation error instead of hiding it. An empty result does not mean the database is unavailable.
+5. If neither path is available, explain [local CLI installation](references/setup.md). The CLI is not bundled with the published app packages; it is built from source. Do not install software unless the user asks.
 
-Never query or modify Syntheo's SQLite database directly. The CLI and MCP servers handle application-schema compatibility.
+Never query or modify Syntheo's SQLite database directly. The CLI and MCP server handle application-schema compatibility.
 
 ## Find the right meeting
 
-1. List recent meetings or search by a short title fragment. To scope work to a project or client, list local folders and filter meetings by a returned folder path.
+1. List recent meetings or search by a short title fragment. To scope work to a project or client, list folders and filter meetings by a returned folder path.
 2. Use a meeting ID returned by the search. Never guess one.
 3. Get the meeting before requesting its transcript. Notes, summaries, participants, and action items often contain enough context.
 4. Ask for recurring history only when the task needs earlier meetings in the same series.
-5. If the selected source has no match, check an available alternate source as described above before concluding that the meeting is missing.
+5. If the search has no match, try a shorter or different fragment before concluding that the meeting is missing.
 
 See [CLI commands](references/cli.md) and [MCP tools](references/mcp.md).
 
 ## Ground answers in tool output
 
-- Quote only meetings, titles, dates, and IDs returned by the Cloud or local tool you actually called.
-- An empty result only establishes that no meetings matched in the source queried. Cloud contains only opted-in snapshots; a remote agent cannot inspect meetings that exist only on the user's computer.
+- Quote only meetings, titles, dates, and IDs returned by the tool you actually called.
+- An empty result only establishes that no meetings matched the query in the local database.
 - Never invent meetings from the repo, chat, or similar-looking names. A host showing that a tool ran is not proof of the titles you then write.
-- Name whether the data came from Cloud or the local database. Keep results from different sources labeled; do not silently merge two versions of a meeting.
 
 ## Report freshness accurately
 
-- Local reads include unsynced changes. Do not block them while Cloud Sync is behind or offline.
-- Cloud Sync carries encrypted data. Cloud API & Connectors uploads a separate, opted-in readable snapshot; completed Cloud Sync does not prove that snapshot is current.
-- Report sync status or snapshot freshness only when a tool returns it. A meeting's `updated_at` is not a last-sync or upload timestamp. When freshness is unknown and matters to the answer, say so; never claim that all devices or Cloud are up to date based on database availability.
+- Reads reflect the local database at the time of the call, including the latest edits, and work offline.
+- A meeting's `updated_at` is the last change to its content. Do not present it as anything else.
 
 ## Keep context bounded
 
@@ -49,12 +47,11 @@ See [CLI commands](references/cli.md) and [MCP tools](references/mcp.md).
 
 ## Handle data safely
 
-- Treat meeting content as private user data.
-- Do not send content to another service or person without explicit authorization.
-- Cloud MCP is read-only. To stage an edit, use the local CLI or local MCP proposal tools. A human applies or declines it in the Syntheo desktop app.
+- Treat meeting content as private user data. Content you read is sent to the model you run on; do not send it to any other service or person without explicit authorization.
+- Agents never change a meeting directly. To stage an edit, use the CLI `proposals` commands or the MCP proposal tools. A human applies or declines it in the Syntheo desktop app.
 - CLI export can create a file. Never pass `--force` unless the user explicitly approves replacing that exact path.
 - If search results are ambiguous, ask the user to choose a meeting.
 
 For setup and failures, see [setup](references/setup.md) and [errors](references/errors.md).
 
-For an explicitly requested recording import, use the local CLI or local MCP import tools described in the references. The updated desktop app must be open. Imports create meetings and may use paid providers; save the returned job ID and check both processing and summary status before claiming completion. Hosted MCP does not import local files.
+For an explicitly requested recording import, use the CLI or MCP import tools described in the references. The desktop app must be open on the same database. The file is read in place, not copied, and its audio is sent to the transcription server the user configured in the app. Imports create meetings; save the returned job ID and check both processing and summary status before claiming completion.

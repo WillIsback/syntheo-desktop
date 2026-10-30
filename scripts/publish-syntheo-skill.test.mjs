@@ -54,11 +54,10 @@ test("repository marketplaces list a single Syntheo plugin", async () => {
   const marketplacePaths = [
     ".claude-plugin/marketplace.json",
     ".cursor-plugin/marketplace.json",
-    ".github/plugin/marketplace.json",
   ];
   for (const marketplacePath of marketplacePaths) {
     const marketplace = await readJson(marketplacePath);
-    assert.equal(marketplace.name, "fastrepl");
+    assert.equal(marketplace.name, "syntheo-desktop");
     assert.deepEqual(
       marketplace.plugins.map((plugin) => plugin.name),
       ["syntheo"],
@@ -69,7 +68,7 @@ test("repository marketplaces list a single Syntheo plugin", async () => {
   }
 
   const codexMarketplace = await readJson(".agents/plugins/marketplace.json");
-  assert.equal(codexMarketplace.name, "fastrepl");
+  assert.equal(codexMarketplace.name, "syntheo-desktop");
   assert.deepEqual(
     codexMarketplace.plugins.map((plugin) => plugin.name),
     ["syntheo"],
@@ -78,24 +77,19 @@ test("repository marketplaces list a single Syntheo plugin", async () => {
   assert.equal(codexMarketplace.plugins[0].policy.authentication, "ON_USE");
 });
 
-test("the Syntheo plugin connects Cloud MCP over HTTP", async () => {
+test("the Syntheo plugin starts the local stdio MCP server", async () => {
   const portable = await readJson(`${PLUGIN_ROOT}/mcp.json`);
   const native = await readJson(`${PLUGIN_ROOT}/.mcp.json`);
-  const expectedServer = {
-    type: "http",
-    url: "https://api.example.com/mcp",
-  };
+  const expectedServer = { command: "syntheo", args: ["mcp"] };
 
   assert.deepEqual(portable.mcpServers.syntheo, {
+    type: "stdio",
     ...expectedServer,
-    type: "streamable-http",
   });
   assert.deepEqual(native.mcpServers.syntheo, expectedServer);
 
   const cursor = await readJson(`${PLUGIN_ROOT}/.cursor-plugin/plugin.json`);
-  assert.deepEqual(cursor.mcpServers.syntheo, {
-    url: "https://api.example.com/mcp",
-  });
+  assert.deepEqual(cursor.mcpServers.syntheo, expectedServer);
 
   const claude = await readJson(`${PLUGIN_ROOT}/.claude-plugin/plugin.json`);
   const codex = await readJson(`${PLUGIN_ROOT}/.codex-plugin/plugin.json`);
