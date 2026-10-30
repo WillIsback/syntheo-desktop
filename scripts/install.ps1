@@ -22,7 +22,9 @@ $Repo = "WillIsback/syntheo-desktop"
 
 function Die([string]$Message) {
   Write-Host "erreur: $Message" -ForegroundColor Red
-  exit 1
+  # `throw` plutôt que `exit` : `irm … | iex` s'exécute dans la session courante,
+  # et `exit` fermerait le terminal de l'utilisateur.
+  throw $Message
 }
 
 # Windows PowerShell 5.1 default is TLS 1.0; GitHub needs 1.2+.
@@ -67,8 +69,15 @@ try {
 }
 
 # Vérifie la somme SHA256 si le manifeste de la release est disponible.
+# Le téléchargement du manifeste est isolé : un manifeste absent ne doit pas
+# masquer un échec de vérification.
+$Sums = $null
 try {
   $Sums = (Invoke-WebRequest -UseBasicParsing -Headers $Headers -Uri $SumsUrl).Content
+} catch {
+  # Manifeste absent : on continue, comme install.sh sur Linux.
+}
+if ($Sums) {
   $Expected = $null
   foreach ($Line in @($Sums -split "`n")) {
     $Fields = $Line.Trim() -split '\s+'
@@ -85,13 +94,11 @@ try {
     }
     Write-Host "SHA256 vérifié."
   }
-} catch {
-  # Manifeste absent : on continue, comme install.sh sur Linux.
 }
 
 if ($DownloadOnly) {
   Write-Host "Téléchargé (non installé) : $Target"
-  exit 0
+  return
 }
 
 Write-Host "Installation..."
