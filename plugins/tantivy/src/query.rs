@@ -162,7 +162,7 @@ mod tests {
         let combined_query =
             BooleanQuery::new(vec![(Occur::Must, text_query), (Occur::Must, date_query)]);
         let hits = searcher
-            .search(&combined_query, &TopDocs::with_limit(10))
+            .search(&combined_query, &TopDocs::with_limit(10).order_by_score())
             .unwrap();
 
         assert_eq!(hits.len(), 1);
