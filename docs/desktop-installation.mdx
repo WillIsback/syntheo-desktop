@@ -3,7 +3,7 @@ title: "Install the desktop app"
 description: "Install Syntheo Desktop on Linux, or build it from source."
 ---
 
-Syntheo Desktop is currently distributed for **Linux** (AppImage and DEB). Windows and macOS packages are not published yet.
+Syntheo Desktop is distributed for **Linux** (AppImage and DEB) and **Windows** (NSIS and MSI). macOS packages are not published yet.
 
 ## Choose the right build
 
@@ -11,6 +11,8 @@ Syntheo Desktop is currently distributed for **Linux** (AppImage and DEB). Windo
 | --- | --- | --- |
 | Linux | AppImage (x64) | Portable build. Needs FUSE 2. |
 | Linux | DEB (x64) | For Debian, Ubuntu, and compatible distributions. |
+| Windows | Installer (NSIS) | x64, per-user. Unsigned build; SmartScreen warns on first run. |
+| Windows | MSI | x64, for managed or enterprise deployment. |
 
 ## Linux
 
@@ -62,7 +64,27 @@ If the window is still black, also disable compositing:
 WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 ./Syntheo-*.AppImage
 ```
 
-## macOS and Windows
+## Windows
+
+### One-line installer (NSIS)
+
+```powershell
+irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.ps1 | iex
+```
+
+The script downloads the latest release's NSIS installer, verifies its SHA256 against `SHA256SUMS-windows`, and installs it silently (per-user, no elevation). To install a specific published version:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.ps1))) -Version v0.3.0
+```
+
+The Windows installer is not code-signed yet, so SmartScreen shows a warning on first launch (**More info → Run anyway**).
+
+### MSI
+
+Download the `Syntheo_<version>_x64_en-US.msi` asset from the [releases page](https://github.com/WillIsback/syntheo-desktop/releases) for a managed install.
+
+## macOS
 
 Packages are not published yet. To build the app on any platform, follow [Construire depuis les sources](https://github.com/WillIsback/syntheo-desktop/blob/main/CONTRIBUTING.md#construire-depuis-les-sources) in `CONTRIBUTING.md`.
 
