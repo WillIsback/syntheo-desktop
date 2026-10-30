@@ -183,8 +183,7 @@ jobs:
           retention-days: 14
 
   # Paquets Windows non signés (NSIS + MSI), en parallèle du build Linux.
-  # La signature de code est un chantier séparé ; voir
-  # docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md.
+  # La signature de code est décrite dans docs/desktop-installation.mdx.
   build-windows:
     name: Build des paquets Windows
     needs: [detect, gate-version-consistency]

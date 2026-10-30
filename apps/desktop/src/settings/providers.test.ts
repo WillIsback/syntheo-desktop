@@ -236,7 +236,7 @@ describe("SQLite AI providers", () => {
     const { result, unmount } = renderHook(
       () =>
         useSetAiProvider("llm", "custom", {
-          defaultBaseUrl: "https://spark-787d-1.tail6cba9f.ts.net/v1",
+          defaultBaseUrl: "https://inference.example.com/v1",
         }),
       { wrapper },
     );
@@ -267,7 +267,7 @@ describe("SQLite AI providers", () => {
     const { result, unmount } = renderHook(
       () =>
         useSetAiProvider("llm", "custom", {
-          defaultBaseUrl: "https://spark-787d-1.tail6cba9f.ts.net/v1",
+          defaultBaseUrl: "https://inference.example.com/v1",
         }),
       { wrapper },
     );

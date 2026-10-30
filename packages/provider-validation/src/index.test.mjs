@@ -241,7 +241,7 @@ test("custom_llm_skips_control_key_probe", async () => {
     {
       type: "llm",
       provider: "custom",
-      baseUrl: "https://spark-787d-1.tail6cba9f.ts.net/v1",
+      baseUrl: "https://inference.example.com/v1",
       apiKey: "vllm-key",
     },
     async (url, init) => {
@@ -267,7 +267,7 @@ test("validateProviderBaseUrl_rejects_plain_http_on_a_public_host", () => {
 
 test("validateProviderBaseUrl_accepts_private_hosts_and_https", () => {
   for (const baseUrl of [
-    "https://spark-787d-1.tail6cba9f.ts.net/v1",
+    "https://inference.example.com/v1",
     "http://192.168.1.87:30000/v1",
     "http://127.0.0.1:8000/v1",
     "http://localhost:9000",
