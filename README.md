@@ -78,8 +78,8 @@ utilisateur, sans élévation). Pour **tester une release précise** :
 ```
 
 > L'installeur Windows **n'est pas encore signé** : SmartScreen affiche un
-> avertissement au premier lancement (*Informations complémentaires › Exécuter
-> quand même*).
+> avertissement au premier lancement (_Informations complémentaires › Exécuter
+> quand même_).
 
 ### Paquets
 

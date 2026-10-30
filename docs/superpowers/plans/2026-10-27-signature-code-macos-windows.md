@@ -98,7 +98,7 @@ et `notify-failure` en conséquence.
 **Files:** `.github/workflows/release.yml`.
 
 - [x] **Step 1 (Windows) :** `publish.needs += [build-windows]` ; téléchargement de l'artefact
-      `syntheo-desktop-windows-unsigned`. *(macOS : à faire.)*
+      `syntheo-desktop-windows-unsigned`. _(macOS : à faire.)_
 - [x] **Step 2 :** `attest-build-provenance.subject-path` étendu (`msi`/`exe`/`dmg`) ; l'upload
       `gh release create dist/*` publie déjà les nouveaux artefacts.
 - [x] **Step 3 :** `notify-failure` étendu (statut du job `build-windows`).

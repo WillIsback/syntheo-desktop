@@ -277,7 +277,14 @@ jobs:
 
   notify-failure:
     name: Notification d'échec
-    needs: [detect, gate-version-consistency, build, build-windows, sast, publish]
+    needs: [
+      detect,
+      gate-version-consistency,
+      build,
+      build-windows,
+      sast,
+      publish,
+    ]
     if: failure() && github.event_name == 'push'
     runs-on: ubuntu-24.04
     permissions:
