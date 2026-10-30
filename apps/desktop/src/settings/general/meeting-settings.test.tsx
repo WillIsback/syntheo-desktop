@@ -85,6 +85,25 @@ describe("MeetingSettingsView", () => {
     expect(screen.queryByText("Stop when meeting ends")).toBeNull();
   });
 
+  it("shows scheduled meeting options on macOS", () => {
+    renderMeetingSettings();
+
+    expect(screen.getByText("Start when meeting begins")).toBeTruthy();
+    expect(screen.getByText("Join scheduled meetings")).toBeTruthy();
+  });
+
+  it.each(["linux", "windows"])(
+    "hides scheduled meeting options on %s (no calendar)",
+    (os) => {
+      mocks.platform.mockReturnValue(os);
+      renderMeetingSettings();
+
+      expect(screen.queryByText("Start when meeting begins")).toBeNull();
+      expect(screen.queryByText("Join scheduled meetings")).toBeNull();
+      expect(screen.getByText("Show floating bar")).toBeTruthy();
+    },
+  );
+
   it("exposes meeting chat capture and disclosure on Linux", () => {
     mocks.platform.mockReturnValue("linux");
     renderMeetingSettings();
