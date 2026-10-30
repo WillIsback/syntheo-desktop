@@ -18,9 +18,10 @@
 
 </div>
 
-> **Statut** : en cours de construction. Le code de départ est celui d'Syntheo
-> (voir [Origine](#origine)) ; la transformation en Syntheo Desktop suit le
-> [plan de migration](docs/superpowers/specs/2026-10-24-syntheo-desktop-migration-design.md).
+> **Statut** : en construction (bêta). L'application est utilisable, mais son
+> comportement et ses réglages peuvent encore évoluer d'une version à l'autre.
+> Voir l'[architecture](docs/architecture.mdx) actuelle et la
+> [feuille de route](docs/roadmap.mdx).
 
 ## Ce que fait Syntheo Desktop
 
@@ -113,6 +114,8 @@ construit depuis les sources :
 - Desktop : `apps/desktop` (Tauri 2, React 19, TypeScript, Vite, Tailwind).
 - Rust : `crates/` et `plugins/` (capture audio, adaptateurs STT, SQLite,
   templates Jinja des prompts).
+- Architecture (flux de capture et d'inférence, stockage, garanties) :
+  [docs/architecture.mdx](docs/architecture.mdx).
 - Contribution, conventions de commit et gates de CI :
   [CONTRIBUTING.md](CONTRIBUTING.md).
 

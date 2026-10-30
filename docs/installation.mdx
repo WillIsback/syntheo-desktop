@@ -1,68 +1,73 @@
 ---
-title: "CLI installation"
-description: "Install the current Syntheo CLI and point it at local meeting data."
+title: "Installer la CLI"
+description: "Compilez la CLI Syntheo depuis les sources et reliez-la à vos données locales."
 ---
 
-## Current availability
+La commande `syntheo` regroupe la CLI et le serveur MCP local. Elle lit la base SQLite de l'application de bureau, sur votre ordinateur.
 
-The `syntheo` executable includes both the CLI and the local MCP server.
+## Disponibilité
 
 <Warning>
-  Homebrew, standalone release binaries, and Windows package-manager distribution are forthcoming. Do not rely on those channels yet.
+  La CLI n'est pas incluse dans les paquets publiés (AppImage, `.deb`, `.exe`, `.msi`) et n'est pas publiée comme binaire séparé dans les GitHub Releases. Pour l'instant, compilez-la depuis les sources.
 </Warning>
 
-## Install from the desktop app
+Dans l'application, **Paramètres → Développeurs → CLI & MCP**, la ligne « Syntheo CLI » propose un bouton « Installer ». Sur les versions publiées, ce bouton reste inactif, car la CLI n'est pas embarquée. Le bouton « Copier la configuration » du « Serveur MCP » reste lui aussi inactif dans ce cas : écrivez la configuration vous-même (voir [MCP pour les agents](/agents/mcp)).
 
-Open **Settings → Developers** and select **Install** (or **Reinstall**). Direct-download desktop builds copy the bundled CLI onto your PATH.
+## Compiler depuis les sources
 
-| Platform | Installed command | Path |
-| --- | --- | --- |
-| macOS | `syntheo` | `~/.local/bin/syntheo` |
-| Linux (DEB / AppImage) | `syntheo` | `~/.local/bin/syntheo` |
-| Windows | `syntheo` | `%LOCALAPPDATA%\Syntheo\bin\syntheo.exe` (added to your user PATH) |
-
-On macOS and Linux, add `~/.local/bin` to `PATH` if your shell cannot find `syntheo`:
-
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-On Windows, open a new terminal after installing so the PATH update applies.
-
-<Note>
-  The Mac App Store build does not include bundled CLI installation. Use [build from source](#build-from-source) instead.
-</Note>
-
-## Build from source
-
-To build the CLI yourself instead:
+Prérequis : [Rust](https://rustup.rs) installé avec `rustup`. Le dépôt fixe sa version de la chaîne d'outils dans `rust-toolchain.toml` ; `rustup` la télécharge automatiquement.
 
 ```bash
 git clone https://github.com/WillIsback/syntheo-desktop.git
-cd syntheo
+cd syntheo-desktop
 cargo install --locked --path apps/cli
-syntheo --version
+~/.cargo/bin/syntheo --version
 ```
 
-`cargo` installs the executable into its configured binary directory, normally `~/.cargo/bin`. Add that directory to `PATH` if your shell cannot find `syntheo`.
+`cargo` installe l'exécutable `syntheo` dans `~/.cargo/bin` (`%USERPROFILE%\.cargo\bin` sous Windows). Ajoutez ce dossier à votre `PATH` si votre terminal ne trouve pas la commande.
 
-## Connect to local data
+<Warning>
+  Le paquet `.deb` installe l'application de bureau sous le nom `/usr/bin/syntheo`. Sur une machine où le `.deb` est installé, `syntheo` peut donc lancer l'application au lieu de la CLI, selon l'ordre de votre `PATH`. Vérifiez avec `which -a syntheo`. En cas de doute, appelez la CLI par son chemin absolu, `~/.cargo/bin/syntheo`, en particulier dans la configuration de vos clients MCP.
+</Warning>
 
-By default, the CLI looks for `syntheo/app.db` in your operating system's application-data directory. It also recognizes legacy Syntheo locations.
+Pour mettre à jour la CLI, récupérez les dernières sources (`git pull`) et relancez la commande `cargo install`. Gardez la CLI et l'application au même niveau de version : la CLI ne migre jamais la base.
 
-Open the desktop app once so it can create the database. After that, the CLI and local MCP server work while the app is closed.
+## Relier la CLI à vos données
 
-For a custom database location, pass a global option or environment variable:
+Ouvrez l'application une fois pour qu'elle crée sa base. Ensuite, la CLI et le serveur MCP fonctionnent même application fermée, sauf pour l'import d'enregistrement, qui exige l'application ouverte.
+
+Sans option, la CLI cherche `app.db` dans le dossier de données de votre système :
+
+| Système | Emplacement par défaut |
+| --- | --- |
+| Linux | `~/.local/share/syntheo/app.db`, puis `~/.local/share/fr.willisback.syntheo/app.db` |
+| Windows | `%APPDATA%\syntheo\app.db`, puis `%APPDATA%\fr.willisback.syntheo\app.db` |
+
+Pour une autre base, passez une option globale ou une variable d'environnement :
 
 ```bash
-syntheo --db-path /path/to/app.db --json meetings list
-SYNTHEO_DB_PATH=/path/to/app.db syntheo --json meetings list
+syntheo --db-path /chemin/vers/app.db --json meetings list
+SYNTHEO_DB_PATH=/chemin/vers/app.db syntheo --json meetings list
+syntheo --base /chemin/vers/dossier-syntheo --json meetings list
 ```
 
-If you have an Syntheo data directory containing `app.db`, use:
+`--base` désigne un dossier qui contient `app.db`. `--db-path` est prioritaire sur `--base`.
+
+Vérifiez ensuite la connexion :
 
 ```bash
-syntheo --base /path/to/syntheo-data --json meetings list
+syntheo --json doctor
 ```
 
-The CLI opens the database in read-only query mode for meeting reads. Proposal create and decline commands, and `syntheo mcp`, open the same file for writes so they can stage or discard pending edits. They do not create a database or run migrations.
+## Accès en lecture et en écriture
+
+Les lectures de réunions ouvrent la base en lecture seule. Les commandes `proposals create`, `proposals decline`, `meetings import` et `syntheo mcp` ouvrent la base en écriture, pour préparer ou refuser des modifications et pour créer une réunion importée. Aucune commande ne crée la base ni n'exécute de migration : c'est le rôle de l'application.
+
+<CardGroup cols={2}>
+  <Card title="CLI pour les agents" icon="terminal" href="/agents/cli">
+    Sortie JSON et bonnes pratiques.
+  </Card>
+  <Card title="Référence de la CLI" icon="book" href="/reference/cli">
+    Toutes les commandes et options.
+  </Card>
+</CardGroup>

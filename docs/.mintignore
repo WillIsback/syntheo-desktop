@@ -5,3 +5,7 @@
 # Draft content
 drafts/
 *.draft.mdx
+
+# Fichiers internes au dépôt, non publiés
+AGENTS.md
+LICENSE

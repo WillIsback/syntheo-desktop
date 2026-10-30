@@ -1,52 +1,55 @@
 ---
-title: "Agent overview"
-description: "Give an agent useful Syntheo context without exposing storage internals or unbounded transcripts."
+title: "Agents : vue d'ensemble"
+description: "Donnez à un agent le contexte de vos réunions Syntheo, en local, sans exposer la base ni des transcripts entiers."
 ---
 
-Syntheo gives agents three ways to access meeting context. The Syntheo plugin prefers the local CLI or local MCP when the agent can access your database. Remote agents use Cloud MCP through OAuth. Local CLI and MCP reads are bounded; both can also stage proposals for human review. Hosted Cloud API and remote MCP are read-only.
+Syntheo donne à un agent deux façons de lire vos réunions. Les deux passent par le même exécutable `syntheo` et lisent la base locale de l'application. Aucune ne passe par un serveur distant.
 
-| Transport | Choose it when | Output |
+| Accès | Quand l'utiliser | Sortie |
 | --- | --- | --- |
-| CLI | The agent has shell access on your computer | Local reads by default; authenticated Cloud reads are optional; JSON with `--json` |
-| Local MCP | The agent supports a local MCP server | Structured tool results and contextual resources from your database |
-| Cloud MCP | The agent runs remotely or cannot access your local database | Hosted snapshots through OAuth; requires personal or paid-Team Pro access and explicit opt-in |
+| [CLI](/agents/cli) | L'agent a un accès shell sur votre ordinateur | Texte, ou JSON versionné avec `--json` |
+| [MCP local](/agents/mcp) | L'agent prend en charge un serveur MCP en stdio | Résultats d'outils structurés et ressources `syntheo://` |
 
-## Recommended agent flow
+Une [compétence Syntheo](/agents/skills) apprend à l'agent quand et comment utiliser ces deux accès.
 
-1. Honor an explicit source request. Otherwise, use local MCP or check local CLI readiness with `syntheo --json doctor`; use Cloud when local access is unavailable.
-2. List recent meetings or search by a short title fragment. If a meeting is missing, check an already-connected alternate source unless the user restricted access.
-3. Use a returned meeting ID. Never infer or invent one.
-4. Fetch the meeting detail before requesting transcript text.
-5. Fetch recurring history only when earlier meetings are relevant.
-6. Read transcript pages only until the task has enough evidence.
+Commencez par [installer la CLI](/installation).
 
-Keep each meeting's reads on the source where it was found and label the source in the answer. Report database errors instead of silently falling back to Cloud.
+## Démarche recommandée
 
-## Freshness
+1. Vérifiez que l'accès local est prêt avec `syntheo --json doctor`, ou utilisez un serveur MCP déjà connecté.
+2. Listez les réunions récentes ou cherchez un court fragment du titre. Pour un projet ou un client, listez les dossiers et filtrez par chemin de dossier.
+3. Utilisez un identifiant de réunion renvoyé par l'outil. N'en devinez jamais un.
+4. Lisez le détail de la réunion (note, résumés, participants, actions) avant de demander le transcript.
+5. Ne demandez l'historique d'une série récurrente que si les réunions précédentes comptent.
+6. Lisez le transcript page par page, et arrêtez-vous dès que vous avez assez d'éléments.
 
-Local reads work offline and include unsynced changes. They do not require Cloud Sync to finish. Cloud Sync is encrypted; Cloud API & Connectors uploads a separate readable snapshot after opt-in. Sync completion does not establish snapshot freshness.
+## Fraîcheur des données
 
-Report freshness only when an interface provides it. A meeting's `updated_at` records a content change, not a completed sync or snapshot upload. If freshness matters and cannot be verified, say it is unknown.
+Les lectures portent sur la base locale, telle qu'elle est au moment de l'appel. Elles fonctionnent hors ligne. Le champ `updated_at` d'une réunion indique la dernière modification de son contenu.
 
-## Safety boundary
+## Limites de sécurité
 
-Agents should use an Syntheo interface, not SQLite. The supported interfaces apply Syntheo's rules for canonical notes, generated summaries, excluded participants, recurring meetings, and transcript text.
+Les agents passent par la CLI ou le MCP, jamais directement par SQLite. Ces interfaces appliquent les règles de Syntheo : note canonique, résumés générés, réunions récurrentes, texte du transcript.
 
-Meeting reads stay bounded. An agent cannot apply a note or summary change. It can stage a proposal with CLI `proposals` commands or the local MCP `propose_*` tools. A human reviews the unified diff in the desktop app and applies or declines it. Hosted Cloud API and Cloud MCP stay read-only. CLI export can create a separate file; replacing a file requires `--force`.
+Les lectures restent bornées. Un agent ne peut pas modifier directement une note ou un résumé. Il peut seulement préparer une **proposition** avec les commandes `proposals` de la CLI ou les outils `propose_*` du MCP. Vous la vérifiez ensuite dans l'application : le bandeau « 1 modification en attente » apparaît sur la réunion, avec « Vérifier la note » ou « Vérifier le compte rendu ». Vous choisissez alors « Appliquer à la note », « Appliquer au résumé » ou « Refuser ».
 
-Local CLI and MCP access stays on your computer. Cloud access uploads a separate server-readable copy of your meeting data. Review the [Cloud API disclosure](/reference/api-cloud) before enabling it.
+L'export de la CLI peut créer un fichier ; remplacer un fichier existant exige `--force`.
+
+<Note>
+  La CLI et le MCP ne transmettent rien à un serveur Syntheo. En revanche, ce que l'agent lit est envoyé au modèle de langage qu'il utilise. Choisissez un agent et un fournisseur de modèle compatibles avec la confidentialité de vos réunions.
+</Note>
 
 <CardGroup cols={2}>
-  <Card title="CLI for agents" icon="terminal" href="/agents/cli">
-    Use JSON output and resolve meeting IDs deliberately.
+  <Card title="CLI pour les agents" icon="terminal" href="/agents/cli">
+    Sortie JSON et identifiants de réunion.
   </Card>
-  <Card title="MCP for agents" icon="plug" href="/agents/mcp">
-    Run local stdio or connect a remote agent through OAuth.
+  <Card title="MCP pour les agents" icon="plug" href="/agents/mcp">
+    Serveur MCP local en stdio.
   </Card>
-  <Card title="Cloud API and remote MCP" icon="cloud" href="/reference/api-cloud">
-    Enable hosted access and connect with OAuth or a connector key.
+  <Card title="Compétence Syntheo" icon="graduation-cap" href="/agents/skills">
+    Installer la compétence dans votre agent.
   </Card>
-  <Card title="Webhooks" icon="webhook" href="/reference/webhooks">
-    Receive signed meeting events at your endpoint.
+  <Card title="Erreurs et codes de sortie" icon="triangle-exclamation" href="/reference/errors">
+    Diagnostiquer un échec.
   </Card>
 </CardGroup>

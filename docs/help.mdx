@@ -1,178 +1,99 @@
 ---
-title: "Frequently asked questions"
-description: "Answers about recording, transcription cost, languages, local models, privacy, sharing, sync, and developer tools."
+title: "Questions fréquentes"
+description: "Réponses sur le fonctionnement de Syntheo : serveurs d'IA, confidentialité, audio, plateformes et outils pour développeurs."
 ---
 
-Browse a topic, then expand the question. If something is not working, go to [Troubleshooting](/troubleshooting). For a question not covered here, email [team@fastrepl.com](mailto:team@fastrepl.com) or [join Discord](https://discord.gg/Vk882WS3gF).
+Parcourez un thème, puis dépliez la question. Si quelque chose ne fonctionne pas, consultez le [dépannage](/troubleshooting). Pour une question absente de cette page, [ouvrez une issue GitHub](https://github.com/WillIsback/syntheo-desktop/issues).
 
-## Transcription and cost
+## Principes
 
 <AccordionGroup>
-  <Accordion title="How can I compare the costs of all the transcription options?" id="compare-transcription-costs">
-    Syntheo has three cost models. Compare those first, then compare providers inside the one you choose.
-
-    | Option | What you pay | When to use it |
-    | --- | --- | --- |
-    | On-device | Nothing extra after you download the model | Apple Silicon Mac, and you want no usage bill |
-    | Syntheo Cloud | [Pro](https://github.com/WillIsback/syntheo-desktop/pricing) at $14/month or $140/year | Hosted transcription without managing API keys |
-    | Your API key | The provider's own speech-to-text rates | You already have credits, a preferred vendor, or a required endpoint |
-
-    On-device and bring-your-own-key transcription stay on the Free plan. Cloud transcription is a Pro feature.
-
-    For a bring-your-own-key provider:
-
-    1. Open **Settings → Transcription → Configure Providers**.
-    2. Open that provider's **Available models** and **API setup** links.
-    3. On the provider's pricing page, compare live vs after-recording rates, language coverage, speaker labels, and any free tier.
-    4. Select the model under **Model being used** and run a short test meeting.
-
-    Syntheo does not publish a live price table for third-party providers because those rates change. [OpenRouter](https://openrouter.ai/models?output_modalities=transcription) is one key that can reach several after-recording models if you want a single bill to compare.
-
-    See [How can I use on-device models?](/help#use-on-device-models), [Models and providers](/models-and-providers), and [Transcription and AI](/ai-setup).
+  <Accordion title="Faut-il un compte ou un abonnement ?" id="compte-abonnement">
+    Non. Syntheo ne demande aucun compte et n'a pas d'abonnement. Toutes les fonctions sont débloquées. L'application est libre (licence MIT).
   </Accordion>
 
-  <Accordion title="Is there a reliable local model that can handle hour-long calls?" id="local-model-hour-long-calls">
-    On an Apple Silicon Mac, yes — transcribe after the meeting with **Soniqo → Parakeet Batch**. That built-in model adds speaker labels for 25 European languages and is the on-device option meant for long calls.
-
-    Other local choices on the same Mac:
-
-    - **Soniqo → Parakeet Streaming** shows text during the meeting. Use Batch when you care more about finishing a long recording than seeing live captions.
-    - **On-device file** runs a downloaded whisper.cpp `.bin` model after recording. transcribe.cpp `.gguf` files are not supported yet.
-    - **Apple Speech** is live-only and available when macOS 26 reports compatible system assets. It transcribes one supported language at a time.
-
-    Built-in on-device transcription is not available on Windows, Linux, or Intel Macs. On those systems, use a Deepgram-compatible local server, Syntheo Cloud, or a bring-your-own-key provider. After-recording hosted models handle hour-long audio. Some live models have short session limits — for example, Gemini 3.5 Transcribe Live preview sessions last up to 10 minutes.
-
-    Quality and speed depend on the computer. Run a short test recording before a long call. See [How can I use on-device models?](/help#use-on-device-models) and [Use Syntheo offline](/offline).
+  <Accordion title="Qui fait la transcription et les résumés ?" id="qui-fait-l-inference">
+    Vos propres serveurs. Syntheo n'embarque aucun modèle et n'utilise aucun service cloud d'IA. Vous indiquez dans les paramètres l'URL d'un serveur de transcription (STT) et celle d'un serveur de modèle de langue (LLM), hébergés sur votre poste ou dans votre organisation. Voir [Transcription et IA](/ai-setup).
   </Accordion>
 
-  <Accordion title="Can I replace Granola on Windows?" id="replace-granola-on-windows">
-    Yes. Download the Windows x64 build and record from the desktop without a meeting bot. Windows support is in beta.
+  <Accordion title="Quels serveurs sont compatibles ?" id="serveurs-compatibles">
+    Pour la transcription en temps réel, **Paramètres → Transcription** propose deux fournisseurs :
 
-    Expect these differences from a Mac setup:
+    - « OpenAI-compatible » : tout serveur qui parle le protocole OpenAI Realtime et `/v1/audio/transcriptions`, par exemple vLLM (avec Voxtral Realtime), speaches ou faster-whisper-server.
+    - « Nemotron ASR (NIM, WebSocket) » : un serveur NVIDIA Speech NIM déployé chez vous.
 
-    - Built-in on-device transcription is not available. Choose Syntheo Cloud, a Deepgram-compatible local server, or another configured provider. See [How can I use on-device models?](/help#use-on-device-models).
-    - Microphone detection, auto-stop, and meeting-chat capture are macOS and Linux only.
-    - You can [import Granola meeting history](/imports) from an official export.
+    Pour les résumés et le chat, **Paramètres → Intelligence** propose « vLLM (OpenAI-compatible) » : tout serveur exposant `/v1/chat/completions` et `/v1/models`, comme vLLM, SGLang, llama.cpp server, Ollama, LM Studio, TGI ou NIM LLM.
+  </Accordion>
 
-    See [Install the desktop app](/desktop-installation).
+  <Accordion title="Syntheo rejoint-il l'appel ?" id="rejoint-l-appel">
+    Non. Syntheo capte votre microphone et l'audio système depuis votre ordinateur, sans robot de réunion. Voir [Enregistrer une réunion](/meetings).
+  </Accordion>
+
+  <Accordion title="Syntheo fonctionne-t-il sans internet ?" id="sans-internet">
+    Oui, si vos serveurs de transcription et de modèle de langue sont joignables sans internet : sur le même poste (`localhost`) ou sur votre réseau local. Syntheo n'a besoin d'aucun service en ligne pour fonctionner.
   </Accordion>
 </AccordionGroup>
 
-## Recording and notes
+## Données et confidentialité
 
 <AccordionGroup>
-  <Accordion title="Does Syntheo join the call?" id="does-syntheo-join-the-call">
-    No. Syntheo captures your microphone and computer audio from the desktop without adding a meeting bot. See [Record meetings](/meetings).
+  <Accordion title="L'audio est-il conservé ?" id="audio-conserve">
+    Non. L'audio reste en mémoire le temps d'être envoyé à votre serveur de transcription, puis il est abandonné. Syntheo ne crée aucun fichier audio et ne propose pas de retranscrire une réunion après coup. Seuls le transcript, vos notes et les résumés sont enregistrés.
   </Accordion>
 
-  <Accordion title="Can recording start automatically?" id="can-recording-start-automatically">
-    Yes. Syntheo can start calendar-backed meetings on schedule and prompt you when it detects an unscheduled call. Manage scheduled meeting controls under **Settings → Meetings** and microphone detection under **Settings → Notifications**. Microphone detection, auto-stop, and meeting-chat capture are available on macOS and Linux, not Windows. See [Automatic capture](/automatic-capture).
+  <Accordion title="Que se passe-t-il si le serveur de transcription se coupe pendant une réunion ?" id="coupure-stt">
+    Syntheo tente de se reconnecter. Comme l'audio n'est pas conservé, la partie de la réunion prononcée pendant la coupure manque au transcript. Un bandeau l'indique avec ses horaires, par exemple « Transcription interrompue 14:32–14:35 ». Voir [Dépannage](/troubleshooting).
   </Accordion>
 
-  <Accordion title="Can I edit a transcript or fix a speaker?" id="can-i-edit-a-transcript-or-fix-a-speaker">
-    Yes. Use **Write** to edit transcript text. Select text or a speaker label to assign the correct person, create a speaker, or apply the change to every matching segment. See [Correct a transcript](/notes#correct-a-transcript).
+  <Accordion title="Où sont stockées mes données ?" id="stockage">
+    Sur votre ordinateur, dans une base SQLite locale. Sous Linux, le dossier de données est `~/.local/share/syntheo`. Le contenu des réunions ne quitte votre poste que pour atteindre les serveurs STT et LLM que vous avez configurés, et les webhooks que vous avez ajoutés. Voir [Données et confidentialité](/data-and-privacy).
   </Accordion>
 
-  <Accordion title="Can I add more audio to an existing note?" id="can-i-add-more-audio-to-an-existing-note">
-    Yes. Right-click **Transcript** and choose **Resume listening**. The new recording stays in the same meeting note.
+  <Accordion title="Syntheo envoie-t-il de la télémétrie ?" id="telemetrie">
+    Non. Syntheo n'envoie ni télémétrie, ni rapport de plantage, ni statistiques d'usage à un serveur éditeur.
   </Accordion>
 
-  <Accordion title="Can I import older meetings?" id="can-i-import-older-meetings">
-    Yes. Upload one audio, SRT, or VTT file to an empty note, or use **Settings → Imports** for meeting-history exports from another assistant. See [Import audio or a transcript](/import-recordings) and [Import meeting history](/imports).
+  <Accordion title="Où est stockée ma clé API ?" id="cle-api">
+    La clé API de vos serveurs est facultative. Si vous en saisissez une, elle est stockée localement sur cet ordinateur. Elle n'est jamais intégrée à l'application.
+  </Accordion>
+
+  <Accordion title="Puis-je synchroniser mes notes entre plusieurs ordinateurs ou les partager en ligne ?" id="synchro-partage">
+    Non. Syntheo n'a ni synchronisation cloud, ni partage en ligne, ni espace d'équipe. Pour transmettre une note, exportez-la avec « Exporter » (PDF, TXT, Markdown ou Org) et envoyez le fichier par le canal de votre choix.
   </Accordion>
 </AccordionGroup>
 
-## AI, offline use, and privacy
+## Réunions et notes
 
 <AccordionGroup>
-  <Accordion title="How can I use on-device models?" id="use-on-device-models">
-    Syntheo can transcribe without sending audio to Syntheo Cloud. Open **Settings → Transcription** and pick the path that matches your computer.
-
-    | Path | What you select | When it runs | Requirements |
-    | --- | --- | --- | --- |
-    | Built-in Soniqo | **Soniqo**, then Parakeet Streaming, Parakeet Batch, or another listed Soniqo model | Live or after recording, depending on the model | Apple Silicon. Download the model first. Prefer **Parakeet Batch** for hour-long calls. |
-    | Apple Speech | **Apple Speech** | During the meeting | macOS 26 with a supported language added in System Settings. One language at a time. |
-    | On-device file | **On-device file**, then **Choose a .bin model** | After recording | Apple Silicon. Use a whisper.cpp `.bin` you already have. transcribe.cpp `.gguf` files are not supported yet. |
-    | Local Deepgram-compatible server | **Custom**, or **Deepgram** with a custom **Base URL** under **Advanced** | Live or after recording, depending on the server | A Deepgram-compatible endpoint on this computer or your local network. Enter that URL and an API key if the server requires one. |
-
-    Soniqo, Apple Speech, and On-device file appear only on a supported Apple Silicon Mac. On Windows, Linux, or Intel Macs, use a local Deepgram-compatible server, Syntheo Cloud, or another configured provider.
-
-    Summaries and chat are a separate setting. For those to stay local too, choose LM Studio, Ollama, Unsloth, or eligible Apple Intelligence under **Settings → Intelligence**.
-
-    See [Models and providers](/models-and-providers), [Use Syntheo offline](/offline), and [Is there a reliable local model that can handle hour-long calls?](/help#local-model-hour-long-calls).
+  <Accordion title="Puis-je corriger un transcript ou renommer un locuteur ?" id="corriger-transcript">
+    Oui. Vous pouvez modifier le texte du transcript et renommer les locuteurs. Voir [Notes](/notes).
   </Accordion>
 
-  <Accordion title="Can I use Syntheo offline?" id="can-i-use-syntheo-offline">
-    Yes, if you prepare local models before disconnecting. Soniqo, Apple Speech, and On-device file transcription require a supported Apple Silicon Mac; Apple Speech also needs macOS 26 to report compatible system assets. LM Studio, Ollama, Unsloth, and eligible Apple Intelligence can provide local Intelligence models. See [Use Syntheo offline](/offline) and [How can I use on-device models?](/help#use-on-device-models).
+  <Accordion title="Syntheo distingue-t-il les locuteurs ?" id="locuteurs">
+    En partie. Syntheo sépare votre voix (microphone) de celle des autres participants (audio système). Il reprend aussi les locuteurs que renvoie votre serveur de transcription, s'il les fournit. Il n'y a pas d'analyse des locuteurs après la réunion.
   </Accordion>
 
-  <Accordion title="What languages does Syntheo support?" id="supported-languages">
-    **Settings → General → Language & Region** lets you choose a main language and additional spoken languages from this list:
-
-    Arabic, Belarusian, Bulgarian, Bangla, Bosnian, Catalan, Czech, Danish, German, Greek, English, Spanish, Estonian, Persian, Finnish, French, Hebrew, Hindi, Croatian, Hungarian, Indonesian, Italian, Japanese, Kannada, Korean, Lithuanian, Latvian, Macedonian, Marathi, Malay, Dutch, Norwegian, Polish, Portuguese, Romanian, Russian, Slovak, Slovenian, Serbian, Swedish, Tamil, Telugu, Thai, Filipino, Turkish, Ukrainian, Urdu, Vietnamese, and Chinese.
-
-    The selected Transcription model must support those languages. Coverage today:
-
-    | Selection | Languages |
-    | --- | --- |
-    | Syntheo Cloud | Routes to a provider that supports the languages you selected. The Settings list is the Cloud picker. |
-    | Soniqo | Bulgarian, Czech, Danish, German, Greek, English, Spanish, Estonian, Finnish, French, Croatian, Hungarian, Italian, Lithuanian, Latvian, Maltese, Dutch, Polish, Portuguese, Romanian, Russian, Slovak, Slovenian, Swedish, and Ukrainian |
-    | Apple Speech | German, English, Spanish, French, Italian, Japanese, Korean, Portuguese, Cantonese, or Chinese — one language at a time |
-    | On-device file | The whisper.cpp `.bin` you select. Check that model's language list. |
-    | Your API key | The provider and model you configure. Check that model's language list before a multilingual meeting. |
-
-    Chat uses the main language. When you configure additional spoken languages, summaries use the language used most in the transcript, falling back to the main language if detection is unavailable. See [Use multiple languages](/languages).
+  <Accordion title="Puis-je importer un fichier audio existant ?" id="importer-audio">
+    Oui. Importez un fichier WAV, MP3, OGG, MP4, M4A, FLAC, WebM ou AAC dans une note vide. Syntheo l'envoie à votre serveur via `/v1/audio/transcriptions`, sans en garder de copie. Vous pouvez aussi importer un transcript SRT ou VTT. Voir [Importer un audio ou un transcript](/import-recordings).
   </Accordion>
 
-  <Accordion title="Which AI models does Syntheo use?" id="which-ai-models-does-syntheo-use">
-    There is no single hidden model. Your Transcription selection handles audio, and your Intelligence selection handles summaries, titles, and chat. Syntheo Cloud currently routes transcription by language and mode and offers Auto routing or a curated Cloud Intelligence model choice. See [Models and providers](/models-and-providers) for the current routes and local options.
-  </Accordion>
-
-  <Accordion title="Where is my data stored?" id="where-is-my-data-stored">
-    Syntheo stores app data locally by default. Hosted AI, calendars, sync, sharing, and the optional Cloud API receive the content needed for the feature you enable. See [Data, privacy, and retention](/data-and-privacy). Enterprise security reviews should start at the [security page](https://github.com/WillIsback/syntheo-desktop/security).
-  </Accordion>
-
-  <Accordion title="Does Syntheo train on my meetings?" id="does-syntheo-train-on-my-meetings">
-    The answer depends on the provider you choose. Local providers keep the model request on your computer. For Syntheo Cloud or a bring-your-own-key provider, review that provider's retention and training policy before sending sensitive content.
-  </Accordion>
-
-  <Accordion title="Can a meeting use multiple languages?" id="can-a-meeting-use-multiple-languages">
-    Yes. Choose your main language and add every spoken language you expect. The selected Transcription model must support them. See [Languages](/languages).
+  <Accordion title="Quelles langues sont prises en charge ?" id="langues">
+    Choisissez votre langue principale dans **Paramètres → Général**, section « Langue et région ». Les langues réellement transcrites dépendent du modèle servi par votre serveur de transcription : vérifiez sa documentation. Voir [Langues](/languages).
   </Accordion>
 </AccordionGroup>
 
-## Sharing, sync, and automation
+## Plateformes et mises à jour
 
 <AccordionGroup>
-  <Accordion title="What gets shared with another person?" id="what-gets-shared-with-another-person">
-    Syntheo shares the generated summary, not your private memo. Retained audio is optional and must be included separately. Sharing is a Pro feature. See [Share meetings](/sharing).
+  <Accordion title="Sur quels systèmes Syntheo fonctionne-t-il ?" id="plateformes">
+    Linux (AppImage et paquet `.deb`) et Windows (installeur `.exe` signé et `.msi`). Aucune version macOS n'est publiée pour l'instant, et il n'existe pas d'application mobile. Voir [Installer l'application](/desktop-installation).
   </Accordion>
 
-  <Accordion title="Can Syntheo recover my sync recovery key?" id="can-syntheo-recover-my-sync-recovery-key">
-    Syntheo cannot read or recover your sync key. Keep any recovery key you saved during setup. See [Recovery keys](/sync#recovery-keys) for key storage and recovery options.
+  <Accordion title="Comment mettre Syntheo à jour ?" id="mises-a-jour">
+    Syntheo ne se met pas à jour tout seul. Téléchargez la dernière version sur la [page des versions GitHub](https://github.com/WillIsback/syntheo-desktop/releases/latest) et installez-la par-dessus l'ancienne.
   </Accordion>
 
-  <Accordion title="Do my API keys sync to another device?" id="do-my-api-keys-sync-to-another-device">
-    No. Cloud Sync copies encrypted notes, not Transcription or Intelligence API keys. Enter each key again on the new computer, then select those models in Settings. See [What Cloud Sync replicates](/sync#what-cloud-sync-replicates).
-  </Accordion>
-
-  <Accordion title="Can I automate follow-up work?" id="can-i-automate-follow-up-work">
-    Yes, with Syntheo Pro. Built-in starters can post a Slack recap, update a Notion page, create Linear issues, or export each meeting as Markdown. See [Automate meeting follow-up](/automations).
-  </Accordion>
-</AccordionGroup>
-
-## Platforms and developer tools
-
-<AccordionGroup>
-  <Accordion title="Which desktop platforms are supported?" id="which-desktop-platforms-are-supported">
-    Syntheo supports macOS 15 or later. Windows x64 and Linux x64 or ARM64 builds are available in beta. See [Install the desktop app](/desktop-installation).
-  </Accordion>
-
-  <Accordion title="Is there a mobile app?" id="is-there-a-mobile-app">
-    Yes. Try the mobile beta through [TestFlight](https://testflight.apple.com/join/y7WJCXvG) on iOS or [Google Play beta](https://play.google.com/apps/testing/so.syntheo.mobile) on Android.
-  </Accordion>
-
-  <Accordion title="Can agents reach my meetings while Syntheo is closed?" id="can-agents-reach-my-meetings-while-syntheo-is-closed">
-    The CLI and local MCP server read the local database, so they work while the app is closed. They can also stage a memo or summary proposal; review the **pending edit** banner in the desktop meeting note before applying it. Webhooks only deliver while the app is open. For hosted access from anywhere, explicitly enable [Cloud API & Connectors](/reference/api-cloud).
+  <Accordion title="Des agents peuvent-ils accéder à mes réunions ?" id="agents">
+    Oui, localement. La [CLI](/agents/cli) et le [serveur MCP local](/agents/mcp) lisent la base de données sur votre ordinateur. Les [webhooks](/reference/webhooks) poussent les événements de réunion vers votre service tant que l'application est ouverte.
   </Accordion>
 </AccordionGroup>

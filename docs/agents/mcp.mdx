@@ -1,33 +1,15 @@
 ---
-title: "MCP for agents"
-description: "Connect an MCP client to Syntheo meeting context over hosted OAuth or local stdio."
+title: "MCP pour les agents"
+description: "Connectez un client MCP à vos réunions Syntheo grâce au serveur local en stdio."
 ---
 
-The Syntheo plugin prefers local data when your agent can access it. Use local MCP or the `syntheo` CLI on your computer. Remote agents connect to hosted Cloud MCP at `https://api.example.com/mcp` with OAuth.
+`syntheo mcp` lance un serveur MCP local. Il communique par l'entrée et la sortie standard : il n'ouvre aucun port et n'envoie aucune donnée à un serveur Syntheo. Il n'exige ni compte ni connexion.
 
-Local access needs no Cloud login, Pro subscription, or completed sync. Cloud only has opted-in readable snapshots, uploaded separately from encrypted Cloud Sync.
+Prérequis : [la CLI installée](/installation) et l'application ouverte au moins une fois, pour qu'elle crée sa base. L'application n'a pas besoin de rester ouverte, sauf pour importer un enregistrement.
 
-## Configure the plugin
+## Configurer le client
 
-Install the **Syntheo** plugin and [local CLI](/installation) for local access. For Cloud access, enable **Cloud API & Connectors** and use the host's connection control to approve OAuth. Some MCP hosts prompt on first cloud tool use. See [Cloud API and connectors](/reference/api-cloud#remote-mcp).
-
-Clients that do not install plugins can add:
-
-```json
-{
-  "mcpServers": {
-    "syntheo": {
-      "url": "https://api.example.com/mcp"
-    }
-  }
-}
-```
-
-## Optional local MCP
-
-The local server communicates over standard input and output. It opens no port and sends no meeting data to Syntheo's servers.
-
-Open the desktop app once so it can create the database. The app does not need to stay open after that.
+Ajoutez le serveur à la configuration de votre client MCP :
 
 ```json
 {
@@ -40,37 +22,45 @@ Open the desktop app once so it can create the database. The app does not need t
 }
 ```
 
-If `syntheo` is not on the client's `PATH`, use the executable's absolute path as `command`. Restart the client after changing its configuration.
+Si `syntheo` n'est pas dans le `PATH` du client, ou si le `.deb` de l'application est installé (son exécutable s'appelle aussi `syntheo`), indiquez le chemin absolu de la CLI dans `command`, par exemple `/home/vous/.cargo/bin/syntheo`. Redémarrez le client après avoir modifié sa configuration.
 
-For a custom database path:
+Pour une base à un autre emplacement :
 
 ```json
 {
   "mcpServers": {
     "syntheo": {
       "command": "syntheo",
-      "args": ["--db-path", "/path/to/app.db", "mcp"]
+      "args": ["--db-path", "/chemin/vers/app.db", "mcp"]
     }
   }
 }
 ```
 
 <Note>
-  If you configure both local and Cloud MCP, give them distinct server names so the agent can identify the source. Prefer local data and keep each meeting's subsequent reads on the selected source.
+  Quand la CLI est installée depuis l'application, le bouton « Copier la configuration » de **Paramètres → Développeurs → CLI & MCP** copie ce bloc avec le bon chemin. Les versions publiées n'embarquent pas la CLI : ce bouton y reste inactif.
 </Note>
 
-## Use tools deliberately
+## Utiliser les outils avec méthode
 
-Start with `list_meetings`, then pass a returned `id` to `get_meeting`. Call `get_meeting_transcript` only when the notes and summaries do not answer the question. Report only meetings the tools return and identify the source. An empty search only establishes that no meetings matched in that source. Check an available alternate source for missing meetings unless the user restricted access; do not invent titles or silently merge different versions.
+Commencez par `list_meetings`, puis passez un `id` renvoyé à `get_meeting`. Pour un projet ou un client, appelez `list_folders` et passez un `path` renvoyé comme `folder_path`. N'appelez `get_meeting_transcript` que si la note et les résumés ne suffisent pas.
 
-Report sync status or snapshot freshness only when a tool provides it. A meeting's `updated_at` is not a last-sync timestamp. Local database errors need to be reported rather than hidden by a Cloud fallback.
+Ne citez que les réunions renvoyées par les outils. Une liste vide signifie seulement qu'aucune réunion ne correspond ; n'inventez ni titre, ni date, ni identifiant.
 
-Transcript pages default to 200 words and cap at 500. Follow `pagination.next_offset` only when you need more context.
+Les pages de transcript font 200 mots par défaut, 500 au maximum. Ne suivez `pagination.next_offset` que si vous avez besoin de plus de contexte.
 
-Use `get_recurring_meeting_history` with a known meeting ID when a task depends on earlier meetings in the same series. Use `export_meeting` only when the task explicitly needs the complete record including transcripts.
+Utilisez `get_recurring_meeting_history` avec un identifiant connu quand la tâche dépend des réunions précédentes de la même série. N'utilisez `export_meeting` que si la tâche exige l'enregistrement complet, transcripts compris.
 
-Cloud MCP is read-only. To persist an edit, use the local CLI or local MCP `propose_summary_edit` or `propose_memo_edit`. The tool returns a pending proposal. Do not claim the meeting changed. Use `list_proposals` and `get_proposal` to inspect staged work. `decline_proposal` discards a pending proposal; applied or already-declined proposals cannot be declined.
+## Proposer une modification
 
-The server also exposes MCP resources (`syntheo://meetings/...`) for Markdown or plain-text context when the client prefers resources over tools.
+Pour modifier un résumé ou la note, appelez `propose_summary_edit` ou `propose_memo_edit`. L'outil renvoie une proposition en attente : n'affirmez pas que la réunion a changé. L'utilisateur l'applique ou la refuse dans l'application. `list_proposals` et `get_proposal` permettent d'inspecter les propositions ; `decline_proposal` refuse une proposition en attente sans toucher à la réunion.
 
-See the [MCP reference](/reference/mcp) for exact parameters and resources.
+## Importer un enregistrement
+
+`import_recording` crée une réunion à partir d'un fichier audio présent sur l'ordinateur du serveur MCP. L'application doit être ouverte : c'est elle qui transcrit le fichier avec le serveur de transcription configuré, puis génère le résumé. Suivez l'avancement avec `get_recording_import`. N'utilisez cet outil que si l'utilisateur le demande.
+
+## Ressources
+
+Le serveur expose aussi des ressources MCP (`syntheo://meetings/...`, `syntheo://series/...`) en Markdown ou en texte brut, pour les clients qui préfèrent les ressources aux outils.
+
+Paramètres exacts et ressources : voir la [référence MCP](/reference/mcp).

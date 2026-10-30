@@ -8,50 +8,44 @@
     "dark": "#5D430D"
   },
   "favicon": "/favicon.png",
-  "seo": {
-    "metatags": {
-      "canonical": "https://github.com/WillIsback/syntheo-desktop/tree/main/docs"
-    }
-  },
   "navigation": {
     "pages": [
       {
-        "group": "Getting started",
-        "pages": ["index", "desktop-installation", "quickstart"]
+        "group": "Prise en main",
+        "pages": [
+          "index",
+          "desktop-installation",
+          "ai-setup",
+          "quickstart"
+        ]
       },
       {
-        "group": "Using Syntheo",
+        "group": "Utiliser Syntheo",
         "pages": [
           "meetings",
           "dictation",
           "automatic-capture",
           "import-recordings",
-          "imports",
-          "zoom",
           "notes",
-          "sharing",
-          "teams",
-          "chat",
           "customize-summaries",
-          "calendar",
+          "chat",
           "contacts",
-          "sync",
+          "calendar",
           "automations",
           "languages"
         ]
       },
       {
-        "group": "AI and privacy",
+        "group": "Confidentialité et sécurité",
         "pages": [
-          "models-and-providers",
-          "ai-setup",
-          "offline",
           "data-and-privacy",
-          "security"
+          "offline",
+          "security",
+          "conformite/rgpd"
         ]
       },
       {
-        "group": "CLI and agents",
+        "group": "CLI et agents",
         "pages": [
           "installation",
           "agents/overview",
@@ -61,38 +55,35 @@
         ]
       },
       {
-        "group": "Recipes",
-        "pages": ["recipes/meeting-prep"]
+        "group": "Recettes",
+        "pages": [
+          "recipes/meeting-prep"
+        ]
       },
       {
-        "group": "Reference",
+        "group": "Référence",
         "pages": [
           "reference/cli",
           "reference/mcp",
-          "reference/api-cloud",
           "reference/webhooks",
           "reference/errors"
         ]
       },
       {
-        "group": "Help",
-        "pages": ["help", "troubleshooting"]
+        "group": "Projet",
+        "pages": [
+          "architecture",
+          "roadmap"
+        ]
+      },
+      {
+        "group": "Aide",
+        "pages": [
+          "help",
+          "troubleshooting"
+        ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Syntheo",
-          "href": "https://github.com/WillIsback/syntheo-desktop/",
-          "icon": "house"
-        },
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/WillIsback/syntheo-desktop",
-          "icon": "github"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
@@ -102,13 +93,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:team@fastrepl.com"
+        "href": "https://github.com/WillIsback/syntheo-desktop/issues"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Download Syntheo",
-      "href": "https://github.com/WillIsback/syntheo-desktop/download/"
+      "label": "Télécharger",
+      "href": "https://github.com/WillIsback/syntheo-desktop/releases/latest"
     }
   },
   "contextual": {
@@ -123,15 +114,10 @@
       "vscode"
     ]
   },
-  "redirects": [
-    {
-      "source": "/reference/api",
-      "destination": "/reference/api-cloud"
-    }
-  ],
   "footer": {
     "socials": {
       "github": "https://github.com/WillIsback/syntheo-desktop"
     }
-  }
+  },
+  "description": "Le bloc-notes de réunion qui reste chez vous : transcription en temps réel et comptes rendus avec vos propres modèles."
 }

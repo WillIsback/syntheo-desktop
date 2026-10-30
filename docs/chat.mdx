@@ -1,54 +1,54 @@
 ---
-title: "Chat with your meetings"
-description: "Ask questions, find related context, and review proposed note changes."
+title: "Discuter avec vos réunions"
+description: "Posez des questions, retrouvez du contexte et vérifiez les modifications proposées."
 ---
 
-Syntheo Chat can answer questions about the open meeting, search your other meetings, and help turn a conversation into follow-up work. Chat uses the Intelligence model selected under **Settings → Intelligence**.
+Le chat de Syntheo répond à vos questions sur la réunion ouverte, cherche dans vos autres réunions et vous aide à préparer le suivi. Il utilise le modèle de langage configuré sous **Paramètres → « Intelligence »**. Sans modèle connecté, le chat vous invite à « Ouvrir les paramètres de l'IA ».
 
-## Ask about the open meeting
+## Poser une question sur la réunion ouverte
 
-1. Open a meeting note.
-2. Open **Chat**.
-3. Ask a question or choose a suggested prompt. The open meeting is added automatically when its content is available.
+1. Ouvrez une note de réunion.
+2. Ouvrez le chat (raccourci <kbd>Ctrl</kbd>+<kbd>J</kbd>, qui l'ouvre et le ferme).
+3. Posez votre question ou choisissez une suggestion. La réunion ouverte est ajoutée automatiquement au contexte.
 
-Useful requests include:
+Suggestions proposées :
 
-- “What are my action items from this meeting?”
-- “Draft a follow-up email to the participants.”
-- “What decisions did we make?”
-- “Compare this meeting with the previous project review.”
-- “Find meetings where we discussed the launch date.”
+- Pendant une capture : « Résumez les 5 dernières minutes. », « Suggérez la prochaine question à poser. », « Listez les éléments d'action jusqu'à présent. »
+- Après la réunion : « Listez les éléments d'action. », « Rédiger un e-mail de suivi. », « Trouvez les décisions clés. »
+- Quand un compte rendu existe : « Raccourcissez le résumé. » et « Allongez le résumé. »
 
-Chat can search meeting titles and content, recurring meeting history, contacts, and connected calendar events when the request needs them.
+Vous pouvez aussi demander, par exemple :
 
-While a meeting is recording, suggested prompts can recap the last five minutes, suggest what to ask next, or list action items so far. After generating a summary, choose **Make shorter** or **Make longer** to adjust it.
+- « Compare cette réunion avec la précédente revue de projet. »
+- « Retrouve les réunions où nous avons parlé de la date de lancement. »
 
-Reasoning and tool steps appear in a single **Activity** row. Expand it to inspect the steps; a spinner shows when work is still running. Answers and proposed edits remain visible below it.
+Pour répondre, le chat peut chercher dans les titres et le contenu de vos réunions, dans vos contacts et dans les documents joints à un dossier.
 
-## Organize meetings
+Les étapes de raisonnement et les outils utilisés sont regroupés dans une ligne « Activité ». Dépliez-la pour les consulter.
 
-Ask Chat to list folders, create a folder, or move meetings into an existing folder. For example: “Move my launch review meetings into Projects/Launch.” Folder moves change where meetings appear; they do not merge or rewrite their contents. Chat reports meetings it moved, left unchanged, or could not move.
+## Organiser vos réunions
 
-Folder management is available in desktop Chat. Local CLI/MCP writes remain limited to reviewed note proposals, and hosted MCP remains read-only.
+Demandez au chat de lister vos dossiers, d'en créer un ou d'y déplacer des réunions. Par exemple : « Range mes revues de lancement dans Projets/Lancement. » Le déplacement change l'emplacement des réunions, pas leur contenu.
 
-Conversation dates appear above the messages. Hover over a message to see its time.
+Si un enregistrement ou des notes ont atterri sur la mauvaise réunion, le chat peut aussi les déplacer vers une autre réunion existante, à condition que celle-ci n'ait pas encore de transcript.
 
-## Guide the context
+## Guider le contexte
 
-Chat uses the open meeting automatically and can add other meetings, people, and records when your request needs them. You can also drag another meeting into Chat to include it in your next message.
+Le chat utilise automatiquement la réunion ouverte et ajoute d'autres réunions ou personnes si votre demande le nécessite. Vous pouvez aussi faire glisser une réunion dans le chat pour l'inclure dans votre prochain message.
 
-The app does not show this context as removable chips. Name the meeting or person in your request when similarly named records could be confused, or say “Use only this meeting” to keep the answer scoped. Start a new chat when you want a clean conversation without the earlier message history.
+Nommez précisément la réunion ou la personne quand plusieurs se ressemblent, ou précisez « Utilise uniquement cette réunion ». Cliquez sur « Nouveau chat » pour repartir d'une conversation vide.
 
-## Review proposed changes
+## Modifications de vos notes
 
-Chat can propose a summary edit or transcript correction. Review the proposed change before you apply it. A proposal does not silently replace your note.
+Le chat agit de deux façons sur vos notes :
 
-For direct transcript editing, speaker reassignment, and re-transcription, see [Notes, summaries, and transcripts](/notes#correct-a-transcript).
+- **Réécriture d'un compte rendu ou d'un mémo** : le chat propose un remplacement complet. Vous voyez les différences et choisissez d'appliquer ou de refuser. Rien n'est modifié sans votre accord.
+- **Correction ponctuelle** (« ce n'est pas X mais Y ») : le chat remplace directement le texte exact dans le compte rendu, le titre ou le transcript.
 
-## Privacy and external search
+Pour corriger vous-même un transcript ou réattribuer un locuteur, voir [Notes, comptes rendus et transcripts](/notes#corriger-un-transcript).
 
-Chat sends the prompt and required context to your selected Intelligence provider. A local provider keeps that model request on your computer. A hosted provider receives the text needed to answer.
+## Confidentialité
 
-<Warning>
-  Chat can also search the public web when a request needs current external information. The search query leaves your device even if your Transcription and Intelligence models are local. See [Data, privacy, and retention](/data-and-privacy) before using sensitive context with hosted models or web search.
-</Warning>
+Le chat envoie votre question et le contexte nécessaire au serveur de modèle de langage que vous avez configuré, et à lui seul. Si ce serveur tourne sur votre machine ou sur votre réseau, ces données ne quittent pas votre infrastructure. Le chat n'effectue aucune recherche sur le web.
+
+Voir [Données et confidentialité](/data-and-privacy).

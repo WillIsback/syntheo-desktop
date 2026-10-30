@@ -1,152 +1,187 @@
 ---
-title: "CLI reference"
-description: "Commands and global options available in the Syntheo CLI."
+title: "Référence de la CLI"
+description: "Commandes et options globales de la CLI Syntheo."
 ---
 
-## Global syntax
+## Syntaxe générale
 
 ```text
-syntheo [--base DIR] [--db-path FILE] [--json] <command>
+syntheo [--base DIR] [--db-path FILE] [--json] <commande>
 ```
 
-| Option | Environment variable | Behavior |
+| Option | Variable d'environnement | Effet |
 | --- | --- | --- |
-| `--base DIR` | `SYNTHEO_BASE` | Use `DIR/app.db`. |
-| `--db-path FILE` | `SYNTHEO_DB_PATH` | Use an explicit SQLite file. |
-| `--json` | — | Emit a versioned JSON response or machine-readable JSON error. |
+| `--base DIR` | `SYNTHEO_BASE` | Utilise `DIR/app.db`. |
+| `--db-path FILE` | `SYNTHEO_DB_PATH` | Utilise ce fichier SQLite précis. |
+| `--json` | — | Produit une réponse JSON versionnée, ou une erreur JSON lisible par une machine. |
 
-`--db-path` takes precedence over `--base`. Without either option, the CLI uses Syntheo's platform application-data directory and recognized legacy locations.
+`--db-path` est prioritaire sur `--base`. Sans l'une ni l'autre, la CLI cherche `syntheo/app.db`, puis `fr.willisback.syntheo/app.db`, dans le dossier de données du système (`~/.local/share` sous Linux, `%APPDATA%` sous Windows). Voir [Installer la CLI](/installation).
 
-The installed command is `syntheo` on DEB, AppImage, macOS, Windows, and Settings-installed builds.
-
-## Account commands
-
-```bash
-syntheo auth login
-syntheo auth status
-syntheo auth logout
-```
-
-`auth login` prints a URL that can be opened in any browser, including one on another device. Sign in, choose **Copy URL** on the completion page, then paste the `syntheo://auth/callback` link into the hidden CLI prompt. The CLI verifies the session with Syntheo before saving it in the same local auth store as the desktop app.
-
-With `--json`, the login URL and instructions are printed to stderr. The callback URL is read from stdin. JSON appears on stdout only after login completes.
-
-On Linux, the CLI uses Secret Service when it is available. Headless systems without Secret Service fall back to `auth.cli.json` in Syntheo's local application-data directory with permissions limited to the current user. The desktop app reconciles that file into Secret Service when it becomes available. On Windows, the CLI stores sessions with DPAPI in the desktop app's secure auth file. `auth logout` removes the local session; it does not delete the Syntheo account.
-
-`auth status` reports the signed-in account and whether the current access token has expired. The stored refresh token lets the desktop app refresh an expired access token when it starts.
-
-## Meeting data sources
-
-Meeting commands accept `--source local|cloud|auto` before their subcommand:
-
-```bash
-syntheo meetings --source cloud list
-syntheo meetings --source auto get MEETING_ID
-```
-
-`local` is the default and reads Syntheo's database on this computer. `cloud` reads the opted-in hosted snapshots using the account saved by `syntheo auth login`. `auto` uses the local database when it exists and falls back to Cloud when it does not. Set `SYNTHEO_SOURCE` to choose the same behavior without a flag.
-
-Ordinary meeting reads support all three sources except `meetings folders` and `meetings list --folder`. Managed capture, hold preservation, and pilot usage commands require local data. `--base`, `--db-path`, and `doctor` apply only to local data. Proposals and `syntheo mcp` remain local because hosted Cloud access is read-only.
-
-## Meeting commands
-
-| Command | Options | Result |
-| --- | --- | --- |
-| `meetings list` | `-q, --query TEXT`, `--series-id ID`, `--folder PATH`, `--limit 1..200`, `--offset NUMBER` | Meetings ordered by the application query layer. Defaults to 20 results. `--folder` includes subfolders and is local only. Each meeting includes `folder_path`, or `null` outside a folder. |
-| `meetings folders` | `-q, --query TEXT`, `--limit 1..200`, `--offset NUMBER` | Local folder paths with `path`, `name`, and `parent_path`, including empty and parent folders. Defaults to 100 results. |
-| `meetings get ID` | — | Metadata, canonical memo, summaries, participants, and action items. |
-| `meetings note ID` | `--kind note\|summary\|all` | The selected note documents. Defaults to `note`. |
-| `meetings transcript ID` | `--limit 1..500`, `--offset NUMBER` | A bounded transcript word page. Defaults to 200 words from offset 0. |
-| `meetings history ID` | `--limit 1..200`, `--offset NUMBER` | A page of meetings from the same recurring series. Defaults to 20 from offset 0. |
-| `meetings export ID` | `--format markdown\|json`, `-o, --output FILE`, `--force` | A complete meeting export, including transcripts. Defaults to Markdown on stdout. Existing files require `--force`. |
-
-Markdown exports include speaker-labeled transcript paragraphs when word-level speaker information is available. Exports without that information retain the flat transcript text. JSON exports can include a `speakers` field with the names used for rendering.
-
-## Proposal commands
-
-These commands insert or inspect staged edits. They do not apply the edit to the meeting. Apply happens in the desktop app.
-
-| Command | Options | Result |
-| --- | --- | --- |
-| `proposals create` | `--meeting ID`, `--kind summary\|memo`, `--target ID`, `--content TEXT` or `--content-file FILE` | Stages a pending replacement. `--target` is required when the meeting has multiple summaries. |
-| `proposals list` | `--meeting ID`, `--status pending\|applied\|declined\|all`, `--limit 1..200`, `--offset NUMBER` | Proposals, newest first. Defaults to pending rows, 20 results. |
-| `proposals show ID` | — | Proposal metadata and a unified diff. |
-| `proposals decline ID` | — | Marks a pending proposal declined. The meeting is unchanged. |
-
-## JSON response contract
-
-Successful `--json` responses contain:
-
-| Field | Meaning |
+| Commande | Rôle |
 | --- | --- |
-| `schema_version` | CLI JSON contract version. Currently `1`. |
-| `command` | Stable command identifier such as `meetings.list`. |
-| `data` | Command result. |
-| `pagination` | Page metadata when the command is paginated. |
+| `doctor` | Vérifie la CLI et la connexion à la base, sans rien modifier. |
+| `meetings` | Parcourt, exporte et importe des réunions. |
+| `proposals` | Propose des modifications de réunion, à valider dans l'application. |
+| `mcp` | Lance le serveur MCP Syntheo en stdio. |
 
-Pagination includes `offset`, `limit`, `returned`, optional `total`, and optional `next_offset`.
+## Source des réunions
 
-## Doctor command
+Les commandes `meetings` acceptent `--source` avant leur sous-commande :
+
+```bash
+syntheo meetings --source local list
+```
+
+`local`, la valeur par défaut, lit la base de cet ordinateur. `auto` est conservé comme alias de `local`. Il n'existe pas d'autre source. La variable `SYNTHEO_SOURCE` a le même effet que l'option.
+
+## Commandes de lecture et d'export
+
+| Commande | Options | Résultat |
+| --- | --- | --- |
+| `meetings list` | `-q, --query TEXTE`, `--series-id ID`, `--folder CHEMIN`, `--limit 1..200`, `--offset N` | Réunions, 20 par défaut. La recherche ignore la casse et porte sur le titre et l'identifiant. `--folder` inclut les sous-dossiers. Chaque réunion contient `folder_path`, `null` hors dossier. |
+| `meetings folders` | `-q, --query TEXTE`, `--limit 1..200`, `--offset N` | Dossiers, avec `path`, `name` et `parent_path`, y compris les dossiers vides et parents. 100 par défaut. |
+| `meetings get ID` | — | Métadonnées, note canonique, résumés, participants et actions. |
+| `meetings note ID` | `--kind note\|summary\|all` | Les documents demandés. `note` par défaut. |
+| `meetings transcript ID` | `--limit 1..500`, `--offset N` | Une page bornée du transcript, en mots. 200 mots depuis l'offset 0 par défaut. |
+| `meetings history ID` | `--limit 1..200`, `--offset N` | Une page des réunions de la même série récurrente. 20 depuis l'offset 0 par défaut. |
+| `meetings export ID` | `--format markdown\|json`, `-o, --output FICHIER`, `--force` | Export complet, transcripts compris. Markdown sur la sortie standard par défaut. Un fichier existant n'est remplacé qu'avec `--force`, qui exige `--output`. |
+
+Les exports Markdown présentent le transcript en paragraphes attribués aux locuteurs quand cette information existe au niveau des mots. Sinon, ils gardent le texte brut du transcript. Les exports JSON peuvent contenir un champ `speakers` avec les noms utilisés.
+
+## Importer un enregistrement
+
+```bash
+syntheo --json meetings import ./webinaire.mp3 --title "Webinaire" --folder "Recherche" --request-key webinaire-2026-10 --wait
+syntheo --json meetings import-status JOB_ID
+syntheo --json meetings get MEETING_ID
+```
+
+| Commande | Options | Résultat |
+| --- | --- | --- |
+| `meetings import FICHIER` | `--title TITRE`, `--folder CHEMIN`, `--request-key CLÉ`, `--wait`, `--timeout SECONDES` | Crée une réunion et met en file la transcription du fichier par l'application. |
+| `meetings import-status ID` | — | État durable d'une tâche d'import. |
+
+L'application doit être ouverte sur la même base : sans elle, l'import est refusé. Elle transcrit le fichier avec le serveur de transcription configuré dans l'application, puis génère le résumé avec le LLM configuré. L'audio est envoyé à ce serveur.
+
+- Formats acceptés : WAV, MP3, OGG, MP4, M4A, FLAC, WebM, AAC. Le fichier doit être non vide et lisible sur la machine qui exécute la CLI. Les fichiers de sous-titres ou de transcript ne sont pas acceptés.
+- Le fichier n'est pas copié : l'application le lit à son emplacement d'origine. Ne le déplacez pas et ne le supprimez pas avant la fin de la tâche.
+- `--title` vaut par défaut le nom du fichier sans extension. `--folder` doit désigner un dossier existant (voir `meetings folders`).
+- `--request-key` (1 à 200 octets) rend l'import rejouable : réutilisez la même clé pour réessayer le même import, et il renvoie la tâche et la réunion d'origine, même après un échec. Un nouvel import exige une nouvelle clé.
+
+Le résultat contient `meeting_id`, `job_id`, `processing_status`, `summary_status` et `error` (éventuellement `null`). `processing_status` passe par `queued`, `importing`, `transcribing`, `summarizing`, puis `done` ou `failed`. `summary_status` vaut `pending`, `done`, `skipped_no_model`, `skipped_too_short` ou `failed` : `done` pour le traitement ne garantit donc pas qu'un résumé a été généré.
+
+`--wait` attend un état final. `--timeout` vaut 3600 secondes par défaut (de 1 à 86400). Codes de sortie : 0 pour une soumission ou une fin réussie, 1 pour un échec, 2 si l'attente expire. L'expiration ou l'interruption de la CLI n'annule pas la tâche : continuez avec `import-status`. Une tâche interrompue en cours de route est marquée `failed` ; les données déjà produites sont conservées.
+
+Les identifiants de commande JSON sont `meetings.import` et `meetings.import_status`.
+
+## Commandes de proposition
+
+Ces commandes créent ou consultent des modifications en attente. Elles n'appliquent jamais la modification : l'application s'en charge, après validation par l'utilisateur.
+
+| Commande | Options | Résultat |
+| --- | --- | --- |
+| `proposals create` | `--meeting ID`, `--kind summary\|memo`, `--target ID`, `--content TEXTE` ou `--content-file FICHIER` | Prépare un remplacement en attente. `--target` est obligatoire quand la réunion a plusieurs résumés. |
+| `proposals list` | `--meeting ID`, `--status pending\|applied\|declined\|all`, `--limit 1..200`, `--offset N` | Propositions, des plus récentes aux plus anciennes. Par défaut, celles en attente, 20 résultats. |
+| `proposals show ID` | — | Métadonnées de la proposition et diff unifié. |
+| `proposals decline ID` | — | Refuse une proposition en attente. La réunion ne change pas. |
+
+## Contrat de réponse JSON
+
+Avec `--json`, une réponse réussie contient :
+
+| Champ | Signification |
+| --- | --- |
+| `schema_version` | Version du contrat JSON de la CLI. Actuellement `"1"`. |
+| `command` | Identifiant stable de la commande, par exemple `meetings.list`. |
+| `data` | Résultat de la commande. |
+| `pagination` | Présent pour les commandes paginées. |
+
+`pagination` contient `offset`, `limit`, `returned`, et éventuellement `total` et `next_offset`.
+
+Les erreurs sont décrites dans [Erreurs et codes de sortie](/reference/errors).
+
+## Commande doctor
 
 ```bash
 syntheo --json doctor
 ```
 
-Checks the resolved database path, read-only access, and required schema without changing data. It exits with status 0 when `ready` is true and status 1 when `ready` is false.
+Vérifie le chemin de base retenu, l'ouverture en lecture seule et le schéma attendu, sans rien modifier. Le rapport contient `cli_version`, `ready` et `database` (`path`, `exists`, `opened_read_only`, `schema_ready`, `error`). Code de sortie 0 si `ready` vaut `true`, 1 sinon.
 
-## MCP command
+## Commande mcp
 
 ```bash
 syntheo mcp
 ```
 
-Starts the local MCP server over stdio. Meeting reads are idempotent. Proposal tools stage or decline pending edits without applying them to the meeting.
+Lance le serveur MCP local en stdio. Les lectures sont idempotentes. Les outils de proposition préparent ou refusent des modifications sans les appliquer. Voir la [référence MCP](/reference/mcp).
 
 <Warning>
-  Do not write other output to the server's stdout. Anything else written there corrupts the MCP stdio protocol stream.
+  N'écrivez rien d'autre sur la sortie standard du serveur : toute autre sortie corrompt le flux du protocole MCP.
 </Warning>
 
-## Help and version
+## Aide et version
 
 ```bash
 syntheo --help
-syntheo auth --help
 syntheo meetings --help
 syntheo meetings list --help
 syntheo --version
 ```
 
+## Commandes de capture gérée
 
-### Managed local capture
+Ces commandes servent aux déploiements administrés (conservation légale, mesure d'usage). Elles ne fonctionnent qu'avec la base locale. Plusieurs exigent `--json` ou `--source local` explicite, comme indiqué ci-dessous.
 
-`syntheo meetings capabilities` reports managed-settings, calendar-identity, recording-attachment, capture-completion, hold-inventory (including parentless history and files without database rows), pilot-usage, and conditional-delete support without opening a database.
+<Note>
+  Syntheo ne conserve aucun fichier audio. Les éléments qui concernent des fichiers d'enregistrement (`recording_locations`, suppression des enregistrements) sont donc normalement vides ou sans effet.
+</Note>
 
-`syntheo meetings delete` permanently removes a completed local meeting, its document history, transcripts, recordings, and derived search index. It requires `--source local`, `--if-export-sha256` (the SHA-256 of the complete JSON export, either as printed to stdout with its final newline or as saved with `--output`), and `--require-transcription-complete`. Close the desktop app first. A changed export, unfinished transcript, cloud attachment, or shared record prevents deletion. An interrupted file removal can be resumed with the same meeting ID and hash.
+| Commande | Options | Rôle |
+| --- | --- | --- |
+| `meetings capabilities` | — | Décrit les capacités de capture gérée, sans ouvrir de base. |
+| `meetings initialize-managed` | — | Prépare la base locale à partir d'une politique gérée existante. |
+| `meetings hold-list` | `--after ID`, `--limit 1..200`, `--database-only` | Liste toutes les réunions persistées, y compris supprimées, pour conservation. |
+| `meetings hold-export ID` | `--database-only` | Diffuse l'historique brut d'une réunion en NDJSON, pour une conservation chiffrée. |
+| `meetings pilot-usage` | `--from-ms MS`, `--until-ms MS` | Lit les intervalles de capture locaux, sans contenu ni identifiant de réunion. |
+| `meetings delete ID` | `--if-export-sha256 HASH`, `--require-transcription-complete` | Supprime définitivement une réunion locale terminée. |
 
-A version 1 `managed_settings.json` beside the active `app.db` contains a `settings` object. Only supported capture settings are accepted, and secrets are rejected. Managed rows override user changes; malformed policy prevents database startup. `intelligence_disabled: true` disables all model connections, including local models. Transcription credentials remain in the OS credential store.
-
-`meetings initialize-managed` (`syntheo --json meetings --source local initialize-managed`) creates or migrates the local database before first desktop launch. An existing `managed_settings.json` that disables intelligence is required; the desktop must be closed. No recording or permission prompt is started.
-
-`meetings hold-list` (`syntheo --json meetings --source local hold-list`) enumerates local meeting IDs retained by sessions, child/history rows, capture-recovery markers and encrypted session revisions, including soft-deleted or missing parent rows and identities retained only by recording or legacy meeting files, in ID order. Filesystem traversal stays within the recorder sessions directory, refuses links and fails rather than truncating an oversized or unreadable inventory. Use `--limit 1..200` and `--after ID` for keyset pagination; an empty `data.ids` array ends the inventory. Managed preservation agents can use `--database-only` to page database-owned identities while separately walking and preserving recording files with durable checkpoints. This mode skips filesystem discovery; its pages alone do not establish a complete hold inventory.
-
-`meetings hold-export` (`syntheo --json meetings --source local hold-export MEETING_ID`) streams meeting-owned database cells and retained revisions from one read transaction as NDJSON. Each bounded cell frame carries the table, row key, column, SQLite storage type, byte offset, total length, and base64 bytes. Integer and REAL cells use round-trip text; TEXT and BLOB bytes remain exact. The header identifies the meeting and schema and lists `recording_locations` relative to the recorder sessions directory; sequences and the final SHA-256 cover every preceding line including its newline. An absent end frame means an incomplete snapshot. The archive includes tombstoned documents, live transcript deltas, per-session raw capture-recovery memos and related encrypted sync revisions. A parent session row is not required when owned records or meeting files remain. A files-only archive has no database cell frames; its header still identifies every discovered location, including moved copies. It excludes global settings, provider credentials and unrelated meetings. Recording files are preserved separately by the managed agent. With `--database-only`, the archive skips filesystem discovery and sets `recording_files_separate: true` with an empty `recording_locations` array. The agent must complete its separate file inventory and verify each catalogued attachment before treating preservation as complete. This local preservation archive is separate from normal meeting export and must not enter knowledge intake.
-
-`meetings pilot-usage` requires `--json` and `--source local`. Supply `--from-ms` and `--until-ms` as Unix milliseconds for a half-open UTC window of at most 366 days. The command reads capture intervals from the native stop registry's locally persisted measurement ledger. It returns clocks, requested-live and live-at-stop flags, and coverage counts without meeting identifiers, text, titles, invitees, or provider credentials. The ledger is recorded for managed capture with intelligence disabled; it survives deletion of meeting content. Pauses are separate intervals. Older recordings, interrupted persistence, and pending sessions can leave coverage incomplete; inspect `unmeasured_stops`, `invalid_metadata_records`, `pending_sessions`, and `legacy_sessions_without_measurement`. Empty results do not prove no calls occurred. Capture durations and requested-live overlap measure recorder use, not provider billing or successful Teams capture. No report is uploaded automatically.
-
-## Import a recording (local only)
+### `meetings initialize-managed`
 
 ```bash
-syntheo --json meetings --source local import ./webinar.mp3 --title "Webinar" --folder "Research" --request-key webinar-2026-10 --wait
-syntheo --json meetings import-status JOB_ID
-syntheo --json meetings get MEETING_ID
+syntheo --json meetings --source local initialize-managed
 ```
 
-The updated desktop app must be open on the same local database. Import creates a meeting immediately and queues the desktop's Upload audio pipeline, using its current speech-to-text and Intelligence configuration. Provider charges and audio-retention settings apply. Audio may be sent to the configured provider. Cloud and auto sources are rejected; this command is not a headless transcription service.
+Crée ou migre la base locale avant le premier lancement de l'application. Exige `--source local`, l'application fermée et un fichier `managed_settings.json` (version 1, objet `settings`) à côté de `app.db`, qui désactive l'intelligence (`intelligence_disabled: true`).
 
-Supported extensions: WAV, MP3, OGG, MP4, M4A, FLAC, WebM, AAC. The file must be nonempty and readable on the machine running the CLI. `--folder` must name an existing folder. `--title` defaults to the filename without extension. Subtitle/transcript files are not supported by this command.
+### `meetings hold-list`
 
-The result contains `meeting_id`, `job_id`, `processing_status`, `summary_status`, and nullable `error`. Processing progresses through `queued`, `importing`, `transcribing`, `summarizing`, then `done` or `failed`. A skipped summary is reported as `skipped_no_model` or `skipped_too_short`; `done` alone does not promise a generated summary. Local `meetings get` also exposes `processing_status` and `recording_import` (null for ordinary meetings).
+```bash
+syntheo --json meetings --source local hold-list --limit 200
+```
 
-`--wait` waits for a terminal result. `--timeout SECONDS` defaults to 3600 (range 1–86400). Exit status is 0 for successful submission/completion, 1 for failure, and 2 for a wait timeout. A timeout or interruption of the CLI does not cancel the desktop job. Poll `import-status` to continue observing it. JSON command identifiers are `meetings.import` and `meetings.import_status`.
+Énumère, par ordre d'identifiant, les réunions conservées dans la base, y compris les lignes supprimées logiquement. Exige `--json`. Pagination par clé : passez le dernier identifiant reçu à `--after` ; un tableau `data.ids` vide termine l'inventaire. `--database-only` ignore la découverte de fichiers sur disque.
 
-Reuse `--request-key` only for retries of the same logical import. It returns the original job and meeting, including after failure, rather than starting another paid transcription. A new import needs a new key. The source is copied privately before submission, so moving the original afterwards is safe; the desktop removes this temporary copy after the job finishes. Interrupted running jobs are marked failed when the desktop is available again; completed transcript/meeting data is preserved. Inspect the meeting before explicitly submitting a new import.
+### `meetings hold-export`
+
+```bash
+syntheo --json meetings --source local hold-export MEETING_ID
+```
+
+Diffuse en NDJSON, depuis une seule transaction de lecture, les cellules de base et révisions propres à la réunion. Exige `--json`. Chaque ligne est bornée ; une empreinte SHA-256 finale couvre toutes les lignes précédentes. L'absence de ligne de fin signale un instantané incomplet. L'archive exclut les réglages globaux, les identifiants de fournisseurs et les autres réunions. Avec `--database-only`, elle ignore la découverte de fichiers et renvoie `recording_files_separate: true`. Cette archive de conservation est distincte de l'export ordinaire.
+
+### `meetings pilot-usage`
+
+```bash
+syntheo --json meetings --source local pilot-usage --from-ms 1767225600000 --until-ms 1769904000000
+```
+
+Exige `--json` et `--source local`. `--from-ms` et `--until-ms` sont des millisecondes Unix, pour une fenêtre UTC semi-ouverte de 366 jours au plus. Renvoie les intervalles de capture et des compteurs de couverture (`unmeasured_stops`, `invalid_metadata_records`, `pending_sessions`, `legacy_sessions_without_measurement`), sans identifiant, texte, titre ni participant. Un résultat vide ne prouve pas qu'aucune réunion n'a eu lieu. Rien n'est envoyé automatiquement.
+
+### `meetings delete`
+
+```bash
+syntheo --json meetings --source local delete MEETING_ID --if-export-sha256 HASH --require-transcription-complete
+```
+
+Supprime définitivement une réunion locale terminée : historique des documents, transcripts et index de recherche dérivé. Exige `--source local`, `--if-export-sha256` (le SHA-256 de l'export JSON complet, tel qu'imprimé sur la sortie standard avec son retour à la ligne final, ou tel qu'enregistré avec `--output`) et `--require-transcription-complete`. Fermez l'application avant. Un export modifié, un transcript inachevé ou une proposition en attente empêche la suppression. Une suppression interrompue reprend avec le même identifiant et la même empreinte.

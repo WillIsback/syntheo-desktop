@@ -1,48 +1,51 @@
 ---
-title: "Record meetings"
-description: "Start, follow, and finish a meeting without adding a bot to the call."
+title: "Enregistrer une réunion"
+description: "Démarrez, suivez et terminez une capture sans ajouter de robot à l'appel."
 ---
 
-## Start recording
+## Avant de commencer
 
-Choose the path that matches the meeting:
+Syntheo a besoin d'un serveur de transcription en temps réel configuré dans **Paramètres → Transcription**. Sans lui, l'écoute ne démarre pas. Pour obtenir un résumé, configurez aussi un LLM dans **Paramètres → Intelligence**. Voir [Configurer la transcription et l'IA](/ai-setup).
 
-- **Calendar event with a meeting link:** open the event note and click **Join & record**. Syntheo opens the call and starts listening.
-- **In-person meeting or call already open:** open the event note and click **Record**.
-- **Unscheduled conversation:** create a **New Note**, then click **Record**.
+## Démarrer l'enregistrement
 
-Syntheo records your microphone and system audio. It does not join the meeting as a participant.
+1. Créez une « Nouvelle note » ou ouvrez une note existante.
+2. Cliquez sur « Enregistrer » en haut à droite.
+
+Syntheo capte votre microphone et l'audio système de l'ordinateur. Il ne rejoint pas la réunion comme participant : les autres personnes ne voient pas de robot dans l'appel.
+
+Au démarrage, Syntheo affiche un rappel pour informer les participants que la réunion est transcrite. Vous pouvez le désactiver dans **Paramètres → Réunions** avec « Rappelez aux participants l'enregistrement ».
 
 <Warning>
-  Make sure you have permission to record. Consent rules depend on where you and the other participants are located.
+  Assurez-vous d'avoir le droit d'enregistrer. Informez les participants et recueillez leur accord selon les règles applicables là où vous et eux vous trouvez.
 </Warning>
 
-## Choose a preferred recording computer
+## Pendant la réunion
 
-In desktop 1.4.30 and later, open **Settings → Meetings → Primary recording device** on the computer you want to use and choose its name. This requires a signed-in Pro account. Open Settings on a different computer to make that computer the preferred recorder.
+Utilisez l'onglet « Mémos » pour vos propres notes. Elles peuvent rester brouillonnes : le résumé s'appuie à la fois sur la conversation et sur vos mémos.
 
-For the same calendar meeting, Syntheo coordinates online computers and keeps one recording. A computer can still record when the preferred one is absent. Choose **Ask each meeting** to clear the saved preference and return to the meeting prompt. If the computers cannot reach the device service, they keep recording.
+Ouvrez l'onglet « Transcript » pour suivre le texte en direct. Syntheo distingue votre voix (microphone) de celle des autres participants (audio système). Si votre serveur de transcription renvoie des locuteurs, Syntheo les affiche aussi ; vous pouvez ensuite les renommer.
 
-## During the meeting
+L'audio n'est jamais écrit sur le disque : il reste en mémoire le temps d'être envoyé à votre serveur de transcription.
 
-Use **Memos** for your own notes. You can keep them rough: the generated summary uses the conversation and your memo as context.
+### Si la transcription s'interrompt
 
-Open **Transcript** to follow live text when your selected transcription model supports it. Models marked **After recording** process the audio when you stop.
+Si la connexion au serveur de transcription se coupe, Syntheo continue de capter l'audio et tente de se reconnecter. Comme l'audio n'est pas conservé, le passage manqué ne peut pas être rattrapé : le transcript indique un trou daté, par exemple « Transcription interrompue 14:32–14:35 ».
 
-If live transcription from a remote provider stalls during speech, Syntheo attempts to reconnect while keeping audio capture running. The warning clears when finalized transcript text resumes.
+### Garder les commandes à portée de main
 
-If you enabled **Show floating bar** in **Settings → Meetings**, you can control recording without keeping the full Syntheo window open.
+Si « Afficher la barre flottante » est activé dans **Paramètres → Réunions** (c'est le cas par défaut), une barre compacte vous permet de piloter l'écoute sans rouvrir la fenêtre principale. Pendant une capture, vous pouvez aussi choisir « Ouvrir le panneau flottant » dans le menu **•••** de la note.
 
-## Finish the meeting
+## Terminer la réunion
 
-Click **Stop listening**. Syntheo saves the recording according to your retention setting, finishes the transcript, and creates a summary when an Intelligence model is configured.
+Cliquez sur « Arrêter ». Syntheo finalise le transcript, puis génère le résumé si un LLM est configuré. Le résumé apparaît dans l'onglet « Résumé ».
 
-You can resume a finished meeting from the same top-right control if the conversation continues.
+Si la conversation reprend, vous pouvez relancer l'écoute sur la même note depuis le même bouton.
 
-## Use an existing recording
+Pour relire, corriger et exporter la note, voir [Notes, résumés et exports](/notes).
 
-Create or open an empty note, click the **•••** menu, then choose **Upload audio** or **Upload transcript**.
+## Partir d'un enregistrement existant
 
-See [Import audio or a transcript](/import-recordings) for supported formats and the complete flow.
+Pour une conversation enregistrée ailleurs, ouvrez une note vide, cliquez sur le menu **•••**, puis choisissez « Téléverser un audio » ou « Téléversez un transcript ». Voir [Importer un enregistrement](/import-recordings).
 
-For automatic start, meeting detection, and stop controls, see [Automate meeting capture](/automatic-capture).
+Pour la détection de réunion, l'arrêt automatique et les autres automatismes, voir [Automatiser la capture](/automatic-capture).

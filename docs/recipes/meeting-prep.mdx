@@ -1,48 +1,48 @@
 ---
-title: "Prepare for a recurring meeting"
-description: "Build a focused meeting brief from recent Syntheo context."
+title: "Préparer une réunion récurrente"
+description: "Construisez une fiche de préparation à partir de vos réunions précédentes."
 ---
 
-This recipe helps an agent prepare for the next occurrence of a recurring meeting without loading every transcript.
+Cette recette aide un agent (via le [serveur MCP local](/agents/mcp) ou la [CLI](/agents/cli)) à préparer la prochaine occurrence d'une réunion récurrente sans charger tous les transcripts.
 
 <Steps>
-  <Step title="Find the latest meeting">
-    Call `list_meetings` with a short title query, or run:
+  <Step title="Retrouver les réunions précédentes">
+    Appelez `list_meetings` avec un extrait du titre, ou lancez :
 
     ```bash
-    syntheo --json meetings list --query "project sync" --limit 10
+    syntheo --json meetings list --query "point projet" --limit 10
     ```
 
-    Resolve the latest relevant meeting ID from the results.
+    Repérez l'identifiant de la réunion la plus récente, ainsi que celui des précédentes occurrences pertinentes.
   </Step>
-  <Step title="Read its structured context">
-    Call `get_meeting`, or run:
+  <Step title="Lire leur contexte structuré">
+    Appelez `get_meeting`, ou lancez :
 
     ```bash
     syntheo --json meetings get MEETING_ID
     ```
 
-    Extract open action items, decisions in notes or summaries, participants, and the meeting's series ID.
+    Relevez les actions ouvertes, les décisions présentes dans les notes ou les comptes rendus, et les participants.
   </Step>
-  <Step title="Review recurring history">
-    Call `get_recurring_meeting_history` with the meeting ID, or run:
+  <Step title="Consulter l'historique de la série (si disponible)">
+    Appelez `get_recurring_meeting_history` avec l'identifiant de la réunion, ou lancez :
 
     ```bash
     syntheo --json meetings history MEETING_ID --limit 5 --offset 0
     ```
 
-    Fetch detail only for earlier meetings that appear relevant.
+    Une série n'existe que pour une réunion liée à un événement récurrent de calendrier. Sur Linux et Windows, aucun calendrier n'est connecté : la liste est vide. Appuyez-vous alors sur la recherche par titre de la première étape.
   </Step>
-  <Step title="Use transcript evidence sparingly">
-    If a decision is unclear, call `get_meeting_transcript` with `limit: 200`, or run:
+  <Step title="Utiliser le transcript avec parcimonie">
+    Si une décision n'est pas claire, appelez `get_meeting_transcript` avec `limit: 200`, ou lancez :
 
     ```bash
     syntheo --json meetings transcript MEETING_ID --limit 200 --offset 0
     ```
 
-    Continue from `next_offset` only when needed.
+    Ne continuez à partir de `next_offset` que si c'est nécessaire.
   </Step>
-  <Step title="Produce the brief">
-    Keep the output focused on unresolved actions, prior decisions, discussion topics, and useful context for named participants. Distinguish meeting evidence from your own inference.
+  <Step title="Rédiger la fiche">
+    Concentrez-vous sur les actions non résolues, les décisions passées, les sujets à aborder et le contexte utile sur chaque participant. Distinguez ce qui vient des réunions de vos propres déductions.
   </Step>
 </Steps>

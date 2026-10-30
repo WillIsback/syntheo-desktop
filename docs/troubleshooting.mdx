@@ -1,131 +1,150 @@
 ---
-title: "Troubleshooting"
-description: "Fix the most common recording, transcription, summary, and calendar problems."
+title: "Dépannage"
+description: "Résoudre les problèmes courants : serveurs STT et LLM injoignables, HTTPS, liste de modèles vide, audio sous Linux et Windows, installation."
 ---
 
-## Audio is missing
+## Le serveur de transcription ou de modèle de langue est injoignable
 
-Open **Settings → Permissions** and confirm:
+Syntheo ne contient aucun modèle : il dépend entièrement des serveurs dont vous avez saisi l'URL dans **Paramètres → Transcription** et **Paramètres → Intelligence**.
 
-- **Microphone** is allowed so Syntheo can hear you.
-- **System Audio** is allowed so Syntheo can hear the other people on the call.
+Vérifiez dans l'ordre :
 
-If a permission is denied, use **Open** to change it in your operating system's settings, then restart Syntheo.
+1. **Le serveur tourne.** Depuis l'ordinateur où Syntheo est installé, interrogez-le directement :
 
-On Linux, confirm that your desktop audio service can see the microphone and the output-monitor source. On Windows or Linux, include the app and operating-system versions if audio works in other apps but not in Syntheo.
+   ```bash
+   curl http://localhost:8000/v1/models
+   ```
 
-On desktop 1.4.30 or later, a recording warning identifies an unavailable microphone or system-audio source. Check the device connection and permissions, then use **Retry** to restart the failed source without stopping the recording. Syntheo keeps capturing the source that still works. Audio missed while a source was unavailable cannot be recovered by retrying.
+   Remplacez l'URL par celle de votre serveur. Ajoutez `-H "Authorization: Bearer <clé>"` si votre serveur exige une clé.
 
-## The transcript is not live
+2. **L'URL de base est complète.** Pour un serveur OpenAI-compatible, elle se termine en général par `/v1` (par exemple `http://localhost:8000/v1`), sans `/models` ni `/chat/completions` à la fin. Pour un serveur Nemotron ASR (NIM), indiquez l'adresse WebSocket du serveur, par exemple `http://localhost:9000/v1/realtime`.
+3. **L'URL ne contient ni identifiant, ni paramètre.** Syntheo refuse une URL de la forme `https://utilisateur:motdepasse@…` ou contenant `?…`. Saisissez la clé dans le champ prévu.
+4. **La clé API est la bonne.** Si le serveur répond 401 ou 403, Syntheo indique que le fournisseur a refusé la clé.
+5. **Aucun pare-feu, VPN ou proxy ne bloque le port** entre votre poste et le serveur.
 
-Open **Settings → Transcription** and check the selected model. **Live** models transcribe during the meeting. **After recording** models wait until you stop.
+Pour le modèle de langue, **Paramètres → Intelligence** affiche un message « Connection failed » suivi de la cause quand le serveur ne répond pas. Pour la transcription, la connexion n'est vérifiée qu'au démarrage d'une capture.
 
-If transcription fails, confirm the provider is configured, the model supports your spoken languages, and a local provider is running.
+## Syntheo exige HTTPS
 
-## No summary appears
+Syntheo accepte une URL en `http://` uniquement pour un serveur situé sur votre poste ou sur un réseau privé :
 
-A summary needs an Intelligence model. Open **Settings → Intelligence**, then select Syntheo Cloud or configure another provider.
+- `localhost`, `127.x.x.x` et `[::1]` ;
+- les noms se terminant par `.local` ;
+- les adresses privées `10.x.x.x`, `172.16.x.x` à `172.31.x.x` et `192.168.x.x` ;
+- la plage `100.64.x.x` à `100.127.x.x` (utilisée notamment par les VPN maillés).
 
-For LM Studio and Ollama, confirm the local server is running. See [Transcription and AI](/ai-setup).
+Pour toute autre adresse, y compris un nom de domaine interne comme `serveur.entreprise.lan`, utilisez `https://`. Sinon, Syntheo refuse l'URL avec le message « Use HTTPS for provider credentials. ». Placez votre serveur derrière un proxy inverse avec un certificat (Caddy, nginx, Traefik), ou utilisez directement son adresse IP privée.
 
-## Calendar events are missing
+## La liste des modèles est vide
 
-Open **Calendar** and confirm the account is connected and the calendar is enabled. Refresh the calendar list. Reconnect any account marked **Reconnect required**.
+Syntheo lit les modèles de votre serveur de modèle de langue dans `/v1/models`.
 
-For Apple Calendar, also check **Settings → Permissions → Calendar**.
+- **« Aucun modèle disponible. »** Le serveur n'a renvoyé aucun modèle. Vérifiez qu'un modèle est bien chargé, par exemple avec `curl <URL de base>/models`. Avec Ollama, téléchargez un modèle avant de le sélectionner. Avec LM Studio, chargez-en un dans le serveur local.
+- **« Aucun modèle prêt à l'emploi. »** Le serveur a renvoyé des modèles, mais Syntheo les a écartés parce qu'ils ne ressemblent pas à des modèles de chat (leur nom contient par exemple `embed`, `whisper`, `audio`, `tts` ou `transcribe`). Servez un modèle de chat sur ce serveur.
+- **La liste reste en chargement ou en erreur.** Le serveur ne répond pas à `/v1/models` dans les 5 secondes, ou répond dans un format inattendu. Reprenez la première section de cette page.
 
-## A recording disappeared
+Pour la transcription, Syntheo ne vérifie pas la liste des modèles : saisissez le nom exact du modèle servi par votre déploiement. Un serveur NIM ne liste pas ses modèles. Indiquez par exemple `nemotron-asr-streaming` ou `parakeet-tdt-0.6b-v3`, selon votre déploiement.
 
-Open **Settings → Meetings** and check **Audio file retention** under **Audio**. Syntheo can delete audio immediately or after a selected period while keeping the note and transcript.
+## Le transcript s'arrête pendant la réunion
 
-See [Data, privacy, and retention](/data-and-privacy#choose-how-long-audio-is-kept) for every retention option.
+Si le serveur de transcription se coupe ou devient injoignable, Syntheo affiche un avertissement qui indique la cause probable (réseau hors ligne, clé refusée, réglages refusés, panne du serveur) et tente de se reconnecter automatiquement.
 
-## An imported file does nothing
+Syntheo ne conserve pas l'audio. Ce qui a été dit pendant la coupure ne peut donc pas être transcrit après coup. Au-dessus du transcript, un bandeau indique les périodes manquantes, par exemple « Transcription interrompue 14:32–14:35. ». Si les horaires ne sont pas connus, le bandeau indique « Ce transcript est incomplet. ».
 
-Audio imports accept WAV, MP3, OGG, MP4, M4A, FLAC, WebM, and AAC. Transcript imports accept SRT and VTT.
+Pour limiter ces trous, vérifiez la stabilité du réseau entre votre poste et le serveur, ainsi que la charge du serveur (mémoire GPU, nombre de sessions simultanées).
 
-For audio, confirm that a Transcription model is selected and that a local provider is running. See [Import audio or a transcript](/import-recordings).
+## Il manque du son : microphone ou audio système
 
-## Meeting-history import shows no apps
+Ouvrez **Paramètres → Autorisations**. Sous Linux et Windows, la section « Audio » affiche deux lignes :
 
-Syntheo lists supported meeting assistants it detects on your computer. Open the source app, restart Syntheo, and return to **Settings → Imports**.
+- « Microphone » : votre voix ;
+- « Audio système » : la voix des autres participants.
 
-If you already removed the source app, reinstall it long enough to complete the import or export the transcript as SRT or VTT and [import it into an empty note](/import-recordings#import-a-transcript).
+Syntheo teste réellement chaque source audio. Une ligne en rouge signifie que le test a échoué. Corrigez la cause, puis cliquez sur la flèche de la ligne pour relancer le test. Sous Linux et Windows, ce bouton n'ouvre pas les réglages du système.
 
-## Chat has no meeting context
+<Tabs>
+  <Tab title="Linux">
+    Syntheo capte l'audio système via **PipeWire**, ou via **PulseAudio** si PipeWire n'est pas disponible.
 
-Open the meeting before opening Chat and wait for its transcript or summary to finish. The open meeting is added automatically when its content is available. If Chat still answers without it, start a new chat from that meeting and name the meeting in your request. If no Intelligence model is configured, open **Settings → Intelligence**.
+    - Vérifiez que le serveur son tourne :
 
-See [Chat with your meetings](/chat) for context guidance and example requests.
+      ```bash
+      pactl info
+      ```
 
-## Sharing does not work
+      Sur une distribution récente, la ligne « Server Name » mentionne PipeWire. Si la commande échoue, installez et démarrez `pipewire-pulse` (ou PulseAudio).
+    - Vérifiez que le microphone et la source de retour de la sortie audio (« Monitor of… ») existent :
 
-Sharing requires Syntheo Pro, a signed-in account, an internet connection, and a generated summary. If a recipient cannot open the note, check their invitation and **General access** under **Share**.
+      ```bash
+      pactl list short sources
+      ```
 
-For an **Anyone with the link** share, copy the current link again. Replacing a link invalidates the earlier URL. See [Share meetings](/sharing).
+    - Si le microphone n'apparaît pas, vérifiez qu'il n'est pas coupé ou attribué à une autre carte son, par exemple avec `pavucontrol`.
+    - Si l'audio fonctionne dans d'autres applications mais pas dans Syntheo, notez la distribution, l'environnement de bureau et la version de Syntheo pour le signalement.
+  </Tab>
+  <Tab title="Windows">
+    - Ouvrez **Paramètres Windows → Confidentialité et sécurité → Microphone**. Activez l'accès au microphone, puis « Autoriser les applications de bureau à accéder à votre microphone ».
+    - Vérifiez dans **Paramètres → Système → Son** que le bon périphérique d'entrée est sélectionné et qu'il capte du son.
+    - L'audio système est capté par bouclage (loopback) sur la sortie audio. Syntheo suit le périphérique de sortie qu'utilise l'application de réunion, même s'il change en cours de capture. Si les autres participants restent absents, vérifiez que le son de la réunion sort bien par un périphérique audio de Windows (et pas par un pilote propriétaire qui le contourne).
+  </Tab>
+</Tabs>
 
-## An automation did not run
+## Windows affiche un avertissement SmartScreen
 
-Open **Automations**, select the automation, and check whether it is enabled and what its last run reports. Confirm that:
+L'installeur Windows `.exe` est signé. Windows SmartScreen peut tout de même afficher « Windows a protégé votre ordinateur » tant que la signature n'a pas acquis assez de réputation auprès de Microsoft.
 
-- The destination channel, page, team, or folder is selected.
-- Slack, Notion, or Linear is still connected.
-- The meeting finished and produced the summary or action items the automation needs.
-- A local Markdown folder still exists and is writable.
+1. Vérifiez que vous avez téléchargé le fichier depuis la [page des versions GitHub](https://github.com/WillIsback/syntheo-desktop/releases/latest).
+2. Cliquez sur **Informations complémentaires** et vérifiez l'éditeur affiché.
+3. Cliquez sur **Exécuter quand même**.
 
-See [Automate meeting follow-up](/automations).
+N'installez jamais un installeur obtenu par un autre canal.
 
-## Cloud sync is blocked
+## L'application ne s'ouvre pas après l'installation sous Linux
 
-Open **Settings → Sync** and use the message shown there:
-
-- **Setup required:** Create a recovery key or enter the existing key.
-- **Sign in again** or **Identity mismatch:** Sign out and sign back in with the account that owns the synced notes.
-- **Device limit reached:** Remove an unused device or use **Get more slots** in **Settings → Sync → Devices** to add slots to a personal Pro subscription. Your plan and add-ons determine the limit.
-- **macOS Keychain error:** Click **Repair Keychain Access**, then resume sync.
-
-<Warning>
-  Do not move or delete local data while an identity problem is unresolved.
-</Warning>
-
-See [Cloud sync](/sync#fix-a-blocked-sync).
-
-## Your cloud session has expired
-
-In desktop 1.4.30 and later, use **Sign in again** in the session-expired message and complete browser sign-in with the same account. This reconnects cloud services while preserving your local account and notes. Revoked refresh credentials cannot recover through automatic retries.
-
-Temporary rate limits or connection failures retry after a delay. Keep your local data while reconnecting.
-
-## The app does not open after installation
-
-Confirm that you downloaded the build for your operating system and CPU. On Linux, make an AppImage executable before opening it:
+Rendez l'AppImage exécutable avant de la lancer :
 
 ```bash
 chmod +x ./syntheo-*.AppImage
 ```
 
-For Debian or Ubuntu, install the DEB with `sudo apt install ./syntheo-*.deb` so the package manager can resolve dependencies. See [Install the desktop app](/desktop-installation).
+Pour Debian ou Ubuntu, installez le paquet avec `sudo apt install ./syntheo-*.deb` afin que le gestionnaire de paquets résolve les dépendances. Voir [Installer l'application](/desktop-installation).
 
-## Linux opens a black window and plays music
+## Sous Linux, la fenêtre reste noire
 
-First launch opens the setup screen and plays quiet background music. A black window with loud or looping audio usually means WebKitGTK failed to paint, most often on Wayland with NVIDIA.
+Au premier lancement, l'écran d'accueil s'ouvre avec une musique de fond discrète. Une fenêtre noire, avec la musique qui joue, signifie en général que WebKitGTK n'a pas réussi à dessiner la fenêtre, le plus souvent sous Wayland avec une carte NVIDIA.
 
-Current builds disable the WebKit DMA-BUF renderer automatically. If the window is still black, launch with:
+Syntheo désactive déjà automatiquement le rendu DMA-BUF de WebKit. Si la fenêtre reste noire, lancez :
 
 ```bash
-WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 ./syntheo-*.AppImage
+WEBKIT_DISABLE_COMPOSITING_MODE=1 ./syntheo-*.AppImage
 ```
 
-The same variables work for the installed `syntheo` command. See [Install the desktop app](/desktop-installation).
+La même variable fonctionne avec la commande `syntheo` installée par le paquet `.deb`.
 
-## Get more help
+## Aucun résumé n'apparaît
 
-Email [team@fastrepl.com](mailto:team@fastrepl.com), [join Discord](https://discord.gg/Vk882WS3gF), or [open a GitHub issue](https://github.com/WillIsback/syntheo-desktop/issues).
+Un résumé nécessite un modèle de langue. Ouvrez **Paramètres → Intelligence**, vérifiez que « vLLM (OpenAI-compatible) » est configuré, puis choisissez un modèle sous « Modèle utilisé ». Si le serveur est injoignable, reprenez la première section de cette page.
 
-Include your operating system, Syntheo version, the exact error, what you expected, and the shortest steps that reproduce the problem. For AI failures, include the selected provider and model.
+## Un fichier importé ne donne rien
+
+Les imports audio acceptent WAV, MP3, OGG, MP4, M4A, FLAC, WebM et AAC. Les imports de transcript acceptent SRT et VTT.
+
+Pour un fichier audio, votre serveur de transcription doit être configuré et exposer `/v1/audio/transcriptions`. Voir [Importer un audio ou un transcript](/import-recordings).
+
+## Obtenir de l'aide
+
+[Ouvrez une issue GitHub](https://github.com/WillIsback/syntheo-desktop/issues) en indiquant :
+
+- votre système d'exploitation et sa version ;
+- la version de Syntheo ;
+- le message d'erreur exact ;
+- ce que vous attendiez, et les étapes les plus courtes pour reproduire le problème ;
+- pour un problème d'IA, le type de serveur (vLLM, Ollama, NIM…) et le modèle utilisé.
+
+Si besoin, joignez le journal `app.log` de l'application, situé dans le dossier `logs` des données de l'application (sous Windows : `%LOCALAPPDATA%\fr.willisback.syntheo\logs`). Relisez-le avant de le partager.
 
 <Warning>
-  Never include API keys, recovery keys, meeting content, or private share links when reporting a problem.
+  Ne publiez jamais de clé API, de contenu de réunion ni l'adresse interne de vos serveurs dans une issue publique.
 </Warning>
 
-For CLI and MCP errors, use the [error reference](/reference/errors).
+Pour les erreurs de la CLI et du serveur MCP, consultez la [référence des erreurs](/reference/errors).

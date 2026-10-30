@@ -1,69 +1,69 @@
 ---
-title: "Data, privacy, and retention"
-description: "Understand what stays on your computer, what can leave it, and how long audio is kept."
+title: "Données et confidentialité"
+description: "Ce que Syntheo stocke sur votre poste, ce qui en sort, et pourquoi l'audio n'est jamais conservé."
 ---
 
-Syntheo stores its app data on your computer and captures meetings without adding a bot to the call. Data leaves your computer only when you use a connected or hosted feature that needs it.
+Syntheo est un client local. Il n'a ni compte, ni serveur éditeur, ni synchronisation, et n'émet aucune télémétrie. Vos données restent sur votre poste ; seuls les serveurs d'inférence que **vous** configurez reçoivent du contenu de réunion.
 
-Security, legal, and procurement teams should use the [security page](https://github.com/WillIsback/syntheo-desktop/security) for encryption, processors, retention, and the evaluation packet. A hosted trust center comes later, when certification programs start.
+Pour une évaluation RGPD complète (tableau des données, flux réseau, garanties techniques, responsabilités), voir [Syntheo Desktop et le RGPD](/conformite/rgpd).
 
-## What stays on your computer
+## Ce qui est stocké, et où
 
-Your notes, local transcripts, settings, recordings you choose to keep, and downloaded local models are stored locally. You can write notes, record audio, and use configured local models without sending meeting content to Syntheo Cloud.
+Tout se trouve dans le dossier de données de l'application :
 
-[Cloud Sync](/sync#what-cloud-sync-replicates) can copy encrypted notes to your other signed-in devices. Transcription and Intelligence API keys, model selections, calendar connections, and most other settings stay on the computer where you set them.
+| Système | Dossier de données |
+| --- | --- |
+| Linux | `~/.local/share/syntheo` |
+| Windows | `%APPDATA%\syntheo` |
 
-<Warning>
-  Do not edit the app database directly — this can corrupt your notes. Use Syntheo's export tools when you need a portable copy.
-</Warning>
-
-## When content is sent elsewhere
-
-The destination depends on the feature you choose:
-
-- A hosted **Transcription** provider receives the audio needed to create a transcript.
-- A hosted **Intelligence** provider receives the text and instructions needed to create a summary or chat response.
-- Connected calendars send the calendar and event details needed to show upcoming events and associate them with your notes.
-- [Cloud Sync](/sync#what-cloud-sync-replicates) sends end-to-end encrypted notes to keep your devices up to date. Syntheo cannot read the recovery key. API keys and most settings stay on each device.
-- [Sharing](/sharing) uploads the generated summary and any audio you explicitly include. Your private memo is not part of the shared note.
-- [Chat](/chat) sends the prompt and required context to your selected Intelligence provider. Public web search also sends the search query to the search service.
-- [Cloud API & Connectors](/reference/api-cloud), when you explicitly enable it, uploads a separate server-readable copy of meeting titles, notes, summaries, participants, action items, and transcripts so remote agents can work while your desktop is offline. Turning it off deletes those copies.
-
-Syntheo Cloud, your own API-key providers, and local providers are separate choices. Review the provider's own retention and training policies before sending sensitive content.
-
-See [Models and providers](/models-and-providers) for the current Syntheo Cloud routes and how direct provider requests work.
-
-## Keep a meeting fully local
-
-1. Select an on-device model under **Settings → Transcription**.
-2. Select LM Studio, Ollama, Unsloth, or eligible Apple Intelligence under **Settings → Intelligence**.
-3. Avoid cloud sync, share links, Cloud API & Connectors, and hosted providers for that content.
-
-See [Use Syntheo offline](/offline) for the full setup.
-
-## Choose how long audio is kept
-
-Open **Settings → Meetings** and find **Audio file retention** under **Audio**. Choose:
-
-- **Don't save**
-- **1 day**
-- **3 days**
-- **1 week**
-- **1 month**
-- **Forever**
+| Donnée | Stockage |
+| --- | --- |
+| Transcripts, notes, comptes rendus, contacts, dossiers, réglages | Base SQLite locale `app.db` |
+| Index de recherche plein texte | Dossier de données (copie indexée des transcripts et des notes) |
+| Journaux techniques | Dossier de logs de l'application, avec masquage du contenu sensible et rotation par taille |
+| Clés API des serveurs d'inférence | Trousseau du système (Secret Service sous Linux, Gestionnaire d'informations d'identification sous Windows), jamais en clair dans la base |
+| Exports | Dossier choisi dans « Emplacement d'export » |
+| Audio | **Nulle part** : voir ci-dessous |
 
 <Warning>
-  Once the retention period passes, the audio is gone for good — the meeting note and transcript remain, but the recording does not. If you need the recording later, right-click the meeting in the sidebar, choose **Show in Finder**, and copy the audio before its retention period ends.
+  La base locale n'est pas chiffrée par Syntheo. Protégez le poste : chiffrement du disque, session verrouillée. Ne modifiez pas `app.db` à la main : vous risquez de corrompre vos notes. Pour une copie portable, utilisez l'export.
 </Warning>
 
-Syntheo uses bounded temporary audio while recording to recover gaps caused by interrupted transcription. Temporary audio is removed after recovery or cleanup; **Don't save** removes recording audio when capture stops. If cleanup fails, Syntheo reports the failure and retries instead of claiming the audio was deleted. Once audio is gone, an incomplete transcript cannot be repaired from that audio.
+## L'audio n'est jamais conservé
 
-## Turn off usage analytics
+L'audio de la capture vit en mémoire le temps d'être envoyé à votre serveur de transcription, puis disparaît. Syntheo n'écrit aucun fichier audio, même temporaire :
 
-Open **Settings → Privacy** and disable **Share usage data (PostHog)**. This controls product analytics and desktop session replay, not the meeting content sent to a provider you selected.
+- pas d'enregistrement de la réunion, pas de lecteur audio, pas de retranscription après coup ;
+- la dictée produit son audio en mémoire ;
+- l'import d'un fichier audio lit le fichier à son emplacement d'origine, sans le copier dans le dossier de données.
 
-Disable **Error** on the same page to stop sending sanitized crash and error reports.
+Conséquence : si la transcription s'interrompt (serveur injoignable, clé refusée), le passage concerné manque au transcript. Syntheo l'indique et se reconnecte, mais ne peut pas le rattraper.
 
-<Warning>
-  Recording-consent rules depend on where you and the other participants are located. Make sure you have permission before recording.
-</Warning>
+## Ce qui sort de votre poste
+
+| Destination | Ce qui est envoyé | Quand |
+| --- | --- | --- |
+| Votre serveur de transcription | L'audio de la capture, de la dictée ou du fichier importé | Pendant la transcription |
+| Votre serveur LLM | Le texte utile à la tâche : transcript, notes, consignes du template, question du chat | Compte rendu, chat, générateur de templates |
+
+Aucun en-tête n'identifie votre appareil. Syntheo ne bascule jamais vers un autre service si votre serveur ne répond pas.
+
+Hors inférence, deux flux mineurs subsistent, sans contenu de réunion : l'affichage des notes de version d'une version autre que celle installée (requête vers GitHub) et quelques icônes d'interface chargées depuis `api.iconify.design`.
+
+Rien n'est envoyé à l'éditeur : pas de compte, pas de statistiques d'usage, pas de rapport d'erreur, pas de vérification de mise à jour. Les mises à jour se font en téléchargeant la nouvelle version depuis les [GitHub Releases](https://github.com/WillIsback/syntheo-desktop/releases/latest).
+
+<Note>
+  Un serveur d'inférence exploité par un tiers devient votre sous-traitant au sens du RGPD (art. 28) : vérifiez le contrat et la localisation des données. Un serveur auto-hébergé reste sous votre contrôle.
+</Note>
+
+## Supprimer vos données
+
+- **Une réunion** : supprimez-la dans l'application. Son transcript, ses notes et son entrée dans l'index de recherche disparaissent.
+- **Une clé API** : utilisez « Réinitialiser » sur le fournisseur dans Paramètres → Transcription ou Paramètres → Intelligence. La clé est retirée du trousseau.
+- **Tout** : quittez Syntheo et supprimez le dossier de données, puis les exports que vous avez produits.
+
+## Informer les participants
+
+Vous êtes responsable du traitement : informez les participants avant d'enregistrer une réunion. En France, enregistrer une conversation privée à leur insu est puni par l'article 226-1 du Code pénal.
+
+Au démarrage de chaque capture, Syntheo affiche un rappel. Il est activé par défaut ; pour le désactiver, ouvrez Paramètres → **Réunions** et désactivez « Rappelez aux participants l'enregistrement ».

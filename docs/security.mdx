@@ -1,36 +1,78 @@
 ---
-title: "Security and procurement"
-description: "Where security, legal, and IT teams can review Syntheo's data handling, processors, and evaluation path."
+title: "Sécurité"
+description: "Modèle de sécurité de Syntheo Desktop, déploiement géré par l'IT et signalement des vulnérabilités."
 ---
 
-Enterprise buyers should start at the [Syntheo security page](https://github.com/WillIsback/syntheo-desktop/security). It is the public security-review packet: architecture, encryption, data location, retention, training policy, subprocessors, incident reporting, and the contracts we can send today.
+Syntheo Desktop est un client local, sans serveur éditeur. La surface à évaluer se limite au poste et aux serveurs d'inférence que vous choisissez. Pour le détail des données et des flux, voir [Données et confidentialité](/data-and-privacy) et [Syntheo Desktop et le RGPD](/conformite/rgpd).
 
-A hosted trust center (Vanta, Oneleet, or similar) is a separate surface. We will publish one after SOC 2 and ISO programs start — not as a substitute for this page.
+## Ce que garantit l'application
 
-## What stays true in the product
+- **Aucun compte, aucune authentification** auprès de l'éditeur. Aucun service Syntheo ne reçoit vos données.
+- **Aucune télémétrie, aucun rapport d'erreur** : le code d'analyse et de rapport d'erreur est retiré, il n'y a rien à désactiver.
+- **Aucun audio sur disque**, sur aucun chemin (capture, dictée, import).
+- **Réseau limité** aux serveurs d'inférence configurés, plus deux flux mineurs sans contenu de réunion (notes de version sur GitHub, icônes d'interface), listés dans [la fiche RGPD](/conformite/rgpd).
+- **Aucune bascule** vers un service tiers quand un serveur d'inférence ne répond pas.
+- **Code ouvert** : tout est vérifiable dans le [dépôt GitHub](https://github.com/WillIsback/syntheo-desktop).
 
-- Meeting notes live on the desktop in local SQLite unless someone enables a named cloud feature.
-- Cloud Sync is end-to-end encrypted. Fastrepl cannot read the recovery key.
-- Syntheo does not add a bot to Zoom, Google Meet, or Microsoft Teams.
-- Fastrepl does not train models on notes, transcripts, or audio. Hosted or bring-your-own-key providers have their own terms.
+## Clés API
 
-See [Data, privacy, and retention](/data-and-privacy) for the in-app settings that control audio retention, analytics, and a fully local meeting.
+Les clés des serveurs d'inférence sont facultatives. Quand vous en saisissez une, Syntheo la range dans le trousseau du système : Secret Service sous Linux (il faut un trousseau déverrouillé, par exemple GNOME Keyring ou KWallet), Gestionnaire d'informations d'identification sous Windows. Elle n'est jamais écrite en clair dans la base locale ni compilée dans l'application. « Réinitialiser » sur le fournisseur la retire du trousseau.
 
-## Documents
+## Transport
 
-- [Security](https://github.com/WillIsback/syntheo-desktop/security)
-- [Privacy Policy](https://github.com/WillIsback/syntheo-desktop/privacy)
-- [Terms of Service](https://github.com/WillIsback/syntheo-desktop/terms)
-- Data Processing Addendum: email [team@fastrepl.com](mailto:team@fastrepl.com?subject=Syntheo%20DPA)
+Syntheo exige HTTPS vers un serveur d'inférence, sauf vers un hôte privé : `localhost`, `[::1]`, noms en `.local`, plages `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` et `100.64.0.0/10`. Une URL contenant des identifiants ou des paramètres de requête est refusée.
+
+HTTP en clair sur un réseau local reste lisible par quiconque y a accès. Dès que le serveur n'est pas sur la machine ou sur un réseau de confiance, placez-le derrière un reverse proxy TLS ou un VPN.
+
+## Protéger le poste
+
+Les notes et transcripts sont stockés en clair dans la base locale. Activez le chiffrement du disque et le verrouillage de session.
+
+Sous Windows, Paramètres → **Confidentialité** → « Verrouiller l'application » exige Windows Hello (visage, code PIN ou mot de passe) à l'ouverture de Syntheo. Sous Linux, cette option n'est pas disponible : la page affiche « L'authentification de l'appareil n'est pas disponible sur cet ordinateur. ».
+
+## Déploiement géré
+
+Un administrateur peut imposer certains réglages en plaçant un fichier `managed_settings.json` dans le dossier de données, à côté de `app.db`. Les réglages qu'il fixe ne sont plus modifiables dans l'application. Un fichier invalide empêche Syntheo de démarrer.
+
+```json
+{
+  "schema_version": 1,
+  "settings": {
+    "current_stt_provider": "openai",
+    "current_stt_model": "nom-du-modele",
+    "stt:openai": {
+      "type": "stt",
+      "api_key": "",
+      "base_url": "https://asr.exemple.fr/v1"
+    }
+  }
+}
+```
+
+<AccordionGroup>
+  <Accordion title="Réglages acceptés">
+    | Clé | Valeurs acceptées |
+    | --- | --- |
+    | `current_stt_provider` | `openai` ou `nvidia` |
+    | `current_stt_model` | identifiant non vide (200 caractères au plus) |
+    | `stt:openai`, `stt:nvidia` | objet `{ "type": "stt", "api_key": "", "base_url": "https://…" }` : URL en HTTPS uniquement, sans identifiants ni paramètres, clé obligatoirement vide |
+    | `intelligence_disabled` | `true` uniquement |
+    | `current_llm_provider`, `current_llm_model` | `""` uniquement |
+    | `auto_start_scheduled_meetings` | `true` ou `false` |
+    | `audio_retention` | `"none"` uniquement (l'audio n'est de toute façon jamais conservé) |
+    | `cloud_sync_enabled`, `automatic_updates` | `false` uniquement (fonctions absentes de Syntheo) |
+    | `save_recordings` | `true` ou `false` |
+
+    Toute autre clé, ou toute autre valeur, rend le fichier invalide. Le fichier ne peut contenir aucun secret : une clé API se saisit sur chaque poste.
+  </Accordion>
+</AccordionGroup>
+
+## Signaler une vulnérabilité
+
+N'ouvrez pas d'issue publique. Utilisez les [GitHub Security Advisories](https://github.com/WillIsback/syntheo-desktop/security/advisories/new) en décrivant le problème, son impact et un moyen de le reproduire. Seule la dernière version publiée reçoit des correctifs de sécurité.
+
+Toute communication réseau vers un hôte autre que les serveurs d'inférence configurés et les flux documentés, et toute écriture d'audio sur disque, est considérée comme une vulnérabilité. Voir la [politique de sécurité](https://github.com/WillIsback/syntheo-desktop/blob/main/SECURITY.md).
 
 <Note>
-  We do not claim SOC 2, ISO 27001, or HIPAA on these pages.
+  Syntheo Desktop ne revendique aucune certification (SOC 2, ISO 27001, HDS…).
 </Note>
-
-## Report a vulnerability
-
-Use [private GitHub reporting](https://github.com/WillIsback/syntheo-desktop/security/advisories/new) or email [team@fastrepl.com](mailto:team@fastrepl.com). See the repository [security policy](https://github.com/WillIsback/syntheo-desktop/blob/main/SECURITY.md).
-
-<Warning>
-  Do not open a public GitHub issue for a security vulnerability. Use private reporting so it isn't disclosed before a fix ships.
-</Warning>

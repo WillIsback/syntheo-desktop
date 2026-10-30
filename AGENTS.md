@@ -7,7 +7,7 @@ Syntheo Desktop is a pnpm and Rust workspace (Tauri 2 desktop app), derived from
 - `crates/owhisper-client/`: STT adapters. Only on-premise protocols are allowed (OpenAI Realtime, vLLM Realtime, NVIDIA NIM WebSocket/gRPC, OpenAI-compatible batch).
 - `crates/template-app/`: Jinja prompt templates (enhance).
 
-Project rules (see `docs/superpowers/specs/2026-10-24-syntheo-desktop-migration-design.md`):
+Project rules (see `docs/architecture.mdx`):
 
 - Inference only through user-configured on-premise endpoints; never add a cloud provider or a cloud integration.
 - Audio is never written to disk, not even temporarily.

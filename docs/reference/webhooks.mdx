@@ -1,40 +1,42 @@
 ---
-title: "Webhooks reference"
-description: "Signed meeting events Syntheo delivers to an endpoint you configure."
+title: "Référence des webhooks"
+description: "Événements de réunion signés que Syntheo envoie à un point de terminaison de votre choix."
 ---
 
-Webhooks let Syntheo push meeting events to your own endpoint. They are built into the desktop app and available on every plan. Configure them under **Settings → Developers → Webhooks**.
+Les webhooks permettent à Syntheo d'envoyer des événements de réunion vers votre propre service. Ils sont intégrés à l'application de bureau : c'est l'application elle-même qui envoie les requêtes, sans passer par aucun serveur intermédiaire. Configurez-les dans **Paramètres → Développeurs**, section « Webhooks ».
 
 <Warning>
-  Meeting events include the note, summaries, participants, action items, and full transcript text. Only add an endpoint you trust.
+  Les événements de réunion contiennent la note, les résumés, les participants, les actions à mener et le texte complet du transcript. N'ajoutez qu'un point de terminaison de confiance, de préférence en HTTPS ou sur votre réseau privé.
 </Warning>
 
-To read meeting data instead of receiving it, use the [CLI](/reference/cli), the [local MCP server](/reference/mcp), or the [Cloud API](/reference/api-cloud).
+Pour lire les données de réunion plutôt que de les recevoir, utilisez la [CLI](/reference/cli) ou le [serveur MCP local](/reference/mcp).
 
-## Add an endpoint
+## Ajouter un point de terminaison
 
-1. Open **Settings → Developers → Webhooks**.
-2. Enter an `https://` URL and click **Add webhook**.
-3. Copy the signing secret (`whsec_...`). It is shown once.
-4. Click **Test** to send one `webhook.test` delivery and confirm your endpoint responds.
+1. Ouvrez **Paramètres → Développeurs**.
+2. Dans la section « Webhooks », saisissez une URL commençant par `http://` ou `https://`, puis cliquez sur « Ajoutez un webhook ».
+3. Copiez le secret de signature (`whsec_...`) avec « Copier ».
+4. Cliquez sur « Test » pour envoyer une livraison `webhook.test` et vérifier que votre service répond.
 
 <Note>
-  The signing secret is shown once during setup. Store it before leaving the page — Syntheo does not display it again.
+  Le secret de signature n'est affiché qu'une seule fois. Conservez-le avant de quitter la page : Syntheo ne l'affiche plus ensuite.
 </Note>
 
-A new endpoint is subscribed to all events. One installation can configure at most 64 endpoints.
+Un nouveau point de terminaison reçoit « Tous les événements ». Chaque ligne affiche l'état de la dernière livraison. Utilisez « Pause » pour suspendre un point de terminaison sans le supprimer, puis « Activer » pour le reprendre. L'icône de corbeille le supprime.
 
-## Events
+Vous pouvez configurer au plus 64 points de terminaison.
 
-Syntheo delivers events as JSON `POST` requests while the desktop app is running.
+## Événements
 
-| Event | Fires when |
+Syntheo envoie chaque événement en requête `POST` JSON, tant que l'application de bureau est ouverte.
+
+| Événement | Déclenché quand |
 | --- | --- |
-| `meeting.completed` | A recording session finishes. |
-| `note.enhanced` | An AI summary is generated for a meeting. |
-| `webhook.test` | You trigger a test delivery. |
+| `meeting.completed` | Une capture se termine. |
+| `note.enhanced` | Un résumé IA est généré pour une réunion. |
+| `webhook.test` | Vous lancez une livraison de test. |
 
-The payload envelope is:
+L'enveloppe JSON a cette forme :
 
 ```json
 {
@@ -48,18 +50,24 @@ The payload envelope is:
 }
 ```
 
-Meeting event deliveries time out after 10 seconds. Failed attempts retry after 5 and 30 seconds. A `webhook.test` request makes one attempt. Each request includes:
+Pour `webhook.test`, `data` contient seulement un champ `message`.
 
-| Header | Content |
+## Livraison et nouvelles tentatives
+
+Chaque requête expire après 10 secondes. En cas d'échec, Syntheo réessaie après 5 secondes, puis après 30 secondes. Une livraison `webhook.test` ne fait qu'une tentative.
+
+Chaque requête contient ces en-têtes :
+
+| En-tête | Contenu |
 | --- | --- |
-| `x-syntheo-event` | Event name. |
-| `x-syntheo-delivery` | Unique delivery ID. |
-| `x-syntheo-timestamp` | Unix timestamp (seconds). |
-| `x-syntheo-signature` | `sha256=<hex>` — HMAC-SHA256 of the raw request body using your endpoint's `whsec_...` secret. |
+| `x-syntheo-event` | Nom de l'événement. |
+| `x-syntheo-delivery` | Identifiant unique de la livraison (identique pour toutes ses tentatives). |
+| `x-syntheo-timestamp` | Horodatage Unix, en secondes. |
+| `x-syntheo-signature` | `sha256=<hex>` : HMAC-SHA256 du corps brut de la requête, calculé avec le secret `whsec_...` du point de terminaison. |
 
-## Verify signatures
+## Vérifier la signature
 
-Compute the HMAC over the exact raw body:
+Calculez le HMAC sur le corps brut exact, avant tout parsing JSON :
 
 ```js
 import crypto from "node:crypto";
@@ -74,12 +82,12 @@ const valid =
   crypto.timingSafeEqual(Buffer.from(received), Buffer.from(expected));
 ```
 
-Verify the raw body before parsing it. For replay protection, reject stale signed `created_at` values and store each payload `id` so retries are processed once.
+Pour vous protéger du rejeu, rejetez les `created_at` trop anciens et enregistrez chaque `id` de charge utile afin de ne traiter qu'une fois une livraison réessayée.
 
-## Limits
+## Limites
 
 <Warning>
-  Deliveries only run while the desktop app is open. Events that occur while it is closed are dropped, not queued for later delivery.
+  Les livraisons n'ont lieu que pendant que l'application de bureau est ouverte. Les événements survenus pendant qu'elle est fermée sont perdus : ils ne sont pas mis en file d'attente.
 </Warning>
 
-Syntheo delivers to at most 64 endpoints per event and runs at most 4 deliveries at a time.
+Syntheo envoie un événement à 64 points de terminaison au plus et exécute au plus 4 livraisons simultanées.
