@@ -323,7 +323,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tantivy<'a, R, M> {
         // Use tuple collector to get both top docs and total count
         let (top_docs, count) = searcher.search(
             &combined_query,
-            &(TopDocs::with_limit(request.limit), Count),
+            &(TopDocs::with_limit(request.limit).order_by_score(), Count),
         )?;
 
         let generate_snippets = request.options.snippets.unwrap_or(false);
