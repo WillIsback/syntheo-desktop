@@ -1,6 +1,6 @@
 ---
 title: "Install the desktop app"
-description: "Install Syntheo Desktop on Linux, or build it from source."
+description: "Install Syntheo Desktop on Linux and Windows, or build it from source."
 ---
 
 Syntheo Desktop is distributed for **Linux** (AppImage and DEB) and **Windows** (NSIS and MSI). macOS packages are not published yet.
@@ -11,7 +11,7 @@ Syntheo Desktop is distributed for **Linux** (AppImage and DEB) and **Windows** 
 | --- | --- | --- |
 | Linux | AppImage (x64) | Portable build. Needs FUSE 2. |
 | Linux | DEB (x64) | For Debian, Ubuntu, and compatible distributions. |
-| Windows | Installer (NSIS) | x64, per-user. Unsigned build; SmartScreen warns on first run. |
+| Windows | Installer (NSIS) | x64, per-user. Code-signed (Azure Artifact Signing). |
 | Windows | MSI | x64, for managed or enterprise deployment. |
 
 ## Linux
@@ -66,6 +66,10 @@ WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 ./Syntheo-*.A
 
 ## Windows
 
+### Download the installer
+
+Download `Syntheo_<version>_x64-setup.exe` from the [releases page](https://github.com/WillIsback/syntheo-desktop/releases/latest) and run it. The installer is **code-signed** (Azure Artifact Signing, issued to William Derue). SmartScreen may still warn on early releases while the binary's reputation builds.
+
 ### One-line installer (NSIS)
 
 ```powershell
@@ -75,10 +79,8 @@ irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/in
 The script downloads the latest release's NSIS installer, verifies its SHA256 against `SHA256SUMS-windows`, and installs it silently (per-user, no elevation). To install a specific published version:
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.ps1))) -Version v0.3.0
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.ps1))) -Version v0.3.1
 ```
-
-The Windows installer is not code-signed yet, so SmartScreen shows a warning on first launch (**More info → Run anyway**).
 
 ### MSI
 
