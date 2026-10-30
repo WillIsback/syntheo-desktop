@@ -166,7 +166,7 @@ reqwest-tracing = "0.7"
 syntheo-supervisor = { path = "crates/supervisor", package = "supervisor" }
 tokio = "1"
 tokio-stream = "0.1.17"
-tokio-tungstenite = "0.29"
+tokio-tungstenite = "0.30"
 tokio-util = "0.7.15"
 
 camino = "1"
