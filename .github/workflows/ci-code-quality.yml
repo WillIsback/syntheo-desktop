@@ -130,6 +130,17 @@ jobs:
           cargo metadata --locked --format-version 1 > /dev/null
           echo "✅ Cargo.lock à jour."
 
+      # Compile le graphe complet du desktop (plugins `detect`/`importer` → ort,
+      # `vad` → onnx, adaptateurs…). Un bump de dépendance cassant échoue ici :
+      # `cargo metadata` ne voit que le lockfile, le clippy est en
+      # continue-on-error, et l'étape de tests ne compile qu'un sous-ensemble.
+      # C'est exactement ce qui a laissé passer `ort` 2.0.0-rc.15.
+      - name: Compilation du graphe desktop (deps incluses)
+        run: |
+          set -euo pipefail
+          cargo check --locked -p desktop
+          echo "✅ Le graphe desktop compile."
+
       # Clippy est limité aux crates qui portent le desktop et nos chantiers
       # (--no-deps : sans les crates héritées dont elles dépendent).
       # Non bloquant tant que les adaptateurs cloud hérités (erreurs clippy)
