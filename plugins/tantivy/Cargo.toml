@@ -18,7 +18,7 @@ tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
 syntheo-language = { workspace = true, features = ["detect"] }
-tantivy = "0.25"
+tantivy = "0.27"
 
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-settings = { workspace = true }
