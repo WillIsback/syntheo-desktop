@@ -1,7 +1,11 @@
 # Workflow : fusion automatique des PR Dependabot
-# Active l'auto-merge (squash) sur chaque PR ouverte par Dependabot. La fusion
-# n'a lieu qu'une fois les gates requises par la règle de la branche main au
-# vert : ce workflow n'exécute ni ne checkout le code de la PR.
+#
+# La branche `main` n'a pas de règle de protection : `gh pr merge --auto` ne
+# garantit donc PAS qu'un job non requis (le Rust, ~20 min) ait tourné avant la
+# fusion. Un lot de bumps cassants a ainsi atteint `main` sans être compilé
+# (régression ort 2.0.0-rc.15). On attend donc explicitement le succès du job
+# Rust (`ci-code-quality (Rust)`, exécuté sur les PR Dependabot) avant de
+# fusionner, puis on vérifie qu'aucun autre check n'est en échec.
 name: dependabot-auto-merge
 
 on:
@@ -17,13 +21,48 @@ jobs:
     name: Auto-merge Dependabot
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 90
     permissions:
       contents: write
       pull-requests: write
+      checks: read
     steps:
-      - name: Activer l'auto-merge (squash)
+      - name: Attendre le job Rust puis fusionner
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --auto --squash "$PR_URL"
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          name='ci-code-quality (Rust)'
+          for _ in $(seq 1 160); do
+            state=$(gh api "repos/$REPO/commits/$SHA/check-runs?per_page=100" \
+              --jq ".check_runs[] | select(.name==\"$name\") | \"\(.status):\(.conclusion)\"" \
+              2>/dev/null | head -1 || true)
+            echo "job Rust -> ${state:-en attente}"
+            case "$state" in
+              completed:success)
+                break ;;
+              completed:*)
+                echo "❌ job Rust non vert ($state) : fusion annulée"
+                exit 1 ;;
+            esac
+            sleep 30
+          done
+          if [ "${state:-}" != "completed:success" ]; then
+            echo "❌ délai dépassé en attendant le job Rust"
+            exit 1
+          fi
+
+          # Aucun autre check ne doit être en échec (vitest, qualité…).
+          failing=$(gh pr checks "$PR" --json name,bucket \
+            --jq '[.[] | select(.bucket=="fail" or .bucket=="cancel")] | length' \
+            2>/dev/null || echo 0)
+          if [ "$failing" != "0" ]; then
+            echo "❌ des checks sont en échec :"
+            gh pr checks "$PR"
+            exit 1
+          fi
+
+          gh pr merge --squash "$PR"

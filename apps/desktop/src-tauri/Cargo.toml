@@ -110,7 +110,7 @@ devtools = ["tauri/devtools", "dep:syntheo-audio-mock"]
 automation = ["tauri-plugin-automation"]
 
 [target.'cfg(target_os = "macos")'.dependencies]
-tauri-plugin-automation = { version = "0.2", optional = true }
+tauri-plugin-automation = { version = "0.1", optional = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows = { workspace = true, features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
