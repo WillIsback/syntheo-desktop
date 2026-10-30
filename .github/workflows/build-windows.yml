@@ -64,11 +64,10 @@ jobs:
         run: |
           if (-not $env:AZURE_CLIENT_SECRET) { Write-Host "Secrets Azure absents : signature désactivée."; exit 0 }
           az login --service-principal -u $env:AZURE_CLIENT_ID -p $env:AZURE_CLIENT_SECRET -t $env:AZURE_TENANT_ID --only-show-errors
-          $subs = az account list --query "length(@)" -o tsv
-          Write-Host "Abonnements visibles pour le service principal : $subs"
-          if ($subs -eq "0") {
-            throw "Aucun abonnement visible : attribue le rôle Reader sur le groupe de ressources du compte Artifact Signing (ou sur l'abonnement) au service principal."
+          if ($LASTEXITCODE -ne 0) {
+            throw "az login a échoué (code $LASTEXITCODE). Si le message est « No subscriptions found », attribue le rôle Reader au service principal sur le groupe de ressources du compte Artifact Signing (ou sur l'abonnement)."
           }
+          Write-Host "Authentification Azure OK."
 
       - name: Installer artifact-signing-cli
         shell: pwsh
