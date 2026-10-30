@@ -63,23 +63,29 @@ curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scr
 sudo apt install ~/.local/bin/Syntheo_*_amd64.deb   # ou : sudo apt install ./Syntheo_*.deb
 ```
 
-### Windows — script en une ligne (NSIS)
+### Windows
+
+**Télécharger l'installeur** (recommandé si tu n'utilises pas le terminal) :
+[dernière release](https://github.com/WillIsback/syntheo-desktop/releases/latest)
+→ `Syntheo_<version>_x64-setup.exe`.
+
+L'installeur est **signé** (Azure Artifact Signing) : Windows l'attribue à
+**William Derue**. SmartScreen peut encore afficher un avertissement sur les
+premières versions, le temps que la réputation du binaire se construise.
+
+**Script en une ligne** — télécharge, vérifie la somme SHA256
+(`SHA256SUMS-windows`) et installe silencieusement (portée utilisateur, sans
+élévation) :
 
 ```powershell
 irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.ps1 | iex
 ```
 
-Le script télécharge l'installeur NSIS (`.exe`) de la dernière release, vérifie
-sa somme SHA256 (`SHA256SUMS-windows`) et l'installe silencieusement (portée
-utilisateur, sans élévation). Pour **tester une release précise** :
+Pour **installer une release précise** :
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.ps1))) -Version v0.3.0
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/install.ps1))) -Version v0.3.1
 ```
-
-> L'installeur Windows **n'est pas encore signé** : SmartScreen affiche un
-> avertissement au premier lancement (_Informations complémentaires › Exécuter
-> quand même_).
 
 ### Paquets
 
