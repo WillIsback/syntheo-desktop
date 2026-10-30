@@ -43,7 +43,7 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^22.19.17",
+    "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "postcss": "^8.5.32",
     "react": "^19.3.1",
