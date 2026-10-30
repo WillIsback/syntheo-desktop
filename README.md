@@ -78,9 +78,8 @@ sudo apt install ~/.local/bin/Syntheo_*_amd64.deb   # ou : sudo apt install ./Sy
 — ou le `.msi` :
 [`Syntheo-windows-x64.msi`](https://github.com/WillIsback/syntheo-desktop/releases/latest/download/Syntheo-windows-x64.msi).
 
-L'installeur est **signé** (Azure Artifact Signing) : Windows l'attribue à
-**William Derue**. SmartScreen peut encore afficher un avertissement sur les
-premières versions, le temps que la réputation du binaire se construise.
+SmartScreen peut afficher un avertissement sur les premières versions, le
+temps que la réputation du binaire se construise.
 
 **Script en une ligne** — télécharge, vérifie la somme SHA256
 (`SHA256SUMS-windows`) et installe silencieusement (portée utilisateur, sans
