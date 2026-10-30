@@ -484,7 +484,14 @@ mod tests {
                 .fetch_all(db.pool())
                 .await
                 .unwrap();
-        assert_eq!(values.len(), 5);
+        assert_eq!(
+            values.iter().map(|(id, _)| id.as_str()).collect::<Vec<_>>(),
+            [
+                "automatic_updates",
+                "cloud_sync_enabled",
+                "intelligence_disabled"
+            ]
+        );
         assert!(values.iter().all(|(id, value)| value
             == if id == "intelligence_disabled" {
                 "true"

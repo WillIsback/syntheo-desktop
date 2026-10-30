@@ -33,26 +33,35 @@ export function MeetingSettingsView({
   const supportsMicDetection = currentPlatform !== "windows";
   const supportsScreenCapture =
     currentPlatform === "macos" || currentPlatform === "windows";
+  // Seul Apple Calendar fournit un agenda (macOS) : ailleurs, aucune réunion
+  // programmée ne peut déclencher ces options.
+  const supportsScheduledMeetings = currentPlatform === "macos";
 
   return (
     <div className="flex flex-col gap-4">
-      <SettingSwitchRow
-        title={<Trans>Start when meeting begins</Trans>}
-        description={
-          <Trans>Start listening when a scheduled meeting begins.</Trans>
-        }
-        checked={autoStartScheduledMeetings.value}
-        onChange={autoStartScheduledMeetings.onChange}
-      />
-      <SettingSwitchRow
-        title={<Trans>Join scheduled meetings</Trans>}
-        description={
-          <Trans>Open the meeting link when a scheduled meeting begins.</Trans>
-        }
-        checked={autoJoinScheduledMeetings.value}
-        onChange={autoJoinScheduledMeetings.onChange}
-        disabled={!autoStartScheduledMeetings.value}
-      />
+      {supportsScheduledMeetings && (
+        <>
+          <SettingSwitchRow
+            title={<Trans>Start when meeting begins</Trans>}
+            description={
+              <Trans>Start listening when a scheduled meeting begins.</Trans>
+            }
+            checked={autoStartScheduledMeetings.value}
+            onChange={autoStartScheduledMeetings.onChange}
+          />
+          <SettingSwitchRow
+            title={<Trans>Join scheduled meetings</Trans>}
+            description={
+              <Trans>
+                Open the meeting link when a scheduled meeting begins.
+              </Trans>
+            }
+            checked={autoJoinScheduledMeetings.value}
+            onChange={autoJoinScheduledMeetings.onChange}
+            disabled={!autoStartScheduledMeetings.value}
+          />
+        </>
+      )}
       {supportsMicDetection && (
         <SettingSwitchRow
           title={<Trans>Stop when meeting ends</Trans>}

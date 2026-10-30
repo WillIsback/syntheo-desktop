@@ -208,11 +208,11 @@ const clearLiveInterval = (intervalId?: LiveIntervalId) => {
 };
 
 const notifyTranscriptionStalled = () => {
-  toast.warning("Live transcription stalled", {
+  toast.warning("Transcription en direct interrompue", {
     id: "live-transcription-stalled",
     duration: Infinity,
     description:
-      "Syntheo keeps listening while live transcription reconnects. No audio is kept, so the missing part will not be recovered.",
+      "Syntheo continue d'écouter pendant la reconnexion de la transcription en direct. Aucun audio n'est conservé : le passage manquant ne sera pas récupéré.",
   });
 };
 

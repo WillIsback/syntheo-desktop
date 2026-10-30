@@ -208,9 +208,9 @@ export function SettingsDictation() {
           <p className="text-muted-foreground text-xs">
             <Trans>
               Dictation uses your microphone, transcription provider, languages,
-              and dictionary. Temporary audio is deleted after transcription.
-              Your last transcript stays in memory until dictation is disabled
-              or Syntheo closes.
+              and dictionary. Audio is never written to disk; it only passes
+              through memory. Your last transcript stays in memory until
+              dictation is disabled or Syntheo closes.
             </Trans>
           </p>
           {status.lastTranscript && (

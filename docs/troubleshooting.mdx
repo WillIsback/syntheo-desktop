@@ -33,7 +33,7 @@ Syntheo accepte une URL en `http://` uniquement pour un serveur situé sur votre
 - les adresses privées `10.x.x.x`, `172.16.x.x` à `172.31.x.x` et `192.168.x.x` ;
 - la plage `100.64.x.x` à `100.127.x.x` (utilisée notamment par les VPN maillés).
 
-Pour toute autre adresse, y compris un nom de domaine interne comme `serveur.entreprise.lan`, utilisez `https://`. Sinon, Syntheo refuse l'URL avec le message « Use HTTPS for provider credentials. ». Placez votre serveur derrière un proxy inverse avec un certificat (Caddy, nginx, Traefik), ou utilisez directement son adresse IP privée.
+Pour toute autre adresse, y compris un nom de domaine interne comme `serveur.entreprise.lan`, utilisez `https://`. Sinon, Syntheo refuse l'URL avec le message « Utilisez HTTPS : le HTTP n'est accepté que sur cette machine ou un réseau privé. ». Placez votre serveur derrière un proxy inverse avec un certificat (Caddy, nginx, Traefik), ou utilisez directement son adresse IP privée.
 
 ## La liste des modèles est vide
 
