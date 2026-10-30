@@ -1,72 +1,54 @@
 ---
-title: "Syntheo skill"
-description: "Teach a compatible agent when and how to use Syntheo's MCP and CLI surfaces."
+title: "Compétence Syntheo"
+description: "Apprenez à un agent compatible quand et comment utiliser la CLI et le MCP de Syntheo."
 ---
 
-The public Syntheo skill teaches agents a single workflow across Cloud MCP and the local CLI:
+La compétence (« skill ») Syntheo apprend à un agent une démarche unique :
 
-1. Prefer local MCP or `syntheo --json meetings --source local list` when the agent can access your database.
-2. Use OAuth-connected Cloud MCP when running remotely or when local access is unavailable.
-3. Resolve meeting IDs from search results.
-4. Fetch meeting detail before transcript text.
-5. Keep transcript reads bounded and never access SQLite directly.
+1. Vérifier l'accès local avec `syntheo --json doctor`, ou utiliser un serveur MCP Syntheo déjà connecté.
+2. Retrouver les identifiants de réunion à partir des résultats de recherche.
+3. Lire le détail d'une réunion avant son transcript.
+4. Garder les lectures de transcript bornées, sans jamais accéder directement à SQLite.
+5. Préparer des propositions de modification plutôt que modifier les réunions.
 
-## Sources
+La compétence n'installe pas la CLI. [Installez-la](/installation) pour que l'agent puisse s'en servir.
 
-- Published skill: `https://github.com/WillIsback/syntheo-desktop/tree/main/docs/skill.md`
-- Repository package: [`skills/syntheo`](https://github.com/WillIsback/syntheo-desktop/tree/main/skills/syntheo)
-- Agent plugin: [`agent-plugins/syntheo`](https://github.com/WillIsback/syntheo-desktop/tree/main/agent-plugins/syntheo)
+## Installer depuis l'application
 
-The published file is self-contained. The repository package adds references for setup, CLI commands, MCP tools, and errors.
+Ouvrez **Paramètres → Développeurs**. Dans la section « CLI & MCP », la ligne « Compétences de l'agent » propose le menu « Ajoutez une compétence à… » :
 
-## Install the plugin
+- choisissez un agent précis ;
+- ou « Installer pour tous les agents » pour tous les agents détectés.
 
-The `Syntheo` plugin bundles the skill and an optional hosted Cloud MCP connection. [Install the Syntheo CLI](/installation) for local access; no Cloud login or Pro subscription is needed. For remote access, enable **Settings → Developers → Cloud API & Connectors** with Pro access through a personal plan or an eligible paid Pro workspace membership and connect through OAuth.
+L'application copie la compétence, embarquée dans l'application et donc à la même version qu'elle, dans le dossier de l'agent :
 
-<Note>
-  The repository package is named **Syntheo**. Its optional hosted connection appears as **Syntheo Cloud**.
-</Note>
+| Agent | Dossier de la compétence |
+| --- | --- |
+| Claude Code | `~/.claude/skills/syntheo` |
+| Codex | `~/.codex/skills/syntheo` |
+| Cursor | `~/.cursor/skills/syntheo` |
+| OpenCode | `$XDG_CONFIG_HOME/opencode/skills/syntheo` (par défaut `~/.config/opencode/skills/syntheo`) |
 
-For Claude Code:
+Un agent n'apparaît comme détecté que si son dossier de configuration (`~/.claude`, `~/.codex`, `~/.cursor` ou celui d'OpenCode) existe déjà, c'est-à-dire si vous l'avez déjà utilisé sur cette machine. Une coche indique que la compétence est installée. Réinstaller remplace les fichiers par ceux de la version courante de l'application.
 
-```bash
-claude plugin marketplace add WillIsback/syntheo-desktop
-claude plugin install syntheo@fastrepl
-```
+## Installer à la main
 
-For GitHub Copilot CLI:
-
-```bash
-copilot plugin marketplace add WillIsback/syntheo-desktop
-copilot plugin install syntheo@fastrepl
-```
-
-For ChatGPT and Codex, add the repository source, restart the ChatGPT desktop app, then install **Syntheo** from the Fastrepl source in the Plugins Directory:
-
-```bash
-codex plugin marketplace add WillIsback/syntheo-desktop \
-  --sparse .agents/plugins \
-  --sparse agent-plugins/syntheo
-```
-
-Use the host's cloud connection control to sign in and approve OAuth. Some MCP hosts prompt on first cloud tool use. No cloud API key is required for OAuth connections. A skill-only installation does not create an account connection.
-
-The Fastrepl plugin includes an optional **Syntheo Cloud** App connection for Codex. Leave it disconnected for local CLI access. Public directory listings have a separate review and release process from the repository marketplace.
-
-Cursor Teams and Enterprise administrators can import `https://github.com/WillIsback/syntheo-desktop` as a team marketplace, then install **Syntheo**.
-
-## Install in an agent
-
-Install it from the documentation site with the skills CLI:
-
-```bash
-npx skills add https://github.com/WillIsback/syntheo-desktop/tree/main/docs
-```
-
-For a filesystem-based agent, copy the complete `skills/syntheo` directory into that agent's skills directory. Keep the directory name `syntheo` so relative reference links continue to work.
+Pour un autre agent, copiez le dossier complet [`skills/syntheo`](https://github.com/WillIsback/syntheo-desktop/tree/main/skills/syntheo) du dépôt dans le dossier de compétences de cet agent. Gardez le nom de dossier `syntheo` pour que les liens relatifs vers `references/` continuent de fonctionner.
 
 <Note>
-  Agent skill locations and installer commands vary by client. Follow your agent's skill installation instructions rather than copying only `SKILL.md`.
+  L'emplacement des compétences varie selon les clients. Suivez les instructions de votre agent, et copiez tout le dossier plutôt que le seul fichier `SKILL.md`.
 </Note>
 
-The contributor skills under `.agents/skills` are internal repository workflows. They are not part of the public Syntheo skill.
+## Contenu du paquet
+
+| Fichier | Rôle |
+| --- | --- |
+| `SKILL.md` | La démarche générale |
+| `references/setup.md` | Installation et configuration |
+| `references/cli.md` | Commandes de la CLI |
+| `references/mcp.md` | Outils et ressources MCP |
+| `references/errors.md` | Erreurs et reprise |
+
+Une version autonome de `SKILL.md`, avec des liens vers cette documentation, est publiée dans [`docs/skill.md`](https://github.com/WillIsback/syntheo-desktop/blob/main/docs/skill.md).
+
+Les compétences de contribution sous `.agents/skills` sont des procédures internes au dépôt. Elles ne font pas partie de la compétence Syntheo.

@@ -1,37 +1,48 @@
 ---
-title: "Your first meeting"
-description: "Set up Syntheo and try a private demo before your next call."
+title: "Votre première réunion"
+description: "Installez Syntheo, branchez vos serveurs de transcription et de LLM, puis enregistrez une première réunion."
 ---
 
+Syntheo ne fournit aucun modèle : la transcription et les résumés passent par vos propres serveurs. Configurez-les avant votre premier enregistrement, sinon Syntheo refuse de démarrer l'écoute.
+
 <Steps>
-  <Step title="Install Syntheo">
-    [Download Syntheo](https://github.com/WillIsback/syntheo-desktop/download), open it, and follow the setup screen. See [Install the desktop app](/desktop-installation) to choose the right macOS, Windows, or Linux build.
+  <Step title="Installer Syntheo">
+    Téléchargez le paquet Linux ou l'installeur Windows depuis [GitHub Releases](https://github.com/WillIsback/syntheo-desktop/releases/latest). Voir [Installer l'application](/desktop-installation) pour choisir le bon fichier.
   </Step>
-  <Step title="Allow audio access">
-    Allow **Microphone** so Syntheo can hear you. Allow **System Audio** so it can hear everyone else on the call.
+  <Step title="Terminer l'accueil">
+    Au premier lancement, Syntheo vous propose d'importer l'historique d'un autre assistant de réunion s'il en détecte un. Cliquez sur « Ignorer pour le moment » si vous n'en avez pas besoin, puis sur « Ouvrir Syntheo ». Aucun compte n'est demandé.
   </Step>
-  <Step title="Finish the optional setup">
-    Sign in if you want Syntheo Cloud, sync, or connected calendars. Choose where Syntheo stores its local data.
+  <Step title="Configurer la transcription">
+    Ouvrez **Paramètres → Transcription**. Choisissez un fournisseur (« OpenAI-compatible » pour vLLM, speaches ou faster-whisper-server, ou « Nemotron ASR (NIM, WebSocket) »), saisissez l'« URL de base » de votre serveur, par exemple `http://localhost:8000/v1`, et la « Clé API » si votre serveur en exige une. Sélectionnez ensuite le modèle dans « Modèle utilisé ».
+
+    Choisissez un modèle de transcription **en temps réel** : Syntheo ne conserve pas l'audio et ne peut donc pas transcrire après coup une capture en direct.
   </Step>
-  <Step title="Run the private demo">
-    Open **Welcome to Syntheo** and click **Join & record**. Syntheo opens a prerecorded meeting and treats it like a real call.
+  <Step title="Configurer l'intelligence">
+    Ouvrez **Paramètres → Intelligence**, choisissez « vLLM (OpenAI-compatible) » et saisissez l'URL de votre serveur LLM (vLLM, SGLang, llama.cpp, Ollama, LM Studio, TGI ou NIM). Syntheo lit la liste des modèles disponibles sur le serveur. Ce modèle produit les résumés et répond dans le chat.
   </Step>
-  <Step title="Review the result">
-    When the video ends, return to Syntheo and stop listening. Open **Memos**, **Summary**, and **Transcript** to see what Syntheo captured.
+  <Step title="Vérifier l'audio">
+    Syntheo capte votre microphone et l'audio système (les autres participants). Si votre système vous demande une autorisation d'accès au microphone, acceptez-la. Vous pouvez vérifier l'état des accès dans **Paramètres → Autorisations**.
+  </Step>
+  <Step title="Lancer un premier enregistrement">
+    Ouvrez la note « Bienvenue sur Syntheo » ou créez une « Nouvelle note », puis cliquez sur « Enregistrer » en haut à droite. Parlez quelques secondes, ouvrez l'onglet « Transcript » pour voir le texte arriver, puis cliquez sur « Arrêter ». Le résumé apparaît dans l'onglet « Résumé ».
   </Step>
 </Steps>
 
-## Find your way around
+Le détail des fournisseurs, des URL acceptées et des clés API est dans [Configurer la transcription et l'IA](/ai-setup).
 
-- The sidebar keeps upcoming meetings and recent notes within reach.
-- The center of the app shows the open memo, summary, or transcript.
-- **Chat** works with the open meeting and any additional context you add.
-- **Settings** controls audio, AI providers, storage, sync, imports, integrations, and developer tools.
+<Note>
+  Les URL en `http://` ne sont acceptées que pour un hôte local ou une adresse IP privée. Pour un serveur accessible par Internet, utilisez `https://`.
+</Note>
 
-You can rename a note from its title and keep several notes open in tabs. A meeting note stays useful before, during, and after the call.
+## Se repérer dans l'application
 
-## Record a real meeting
+- La barre latérale donne accès à vos notes récentes, à vos dossiers et à la recherche.
+- Le centre de la fenêtre affiche la note ouverte, avec ses onglets « Mémos », « Résumé » et « Transcript ».
+- Le chat répond à vos questions sur la note ouverte, avec le LLM que vous avez configuré.
+- **Paramètres** regroupe l'audio, la transcription, l'intelligence, la dictée, le dictionnaire, les modèles de compte rendu et les importations.
 
-Open a calendar event or create a note, then click **Join & record** or **Record** in the top-right corner. See [Record meetings](/meetings) for the full flow.
+Vous pouvez renommer une note depuis son titre et garder plusieurs notes ouvertes dans des onglets.
 
-If Syntheo cannot hear the call, start with [audio troubleshooting](/troubleshooting#audio-is-missing).
+## Et ensuite
+
+Voir [Enregistrer une réunion](/meetings) pour le déroulé complet. Si Syntheo n'entend pas l'appel ou si le transcript reste vide, commencez par [Dépannage](/troubleshooting).

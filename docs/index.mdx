@@ -1,77 +1,61 @@
 ---
 title: "Syntheo"
-description: "Record a meeting, take notes, and leave with a clear summary."
+description: "Enregistrez une réunion, prenez des notes et repartez avec un compte rendu clair, sans que vos données quittent votre infrastructure."
 ---
 
-Syntheo records your microphone and computer audio without joining the call as a bot. Each meeting stays together as an editable memo, transcript, and summary.
+Syntheo est une application de bureau pour Linux et Windows. Elle capte votre microphone et l'audio de votre ordinateur sans rejoindre l'appel comme un robot. Chaque réunion devient une note modifiable, avec vos mémos, le transcript et un résumé.
+
+La transcription et les résumés passent uniquement par les serveurs que vous configurez (vLLM, Ollama, speaches, NVIDIA NIM…). Syntheo n'a ni compte, ni abonnement, ni télémétrie, et ne conserve jamais l'audio.
 
 <CardGroup cols={2}>
-  <Card title="Try your first meeting" icon="play" href="/quickstart">
-    Use the private demo in Syntheo, then record a real meeting.
+  <Card title="Installer l'application" icon="download" href="/desktop-installation">
+    Choisissez le paquet Linux (AppImage, `.deb`) ou l'installeur Windows signé.
   </Card>
-  <Card title="Install the desktop app" icon="download" href="/desktop-installation">
-    Choose the right build for macOS, Windows, or Linux.
+  <Card title="Votre première réunion" icon="play" href="/quickstart">
+    Configurez vos serveurs, puis lancez un premier enregistrement.
   </Card>
-  <Card title="Record a meeting" icon="microphone" href="/meetings">
-    Start from your calendar or from a new note.
+  <Card title="Configurer la transcription et l'IA" icon="server" href="/ai-setup">
+    Renseignez l'URL de votre serveur de transcription et de votre LLM.
   </Card>
-  <Card title="Review and export" icon="file-lines" href="/notes">
-    Work with your memo, summary, transcript, and exports.
+  <Card title="Enregistrer une réunion" icon="microphone" href="/meetings">
+    Démarrez, suivez et terminez une capture.
   </Card>
-  <Card title="Choose your AI" icon="sparkles" href="/ai-setup">
-    Use Syntheo Cloud, your own provider, or local models.
+  <Card title="Relire et exporter" icon="file-lines" href="/notes">
+    Travaillez vos mémos, le résumé et le transcript, puis exportez-les.
+  </Card>
+  <Card title="Vos données" icon="hard-drive" href="/data-and-privacy">
+    Ce qui reste sur votre ordinateur et ce qui part vers vos serveurs.
   </Card>
 </CardGroup>
 
-## Popular questions
+## Questions fréquentes
 
 <CardGroup cols={2}>
-  <Card title="What languages does Syntheo support?" icon="language" href="/help#supported-languages">
-    See the Settings language list and which models cover it.
+  <Card title="Quelles langues sont prises en charge ?" icon="language" href="/languages">
+    Langue principale, langues parlées supplémentaires et limites du modèle.
   </Card>
-  <Card title="How do I compare transcription costs?" icon="coins" href="/help#compare-transcription-costs">
-    See on-device, Syntheo Cloud, and bring-your-own-key pricing.
+  <Card title="Puis-je importer un enregistrement ?" icon="file-arrow-up" href="/import-recordings">
+    Créez une note à partir d'un fichier audio, SRT ou VTT, ou d'un export d'un autre assistant.
   </Card>
-  <Card title="How can I use on-device models?" icon="hard-drive" href="/help#use-on-device-models">
-    Use Soniqo, Apple Speech, a whisper.cpp `.bin`, or a Deepgram-compatible local server.
+  <Card title="Comment améliorer les résumés ?" icon="wand-magic-sparkles" href="/customize-summaries">
+    Modèles de compte rendu, consignes, langues et dictionnaire.
   </Card>
-  <Card title="Is there a local model for hour-long calls?" icon="hourglass" href="/help#local-model-hour-long-calls">
-    Use Soniqo Parakeet Batch on Apple Silicon, or a hosted after-recording model.
+  <Card title="Puis-je dicter dans d'autres applications ?" icon="keyboard" href="/dictation">
+    Un raccourci clavier transforme votre voix en texte dans le champ actif.
   </Card>
-  <Card title="Which models does Syntheo use?" icon="microchip" href="/models-and-providers">
-    See the current cloud routes, on-device models, and bring-your-own-provider behavior.
+  <Card title="Peut-on automatiser la capture ?" icon="bolt" href="/automatic-capture">
+    Détection de réunion, arrêt automatique et barre flottante.
   </Card>
-  <Card title="Can I use Syntheo offline?" icon="wifi-slash" href="/offline">
-    Record, transcribe, summarize, and chat with local models.
-  </Card>
-  <Card title="Where is my data stored?" icon="hard-drive" href="/data-and-privacy">
-    See what stays local and what hosted features receive.
-  </Card>
-  <Card title="Can I import a recording?" icon="file-arrow-up" href="/import-recordings">
-    Create a meeting note from audio, SRT, or VTT files.
-  </Card>
-  <Card title="How do I improve summaries?" icon="wand-magic-sparkles" href="/customize-summaries">
-    Use templates, instructions, languages, and your dictionary.
-  </Card>
-  <Card title="Can I share a meeting?" icon="share-nodes" href="/sharing">
-    Invite people, send a recap, or share a view-only link.
-  </Card>
-  <Card title="Can I import my meeting history?" icon="clock-rotate-left" href="/imports">
-    Bring supported exports from another meeting assistant.
+  <Card title="Quelque chose ne fonctionne pas" icon="life-ring" href="/troubleshooting">
+    Audio absent, transcript bloqué, résumé qui n'apparaît pas.
   </Card>
 </CardGroup>
 
-[Browse all common questions →](/help)
+## En bref
 
-## The short version
+1. Configurez votre serveur de transcription et votre LLM dans **Paramètres** (voir [Configurer la transcription et l'IA](/ai-setup)).
+2. Créez une « Nouvelle note », puis cliquez sur « Enregistrer » en haut à droite.
+3. Prenez des notes rapides dans « Mémos » pendant que Syntheo écoute.
+4. Cliquez sur « Arrêter » : Syntheo génère le résumé à partir du transcript et de vos mémos.
 
-1. Open a calendar event or create a note.
-2. Click **Join & record** or **Record**.
-3. Take rough notes in **Memos** while Syntheo listens.
-4. Stop listening, then review **Summary** and **Transcript**.
-
-Your app data is stored locally by default. Hosted AI, sync, sharing, connected calendars, and the optional Cloud API send the content needed for the feature you choose. See [Data, privacy, and retention](/data-and-privacy) for the exact boundaries.
-
-<Note>
-  New to Syntheo? Open the **Welcome to Syntheo** note and click **Join & record**. It uses a private, prerecorded demo meeting.
-</Note>
+Vos notes sont stockées localement, dans une base SQLite sur votre ordinateur. L'audio vit en mémoire le temps d'être envoyé à votre serveur de transcription, puis disparaît. Voir [Données et confidentialité](/data-and-privacy).

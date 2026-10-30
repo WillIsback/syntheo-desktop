@@ -1,91 +1,131 @@
 ---
-title: "Transcription and AI"
-description: "Choose how Syntheo turns audio into text and text into useful notes."
+title: "Configurer la transcription et l'IA"
+sidebarTitle: "Transcription et IA"
+description: "Reliez Syntheo à vos serveurs d'inférence auto-hébergés : un serveur de transcription et un serveur LLM compatible OpenAI."
 ---
 
-Syntheo uses two model settings:
+Syntheo n'embarque aucun modèle et n'appelle aucun service cloud. Il se connecte à **vos** serveurs d'inférence, sur votre poste ou votre réseau, par des protocoles standard. Vous configurez deux choses indépendantes :
 
-- **Transcription** turns meeting audio into a transcript.
-- **Intelligence** creates summaries and powers chat.
+| Réglage | Rôle | Protocole |
+| --- | --- | --- |
+| **Transcription** | Transforme l'audio de la réunion, de la dictée ou d'un fichier importé en texte | OpenAI Realtime et `/v1/audio/transcriptions`, ou Nemotron ASR (NVIDIA NIM, WebSocket) |
+| **Intelligence** | Produit les comptes rendus, le chat sur les notes et le générateur de templates | API OpenAI-compatible (`/v1/chat/completions`, modèles lus dans `/v1/models`) |
 
-Open **Settings → Transcription** or **Settings → Intelligence** to choose a provider and model.
+Aucune URL n'est imposée : vous saisissez celle de votre serveur. Sans serveur de transcription configuré et joignable, Syntheo ne transcrit rien, et comme l'audio n'est jamais conservé, il ne peut pas rattraper la transcription plus tard.
 
-[Models and providers](/models-and-providers) explains the current Syntheo Cloud routes, built-in on-device models, and how bring-your-own-provider requests work.
+## Avant de commencer
 
-## Choose a setup
+Il vous faut :
 
-<CardGroup cols={2}>
-  <Card title="Syntheo Cloud" icon="cloud">
-    Sign in and choose Syntheo for the quickest setup. Hosted models require a paid Syntheo plan.
-  </Card>
-  <Card title="On-device transcription" icon="laptop">
-    Download Soniqo on a supported Apple Silicon Mac, use Apple Speech when macOS 26 reports it available, or choose **On-device file** to pick a whisper.cpp `.bin`.
-  </Card>
-  <Card title="Your API key" icon="key">
-    Configure a provider, enter its API key, then select it under Model being used. API keys stay on this computer and do not sync to other devices.
-  </Card>
-  <Card title="Local language model" icon="server">
-    Connect LM Studio, Ollama, or Unsloth, or use Apple Intelligence on an eligible Mac.
-  </Card>
-</CardGroup>
+- un serveur de transcription en temps réel, par exemple vLLM avec un modèle Realtime (Voxtral Realtime), speaches (anciennement faster-whisper-server) ou un NIM Nemotron ASR ;
+- un serveur LLM compatible OpenAI, par exemple vLLM, Ollama, llama.cpp server, LM Studio, SGLang, TGI ou un NIM LLM ;
+- l'URL de base de chaque serveur et, si le serveur en exige une, sa clé API.
 
-Models labeled **Live** show text during the meeting. Models labeled **After recording** transcribe after you stop.
+Exemples d'URL de base pour un serveur lancé sur le même poste, avec les ports par défaut :
 
-To keep transcription, summaries, and chat on your computer, follow [Use Syntheo offline](/offline). For every on-device transcription path, see [How can I use on-device models?](/help#use-on-device-models). To compare on-device, Cloud, and bring-your-own-key cost, see [How can I compare the costs of all the transcription options?](/help#compare-transcription-costs).
+| Serveur | Usage | URL de base typique |
+| --- | --- | --- |
+| vLLM (`vllm serve`) | LLM, ou transcription avec un modèle Realtime | `http://localhost:8000/v1` |
+| speaches / faster-whisper-server | Transcription | `http://localhost:8000/v1` |
+| NVIDIA NIM Nemotron ASR | Transcription | `http://localhost:9000` |
+| Ollama | LLM | `http://localhost:11434/v1` |
+| llama.cpp server (`llama-server`) | LLM | `http://localhost:8080/v1` |
+| LM Studio | LLM | `http://localhost:1234/v1` |
+| SGLang | LLM | `http://localhost:30000/v1` |
+| NVIDIA NIM LLM | LLM | `http://localhost:8000/v1` |
 
-## Subscription providers
-
-You can use an existing paid plan for Intelligence without a separate API key. Open **Settings → Intelligence → Configure Providers** and connect **Claude**, **ChatGPT**, **Grok**, **GitHub Copilot**, or **Kimi Code**. After the connection finishes, select that provider under **Model being used**.
-
-### Mobile summaries
-
-In mobile 0.1.5 and later, open **Settings → Summary provider** to connect **ChatGPT subscription**, **Claude subscription**, **Grok subscription**, **GitHub Copilot subscription**, or **Kimi Code**. Complete the provider's sign-in or enter your Kimi Code membership API key, then choose a summary model.
-
-Connect each device separately. A connection on your desktop does not sign in your phone, and subscription credentials stay in that device's secure storage rather than syncing with notes.
-
-## Apple Intelligence
-
-On an eligible Mac running macOS 26 or later:
-
-1. Turn on Apple Intelligence in **System Settings** and wait for its model to finish downloading.
-2. In Syntheo, open **Settings → Intelligence → Configure Providers → Apple Intelligence**.
-3. Select **System Language Model** under **Model being used**.
+Les ports dépendent de la façon dont vous lancez chaque serveur. Si deux serveurs tournent sur la même machine, donnez-leur des ports différents.
 
 <Note>
-  Apple Intelligence support is experimental and currently handles text only.
+  Syntheo accepte HTTP en clair uniquement vers un hôte privé : `localhost`, `[::1]`, les noms en `.local`, et les adresses IPv4 `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` et `100.64.0.0/10` (plage utilisée notamment par Tailscale). Partout ailleurs, y compris pour un nom d'hôte interne comme `gpu.entreprise.lan`, l'URL doit être en HTTPS ; sinon l'enregistrement est refusé avec le message « Use HTTPS for provider credentials. ». L'URL ne doit contenir ni identifiants, ni paramètres de requête.
 </Note>
 
-## LM Studio
+Ouvrez les **Paramètres** (<kbd>Ctrl</kbd> + <kbd>,</kbd>).
 
-1. Install [LM Studio](https://lmstudio.ai/download) and download a model.
-2. Start its local server on port `1234` and enable CORS.
-3. In Syntheo, open **Settings → Intelligence → Configure Providers → LM Studio**.
-4. Select the LM Studio model under **Model being used**.
+## Configurer la transcription
 
-## Ollama
+<Steps>
+  <Step title="Ouvrir la page Transcription">
+    Dans les Paramètres, ouvrez **Transcription**. La page contient deux blocs : « Modèle utilisé » en haut et « Configurer les fournisseurs » en dessous.
+  </Step>
+  <Step title="Choisir le fournisseur">
+    Sous « Configurer les fournisseurs », dépliez l'un des deux fournisseurs, marqués « Self-hosted » :
 
-1. Install [Ollama](https://ollama.com/download).
-2. Start it and pull a model:
+    - **OpenAI-compatible** : pour vLLM, speaches ou faster-whisper-server. La transcription en direct passe par le WebSocket `/v1/realtime` ; l'import d'un fichier audio passe par `/v1/audio/transcriptions`.
+    - **Nemotron ASR (NIM, WebSocket)** : pour un serveur NVIDIA Speech NIM déployé chez vous. Le point d'accès gRPC hébergé par NVIDIA n'est pas pris en charge.
+  </Step>
+  <Step title="Saisir l'URL de base">
+    Renseignez le champ « URL de base », par exemple `http://localhost:8000/v1` pour vLLM ou speaches, ou `http://localhost:9000` pour un NIM. Pour le NIM, Syntheo ajoute lui-même `/v1/realtime`. Le fournisseur Nemotron ASR arrive avec une URL préremplie : remplacez-la par celle de votre serveur.
 
-   ```bash
-   ollama serve
-   ollama pull llama3.2
-   ```
+    La saisie est enregistrée automatiquement. Pour effacer la configuration d'un fournisseur, utilisez « Réinitialiser ».
+  </Step>
+  <Step title="Saisir la clé API (facultative)">
+    Si votre serveur exige une clé, ouvrez « Avancé » et remplissez « Clé API » (« Saisissez votre clé API (facultative) »). Laissez le champ vide pour un serveur sans authentification.
 
-3. In Syntheo, open **Settings → Intelligence → Configure Providers → Ollama**.
-4. Select the Ollama model under **Model being used**.
+    Ces serveurs n'ont pas de point de test commun : la clé n'est vérifiée qu'à l'ouverture d'une session de transcription. Le fournisseur affiche donc « Enregistré · Non connecté » jusqu'à la première écoute.
+  </Step>
+  <Step title="Choisir le modèle">
+    Sous « Modèle utilisé », sélectionnez le fournisseur dans « Sélectionnez un fournisseur », puis saisissez le nom du modèle servi par votre déploiement dans « Saisissez un identifiant de modèle ». Ces serveurs ne publient pas leur liste de modèles de transcription : saisissez exactement l'identifiant que votre serveur attend.
 
-## Unsloth
+    Pour Nemotron ASR, Syntheo propose les identifiants courants : `nemotron-asr-streaming` (anglais), `parakeet-tdt-0.6b-v3` (multilingue), `parakeet-tdt-0.6b-v2` (anglais) et `cache-aware-parakeet-rnnt-multi-asr-streaming-sortformer` (Nemotron ASR Streaming multilingue, français inclus). `nemotron-asr-streaming` est choisi par défaut.
+  </Step>
+  <Step title="Tester">
+    Lancez une courte écoute dans une note. Si le serveur est injoignable ou refuse la clé, Syntheo affiche une alerte qui en indique la cause.
+  </Step>
+</Steps>
 
-1. Install [Unsloth Desktop](https://unsloth.ai/docs/desktop) and load a model.
-2. Start its local server on port `8888` and copy the API key. It starts with `sk-unsloth-`.
-3. In Syntheo, open **Settings → Intelligence → Configure Providers → Unsloth** and paste the API key.
-4. Select the Unsloth model under **Model being used**.
+### Transcription en direct ou fichier seul
 
-Only models currently loaded in Unsloth appear in the list.
+Syntheo transcrit les réunions **pendant** la capture, et seulement ainsi : l'audio n'étant jamais conservé, il n'y a pas de transcription après coup. Le modèle choisi doit donc savoir diffuser en temps réel.
 
-## What leaves your computer
+- Avec **OpenAI-compatible**, tout modèle on-premise (par exemple Voxtral Realtime sur vLLM) est traité comme un modèle en temps réel. Les noms de modèles « fichier » de l'API OpenAI (`whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`…) ne servent qu'à l'import : Syntheo refuse de démarrer une capture avec eux, avec le message « Ce modèle ne transcrit qu'après l'enregistrement, ce qui supposerait de conserver l'audio. Choisissez un modèle de transcription en temps réel. ».
+- Avec **Nemotron ASR**, tous les modèles sont en temps réel. En revanche, l'import d'un fichier audio passe par le protocole OpenAI (`/v1/audio/transcriptions`) : il demande le fournisseur **OpenAI-compatible**.
 
-Your app data remains local. Local transcription and local Intelligence providers process content on your computer. If you select Syntheo Cloud or another hosted provider, Syntheo sends the audio or text needed for that request to the selected provider.
+La dictée utilise le même serveur de transcription que les réunions.
 
-See [Data, privacy, and retention](/data-and-privacy) for a feature-by-feature explanation.
+## Configurer l'IA (Intelligence)
+
+<Steps>
+  <Step title="Ouvrir la page Intelligence">
+    Dans les Paramètres, ouvrez **Intelligence**.
+  </Step>
+  <Step title="Configurer le fournisseur">
+    Sous « Configurer les fournisseurs », dépliez **vLLM (OpenAI-compatible)**. C'est l'unique fournisseur LLM : il fonctionne avec tout serveur qui expose l'API OpenAI (`/v1/chat/completions` et `/v1/models`), pas seulement vLLM.
+
+    Renseignez le champ « URL de base » avec l'adresse de votre serveur (il est vide par défaut), par exemple `http://localhost:11434/v1` pour Ollama ou `http://localhost:8080/v1` pour llama.cpp server. Gardez le suffixe `/v1`.
+  </Step>
+  <Step title="Saisir la clé API (facultative)">
+    Ouvrez « Avancé » et remplissez « Clé API » seulement si votre serveur en exige une (par exemple vLLM lancé avec `--api-key`). Elle est envoyée dans l'en-tête `Authorization: Bearer`.
+  </Step>
+  <Step title="Choisir le modèle">
+    Sous « Modèle utilisé », sélectionnez **vLLM (OpenAI-compatible)**, puis choisissez le modèle. Syntheo lit la liste dans `/v1/models` : seuls les modèles chargés par votre serveur apparaissent.
+  </Step>
+  <Step title="Régler l'effort de raisonnement (facultatif)">
+    « Effort de raisonnement » propose « Par défaut », « Faible », « Moyen » et « Élevé ». « Par défaut » laisse le serveur décider. Les autres valeurs ne servent qu'avec un modèle qui sait raisonner et un serveur qui accepte ce paramètre.
+  </Step>
+</Steps>
+
+Tant qu'aucun modèle n'est choisi, la page affiche « Choisissez un modèle de langue pour les résumés et le chat. ». Le même modèle sert aux comptes rendus, au chat, aux titres générés et au générateur de templates.
+
+## Ce qui transite vers vos serveurs
+
+- Le **serveur de transcription** reçoit l'audio de la capture, de la dictée ou du fichier importé, au fil de l'eau. Syntheo n'écrit pas cet audio sur le disque.
+- Le **serveur LLM** reçoit le texte nécessaire à la tâche : transcript, notes, consignes du template, question posée dans le chat.
+- Aucun en-tête n'identifie votre appareil. Syntheo ne contacte aucun autre service d'inférence et ne bascule jamais vers un service tiers si votre serveur ne répond pas : il affiche une erreur.
+
+Les clés API sont rangées dans le trousseau du système, jamais en clair dans la base locale. Détails dans [Données et confidentialité](/data-and-privacy).
+
+<Warning>
+  Un serveur exploité par un tiers reçoit vos audios et vos textes : il devient sous-traitant au sens du RGPD. Vérifiez le contrat et la localisation des données avant de l'utiliser. Voir [Syntheo Desktop et le RGPD](/conformite/rgpd).
+</Warning>
+
+## En cas de problème
+
+| Symptôme | Piste |
+| --- | --- |
+| « Use HTTPS for provider credentials. » | L'hôte n'est pas reconnu comme privé : passez en HTTPS (reverse proxy, VPN) ou utilisez une adresse privée. |
+| La liste des modèles LLM est vide | Vérifiez que `URL de base/models` répond (par exemple `curl http://localhost:11434/v1/models`) et que l'URL se termine bien par `/v1`. |
+| La transcription en direct se met en pause | Le serveur ne répond plus ou a refusé la clé. Syntheo tente de se reconnecter ; le passage manquant ne sera pas transcrit, faute d'audio conservé. |
+| Impossible de démarrer une écoute | Aucun fournisseur de transcription n'est configuré, ou le modèle choisi est un modèle « fichier ». |
+
+Pour travailler sans connexion internet, voir [Utiliser Syntheo sans réseau](/offline).
