@@ -1,7 +1,7 @@
 {
-  "name": "fastrepl",
+  "name": "syntheo-desktop",
   "interface": {
-    "displayName": "Fastrepl"
+    "displayName": "Syntheo Desktop"
   },
   "plugins": [
     {

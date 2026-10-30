@@ -1,12 +1,11 @@
 {
-  "name": "fastrepl",
+  "name": "syntheo-desktop",
   "owner": {
-    "name": "Fastrepl",
-    "email": "team@fastrepl.com",
+    "name": "William Derue",
     "url": "https://github.com/WillIsback/syntheo-desktop"
   },
   "metadata": {
-    "description": "Official plugins from Fastrepl",
+    "description": "Syntheo Desktop agent plugin",
     "version": "1.3.5"
   },
   "plugins": [
@@ -14,18 +13,23 @@
       "name": "syntheo",
       "displayName": "Syntheo",
       "source": "./agent-plugins/syntheo",
-      "description": "Search local Syntheo meetings or connect to Cloud with OAuth.",
+      "description": "Search and read local Syntheo meetings through the local CLI or the local stdio MCP server.",
       "version": "1.3.5",
       "author": {
-        "name": "Fastrepl",
-        "email": "team@fastrepl.com",
+        "name": "William Derue",
         "url": "https://github.com/WillIsback/syntheo-desktop"
       },
-      "homepage": "https://github.com/WillIsback/syntheo-desktop/tree/main/docs/agents/overview",
+      "homepage": "https://syntheo.mintlify.site/docs/agents/overview",
       "repository": "https://github.com/WillIsback/syntheo-desktop/tree/main/agent-plugins/syntheo",
       "license": "MIT",
       "category": "Productivity",
-      "tags": ["meetings", "notes", "transcripts", "mcp", "oauth"]
+      "tags": [
+        "meetings",
+        "notes",
+        "transcripts",
+        "mcp",
+        "local"
+      ]
     }
   ]
 }
