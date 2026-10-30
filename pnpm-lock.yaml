@@ -498,8 +498,8 @@ importers:
         specifier: ^10.1.0
         version: 10.1.0
       '@wdio/types':
-        specifier: ^9.27.0
-        version: 9.27.0
+        specifier: ^10.1.0
+        version: 10.1.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
