@@ -55,7 +55,8 @@ jobs:
         run: |
           $conf = "apps/desktop/src-tauri/tauri.conf.syntheo.json"
           $json = Get-Content -Raw $conf | ConvertFrom-Json
-          $json.version = $env:VERSION
+          $version = if ($env:VERSION) { $env:VERSION -replace '^v', '' } else { "0.0.0" }
+          $json | Add-Member -NotePropertyName version -NotePropertyValue $version -Force
           $json | ConvertTo-Json -Depth 100 | Set-Content -Encoding utf8 $conf
 
       - name: Build MSI et NSIS (non signés)
@@ -77,8 +78,8 @@ jobs:
           Get-ChildItem dist -File | ForEach-Object {
             $hash = (Get-FileHash -Algorithm SHA256 $_.FullName).Hash.ToLower()
             "$hash  $($_.Name)"
-          } | Set-Content -Encoding ascii dist/SHA256SUMS
-          Get-Content dist/SHA256SUMS
+          } | Set-Content -Encoding ascii dist/SHA256SUMS-windows
+          Get-Content dist/SHA256SUMS-windows
 
       - name: Upload des artefacts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
