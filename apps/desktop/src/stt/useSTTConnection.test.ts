@@ -193,10 +193,9 @@ describe("useSTTConnection", () => {
     expect(result.current.isReady).toBe(true);
   });
 
-  it("applies_the_nvidia_preset_without_a_stored_config_row", () => {
-    // Un provider on-prem préréglé doit fonctionner sans qu'une ligne
-    // stt:nvidia ait été enregistrée : l'URL par défaut fait office de
-    // configuration.
+  it("does_not_connect_without_a_stored_base_url", () => {
+    // Aucune URL n'est livrée par défaut : sans ligne stt:nvidia enregistrée,
+    // il n'y a rien à quoi se connecter.
     delete providersState["stt:nvidia"];
     config.current_stt_provider = "nvidia";
     config.current_stt_model = "nemotron-asr-streaming";
@@ -208,14 +207,7 @@ describe("useSTTConnection", () => {
 
     const { result } = renderHook(() => useSTTConnection(), { wrapper });
 
-    expect(result.current.conn).toEqual({
-      provider: "nvidia",
-      model: "nemotron-asr-streaming",
-      baseUrl:
-        "https://spark-787d-1.tail6cba9f.ts.net/v1/realtime?provider=nvidia",
-      apiKey: "",
-    });
-    expect(result.current.isReady).toBe(true);
+    expect(result.current.conn).toBeNull();
   });
 
   it("waits for stored settings and secure provider configuration", () => {

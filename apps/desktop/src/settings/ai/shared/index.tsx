@@ -68,6 +68,7 @@ type ProviderConfig = {
   icon: ReactNode;
   badge?: string | null;
   baseUrl?: string;
+  baseUrlPlaceholder?: string;
   authKind?: "api" | "subscription";
   disabled?: boolean;
   requirements: ProviderRequirement[];
@@ -588,7 +589,13 @@ export function NonSyntheoProviderCard({
         >
           {showBaseUrl && (
             <form.Field name="base_url">
-              {(field) => <FormField field={field} label={t`Base URL`} />}
+              {(field) => (
+                <FormField
+                  field={field}
+                  label={t`Base URL`}
+                  placeholder={config.baseUrlPlaceholder}
+                />
+              )}
             </form.Field>
           )}
           {showApiKey && (

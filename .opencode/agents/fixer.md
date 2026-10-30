@@ -58,7 +58,7 @@ Règles du dépôt :
   dépôt. Toutes les commandes `git` doivent rester dans le répertoire courant.
 - N'ouvre aucune page web, ne lance aucune recherche en ligne, ne charge aucune skill :
   base-toi uniquement sur l'alerte et le fichier fournis.
-- Ne lis pas les fichiers de documentation (`docs/`, `.superpowers/`, handoffs) : ils ne
+- Ne lis pas les fichiers de documentation (`docs/`, handoffs) : ils ne
   sont pas nécessaires pour corriger une alerte.
 - Texte destiné à l'utilisateur : français d'abord.
 - Aucun nouveau fournisseur cloud, aucune télémétrie, aucun compte, aucune facturation.

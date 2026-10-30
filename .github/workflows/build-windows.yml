@@ -2,7 +2,7 @@
 # Compilation des paquets Windows (NSIS + MSI).
 # Signature de code via Azure Artifact Signing **si** les secrets Azure sont
 # fournis (AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET) ; build non
-# signé sinon. Voir docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md.
+# signé sinon. Voir docs/desktop-installation.mdx.
 name: build-windows
 
 on:

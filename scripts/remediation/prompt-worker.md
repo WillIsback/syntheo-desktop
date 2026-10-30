@@ -33,7 +33,7 @@ Si aucune commande n'est listée, ne lance rien et commit quand même après rel
 
 - N'ouvre aucune page web, ne lance aucune recherche en ligne, ne charge aucune skill :
   base-toi uniquement sur l'alerte et le fichier fournis.
-- Ne lis pas les fichiers de documentation (`docs/`, `.superpowers/`, handoffs) : ils ne
+- Ne lis pas les fichiers de documentation (`docs/`, handoffs) : ils ne
   sont pas nécessaires pour corriger une alerte.
 - Tu travailles dans le clone courant. N'exécute jamais `cd` vers le dépôt principal
   (`/home/will/work/syntheo-desktop`) ni vers un autre clone. Toutes les commandes

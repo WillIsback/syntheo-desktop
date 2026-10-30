@@ -4,7 +4,11 @@ import { describe, expect, it } from "vitest";
 
 import { aiProviderSchema } from "@syntheo/store";
 
-import { PROVIDERS, STT_NIM_PRESET_URL } from "~/settings/ai/stt/shared";
+import {
+  PROVIDERS,
+  STT_NIM_BASE_URL_PLACEHOLDER,
+  STT_OPENAI_BASE_URL_PLACEHOLDER,
+} from "~/settings/ai/stt/shared";
 
 // Garde-fou : la transcription ne parle qu'aux protocoles standard des moteurs
 // on-premise (OpenAI Realtime et /v1/audio/transcriptions, NVIDIA NIM). Les
@@ -61,7 +65,7 @@ describe("stt on-prem", () => {
     expect(
       aiProviderSchema.safeParse({
         type: "stt",
-        base_url: "https://spark-787d-1.tail6cba9f.ts.net/v1/realtime",
+        base_url: "https://asr.example.com/v1/realtime",
         api_key: "",
       }).success,
     ).toBe(true);
@@ -141,15 +145,17 @@ describe("stt on-prem", () => {
     );
   });
 
-  it("stt_presets_follow_the_spec", () => {
-    expect(STT_NIM_PRESET_URL).toBe(
-      "https://spark-787d-1.tail6cba9f.ts.net/v1/realtime",
+  it("stt_providers_ship_without_a_default_url", () => {
+    expect(STT_NIM_BASE_URL_PLACEHOLDER).toBe(
+      "http://localhost:9000/v1/realtime",
     );
+    expect(STT_OPENAI_BASE_URL_PLACEHOLDER).toBe("http://localhost:8000/v1");
     const nvidia = PROVIDERS.find((provider) => provider.id === "nvidia");
-    expect(nvidia?.baseUrl).toBe(STT_NIM_PRESET_URL);
+    expect(nvidia?.baseUrl).toBeUndefined();
+    expect(nvidia?.baseUrlPlaceholder).toBe(STT_NIM_BASE_URL_PLACEHOLDER);
     expect(nvidia?.displayName).toContain("Nemotron ASR");
-    // Voxtral Realtime (vLLM) : URL à renseigner.
     const openai = PROVIDERS.find((provider) => provider.id === "openai");
     expect(openai?.baseUrl).toBeUndefined();
+    expect(openai?.baseUrlPlaceholder).toBe(STT_OPENAI_BASE_URL_PLACEHOLDER);
   });
 });

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { aiProviderSchema } from "@syntheo/store";
 
 import { normalizeStoredLlmSelection } from "~/settings/ai/llm/selection";
-import { LLM_VLLM_PRESET_URL, PROVIDERS } from "~/settings/ai/llm/shared";
+import { LLM_BASE_URL_PLACEHOLDER, PROVIDERS } from "~/settings/ai/llm/shared";
 import { processCustomModels } from "~/settings/ai/shared/list-openai";
 
 // Garde-fou : le résumé, le chat et le générateur ne parlent qu'à un serveur
@@ -67,12 +67,11 @@ describe("llm on-prem", () => {
     });
   });
 
-  it("custom_llm_preset_points_at_the_dgx_vllm", () => {
-    expect(LLM_VLLM_PRESET_URL).toBe(
-      "https://spark-787d-1.tail6cba9f.ts.net/v1",
-    );
+  it("custom_llm_ships_without_a_default_url", () => {
+    expect(LLM_BASE_URL_PLACEHOLDER).toBe("http://localhost:8000/v1");
     const custom = PROVIDERS.find((provider) => provider.id === "custom");
-    expect(custom?.baseUrl).toBe(LLM_VLLM_PRESET_URL);
+    expect(custom?.baseUrl).toBeUndefined();
+    expect(custom?.baseUrlPlaceholder).toBe(LLM_BASE_URL_PLACEHOLDER);
     expect(custom?.displayName).toBe("vLLM (OpenAI-compatible)");
     expect(custom?.requirements).toEqual([
       { kind: "requires_config", fields: ["base_url"] },
@@ -83,7 +82,7 @@ describe("llm on-prem", () => {
     expect(
       aiProviderSchema.safeParse({
         type: "llm",
-        base_url: LLM_VLLM_PRESET_URL,
+        base_url: "https://inference.example.com/v1",
         api_key: "",
       }).success,
     ).toBe(true);

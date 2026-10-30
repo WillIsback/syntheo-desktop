@@ -35,10 +35,8 @@ export const useSTTConnection = () => {
       return null;
     }
 
-    // L'URL enregistrée prime ; à défaut, le préréglage du provider s'applique
-    // (Nemotron ASR sur le DGX), sans qu'une ligne stt:<id> soit nécessaire.
-    const baseUrl =
-      providerConfig?.base_url?.trim() || provider.baseUrl?.trim() || "";
+    // Aucune URL n'est livrée par défaut : seule l'URL enregistrée compte.
+    const baseUrl = providerConfig?.base_url?.trim() || "";
 
     // Les endpoints on-prem n'exigent pas forcément de clé.
     if (!baseUrl) {

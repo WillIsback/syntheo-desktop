@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
 
 import { getLlmProviderStatus } from "./select";
-import { LLM_VLLM_PRESET_URL, PROVIDERS } from "./shared";
+import { PROVIDERS } from "./shared";
 
 const custom = PROVIDERS.find((p) => p.id === "custom")!;
 
 describe("getLlmProviderStatus", () => {
-  test("configures the vLLM preset without a key", () => {
+  test("stays unconfigured until a base URL is entered", () => {
     const status = getLlmProviderStatus({
       provider: custom,
       config: { api_key: "" },
@@ -14,7 +14,18 @@ describe("getLlmProviderStatus", () => {
       isPaid: false,
     });
 
-    expect(custom.baseUrl).toBe(LLM_VLLM_PRESET_URL);
+    expect(custom.baseUrl).toBeUndefined();
+    expect(status.configured).toBe(false);
+  });
+
+  test("configures an endpoint without a key", () => {
+    const status = getLlmProviderStatus({
+      provider: custom,
+      config: { base_url: "https://inference.example.com/v1", api_key: "" },
+      isAuthenticated: false,
+      isPaid: false,
+    });
+
     expect(status.configured).toBe(true);
     expect(status.listModels).toBeTypeOf("function");
   });

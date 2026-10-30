@@ -123,7 +123,7 @@ mod tests {
     fn managed_settings_accept_on_prem_stt_providers() {
         for provider in ["openai", "nvidia"] {
             let text = format!(
-                r#"{{"schema_version":1,"settings":{{"current_stt_provider":"{provider}","current_stt_model":"nemotron-asr-streaming","stt:{provider}":{{"type":"stt","api_key":"","base_url":"https://spark-787d-1.tail6cba9f.ts.net/v1/realtime"}}}}}}"#
+                r#"{{"schema_version":1,"settings":{{"current_stt_provider":"{provider}","current_stt_model":"nemotron-asr-streaming","stt:{provider}":{{"type":"stt","api_key":"","base_url":"https://asr.example.com/v1/realtime"}}}}}}"#
             );
             assert!(validate(text.as_bytes()).is_ok(), "{provider}");
         }
