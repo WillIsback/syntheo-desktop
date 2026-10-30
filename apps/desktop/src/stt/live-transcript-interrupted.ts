@@ -3,9 +3,9 @@ import type { DegradedError } from "@syntheo/plugin-transcription";
 import { PROVIDERS } from "~/settings/ai/stt/shared";
 
 // Règle audio de Syntheo : rien n'est conservé, la coupure manquera au
-// transcript (traduction française avec le lot i18n).
+// transcript.
 const NO_AUDIO_KEPT_NOTE =
-  "No audio is kept, so this part will be missing from the transcript. Reconnecting…";
+  "Aucun audio n'est conservé : ce passage manquera au transcript. Reconnexion…";
 
 function providerDisplayName(providerId: string | null | undefined) {
   if (!providerId) return null;
@@ -33,32 +33,32 @@ function getPauseCause({
   online: boolean;
 }) {
   const providerName =
-    providerDisplayName(sttProvider) ?? "the transcription service";
+    providerDisplayName(sttProvider) ?? "le service de transcription";
 
   if (!online) {
-    return "you're offline";
+    return "vous êtes hors ligne";
   }
 
   if (degraded?.type === "authentication_failed") {
-    return `${providerName} rejected your API key`;
+    return `${providerName} a refusé votre clé d'API`;
   }
 
   if (degraded?.type === "provider_configuration") {
-    return `${providerName} rejected the transcription settings`;
+    return `${providerName} a refusé les réglages de transcription`;
   }
 
   if (
     degraded?.type === "stream_error" &&
     isProviderSideStreamError(degraded.message)
   ) {
-    return `${providerName} is having an outage`;
+    return `${providerName} subit une panne`;
   }
 
   if (degraded) {
-    return `Syntheo can't reach ${providerName}`;
+    return `Syntheo ne parvient pas à joindre ${providerName}`;
   }
 
-  return `${providerName} stopped sending words`;
+  return `${providerName} n'envoie plus de texte`;
 }
 
 export function getLiveTranscriptPausedMessage({
@@ -71,5 +71,5 @@ export function getLiveTranscriptPausedMessage({
   online?: boolean;
 }) {
   const cause = getPauseCause({ degraded, sttProvider, online });
-  return `Live transcript paused because ${cause}. ${NO_AUDIO_KEPT_NOTE}`;
+  return `Transcript en direct en pause : ${cause}. ${NO_AUDIO_KEPT_NOTE}`;
 }

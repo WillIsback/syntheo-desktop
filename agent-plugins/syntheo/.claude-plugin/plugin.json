@@ -3,16 +3,22 @@
   "name": "syntheo",
   "displayName": "Syntheo",
   "version": "1.3.5",
-  "description": "Search local Syntheo meetings or connect to Cloud with OAuth.",
+  "description": "Search and read local Syntheo meetings through the local CLI or the local stdio MCP server.",
   "author": {
-    "name": "Fastrepl",
-    "email": "team@fastrepl.com",
+    "name": "William Derue",
     "url": "https://github.com/WillIsback/syntheo-desktop"
   },
-  "homepage": "https://github.com/WillIsback/syntheo-desktop/tree/main/docs/agents/overview",
+  "homepage": "https://syntheo.mintlify.site/docs/agents/overview",
   "repository": "https://github.com/WillIsback/syntheo-desktop/tree/main/agent-plugins/syntheo",
   "license": "MIT",
-  "keywords": ["meetings", "notes", "transcripts", "productivity", "mcp", "oauth"],
+  "keywords": [
+    "meetings",
+    "notes",
+    "transcripts",
+    "productivity",
+    "mcp",
+    "local"
+  ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json"
 }

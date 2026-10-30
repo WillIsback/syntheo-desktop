@@ -1,21 +1,26 @@
 {
-  "name": "fastrepl",
+  "name": "syntheo-desktop",
   "owner": {
-    "name": "Fastrepl",
-    "email": "team@fastrepl.com"
+    "name": "William Derue"
   },
   "metadata": {
-    "description": "Official plugins from Fastrepl",
+    "description": "Syntheo Desktop agent plugin",
     "version": "1.3.5"
   },
   "plugins": [
     {
       "name": "syntheo",
       "source": "./agent-plugins/syntheo",
-      "description": "Search local Syntheo meetings or connect to Cloud with OAuth.",
+      "description": "Search and read local Syntheo meetings through the local CLI or the local stdio MCP server.",
       "version": "1.3.5",
       "category": "Productivity",
-      "tags": ["meetings", "notes", "transcripts", "mcp", "oauth"]
+      "tags": [
+        "meetings",
+        "notes",
+        "transcripts",
+        "mcp",
+        "local"
+      ]
     }
   ]
 }

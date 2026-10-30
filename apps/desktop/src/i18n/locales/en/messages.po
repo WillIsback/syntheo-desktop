@@ -64,6 +64,10 @@ msgstr "{0}% complete"
 msgid "{absDays} days ago"
 msgstr "{absDays} days ago"
 
+#: src/contacts/details.tsx
+msgid "{count} contacts share the same name or email. Merge them to consolidate all related notes and information."
+msgstr "{count} contacts share the same name or email. Merge them to consolidate all related notes and information."
+
 #: src/settings/stats/badge-collection.tsx
 msgid "{count} of {total} collected"
 msgstr "{count} of {total} collected"
@@ -247,6 +251,10 @@ msgstr "Add notes about this contact..."
 msgid "Add organization"
 msgstr "Add organization"
 
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "Add participants"
+msgstr "Add participants"
+
 #: src/contacts/new-person-form.tsx
 msgid "Add person"
 msgstr "Add person"
@@ -335,6 +343,10 @@ msgstr "Analyzing structure..."
 #: src/templates/template-icon-picker.tsx
 msgid "Animals & Nature"
 msgstr "Animals & Nature"
+
+#: src/contacts/details.tsx
+msgid "Another contact shares the same name or email. Merge them to consolidate all related notes and information."
+msgstr "Another contact shares the same name or email. Merge them to consolidate all related notes and information."
 
 #: src/settings/ai/shared/index.tsx
 msgid "API Key"
@@ -804,10 +816,6 @@ msgid "Collected {0}"
 msgstr "Collected {0}"
 
 #: src/settings/stats/badge-collection.tsx
-#~ msgid "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome demo doesn't."
-#~ msgstr "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome demo doesn't."
-
-#: src/settings/stats/badge-collection.tsx
 msgid "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome note doesn't."
 msgstr "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome note doesn't."
 
@@ -948,7 +956,14 @@ msgstr "Conversations: {total}"
 msgid "Copied"
 msgstr "Copied"
 
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "Copied to clipboard: {viewTitle}"
+msgstr "Copied to clipboard: {viewTitle}"
+
 #: src/main/windows-title-bar.tsx
+#: src/session/components/note-input/header-enhanced.tsx
+#: src/session/components/note-input/header-raw.tsx
+#: src/session/components/note-input/header-transcript.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/developers/webhooks.tsx
 msgid "Copy"
@@ -1170,6 +1185,7 @@ msgstr "Default language for transcription and AI responses."
 #: src/sidebar/timeline/index.tsx
 #: src/templates/sections-editor.tsx
 #: src/templates/template-form.tsx
+#: src/templates/template-sidebar.tsx
 msgid "Delete"
 msgstr "Delete"
 
@@ -1249,8 +1265,8 @@ msgid "Dictation shortcut"
 msgstr "Dictation shortcut"
 
 #: src/settings/dictation.tsx
-msgid "Dictation uses your microphone, transcription provider, languages, and dictionary. Temporary audio is deleted after transcription. Your last transcript stays in memory until dictation is disabled or Syntheo closes."
-msgstr "Dictation uses your microphone, transcription provider, languages, and dictionary. Temporary audio is deleted after transcription. Your last transcript stays in memory until dictation is disabled or Syntheo closes."
+msgid "Dictation uses your microphone, transcription provider, languages, and dictionary. Audio is never written to disk; it only passes through memory. Your last transcript stays in memory until dictation is disabled or Syntheo closes."
+msgstr "Dictation uses your microphone, transcription provider, languages, and dictionary. Audio is never written to disk; it only passes through memory. Your last transcript stays in memory until dictation is disabled or Syntheo closes."
 
 #: src/settings/dictation.tsx
 #: src/settings/dictionary/index.tsx
@@ -1295,8 +1311,17 @@ msgstr "Draft follow-up email."
 
 #: src/templates/details.tsx
 #: src/templates/template-form.tsx
+#: src/templates/template-sidebar.tsx
 msgid "Duplicate"
 msgstr "Duplicate"
+
+#: src/contacts/details.tsx
+msgid "Duplicate contact found"
+msgstr "Duplicate contact found"
+
+#: src/contacts/details.tsx
+msgid "Duplicate contacts found"
+msgstr "Duplicate contacts found"
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Duration"
@@ -1443,6 +1468,18 @@ msgstr "Export the meeting as Markdown"
 msgid "Exporting..."
 msgstr "Exporting..."
 
+#: src/session/components/note-input/header-raw.tsx
+msgid "Failed to copy memo"
+msgstr "Failed to copy memo"
+
+#: src/session/components/note-input/header-transcript.tsx
+msgid "Failed to copy transcript"
+msgstr "Failed to copy transcript"
+
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "Failed to copy: {viewTitle}"
+msgstr "Failed to copy: {viewTitle}"
+
 #: src/task/resource-view.tsx
 msgid "Failed to load issue"
 msgstr "Failed to load issue"
@@ -1455,7 +1492,12 @@ msgstr "Failed to load pull request"
 msgid "Familiar Face"
 msgstr "Familiar Face"
 
+#: src/templates/template-sidebar.tsx
+msgid "Favorite"
+msgstr "Favorite"
+
 #: src/templates/details.tsx
+#: src/templates/template-form.tsx
 msgid "Favorite template"
 msgstr "Favorite template"
 
@@ -2098,6 +2140,10 @@ msgstr "members"
 msgid "Memo"
 msgstr "Memo"
 
+#: src/session/components/note-input/header-raw.tsx
+msgid "Memo copied to clipboard"
+msgstr "Memo copied to clipboard"
+
 #: src/settings/stats/badge-collection.tsx
 msgid "Memory Keeper"
 msgstr "Memory Keeper"
@@ -2106,6 +2152,7 @@ msgstr "Memory Keeper"
 msgid "Memos"
 msgstr "Memos"
 
+#: src/contacts/details.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "Merge"
 msgstr "Merge"
@@ -2777,6 +2824,7 @@ msgstr "Redo"
 msgid "Refresh calendars"
 msgstr "Refresh calendars"
 
+#: src/session/components/note-input/header-enhanced.tsx
 #: src/session/components/note-input/template-picker.tsx
 msgid "Regenerate"
 msgstr "Regenerate"
@@ -2801,6 +2849,7 @@ msgstr "Remind participants about recording"
 msgid "Reminders"
 msgstr "Reminders"
 
+#: src/session/components/note-input/header-enhanced.tsx
 #: src/sidebar/automations.tsx
 msgid "Remove"
 msgstr "Remove"
@@ -2921,6 +2970,11 @@ msgstr "Restart App"
 #: src/session/components/version-history-dialog.tsx
 msgid "Restore"
 msgstr "Restore"
+
+#: src/session/components/note-input/header-transcript.tsx
+#: src/session/components/outer-header/overflow/listening.tsx
+msgid "Resume listening"
+msgstr "Resume listening"
 
 #: src/chat/components/message/error.tsx
 #: src/contacts/profile-photo.tsx
@@ -3374,6 +3428,10 @@ msgstr "SQLite migration verification is incomplete"
 msgid "Stack another destination. Steps run top to bottom."
 msgstr "Stack another destination. Steps run top to bottom."
 
+#: src/session/components/outer-header/overflow/listening.tsx
+msgid "Start listening"
+msgstr "Start listening"
+
 #: src/settings/general/meeting-settings.tsx
 msgid "Start listening when a scheduled meeting begins."
 msgstr "Start listening when a scheduled meeting begins."
@@ -3452,6 +3510,7 @@ msgid "Stop auto-add"
 msgstr "Stop auto-add"
 
 #: src/session/components/outer-header/index.tsx
+#: src/session/components/outer-header/overflow/listening.tsx
 #: src/sidebar/timeline/item.tsx
 msgid "Stop listening"
 msgstr "Stop listening"
@@ -3502,6 +3561,7 @@ msgstr "Suggested templates"
 
 #: src/contacts/details.tsx
 #: src/edit/tab-content.tsx
+#: src/session/components/note-input/header-shared.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Summary"
@@ -3668,10 +3728,6 @@ msgstr "This device"
 msgid "This edit is no longer pending."
 msgstr "This edit is no longer pending."
 
-#: src/session/components/outer-header/index.tsx
-#~ msgid "This is a prerecorded demo, so your camera stays off. Click Join & record to see Syntheo in action."
-#~ msgstr "This is a prerecorded demo, so your camera stays off. Click Join & record to see Syntheo in action."
-
 #: src/calendar/components/event-chip.tsx
 msgid "This note"
 msgstr "This note"
@@ -3737,6 +3793,10 @@ msgstr "Transcribing…"
 msgid "Transcript"
 msgstr "Transcript"
 
+#: src/session/components/note-input/header-transcript.tsx
+msgid "Transcript copied to clipboard"
+msgstr "Transcript copied to clipboard"
+
 #: src/settings/ai/stt/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Transcription"
@@ -3778,10 +3838,6 @@ msgstr "Try dictation"
 msgid "Try speaking a little closer to the microphone."
 msgstr "Try speaking a little closer to the microphone."
 
-#: src/session/components/outer-header/index.tsx
-#~ msgid "Try the demo"
-#~ msgstr "Try the demo"
-
 #: src/calendar/components/apple/permission.tsx
 msgid "Turn on Syntheo in System Settings → Privacy & Security → Calendars, then return here."
 msgstr "Turn on Syntheo in System Settings → Privacy & Security → Calendars, then return here."
@@ -3802,6 +3858,14 @@ msgstr "Unavailable"
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "Undo"
 msgstr "Undo"
+
+#: src/templates/template-sidebar.tsx
+msgid "Unfavorite"
+msgstr "Unfavorite"
+
+#: src/templates/template-form.tsx
+msgid "Unfavorite template"
+msgstr "Unfavorite template"
 
 #: src/calendar/components/event-chip.tsx
 msgid "Unfiled"
@@ -3832,6 +3896,10 @@ msgstr "Unlock your login Keychain in the macOS prompt. Syntheo will retry savin
 #: src/contacts/organization-details.tsx
 msgid "Unnamed"
 msgstr "Unnamed"
+
+#: src/contacts/details.tsx
+msgid "Unnamed contact"
+msgstr "Unnamed contact"
 
 #: src/contacts/contact-page-header.tsx
 msgid "Unpin"

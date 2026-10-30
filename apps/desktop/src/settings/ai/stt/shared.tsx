@@ -14,6 +14,7 @@ type Provider = {
   description?: string;
   icon: ReactNode;
   baseUrl?: string;
+  baseUrlPlaceholder?: string;
   models: string[];
   badge?: string | null;
   requirements: ProviderRequirement[];
@@ -27,10 +28,11 @@ export function displayModelLabel(model: string, displayName?: string) {
   return displayName ?? model;
 }
 
-// Préréglage modifiable : le NIM Nemotron ASR du DGX (WebSocket). Voxtral
-// Realtime (vLLM) passe par le provider OpenAI-compatible, URL à renseigner.
-export const STT_NIM_PRESET_URL =
-  "https://spark-787d-1.tail6cba9f.ts.net/v1/realtime";
+// Aucune URL par défaut : l'utilisateur saisit celle de son serveur. Nemotron
+// ASR passe par le NIM (WebSocket), Voxtral Realtime (vLLM) par le provider
+// OpenAI-compatible.
+export const STT_OPENAI_BASE_URL_PLACEHOLDER = "http://localhost:8000/v1";
+export const STT_NIM_BASE_URL_PLACEHOLDER = "http://localhost:9000/v1/realtime";
 
 const _PROVIDERS = [
   {
@@ -38,15 +40,16 @@ const _PROVIDERS = [
     id: "openai",
     displayName: "OpenAI-compatible",
     description:
-      "OpenAI Realtime and /v1/audio/transcriptions (vLLM, speaches, faster-whisper-server)",
-    badge: "Self-hosted",
+      "OpenAI Realtime et /v1/audio/transcriptions (vLLM, speaches, faster-whisper-server)",
+    badge: "Auto-hébergé",
     icon: <ProviderLobeIcon icon={OpenAI} />,
     baseUrl: undefined,
+    baseUrlPlaceholder: STT_OPENAI_BASE_URL_PLACEHOLDER,
     models: [],
     requirements: [{ kind: "requires_config", fields: ["base_url"] }],
     links: {
       models: {
-        label: "API documentation",
+        label: "Documentation de l'API",
         url: "https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html",
       },
     },
@@ -55,14 +58,15 @@ const _PROVIDERS = [
     disabled: false,
     id: "nvidia",
     displayName: "Nemotron ASR (NIM, WebSocket)",
-    badge: "Self-hosted",
+    badge: "Auto-hébergé",
     icon: <ProviderLobeIcon icon={Nvidia} />,
-    baseUrl: STT_NIM_PRESET_URL,
+    baseUrl: undefined,
+    baseUrlPlaceholder: STT_NIM_BASE_URL_PLACEHOLDER,
     models: [...NVIDIA_NIM_ASR_MODELS],
     requirements: [{ kind: "requires_config", fields: ["base_url"] }],
     links: {
       models: {
-        label: "API documentation",
+        label: "Documentation de l'API",
         url: "https://docs.nvidia.com/nim/speech/latest/reference/api-references/asr/realtime-asr.html",
       },
       setup: {

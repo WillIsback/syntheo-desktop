@@ -222,20 +222,20 @@ function DuplicateContactsBanner({
   duplicates: HumanRecord[];
   onMerge: (duplicateId: string) => void;
 }>) {
+  const { t } = useLingui();
   if (readOnly || duplicates.length === 0) return null;
-  const plural = duplicates.length > 1;
-  const countLabel = plural
-    ? `${duplicates.length} contacts`
-    : "Another contact";
+  const count = duplicates.length;
+  const plural = count > 1;
 
   return (
     <div className="border-border border-b bg-red-50 px-6 py-4">
       <h4 className="mb-1 text-sm font-semibold text-red-900">
-        Duplicate Contact{plural ? "s" : ""} Found
+        {plural ? t`Duplicate contacts found` : t`Duplicate contact found`}
       </h4>
       <p className="mb-3 text-sm text-red-800">
-        {countLabel} with the same name or email {plural ? "exist" : "exists"}.
-        Merge to consolidate all related notes and information.
+        {plural
+          ? t`${count} contacts share the same name or email. Merge them to consolidate all related notes and information.`
+          : t`Another contact shares the same name or email. Merge them to consolidate all related notes and information.`}
       </p>
       <div className="flex flex-col gap-2">
         {duplicates.map((dup) => (
@@ -247,13 +247,13 @@ function DuplicateContactsBanner({
               <ContactAvatar human={dup} size={32} />
               <div>
                 <div className="text-foreground text-sm font-medium">
-                  {dup.name || "Unnamed Contact"}
+                  {dup.name || t`Unnamed contact`}
                 </div>
                 <div className="text-muted-foreground text-xs">{dup.email}</div>
               </div>
             </div>
             <Button onClick={() => onMerge(dup.id)} size="sm" variant="default">
-              Merge
+              <Trans>Merge</Trans>
             </Button>
           </div>
         ))}

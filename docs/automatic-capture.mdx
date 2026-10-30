@@ -1,57 +1,60 @@
 ---
-title: "Automate meeting capture"
-description: "Use calendar timing, microphone detection, and automatic stopping without losing control."
+title: "Automatiser la capture"
+description: "Détectez les réunions, arrêtez l'écoute à la fin de l'appel et gardez les commandes à portée de main."
 ---
 
-Syntheo can start an event-backed note at its scheduled time, remind you when another meeting app uses your microphone, and stop listening when the call ends.
+Syntheo peut vous signaler qu'une réunion semble commencer, arrêter l'écoute quand l'appel se termine et afficher une barre de commandes compacte. Ces réglages se trouvent dans **Paramètres → Réunions** et **Paramètres → Notifications**.
 
-## Start scheduled meetings automatically
+La détection fonctionne entièrement en local : Syntheo observe quelles applications utilisent le microphone, sans rien envoyer à l'extérieur.
 
-Open **Settings → Meetings** and enable **Start when meeting begins**.
+## Disponibilité selon la plateforme
 
-When a calendar-backed note reaches its scheduled start time, Syntheo starts listening. This setting does not apply to ordinary notes without a calendar event.
+| Fonction | Linux | Windows |
+| --- | --- | --- |
+| Rappel d'informer les participants | Oui | Oui |
+| Barre flottante | Oui | Oui |
+| Détection du microphone | Oui | Non |
+| Arrêt à la fin de la réunion | Oui | Non |
+| Mention d'enregistrement et capture du chat de réunion | Oui | Non |
+| Capture des écrans partagés | Non | Oui |
 
-If another meeting is already recording, Syntheo skips the overlapping scheduled start. It does not queue that meeting to start after your current recording ends.
+## Détecter une réunion non planifiée
 
-Syntheo discards empty automatic captures while preserving the calendar note and any content recorded on another device.
+« Détection du microphone » est activée par défaut dans **Paramètres → Notifications**. Quand une autre application utilise le microphone de façon prolongée, Syntheo vous envoie une notification pour vous signaler qu'une réunion a peut-être commencé.
 
-Enable **Join scheduled meetings** on the same page to open the meeting link when listening starts. That toggle stays disabled until **Start when meeting begins** is on.
+La détection est un rappel : elle ne démarre pas l'enregistrement toute seule. Vous pouvez régler le « Délai de détection » (de 5 secondes à 2 minutes) et utiliser « Exclure les applications de la détection » pour ignorer les applications qui ne sont pas des outils de réunion.
 
-Keep Syntheo running and make sure microphone and system-audio access are allowed. See [Connect a calendar](/calendar) if your events are not visible.
+## Arrêter l'écoute à la fin de l'appel
 
-## Detect unscheduled calls
-
-Open **Settings → Notifications** and enable **Microphone detection**. Syntheo watches for sustained microphone activity and notifies you that a meeting may have started.
-
-Microphone detection is a reminder; it does not start recording by itself. Choose a detection delay from 5 seconds to 2 minutes, and exclude apps that should not trigger a meeting prompt.
-
-Microphone detection is available on macOS and Linux. On macOS, Accessibility permission is required to detect meeting apps and synchronize mute state; manage it under **Settings → Permissions**. On Linux, enable the meeting toggles under **Settings → Meetings** and allow assistive-technology access for the desktop session when prompted.
-
-## Stop when the call ends
-
-Under **Settings → Meetings**, enable **Stop when meeting ends**. Syntheo stops listening when the meeting app releases the microphone.
-
-This control is available on macOS and Linux.
+« Arrêter à la fin de la réunion » est activé par défaut dans **Paramètres → Réunions**. Syntheo arrête l'écoute quand l'application de réunion libère le microphone ; selon l'application, il peut vous demander confirmation avant d'arrêter.
 
 <Warning>
-  If you switch audio devices or use an app with unusual microphone behavior, automatic stop detection can misfire and end the recording early without warning. Check that the recording is still active before closing the meeting.
+  Si vous changez de périphérique audio ou utilisez une application au comportement inhabituel, l'arrêt automatique peut se déclencher trop tôt. Vérifiez que l'enregistrement est toujours actif avant de fermer la réunion.
 </Warning>
 
-## Capture meeting chat
+## Informer les participants
 
-On macOS and Linux, **Settings → Meetings** also includes:
+Par défaut, Syntheo affiche un rappel à chaque démarrage d'enregistrement pour que vous pensiez à prévenir les participants. Pour le désactiver, décochez « Rappeler aux participants l'enregistrement » dans **Paramètres → Réunions**.
 
-- **Post recording disclosure in meeting chat**, which tells participants when listening starts.
-- **Capture meeting chat in Memos**, which saves visible chat from supported meetings. On macOS this uses Accessibility; on Linux it uses assistive-technology access.
+Sous Linux, **Paramètres → Réunions** propose aussi :
 
-These features are not available on Windows.
+- « Publier la mention d'enregistrement dans le chat de la réunion », qui indique aux participants que l'écoute commence ;
+- « Capturer le chat de réunion dans Memos », qui enregistre dans vos mémos la discussion visible des réunions prises en charge.
+
+Ces deux options utilisent l'accessibilité du bureau (AT-SPI) : autorisez-la si votre session vous le demande. Elles sont désactivées par défaut.
 
 <Note>
-  Posting a disclosure does not by itself confirm consent. Recording-consent rules depend on where you and the other participants are located; see [Record meetings](/meetings).
+  Publier une mention ne vaut pas consentement. Les règles applicables dépendent de l'endroit où vous et les autres participants vous trouvez ; voir [Enregistrer une réunion](/meetings).
 </Note>
 
-## Keep controls nearby
+## Capturer les écrans partagés
 
-Enable **Show floating bar** under **Settings → Meetings** to keep compact recording controls visible while Syntheo listens.
+Sous Windows, « Capturer les écrans partagés dans Memos » enregistre dans vos mémos les diapositives et écrans que les autres participants partagent pendant la réunion. Cette option est désactivée par défaut.
 
-Event and microphone notifications can also respect your system's Do Not Disturb mode from **Settings → Notifications**.
+## Garder les commandes à portée de main
+
+Avec « Afficher la barre flottante », activé par défaut dans **Paramètres → Réunions**, une barre compacte reste visible pendant l'écoute. Elle permet de piloter l'enregistrement sans rouvrir la fenêtre principale.
+
+## Réunions planifiées
+
+**Paramètres → Réunions** affiche aussi « Démarrer au début de la réunion » et « Rejoindre les réunions programmées ». Ces options s'appuient sur les événements d'agenda. Les agendas en ligne (Google, Outlook) ne sont pas pris en charge et l'agenda local n'est disponible que sur macOS, qui n'est pas publié pour l'instant : sous Linux et Windows, ces deux options n'ont donc pas d'effet. Démarrez vos captures depuis une note avec « Enregistrer ».

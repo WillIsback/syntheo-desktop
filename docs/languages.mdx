@@ -1,43 +1,40 @@
 ---
-title: "Use multiple languages"
-description: "Choose the language for AI output and tell transcription which languages to expect."
+title: "Utiliser plusieurs langues"
+description: "Choisissez la langue des résumés et du chat, et indiquez à la transcription les langues à attendre."
 ---
 
-Syntheo separates the language used for summaries and chat from the languages it should expect in a conversation.
+Syntheo distingue la langue utilisée pour les résumés et le chat des langues qu'il doit s'attendre à entendre pendant une réunion. Ces réglages se trouvent dans **Paramètres → Général**, section « Langue et région ».
 
-## Choose the main language
+<Note>
+  La langue de l'interface (le français par défaut) est indépendante de ces réglages.
+</Note>
 
-Open **Settings → General** and choose **Main language** under **Language & Region**.
+## Choisir la langue principale
 
-Syntheo uses the main language for chat and as the default for summaries. It is also always included as a transcription language.
+Choisissez la « Langue principale ». C'est la langue par défaut pour la transcription et pour les réponses de l'IA : le chat l'utilise, et elle sert de repli pour les résumés. Elle fait toujours partie des langues de transcription.
 
-When you add spoken languages, Syntheo checks the transcript and writes the summary in the language used most among your selected languages. Generated titles follow the summary. If detection is unavailable, Syntheo uses your main language.
+Par défaut, les résumés suivent la langue détectée de la réunion parmi les langues que vous avez sélectionnées. Les titres générés suivent le résumé. Si la détection n'aboutit pas, Syntheo utilise votre langue principale.
 
-In desktop 1.4.30 and later, turn on **Use main language for summaries** under **Main language** to write summaries in your main language even when the meeting uses another selected language. This option is off by default and does not remove your additional transcription languages. Leave it off to keep automatic summary language detection.
+Activez « Utiliser la langue principale pour les résumés » pour écrire tous les résumés dans votre langue principale, même quand la réunion se tient dans une autre langue sélectionnée. Cette option est désactivée par défaut et ne retire pas vos langues parlées supplémentaires.
 
-Changing the main language does not translate an existing transcript. Regenerate a summary to apply the new output language to an older meeting.
+Changer de langue principale ne traduit pas un transcript existant. Régénérez le résumé d'une ancienne réunion pour appliquer la nouvelle langue.
 
-## Add spoken languages
+## Ajouter des langues parlées
 
-Under **Additional spoken languages**, add other languages people may use in the same meeting. This gives transcription more context for multilingual conversations.
+Dans « Langues parlées supplémentaires », ajoutez les autres langues que les participants peuvent utiliser. Syntheo s'en sert pour la transcription et pour détecter automatiquement la langue des résumés.
 
-The selected Transcription provider and model must support those languages. If a language is missing or performs poorly, try another model under **Settings → Transcription**.
+Syntheo transmet ces langues à votre serveur de transcription comme indication. C'est le modèle qui décide de ce qu'il sait reconnaître : si une langue manque ou est mal transcrite, essayez un autre modèle sur votre serveur, puis sélectionnez-le dans **Paramètres → Transcription**. Syntheo vous avertit quand le modèle choisi ne peut pas transcrire toutes les langues sélectionnées.
 
-## Languages you can choose
+## Langues proposées
 
-Settings offers these languages for the main language and additional spoken languages:
+Les paramètres proposent les langues suivantes, pour la langue principale comme pour les langues parlées supplémentaires :
 
-Arabic, Belarusian, Bulgarian, Bangla, Bosnian, Catalan, Czech, Danish, German, Greek, English, Spanish, Estonian, Persian, Finnish, French, Hebrew, Hindi, Croatian, Hungarian, Indonesian, Italian, Japanese, Kannada, Korean, Lithuanian, Latvian, Macedonian, Marathi, Malay, Dutch, Norwegian, Polish, Portuguese, Romanian, Russian, Slovak, Slovenian, Serbian, Swedish, Tamil, Telugu, Thai, Filipino, Turkish, Ukrainian, Urdu, Vietnamese, and Chinese.
+allemand, anglais, arabe, bengali, biélorusse, bosniaque, bulgare, catalan, chinois, coréen, croate, danois, espagnol, estonien, finnois, français, grec, hébreu, hindi, hongrois, indonésien, italien, japonais, kannada, letton, lituanien, macédonien, malais, marathi, néerlandais, norvégien, ourdou, persan, philippin, polonais, portugais, roumain, russe, serbe, slovaque, slovène, suédois, tamoul, tchèque, télougou, thaï, turc, ukrainien et vietnamien.
 
-That list is the Syntheo Cloud picker. On-device and bring-your-own-key models can support a subset or a different set:
+Cette liste ne garantit pas que votre modèle de transcription couvre chaque langue : reportez-vous à la documentation du modèle que vous servez (par exemple Whisper ou Voxtral).
 
-- **Soniqo** transcribes Bulgarian, Czech, Danish, German, Greek, English, Spanish, Estonian, Finnish, French, Croatian, Hungarian, Italian, Lithuanian, Latvian, Maltese, Dutch, Polish, Portuguese, Romanian, Russian, Slovak, Slovenian, Swedish, and Ukrainian.
-- **Apple Speech** live transcription uses one supported language at a time: German, English, Spanish, French, Italian, Japanese, Korean, Portuguese, Cantonese, or Chinese. Add that language in macOS System Settings before selecting Apple Speech.
-- **On-device file** uses the language list of the whisper.cpp `.bin` you select.
-- A bring-your-own-key provider uses that provider's language list. See [How can I use on-device models?](/help#use-on-device-models).
+## Noms propres et jargon
 
-## Improve names and jargon
+Choisir une langue n'apprend pas au modèle le vocabulaire de votre organisation. Ajoutez les noms, acronymes et termes métier dans **Paramètres → Dictionnaire**.
 
-Language selection does not teach the model company-specific terminology. Add names, acronyms, and product terms under **Settings → Dictionary**.
-
-For summary structure and wording, use [Customize meeting summaries](/customize-summaries).
+Pour la structure et le ton des résumés, voir [Personnaliser les comptes rendus](/customize-summaries).

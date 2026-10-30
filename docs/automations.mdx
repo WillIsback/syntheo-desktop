@@ -1,96 +1,54 @@
 ---
-title: "Automate meeting follow-up"
-description: "Send recaps, create issues, update project notes, or export every meeting."
+title: "Automatisations"
+description: "Exportez automatiquement chaque réunion en Markdown dans un dossier local."
 ---
 
-Automations run repeatable work when a meeting ends. They are part of Syntheo Pro.
+Les automatisations exécutent une tâche répétitive à la fin d'une réunion. Dans Syntheo, la seule action disponible est l'**export Markdown vers un dossier local**. Les actions vers des services en ligne (Slack, Notion, Linear, Google Drive) ont été retirées.
 
-## Use a starter
+Ouvrez l'onglet **« Automatisations »** depuis **Paramètres → Espace de travail → « Automatisations »**.
 
-Open **Automations** and choose a starter from the sidebar:
+## Utiliser le modèle de départ
 
-| Starter | What it does | Configuration |
-| --- | --- | --- |
-| Share a meeting recap in Slack | Posts the meeting title and AI summary. | Connect Slack and choose a channel. |
-| Update project notes in Notion | Appends a dated meeting update to a page. | Connect Notion and choose a page. |
-| Turn action items into Linear issues | Creates issue drafts from assigned follow-ups. | Connect Linear and choose a team. |
-| Export every meeting as Markdown | Writes the memo, summary, and transcript to a local file. | Choose an export folder. |
+Le modèle « Exporter toutes les réunions au format Markdown » enregistre chaque réunion terminée dans un fichier Markdown local.
 
-1. Select the starter.
-2. Connect the service or choose the local folder it needs.
-3. Review the trigger, source content, and result preview.
-4. Click **Save & enable**.
+1. Sélectionnez-le dans la barre latérale.
+2. Choisissez un dossier d'export.
+3. Vérifiez le déclencheur et l'aperçu.
+4. Cliquez sur « Enregistrer et activer », ou sur « Enregistrer le brouillon » pour finir plus tard.
 
-An enabled starter runs after a meeting ends and the content it needs is ready. Disable it when you want to keep the setup without running it.
+Une fois activé, il s'exécute à la fin de chaque réunion, quand le transcript et la note sont prêts. Désactivez-le pour conserver la configuration sans l'exécuter.
 
-## Check whether it ran
+## Créer un flux personnalisé
 
-The automation detail shows whether it is enabled and the result of its last run. A failed run includes a short error. Check the selected destination and reconnect the service when authorization has expired.
+Cliquez sur **+** dans la barre latérale des automatisations.
 
-For Markdown exports, confirm that the chosen folder still exists and is writable. The local export does not need Slack, Notion, or Linear access.
+1. Choisissez le déclencheur : « Après la disponibilité du compte rendu de la réunion » ou « Après la fin de la réunion ».
+2. Ajoutez une ou plusieurs actions « Exporter la réunion au format Markdown », par exemple pour écrire dans deux dossiers différents. Les étapes s'exécutent de haut en bas.
+3. Configurez chaque action.
+4. Cliquez sur « Enregistrer et activer ». Tant qu'il n'est pas activé, le flux reste à l'état de brouillon.
 
-## Choose Markdown export content
+Un flux ne peut être activé que si chaque action a un dossier et au moins une section à exporter.
 
-In a Markdown export action, choose any combination of **Memo**, **Summary**, **Transcript**, and **Collect action items**. Keep at least one section selected.
+Avec le déclencheur « Après la disponibilité du compte rendu de la réunion », régénérer un compte rendu met à jour le fichier déjà exporté pour cette réunion.
 
-Leave **Filename** blank to use the meeting date and title, or enter a pattern such as `{date} {title}.md`. **Include meeting ID** adds a short ID suffix to distinguish similarly named meetings. Syntheo refuses to overwrite a file belonging to a different meeting or an unrelated file; choose another name if an export reports a collision.
+## Choisir le contenu exporté
 
-These options belong to desktop Automations. CLI `meetings export` still exports a complete meeting and uses the output path you provide; it does not accept these automation settings.
+Dans un flux personnalisé, chaque action d'export Markdown propose ces réglages (le modèle de départ, lui, utilise toujours les réglages par défaut) :
 
-## Build a custom workflow
+- Sous « Inclure », cochez « Mémo », « Résumé », « Transcript » et « Collecter les points d'action », dans la combinaison de votre choix. Au moins une section doit rester cochée.
+- Laissez « Nom de fichier » vide pour utiliser la date et le titre de la réunion, ou saisissez un motif comme `{date} {title}.md`.
+- « Inclure l'ID de réunion » ajoute un identifiant court au nom du fichier, pour distinguer des réunions au titre identique.
 
-Click **+** in the Automations sidebar to start a workflow. Add a trigger, then stack actions the way you would in Zapier:
+Syntheo refuse d'écraser un fichier qui appartient à une autre réunion ou qui n'a pas été créé par Syntheo. Si un export signale un conflit, changez le nom de fichier.
 
-1. Choose when it should run: after the meeting summary is ready, or after the meeting ends.
-2. Add one or more actions: Slack recap, Notion update, Linear issues, or Markdown export.
-3. Configure each destination.
-4. Click **Save & enable**.
+Ces options sont propres aux automatisations. La commande CLI `syntheo meetings export` exporte une réunion complète vers le chemin que vous indiquez, sans ces réglages.
 
-Enabled custom workflows run automatically, the same way starters do. Chat on the right can still help you refine the workflow; it is not required to make the automation run.
+## Vérifier l'exécution
 
-Examples:
+La fiche de l'automatisation indique si elle est activée et le résultat de sa dernière exécution, avec un message court en cas d'erreur. Vérifiez alors que le dossier choisi existe toujours et qu'il est accessible en écriture.
 
-- After the summary is ready, post to Slack and append the same recap to a Notion page.
-- After the meeting ends, export Markdown and create Linear issues from action items.
+Syntheo doit être ouvert pour exécuter une automatisation : les réunions terminées pendant que l'application est fermée ne sont pas exportées après coup.
 
-<Warning>
-  Automations send meeting content to the destination you configure. Use only workspaces, channels, pages, teams, and folders that should receive that content.
-</Warning>
-
-## Save summaries to Google Drive
-
-Choose **Save meetings to Google Drive** under **Get started** to open the template.
-Configure it and choose **Save draft** or **Save & enable**. Reopening the template
-returns to the same configuration without creating another automation.
-Or, in a custom workflow, choose **After the meeting summary is ready**, then add
-**Save to Google Drive**. Connect your Google account and choose a folder in My
-Drive or a shared drive where you can add files. Choose **Markdown (.md)** or
-**Google Docs** as the file format, then enable the workflow. Existing workflows
-continue to use Markdown.
-
-Every note summarized after you enable the workflow is exported to that folder
-as one file in the selected format containing its summary, transcript, title, date, and meeting
-ID. Notes without a transcript include a message that no transcript is available.
-Choose a collection folder that should receive all of these notes; this action
-does not filter by Syntheo folder or automatically route projects.
-
-Generating a summary again updates the existing export for that meeting and
-folder and format. Changing formats keeps previous exports and uses the new
-format on subsequent runs; it does not convert old exports in bulk. Renaming a note updates its exported filename. Syntheo owns the exported
-file content, so a later export replaces edits made directly to that file.
-
-The action shows the exported file link or its latest unresolved failure. Use
-**Retry Google Drive export** to retry that delivery without replaying successful
-Slack, Notion, or Linear actions. If the destination changes, generate the summary
-again to export to the new folder. Changing the format also requires a new
-summary run rather than retrying a delivery in the old format.
-
-Google Docs retries search for an existing export before creating a document.
-If a creation response is lost and Drive search has not indexed the document yet,
-a retry can create a duplicate. There is no separate recovery queue or guarantee
-of exactly-once creation.
-
-Syntheo must be open to run the workflow. This action does not backfill older
-notes or queue deliveries while the app is closed. It uses the same plan access
-as other connected automation actions and sends the exported content through
-Syntheo's integration API to Google Drive; CloudSync is not required.
+<Note>
+  Les fichiers exportés restent sur votre machine. Si vous choisissez un dossier synchronisé par un autre logiciel, c'est ce logiciel qui en transmet le contenu.
+</Note>

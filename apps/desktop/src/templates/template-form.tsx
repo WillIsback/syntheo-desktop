@@ -261,10 +261,10 @@ export function TemplateForm({
               template.pinned && "text-rose-500 hover:text-rose-600",
             ])}
             title={
-              template.pinned ? "Unfavorite template" : "Favorite template"
+              template.pinned ? t`Unfavorite template` : t`Favorite template`
             }
             aria-label={
-              template.pinned ? "Unfavorite template" : "Favorite template"
+              template.pinned ? t`Unfavorite template` : t`Favorite template`
             }
           >
             <Heart

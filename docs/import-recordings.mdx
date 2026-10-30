@@ -1,35 +1,73 @@
 ---
-title: "Import audio or a transcript"
-description: "Turn an existing recording or subtitle file into an Syntheo meeting note."
+title: "Importer un enregistrement"
+description: "Créez une note Syntheo à partir d'un fichier audio, d'un fichier de sous-titres ou de l'export d'un autre assistant de réunion."
 ---
 
-You can use Syntheo with a conversation that was recorded elsewhere. Import audio to create a new transcript, or import an existing transcript to create a summary.
+Vous pouvez utiliser Syntheo avec une conversation enregistrée ailleurs :
 
-To move many existing meetings from another meeting assistant, use [Import meeting history](/imports) instead.
+- importez un **fichier audio** pour le faire transcrire par votre serveur ;
+- importez un **transcript** SRT ou VTT existant pour en tirer un résumé ;
+- importez l'**historique** exporté depuis un autre assistant de réunion.
 
-## Import audio
+Tout se passe en local : Syntheo lit les fichiers sur votre ordinateur et n'utilise aucun service d'import en ligne.
 
-1. Create a **New Note** or open an empty note.
-2. Open the **•••** menu and choose **Upload audio**.
-3. Select a supported audio file.
-4. Leave Syntheo open while it imports and transcribes the recording.
+## Importer un fichier audio
 
-You can also drag one audio file onto an open note.
+1. Créez une « Nouvelle note » ou ouvrez une note vide.
+2. Ouvrez le menu **•••** et choisissez « Téléverser un audio ».
+3. Sélectionnez le fichier.
+4. Laissez Syntheo ouvert pendant la transcription.
 
-Syntheo accepts WAV, MP3, OGG, MP4, M4A, FLAC, WebM, and AAC files. It uses your selected **Transcription** model, so configure that model before importing.
+Vous pouvez aussi glisser un fichier audio sur une note ouverte.
 
-When transcription finishes, Syntheo creates a summary if an **Intelligence** model is configured.
+Formats acceptés : WAV, MP3, OGG, MP4, M4A, FLAC, WebM et AAC.
 
-## Import a transcript
+Syntheo envoie le fichier à votre serveur de transcription, sur son point d'accès `/v1/audio/transcriptions`, sans en faire de copie. L'audio n'est pas conservé dans la note. Les fichiers longs ou volumineux sont découpés en plusieurs requêtes.
 
-1. Create a **New Note** or open an empty note.
-2. Open the **•••** menu and choose **Upload transcript**.
-3. Select a WebVTT (`.vtt`) or SubRip (`.srt`) file.
+Quand la transcription est terminée, Syntheo génère un résumé si un LLM est configuré dans **Paramètres → Intelligence**.
 
-Syntheo adds the timed text to the note and generates a summary when an Intelligence model is available. Importing a transcript does not create an audio recording.
+<Note>
+  L'import audio nécessite un fournisseur « OpenAI-compatible » dans **Paramètres → Transcription**. Le fournisseur « Nemotron ASR (NIM, WebSocket) » ne transcrit que le flux en direct et ne prend pas en charge les fichiers.
+</Note>
 
-## If an import does not start
+Les menus « Téléverser un audio » et « Téléverser un transcript » n'apparaissent que dans une note vide, sans transcript ni capture en cours.
 
-Confirm that the file uses one of the supported formats and that a Transcription model is selected for audio imports. For local or bring-your-own-key providers, make sure the provider is running and configured.
+## Importer un transcript
 
-See [Transcription and AI](/ai-setup) for model setup or [Troubleshooting](/troubleshooting) for common failures.
+1. Créez une « Nouvelle note » ou ouvrez une note vide.
+2. Ouvrez le menu **•••** et choisissez « Téléverser un transcript ».
+3. Sélectionnez un fichier WebVTT (`.vtt`) ou SubRip (`.srt`).
+
+Syntheo ajoute le texte horodaté à la note, puis génère un résumé si un LLM est configuré et si la note n'en a pas encore.
+
+## Importer l'historique d'un autre assistant
+
+Si vous utilisiez un autre assistant de réunion, vous pouvez reprendre ses exports dans Syntheo. Chaque réunion exportée devient une note.
+
+1. Exportez vos réunions depuis l'application d'origine.
+2. Ouvrez **Paramètres → Importations**.
+3. Repérez l'application détectée et cliquez sur « Choisir des fichiers ».
+4. Sélectionnez un ou plusieurs fichiers d'export : JSON, CSV, Markdown, texte, VTT ou SRT.
+
+Syntheo liste uniquement les assistants qu'il trouve installés sur votre ordinateur. Les sources reconnues sont Notta, Bluedot, Jamie, ChatGPT Record, Slack Huddles et Limitless / Rewind. Si aucune n'est installée, la page affiche « Aucune application trouvée. ». Cette étape vous est aussi proposée au premier lancement.
+
+Syntheo reprend les titres, dates, notes, résumés et transcripts quand l'export les contient. Il ne copie jamais d'audio ni de vidéo.
+
+### Lire le résultat
+
+Après l'import, Syntheo affiche le bilan pour l'application concernée :
+
+- **Importés** : réunions ajoutées comme nouvelles notes ;
+- **Inchangés** : réunions déjà présentes, laissées telles quelles ;
+- **À vérifier** : conflits que Syntheo n'a pas pu trancher sans risque ;
+- **Échecs** : fichiers illisibles ou non convertibles.
+
+Vous pouvez réimporter le même export : les réunions déjà présentes ne sont pas dupliquées.
+
+## Si un import ne démarre pas
+
+- Vérifiez que le fichier est dans un format pris en charge.
+- Pour un fichier audio, vérifiez qu'un fournisseur « OpenAI-compatible » et un modèle sont sélectionnés dans **Paramètres → Transcription**, et que votre serveur répond.
+- Si votre assistant n'apparaît pas dans **Paramètres → Importations**, exportez vos réunions en SRT ou VTT et [importez le transcript](#importer-un-transcript) dans une note vide.
+
+Voir [Configurer la transcription et l'IA](/ai-setup) pour la configuration des serveurs, ou [Dépannage](/troubleshooting) pour les erreurs courantes.

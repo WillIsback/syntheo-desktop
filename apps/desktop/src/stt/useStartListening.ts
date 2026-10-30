@@ -38,7 +38,7 @@ import {
 } from "~/stt/queries";
 
 export const CAPTURE_REMINDER_MESSAGE =
-  "Remind participants that the meeting is being transcribed.";
+  "Rappelez aux participants que la réunion est transcrite.";
 
 export const NO_TRANSCRIPTION_PROVIDER_MESSAGE =
   "Aucun fournisseur de transcription n'est configuré. Syntheo ne conserve pas l'audio : configurez un endpoint de transcription avant d'enregistrer.";

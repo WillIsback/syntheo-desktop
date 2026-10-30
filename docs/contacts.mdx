@@ -1,28 +1,32 @@
 ---
-title: "Contacts and CRM"
-description: "Connect a CRM and fill missing contact details from a matching record."
+title: "Contacts"
+description: "Retrouvez les personnes et organisations de vos réunions, saisies localement."
 ---
 
-Syntheo keeps people and organizations together with your meeting notes. You can connect a CRM to look up a contact when you need more detail.
+Syntheo garde les personnes et les organisations à côté de vos notes de réunion. Tous les contacts sont saisis par vous et stockés localement : aucun carnet d'adresses ni CRM externe n'est connecté.
 
-## Connect a CRM
+Ouvrez l'onglet **« Contacts »** depuis **Paramètres → Espace de travail → « Contacts »**.
 
-1. Sign in to Syntheo and open **Settings → CRM**.
-2. Choose **Connect** beside HubSpot, Attio, or Pipedrive, then finish authorization in your browser.
-3. Return to Syntheo. Use **Test** beside the connected CRM to check that contact lookup works. If the connection needs attention, choose **Reconnect**.
+## Ajouter des contacts
 
-Connections are managed through your Syntheo account. You can disconnect one from **Settings → CRM**.
+- **Depuis une réunion** : dans l'en-tête de la note, saisissez un nom dans le champ des participants. Choisissez une personne existante ou créez-en une nouvelle.
+- **Depuis le transcript** : en attribuant un locuteur, choisissez « Créer un nouvel intervenant ».
+- **Depuis l'onglet Contacts** : utilisez « Ajoutez une personne ».
 
-Close connections are not yet available. Salesforce connections currently require an installed Syntheo client app; customer installation support is still being prepared.
+## Compléter une fiche
 
-## Fill in a contact
+Ouvrez un contact pour modifier son nom, son poste, son entreprise, ses e-mails, son téléphone, son profil LinkedIn et des notes libres. Vous pouvez aussi changer sa photo, l'« Épingler » en haut de la liste ou le « Supprimer ».
 
-Open a contact and choose **Enrich** in the toolbar. Syntheo looks for a matching record in your connected CRMs and reports which one it found. It fills only empty name, email, company, job title, phone, and LinkedIn fields; details you already entered stay as they are.
+Un contact peut avoir plusieurs adresses e-mail : choisissez « Ajoutez un e-mail » sous le champ E-mail. La première adresse reste l'adresse principale.
 
-If no CRM is connected, **Enrich** stays unavailable until you connect one in Settings › CRM. If no match is found, check the contact's name or email and try again.
+Rattachez une personne à une organisation avec « Ajoutez une organisation ». La fiche d'une organisation liste ses membres.
 
-## Multiple email addresses
+## Notes associées et synthèse
 
-A contact can hold several email addresses. Open the contact and choose **Add email** under the Email field to add another address; each additional address can be edited or removed individually. The first email stays the primary address shown and copied elsewhere.
+La fiche d'un contact affiche ses « Notes associées », c'est-à-dire les réunions auxquelles il a participé, triables de la plus récente à la plus ancienne.
 
-Syntheo matches contacts by all of their email addresses — calendar attendees, session participants, and contact search all recognize every address on the contact. Merging duplicate contacts keeps both contacts' emails: the duplicate's address is preserved as an additional email.
+Si un modèle de langage est configuré, la section « Résumé » présente 3 à 5 faits utiles sur cette personne, tirés de ses réunions récentes. Cette synthèse est générée par votre serveur de modèle de langage et se met à jour quand de nouvelles réunions arrivent. En cas d'échec, utilisez « Réessayer ».
+
+## Fusionner les doublons
+
+Quand deux contacts partagent le même nom ou la même adresse e-mail, la fiche affiche un bandeau de doublon. Cliquez sur « Fusionner » pour les regrouper : les notes associées et les informations sont réunies sur un seul contact, et les adresses e-mail du doublon sont conservées comme adresses supplémentaires.

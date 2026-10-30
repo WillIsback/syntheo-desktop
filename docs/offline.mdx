@@ -1,47 +1,54 @@
 ---
-title: "Use Syntheo offline"
-description: "Prepare local transcription and intelligence models before working without a network connection."
+title: "Utiliser Syntheo sans réseau"
+sidebarTitle: "Sans réseau"
+description: "Ce qui fonctionne sans connexion internet et ce qui exige un serveur d'inférence joignable."
 ---
 
-Syntheo can record meetings and manage notes without an internet connection. To transcribe, summarize, and chat offline, configure local models before you disconnect.
+Syntheo n'a besoin d'internet pour aucune de ses fonctions : il n'a ni compte, ni synchronisation, ni service en ligne. Ce dont il a besoin, c'est de **vos serveurs d'inférence**. S'ils tournent sur votre poste ou sur votre réseau local, tout fonctionne hors ligne. S'ils sont injoignables, les fonctions qui en dépendent s'arrêtent.
 
-## What works without the internet
+## Ce qui fonctionne toujours
 
-- Create and edit notes.
-- Record and play meeting audio.
-- Export memos, summaries, and transcripts already on your computer.
-- Transcribe with Soniqo or an On-device file whisper.cpp `.bin` on a supported Apple Silicon Mac, or Apple Speech when available on macOS 26.
-- Generate summaries and chat with LM Studio, Ollama, Unsloth, or eligible Apple Intelligence.
+Ces fonctions ne font appel à aucun serveur :
 
-Hosted models, Google and Outlook calendar sync, cloud sync, and share links need a network connection.
+- créer, modifier et organiser vos notes et vos dossiers ;
+- relire les transcripts et comptes rendus déjà produits ;
+- la recherche plein texte (index local) ;
+- l'export de vos notes ;
+- gérer vos templates.
 
-## Prepare offline transcription
+## Ce qui exige le serveur de transcription
 
-1. Open **Settings → Transcription**.
-2. Choose Soniqo, or choose Apple Speech if it appears. On Apple Silicon you can also choose **On-device file**, then **Choose a .bin model**, for after-recording transcription from a downloaded whisper.cpp `.bin`.
-3. Download the Soniqo model. For Apple Speech, add the supported language in macOS System Settings.
-4. Select the model under **Model being used**.
-5. Run a short test recording before going offline.
+- la transcription des réunions ;
+- la dictée ;
+- l'import d'un fichier audio.
 
-The model's **Live** or **After recording** label tells you when text will appear. On-device model availability depends on your Mac and the current Syntheo release.
+Sans serveur de transcription joignable, **il n'y a pas de transcription**. Syntheo ne conserve jamais l'audio : il ne peut donc pas enregistrer maintenant pour transcrire plus tard.
 
-## Prepare offline summaries and chat
+- Si aucun fournisseur de transcription n'est configuré, Syntheo refuse de démarrer la capture : « Aucun fournisseur de transcription n'est configuré. Syntheo ne conserve pas l'audio : configurez un endpoint de transcription avant d'enregistrer. »
+- Si le serveur devient injoignable pendant une réunion, la transcription en direct se met en pause et Syntheo tente de se reconnecter. Le passage prononcé pendant la coupure manquera au transcript.
 
-Use [LM Studio](https://lmstudio.ai/download), [Ollama](https://ollama.com/download), or [Unsloth](https://unsloth.ai/docs/desktop) as your local Intelligence provider. Download the model in advance, start the local server, and select that model in **Settings → Intelligence**.
+## Ce qui exige le serveur LLM
 
-Syntheo must be able to reach the local server while you work. The server can run on the same computer without internet access.
+- la génération des comptes rendus ;
+- le chat sur les notes ;
+- le générateur de templates par IA.
 
-On an eligible Mac running macOS 26 or later, you can instead select the experimental **Apple Intelligence → System Language Model** after its system model finishes downloading.
+Sans serveur LLM joignable, vos transcripts restent disponibles : vous pourrez générer le compte rendu une fois le serveur revenu.
 
-## Check that nothing uses a hosted provider
+## Travailler entièrement hors ligne
 
-Before a sensitive meeting, confirm both selections:
+<Steps>
+  <Step title="Installer les serveurs sur le poste ou le réseau local">
+    Par exemple speaches ou vLLM pour la transcription, Ollama ou llama.cpp server pour le LLM. Téléchargez les modèles **avant** de vous déconnecter.
+  </Step>
+  <Step title="Les déclarer dans Syntheo">
+    Suivez [Configurer la transcription et l'IA](/ai-setup) avec des URL locales, par exemple `http://localhost:8000/v1` et `http://localhost:11434/v1`. HTTP en clair est accepté vers `localhost` et les adresses privées.
+  </Step>
+  <Step title="Tester avant la réunion">
+    Lancez une courte écoute, puis générez un compte rendu. Si les deux fonctionnent avec le réseau coupé, vous êtes prêt.
+  </Step>
+</Steps>
 
-- **Settings → Transcription → Model being used** points to an on-device model.
-- **Settings → Intelligence → Model being used** points to LM Studio, Ollama, Unsloth, or Apple Intelligence.
-
-Choosing a local model for only one setting does not make the other setting local. See [How can I use on-device models?](/help#use-on-device-models) for each transcription path, [Models and providers](/models-and-providers) for the current model list, and [Data, privacy, and retention](/data-and-privacy) for what each provider receives.
-
-<Warning>
-  Chat's web search always sends your search query to a hosted research endpoint, even when Transcription and Intelligence are both fully local. Avoid web search in Chat for a sensitive meeting.
-</Warning>
+<Note>
+  Hors inférence, Syntheo émet très peu de requêtes : l'affichage des notes de version d'une autre version que celle installée (GitHub) et quelques icônes d'interface. Elles ne transportent aucun contenu de réunion et leur échec n'empêche rien. Liste complète dans [Syntheo Desktop et le RGPD](/conformite/rgpd).
+</Note>

@@ -1,40 +1,78 @@
 ---
-title: "Customize meeting summaries"
-description: "Choose a named format or customize how Auto writes meeting summaries."
+title: "Personnaliser les comptes rendus"
+description: "Choisissez un modèle de compte rendu, créez le vôtre ou faites-le générer par l'IA."
 ---
 
-Use a named template when you want fixed sections. Customize Auto when you want to control Syntheo's default summary prompt.
+Un compte rendu suit soit le format « Auto », soit un modèle aux sections fixes. Vous gérez les deux dans l'onglet **« Modèles »** (**Paramètres → Espace de travail → « Modèles »**).
 
-## Choose a template
+## Les modèles fournis
 
-Open a meeting and use the template picker beside **Summary**. Templates can emphasize decisions, action items, a one-on-one format, or another structure.
+Syntheo installe 21 modèles en français.
 
-Changing the selected template does not rewrite an existing summary automatically. Regenerate the summary to apply the new template.
+Quatre modèles Syntheo sont marqués comme favoris et apparaissent en tête de liste :
 
-## Customize Auto
+| Modèle | Usage |
+| --- | --- |
+| Réunion générale | Résumé standard : participants, décisions et actions à suivre. |
+| Comité conformité / RGPD | Contexte réglementaire, décisions, points bloquants avant production. |
+| Point projet / Sprint | Avancement, blocages, prochaines étapes. |
+| Standup équipe | Format court : fait, en cours, bloquants. |
 
-1. Open **Settings → Templates**.
-2. Select **Auto**.
-3. Edit **Summary format**, then click **Save**.
+Dix-sept autres modèles couvrent des cas courants : conseil d'administration, séance de brainstorming, lancement client, entretien de découverte client, standup quotidien, point direction, post-mortem d'incident, rendez-vous investisseur, notes de cours, entretien individuel (1:1), entretien annuel, revue de roadmap produit, lancement de projet, appel de découverte commerciale, planification de sprint, rétrospective de sprint et revue de conception technique.
 
-For example:
+Tous ces modèles sont modifiables. Pour ajouter ou retirer un modèle des favoris, faites un clic droit sur son nom dans la liste et choisissez « Ajouter aux favoris » ou « Retirer des favoris ».
+
+## Choisir un modèle pour une réunion
+
+Dans une note, cliquez sur l'onglet du compte rendu pour ouvrir le sélecteur. Recherchez un modèle, puis sélectionnez-le pour générer un compte rendu avec ce format.
+
+Changer de modèle ne réécrit pas un compte rendu existant. Pour appliquer à nouveau le même modèle, utilisez « Régénérer » dans le sélecteur.
+
+## Créer un modèle
+
+1. Ouvrez l'onglet **« Modèles »**.
+2. Cliquez sur **+** en haut de la liste, ou sur « Créer un modèle ».
+3. Donnez un titre et une description, puis ajoutez des sections. Chaque section a un titre et une consigne qui décrit ce que le compte rendu doit contenir.
+
+Les modifications sont enregistrées au fil de l'eau. Depuis le menu du modèle, vous pouvez le « Dupliquer » ou le « Supprimer ».
+
+## Générer un modèle avec l'IA
+
+Dans l'éditeur d'un modèle, le champ « Décrivez le type de réunion… » permet de faire rédiger le modèle par votre modèle de langage.
+
+1. Décrivez la réunion en une phrase, par exemple : « Revue mensuelle de sécurité avec l'équipe infrastructure ».
+2. Cliquez sur « Générer avec l'IA ».
+3. Syntheo remplit le titre, la description, l'icône et 3 à 6 sections en français. Relisez-les et ajustez-les.
+
+<Warning>
+  La génération remplace le titre, la description, l'icône et les sections du modèle ouvert. Dupliquez d'abord un modèle que vous voulez conserver.
+</Warning>
+
+Le bouton reste désactivé tant qu'aucun modèle de langage n'est connecté. Voir [Configurer l'IA](/ai-setup).
+
+## Personnaliser « Auto »
+
+1. Ouvrez l'onglet **« Modèles »** et sélectionnez **Auto**.
+2. Modifiez le « Format du résumé », puis cliquez sur « Enregistrer ».
+
+Par exemple :
 
 ```text
-Start with decisions. Then list action items with an owner and due date. Keep background context to three bullets.
+Commencez par les décisions. Listez ensuite les actions avec un responsable et une échéance. Limitez le contexte à trois puces.
 ```
 
-The editor controls the requested format. You can request paragraphs, bullets, or a mixture, including an executive overview. Summaries include detailed coverage by default. After generating a summary, use **Make shorter** or **Make longer** in Chat to adjust its length.
+« Améliorer avec des exemples » vous permet de coller jusqu'à trois comptes rendus que vous aimez (ou de joindre des fichiers Markdown ou texte) : votre modèle de langage en déduit un nouveau format. « Réinitialiser au format par défaut » rétablit le format d'origine.
 
-Meeting notes, transcript, session details, and participants are always sent separately. Editing the format cannot remove that source material.
+Les notes, le transcript et les participants sont toujours transmis au modèle de langage, quel que soit le format. Le format « Auto » ne s'applique que lorsque « Auto » est sélectionné : les autres modèles gardent leurs sections.
 
-The Auto prompt applies only when **Auto** is selected. Named templates continue to use their configured sections and do not inherit the Auto customization. Use **Reset to default format** to restore the built-in prompt.
+Après la génération, les suggestions « Raccourcissez le résumé. » et « Allongez le résumé. » du [chat](/chat) permettent d'ajuster la longueur.
 
-## Improve names and specialized terms
+## Améliorer les noms et termes spécialisés
 
-Under **Settings → Dictionary**, add names, acronyms, product names, and other terms that transcription often gets wrong.
+Sous **Paramètres → « Dictionnaire »**, ajoutez les noms de collègues, acronymes, noms de produits et termes métier que la transcription reconnaît mal. Syntheo les transmet comme indices à votre serveur de transcription ; leur effet dépend de ce que ce serveur prend en charge.
 
-The dictionary helps recognition, but it does not replace choosing the correct spoken languages or a model that supports them. See [Languages](/languages) for multilingual meetings.
+Le dictionnaire ne remplace pas le bon choix des langues parlées. Voir [Langues](/languages).
 
-## Apply your changes
+## Appliquer vos changements
 
-New summaries use the currently selected format. Regenerate an older summary when you want it to use the latest template or Auto prompt.
+Les nouveaux comptes rendus utilisent le format sélectionné. Régénérez un ancien compte rendu pour lui appliquer la dernière version d'un modèle ou du format « Auto ».

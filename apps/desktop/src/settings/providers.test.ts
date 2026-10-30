@@ -99,9 +99,9 @@ describe("SQLite AI providers", () => {
     );
     const draft = { base_url: "https://api.openai.com/v1", api_key: "invalid" };
     mocks.verify.mockRejectedValueOnce(
-      Error("The provider rejected this key."),
+      Error("Le fournisseur a refusé cette clé."),
     );
-    await expect(result.current.mutateAsync(draft)).rejects.toThrow("rejected");
+    await expect(result.current.mutateAsync(draft)).rejects.toThrow("a refusé");
     expect(mocks.setSecret).not.toHaveBeenCalled();
     expect(mocks.executeTransaction).not.toHaveBeenCalled();
     await result.current.mutateAsync({ ...draft, api_key: "working" });
@@ -145,7 +145,7 @@ describe("SQLite AI providers", () => {
         base_url: "http://8.8.8.8/v1",
         api_key: "",
       }),
-    ).rejects.toThrow("Use HTTPS");
+    ).rejects.toThrow("Utilisez HTTPS");
     expect(mocks.executeTransaction).not.toHaveBeenCalled();
     unmount();
     queryClient.clear();
@@ -213,7 +213,7 @@ describe("SQLite AI providers", () => {
     expect(mocks.executeTransaction).toHaveBeenCalledOnce();
     await expect(
       result.current.mutateAsync({ ...draft, api_key: "wrong-key" }),
-    ).rejects.toThrow("The provider rejected this key");
+    ).rejects.toThrow("Le fournisseur a refusé cette clé");
     expect(mocks.setSecret).toHaveBeenCalledOnce();
     expect(mocks.executeTransaction).toHaveBeenCalledOnce();
     unmount();
@@ -236,7 +236,7 @@ describe("SQLite AI providers", () => {
     const { result, unmount } = renderHook(
       () =>
         useSetAiProvider("llm", "custom", {
-          defaultBaseUrl: "https://spark-787d-1.tail6cba9f.ts.net/v1",
+          defaultBaseUrl: "https://inference.example.com/v1",
         }),
       { wrapper },
     );
@@ -246,7 +246,7 @@ describe("SQLite AI providers", () => {
         base_url: "http://8.8.8.8/v1",
         api_key: "",
       }),
-    ).rejects.toThrow("Use HTTPS");
+    ).rejects.toThrow("Utilisez HTTPS");
     expect(mocks.executeTransaction).not.toHaveBeenCalled();
 
     unmount();
@@ -267,7 +267,7 @@ describe("SQLite AI providers", () => {
     const { result, unmount } = renderHook(
       () =>
         useSetAiProvider("llm", "custom", {
-          defaultBaseUrl: "https://spark-787d-1.tail6cba9f.ts.net/v1",
+          defaultBaseUrl: "https://inference.example.com/v1",
         }),
       { wrapper },
     );

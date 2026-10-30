@@ -9,8 +9,8 @@
 # jamais stockées dans Forgejo.
 #
 # Ne modifie JAMAIS l'état du DGX (pas de démarrage ni d'arrêt de modèle) :
-# le test Voxtral exige une fenêtre manuelle (voir docs/superpowers/specs, « Tests
-# fonctionnels sur le GB10 », contrainte mémoire).
+# le test Voxtral exige une fenêtre manuelle : avec le LLM et le NIM ASR déjà
+# chargés, la mémoire du GB10 ne permet pas de servir Voxtral en parallèle.
 name: functional-gb10
 
 on:

@@ -1,4 +1,8 @@
-# Syntheo Desktop et le RGPD
+---
+title: "Syntheo Desktop et le RGPD"
+sidebarTitle: "Conformité RGPD"
+description: "Données stockées, flux réseau, garanties techniques et responsabilités de l'utilisateur."
+---
 
 Document de référence pour une personne ou une organisation qui évalue Syntheo
 Desktop. Il est mis à jour à chaque changement de flux réseau ou de stockage.
@@ -38,7 +42,7 @@ Tout est stocké sur le poste, dans le dossier de données de l'application
 
 Aucune de ces données n'est envoyée à l'éditeur.
 
-**Aucune inférence sur le poste** : depuis le chantier 04b-2, l'application ne
+**Aucune inférence sur le poste** : l'application ne
 télécharge ni n'exécute aucun modèle (transcription, LLM, diarisation ou
 empreintes vocales). Une version antérieure a pu laisser des fichiers de
 modèles dans les dossiers `models/stt` et `models/llm` du dossier de données,
@@ -64,11 +68,12 @@ une suppression, l'effacement est retenté au lancement suivant.
   plage Tailscale, noms `.local`) et exige HTTPS ailleurs.
 - Un endpoint exploité par un tiers devient **sous-traitant de l'utilisateur**
   (art. 28 RGPD) : contrat et localisation des données à vérifier.
-- **Autres flux encore présents** (à retirer ou rendre optionnels dans les
-  chantiers suivants) :
-  - aperçu des liens GitHub collés dans une note : requête **non
-    authentifiée** vers l'API publique `api.github.com` (état de l'issue ou de
-    la PR) ; le numéro et le dépôt du lien sont transmis à GitHub ;
+- **Autres flux, hors inférence** :
+  - notes de version : celles de la version installée sont incluses dans
+    l'application ; afficher celles d'une autre version déclenche une requête
+    **non authentifiée** vers GitHub (`raw.githubusercontent.com`, ou l'API
+    publique `api.github.com` pour une version nightly). Seul le numéro de
+    version est transmis ;
   - icônes de certains écrans chargées depuis `api.iconify.design` (aucune
     donnée personnelle transmise, mais une requête réseau) ;
 - **Pas de compte, pas de synchronisation, pas de rapport d'erreur, pas de
@@ -97,18 +102,20 @@ une suppression, l'effacement est retenté au lancement suivant.
   l'emplacement d'origine sans copie, et le découpage batch se fait en mémoire.
 - **Garde-fou dans les tests** : `apps/desktop/src/no-cloud-imports.test.ts`
   échoue si un module cloud ou d'authentification retiré est réimporté.
-- **Vérification de bout en bout prévue** : une capture réseau pendant une
-  session complète ne doit montrer que les endpoints d'inférence configurés
-  (et, tant qu'ils existent, les flux listés plus haut).
+- **Contrôle de bout en bout** : une capture réseau pendant une session
+  complète ne doit montrer que les endpoints d'inférence configurés et les
+  flux listés plus haut ; tout autre flux est traité comme une vulnérabilité
+  (voir `SECURITY.md`).
 
 ## Responsabilités de l'utilisateur
 
 - **Informer les participants** avant d'enregistrer une réunion (art. 13 et 14
   RGPD). En France, enregistrer une conversation privée à l'insu des
   participants est puni par l'article 226-1 du Code pénal ; en entreprise, les
-  salariés doivent être informés. Un rappel désactivable au démarrage d'une
-  capture est prévu (phase 6 de la migration) ; en attendant, l'application
-  propose un message d'information à partager avec les participants.
+  salariés doivent être informés. Au démarrage de chaque capture,
+  l'application affiche un rappel d'informer les participants ; il est activé
+  par défaut et se désactive dans Paramètres → Réunions (« Rappeler aux
+  participants l'enregistrement »).
 - **Choisir les endpoints d'inférence** et en assumer le traitement : un
   endpoint auto-hébergé reste sous le contrôle de l'utilisateur ; un endpoint
   tiers est un sous-traitant.

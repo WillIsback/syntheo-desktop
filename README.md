@@ -12,15 +12,16 @@
 <p>
   <a href="https://github.com/WillIsback/syntheo-desktop/releases/latest/download/Syntheo-windows-x64-setup.exe"><img alt="Télécharger pour Windows" src="https://img.shields.io/badge/Windows-t%C3%A9l%C3%A9charger-0078D4?logo=windows11&logoColor=white" /></a>
   <a href="https://github.com/WillIsback/syntheo-desktop/releases/latest/download/Syntheo-linux-x86_64.AppImage"><img alt="Télécharger pour Linux" src="https://img.shields.io/badge/Linux-t%C3%A9l%C3%A9charger-FCC624?logo=linux&logoColor=black" /></a>
-  <a href="https://github.com/WillIsback/syntheo-desktop/releases/latest"><img alt="Signé par Azure Artifact Signing" src="https://img.shields.io/badge/code%20sign%C3%A9-Azure%20Artifact%20Signing-0078D4?logo=microsoftazure&logoColor=white" /></a>
+  <a href="https://syntheo.mintlify.site/docs"><img alt="Documentation" src="https://img.shields.io/badge/documentation-en%20ligne-1A73E8?logo=readthedocs&logoColor=white" /></a>
   <a href="LICENSE"><img alt="Licence MIT" src="https://img.shields.io/badge/licence-MIT-green" /></a>
 </p>
 
 </div>
 
-> **Statut** : en cours de construction. Le code de départ est celui d'Syntheo
-> (voir [Origine](#origine)) ; la transformation en Syntheo Desktop suit le
-> [plan de migration](docs/superpowers/specs/2026-10-24-syntheo-desktop-migration-design.md).
+> **Statut** : en construction (bêta). L'application est utilisable, mais son
+> comportement et ses réglages peuvent encore évoluer d'une version à l'autre.
+> Voir l'[architecture](docs/architecture.mdx) actuelle et la
+> [feuille de route](docs/roadmap.mdx).
 
 ## Ce que fait Syntheo Desktop
 
@@ -77,9 +78,8 @@ sudo apt install ~/.local/bin/Syntheo_*_amd64.deb   # ou : sudo apt install ./Sy
 — ou le `.msi` :
 [`Syntheo-windows-x64.msi`](https://github.com/WillIsback/syntheo-desktop/releases/latest/download/Syntheo-windows-x64.msi).
 
-L'installeur est **signé** (Azure Artifact Signing) : Windows l'attribue à
-**William Derue**. SmartScreen peut encore afficher un avertissement sur les
-premières versions, le temps que la réputation du binaire se construise.
+SmartScreen peut afficher un avertissement sur les premières versions, le
+temps que la réputation du binaire se construise.
 
 **Script en une ligne** — télécharge, vérifie la somme SHA256
 (`SHA256SUMS-windows`) et installe silencieusement (portée utilisateur, sans
@@ -113,6 +113,8 @@ construit depuis les sources :
 - Desktop : `apps/desktop` (Tauri 2, React 19, TypeScript, Vite, Tailwind).
 - Rust : `crates/` et `plugins/` (capture audio, adaptateurs STT, SQLite,
   templates Jinja des prompts).
+- Architecture (flux de capture et d'inférence, stockage, garanties) :
+  [docs/architecture.mdx](docs/architecture.mdx).
 - Contribution, conventions de commit et gates de CI :
   [CONTRIBUTING.md](CONTRIBUTING.md).
 

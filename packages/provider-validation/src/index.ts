@@ -43,17 +43,19 @@ export function validateProviderBaseUrl(baseUrl: string): URL {
   try {
     base = new URL(baseUrl);
   } catch {
-    throw new ProviderCredentialError("Enter a valid base URL.");
+    throw new ProviderCredentialError("Saisissez une URL de base valide.");
   }
   if (base.username || base.password || base.search || base.hash)
     throw new ProviderCredentialError(
-      "Enter a base URL without credentials or query parameters.",
+      "Saisissez une URL de base sans identifiants ni paramètres de requête.",
     );
   if (
     base.protocol !== "https:" &&
     !(base.protocol === "http:" && isPrivateHost(base.hostname))
   )
-    throw new ProviderCredentialError("Use HTTPS for provider credentials.");
+    throw new ProviderCredentialError(
+      "Utilisez HTTPS : le HTTP n'est accepté que sur cette machine ou un réseau privé.",
+    );
   return base;
 }
 
@@ -65,7 +67,7 @@ export async function verifyProviderCredentials(
   const apiKey = credential.apiKey.trim();
   // Les serveurs on-prem acceptent d'être lancés sans clé.
   if (apiKey.length > 8192 || /[\r\n]/.test(apiKey))
-    throw new ProviderCredentialError("Enter a valid API key.");
+    throw new ProviderCredentialError("Saisissez une clé d'API valide.");
   validateProviderBaseUrl(credential.baseUrl);
 
   signal?.throwIfAborted();
@@ -94,22 +96,22 @@ export async function verifyProviderCredentials(
     if (response.status === 401 || response.status === 403) {
       await response.body?.cancel();
       throw new ProviderCredentialError(
-        "The provider rejected this key or its permissions. Check the key and try again.",
+        "Le fournisseur a refusé cette clé ou ses autorisations. Vérifiez la clé et réessayez.",
       );
     }
     if (!response.ok) {
       await response.body?.cancel();
       throw new ProviderCredentialError(
         response.status === 429
-          ? "The provider is rate limiting verification. Try again shortly."
-          : "Couldn’t verify this key with the provider. Check the connection and try again.",
+          ? "Le fournisseur limite les vérifications. Réessayez dans quelques instants."
+          : "Impossible de vérifier cette clé auprès du fournisseur. Vérifiez la connexion et réessayez.",
         true,
       );
     }
     const body = await readResponse(response, request.plainText);
     if (!request.accept(body))
       throw new ProviderCredentialError(
-        "The provider did not confirm this key. Check the key and connection.",
+        "Le fournisseur n'a pas confirmé cette clé. Vérifiez la clé et la connexion.",
       );
 
     controller.signal.throwIfAborted();
@@ -120,7 +122,7 @@ export async function verifyProviderCredentials(
   } catch (error) {
     if (error instanceof ProviderCredentialError) throw error;
     throw new ProviderCredentialError(
-      "Couldn’t verify this key. Check your connection and try again.",
+      "Impossible de vérifier cette clé. Vérifiez votre connexion et réessayez.",
       true,
     );
   } finally {
