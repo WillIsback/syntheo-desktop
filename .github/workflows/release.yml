@@ -192,6 +192,7 @@ jobs:
     uses: ./.github/workflows/build-windows.yml
     with:
       version: ${{ needs.detect.outputs.version }}
+    secrets: inherit
 
   # Gate SAST lourde (CodeQL Rust + TypeScript), en parallèle du build.
   sast:
@@ -235,7 +236,7 @@ jobs:
       - name: Télécharger les artefacts Windows
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: syntheo-desktop-windows-unsigned
+          name: syntheo-desktop-windows
           path: dist
 
       - name: Attestation de provenance

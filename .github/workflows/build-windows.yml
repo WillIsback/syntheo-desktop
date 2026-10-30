@@ -1,8 +1,8 @@
 # Workflow : build-windows
-# Compilation à la demande des paquets Windows **non signés** (NSIS + MSI).
-# Objectif : valider toute la chaîne de build Windows avant d'ajouter la
-# signature de code (voir
-# docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md).
+# Compilation des paquets Windows (NSIS + MSI).
+# Signature de code via Azure Artifact Signing **si** les secrets Azure sont
+# fournis (AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET) ; build non
+# signé sinon. Voir docs/superpowers/plans/2026-10-27-signature-code-macos-windows.md.
 name: build-windows
 
 on:
@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Windows (non signé)
+    name: Build Windows
     runs-on: windows-latest
     timeout-minutes: 120
     steps:
@@ -55,15 +55,59 @@ jobs:
           $json | Add-Member -NotePropertyName version -NotePropertyValue $version -Force
           $json | ConvertTo-Json -Depth 100 | Set-Content -Encoding utf8 $conf
 
-      - name: Build MSI et NSIS (non signés)
+      - name: Installer artifact-signing-cli
+        shell: pwsh
+        run: |
+          $version = "0.12.0"
+          # Somme SHA-256 du binaire publié (vérifiée comme les autres outils de CI).
+          $sha256 = "dd6fa95a0367cbd32ea520037c3df72d1ed8f523a5b07883b0c2a4034e918a53"
+          $dir = Join-Path $env:RUNNER_TEMP "artifact-signing-cli"
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          $exe = Join-Path $dir "artifact-signing-cli.exe"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/Levminer/artifact-signing-cli/releases/download/$version/artifact-signing-cli.exe" -OutFile $exe
+          $actual = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLower()
+          if ($actual -ne $sha256) { throw "SHA256 invalide pour artifact-signing-cli : $actual" }
+          $dir | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Build MSI et NSIS (signés si les secrets Azure sont fournis)
+        id: build
         shell: bash
         env:
           # Valeur factice exigée par des intégrations cloud héritées (chantier 04d).
           VITE_API_URL: http://127.0.0.1:9
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         run: |
           set -euo pipefail
+          extra=()
+          if [ -n "${AZURE_CLIENT_SECRET:-}" ]; then
+            echo "Signature Windows activée."
+            echo "signing=true" >> "$GITHUB_OUTPUT"
+            extra=(--config ./src-tauri/tauri.windows-signing.conf.json)
+          else
+            echo "Signature Windows désactivée (secrets Azure absents)."
+            echo "signing=false" >> "$GITHUB_OUTPUT"
+          fi
           pnpm -F ui build
-          pnpm -F desktop tauri build --ci --bundles nsis,msi --config ./src-tauri/tauri.conf.syntheo.json
+          pnpm -F desktop tauri build --ci --bundles nsis,msi \
+            --config ./src-tauri/tauri.conf.syntheo.json "${extra[@]}"
+
+      - name: Vérifier la signature des installeurs
+        if: steps.build.outputs.signing == 'true'
+        shell: pwsh
+        run: |
+          $files = @(
+            Get-ChildItem apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
+            Get-ChildItem apps/desktop/src-tauri/target/release/bundle/msi/*.msi
+          )
+          $failed = $false
+          foreach ($file in $files) {
+            $sig = Get-AuthenticodeSignature $file.FullName
+            Write-Host "$($file.Name) : $($sig.Status)"
+            if ($sig.Status -ne 'Valid') { $failed = $true }
+          }
+          if ($failed) { throw "au moins un installeur n'est pas signé correctement" }
 
       - name: Rassembler les artefacts et les sommes de contrôle
         shell: pwsh
@@ -80,6 +124,6 @@ jobs:
       - name: Upload des artefacts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: syntheo-desktop-windows-unsigned
+          name: syntheo-desktop-windows
           path: dist/
           retention-days: 14
