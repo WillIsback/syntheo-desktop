@@ -6,6 +6,10 @@
 name: build-windows
 
 on:
+  # Temporaire : test du workflow avant merge sur main (workflow_dispatch
+  # exige que le workflow existe sur la branche par défaut).
+  push:
+    branches: [ci/build-windows-unsigned]
   workflow_dispatch:
     inputs:
       version:
