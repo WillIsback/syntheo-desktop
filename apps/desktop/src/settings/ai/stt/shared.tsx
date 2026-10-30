@@ -40,8 +40,8 @@ const _PROVIDERS = [
     id: "openai",
     displayName: "OpenAI-compatible",
     description:
-      "OpenAI Realtime and /v1/audio/transcriptions (vLLM, speaches, faster-whisper-server)",
-    badge: "Self-hosted",
+      "OpenAI Realtime et /v1/audio/transcriptions (vLLM, speaches, faster-whisper-server)",
+    badge: "Auto-hébergé",
     icon: <ProviderLobeIcon icon={OpenAI} />,
     baseUrl: undefined,
     baseUrlPlaceholder: STT_OPENAI_BASE_URL_PLACEHOLDER,
@@ -49,7 +49,7 @@ const _PROVIDERS = [
     requirements: [{ kind: "requires_config", fields: ["base_url"] }],
     links: {
       models: {
-        label: "API documentation",
+        label: "Documentation de l'API",
         url: "https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html",
       },
     },
@@ -58,7 +58,7 @@ const _PROVIDERS = [
     disabled: false,
     id: "nvidia",
     displayName: "Nemotron ASR (NIM, WebSocket)",
-    badge: "Self-hosted",
+    badge: "Auto-hébergé",
     icon: <ProviderLobeIcon icon={Nvidia} />,
     baseUrl: undefined,
     baseUrlPlaceholder: STT_NIM_BASE_URL_PLACEHOLDER,
@@ -66,7 +66,7 @@ const _PROVIDERS = [
     requirements: [{ kind: "requires_config", fields: ["base_url"] }],
     links: {
       models: {
-        label: "API documentation",
+        label: "Documentation de l'API",
         url: "https://docs.nvidia.com/nim/speech/latest/reference/api-references/asr/realtime-asr.html",
       },
       setup: {

@@ -213,7 +213,9 @@ describe("getFloatingRouteState", () => {
         ),
       ).toMatchObject({
         status: "recording",
-        transcriptNotice: expect.stringMatching(/^Live transcript paused/),
+        transcriptNotice: expect.stringMatching(
+          /^Transcript en direct en pause/,
+        ),
       });
     }
   });

@@ -10,7 +10,7 @@ describe("getLiveTranscriptPausedMessage", () => {
         sttProvider: "nvidia",
         online: true,
       }),
-    ).toMatch(/because Nemotron ASR \(NIM, WebSocket\) is having an outage\./);
+    ).toMatch(/: Nemotron ASR \(NIM, WebSocket\) subit une panne\./);
   });
 
   it("reports unreachable direct providers", () => {
@@ -20,7 +20,7 @@ describe("getLiveTranscriptPausedMessage", () => {
         sttProvider: "openai",
         online: true,
       }),
-    ).toMatch(/Syntheo can't reach OpenAI-compatible/);
+    ).toMatch(/Syntheo ne parvient pas à joindre OpenAI-compatible/);
   });
 
   it("live_interrupted_notice_mentions_no_saved_audio", () => {
@@ -31,7 +31,7 @@ describe("getLiveTranscriptPausedMessage", () => {
     });
     expect(message).not.toMatch(/being saved|filled in from the recording/);
     expect(message).toContain(
-      "No audio is kept, so this part will be missing from the transcript. Reconnecting…",
+      "Aucun audio n'est conservé : ce passage manquera au transcript. Reconnexion…",
     );
   });
 });

@@ -543,26 +543,27 @@ function TemplateListItem({
   onDuplicate: (template: UserTemplate) => void;
   onDelete: (id: string) => void;
 }) {
+  const { t } = useLingui();
   const contextMenu = useMemo(
     () => [
       {
         id: `favorite-template-${template.id}`,
-        text: template.pinned ? "Unfavorite" : "Favorite",
+        text: template.pinned ? t`Unfavorite` : t`Favorite`,
         action: () => onToggleFavorite(template.id),
       },
       { separator: true as const },
       {
         id: `duplicate-template-${template.id}`,
-        text: "Duplicate",
+        text: t`Duplicate`,
         action: () => onDuplicate(template),
       },
       {
         id: `delete-template-${template.id}`,
-        text: "Delete",
+        text: t`Delete`,
         action: () => onDelete(template.id),
       },
     ],
-    [onDelete, onDuplicate, onToggleFavorite, template],
+    [onDelete, onDuplicate, onToggleFavorite, t, template],
   );
   const showContextMenu = useNativeContextMenu(contextMenu);
 

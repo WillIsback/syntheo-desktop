@@ -7,6 +7,7 @@ import {
   size,
   useFloating,
 } from "@floating-ui/react";
+import { useLingui } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
 
@@ -57,7 +58,8 @@ export function ParticipantInput({
   } = useParticipantInput(sessionId);
   const { enhanceContact, enhancingHumanId, showEnhancementButtons } =
     useEventContactEnhancement(sessionId);
-  const placeholder = "Add participants";
+  const { t } = useLingui();
+  const placeholder = t`Add participants`;
 
   const inputRef = useRef<HTMLInputElement>(null);
   const autoCloserRef = useAutoCloser(() => setShowDropdown(false), {
