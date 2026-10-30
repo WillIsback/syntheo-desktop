@@ -128,6 +128,13 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
         Message::Binary(audio)
     }
 
+    /// Messages produced for one chunk of captured audio. Most protocols send a
+    /// single audio frame; a backend that only runs inference after an explicit
+    /// flush (Riva/NIM `commit`) returns the frame plus the control message.
+    fn audio_messages(&self, audio: bytes::Bytes) -> Vec<Message> {
+        vec![self.audio_to_message(audio)]
+    }
+
     fn initial_message(
         &self,
         _api_key: Option<&str>,

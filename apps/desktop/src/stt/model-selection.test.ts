@@ -53,6 +53,7 @@ describe("normalizeStoredSttSelection", () => {
       "nemotron-asr-streaming",
       "parakeet-tdt-0.6b-v3",
       "parakeet-tdt-0.6b-v2",
+      "cache-aware-parakeet-rnnt-multi-asr-streaming-sortformer",
     ]);
   });
 
