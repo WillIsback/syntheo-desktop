@@ -111,6 +111,11 @@ jobs:
         if: steps.build.outputs.signing == 'true'
         shell: pwsh
         run: |
+          # `Get-AuthenticodeSignature` renvoie `UnknownError` quand la racine de
+          # confiance d'Artifact Signing n'est pas (encore) dans le magasin du
+          # runner : la chaîne ne se construit pas, mais la signature reste
+          # valide. On vérifie donc le signataire et l'horodatage, en acceptant
+          # `UnknownError` à côté de `Valid`.
           $files = @(
             Get-ChildItem apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
             Get-ChildItem apps/desktop/src-tauri/target/release/bundle/msi/*.msi
@@ -118,8 +123,18 @@ jobs:
           $failed = $false
           foreach ($file in $files) {
             $sig = Get-AuthenticodeSignature $file.FullName
-            Write-Host "$($file.Name) : $($sig.Status)"
-            if ($sig.Status -ne 'Valid') { $failed = $true }
+            $subject = if ($sig.SignerCertificate) { $sig.SignerCertificate.Subject } else { "aucun" }
+            Write-Host "$($file.Name) : status=$($sig.Status) ; horodate=$([bool]$sig.TimeStamperCertificate) ; signataire=$subject"
+            if (-not $sig.SignerCertificate) {
+              Write-Host "  -> aucun signataire"
+              $failed = $true
+            } elseif ($sig.Status -notin @("Valid", "UnknownError")) {
+              Write-Host "  -> statut inattendu"
+              $failed = $true
+            } elseif (-not $sig.TimeStamperCertificate) {
+              Write-Host "  -> signature non horodatée"
+              $failed = $true
+            }
           }
           if ($failed) { throw "au moins un installeur n'est pas signé correctement" }
 
