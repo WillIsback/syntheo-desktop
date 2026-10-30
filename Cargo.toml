@@ -256,7 +256,7 @@ realfft = "3.5.0"
 ringbuf = "0.4.8"
 rodio = { version = "0.22", features = ["tracing"] }
 
-deepgram = { version = "0.7", default-features = false }
+deepgram = { version = "0.14", default-features = false }
 
 block2 = "0.6"
 dispatch2 = "0.3"
