@@ -75,7 +75,7 @@ dependencies = [
  "serde_json",
  "specta",
  "tempfile",
- "toml 0.8.2",
+ "toml 1.1.2+spec-1.1.0",
 ]
 
 [[package]]
@@ -1856,7 +1856,7 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
- "toml 0.8.2",
+ "toml 1.1.2+spec-1.1.0",
  "url",
 ]
 
@@ -2288,7 +2288,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d045de693cb712d0b22c6a64be5b953f67b3ce00ab5ad3dd5d8b441886ab8e1a"
 dependencies = [
  "quote",
- "syn 3.0.3",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -4148,7 +4148,7 @@ dependencies = [
  "glib 0.22.10",
  "libc",
  "pin-project-lite",
- "smallvec 1.15.1",
+ "smallvec",
 ]
 
 [[package]]
@@ -4550,7 +4550,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c91d8cffac8849493a82233811bd02b2b183b8cf39bf704de0fa0841b737595"
 dependencies = [
  "bstr",
- "hashbrown 0.17.1",
+ "hashbrown 0.15.5",
 ]
 
 [[package]]
@@ -5129,7 +5129,7 @@ dependencies = [
  "gobject-sys 0.22.9",
  "libc",
  "memchr",
- "smallvec 1.15.1",
+ "smallvec",
 ]
 
 [[package]]
