@@ -37,7 +37,7 @@ Exemples d'URL de base pour un serveur lancé sur le même poste, avec les ports
 Les ports dépendent de la façon dont vous lancez chaque serveur. Si deux serveurs tournent sur la même machine, donnez-leur des ports différents.
 
 <Note>
-  Syntheo accepte HTTP en clair uniquement vers un hôte privé : `localhost`, `[::1]`, les noms en `.local`, et les adresses IPv4 `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` et `100.64.0.0/10` (plage utilisée notamment par Tailscale). Partout ailleurs, y compris pour un nom d'hôte interne comme `gpu.entreprise.lan`, l'URL doit être en HTTPS ; sinon l'enregistrement est refusé avec le message « Use HTTPS for provider credentials. ». L'URL ne doit contenir ni identifiants, ni paramètres de requête.
+  Syntheo accepte HTTP en clair uniquement vers un hôte privé : `localhost`, `[::1]`, les noms en `.local`, et les adresses IPv4 `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` et `100.64.0.0/10` (plage utilisée notamment par Tailscale). Partout ailleurs, y compris pour un nom d'hôte interne comme `gpu.entreprise.lan`, l'URL doit être en HTTPS ; sinon l'enregistrement est refusé avec le message « Utilisez HTTPS : le HTTP n'est accepté que sur cette machine ou un réseau privé. ». L'URL ne doit contenir ni identifiants, ni paramètres de requête.
 </Note>
 
 Ouvrez les **Paramètres** (<kbd>Ctrl</kbd> + <kbd>,</kbd>).
@@ -49,7 +49,7 @@ Ouvrez les **Paramètres** (<kbd>Ctrl</kbd> + <kbd>,</kbd>).
     Dans les Paramètres, ouvrez **Transcription**. La page contient deux blocs : « Modèle utilisé » en haut et « Configurer les fournisseurs » en dessous.
   </Step>
   <Step title="Choisir le fournisseur">
-    Sous « Configurer les fournisseurs », dépliez l'un des deux fournisseurs, marqués « Self-hosted » :
+    Sous « Configurer les fournisseurs », dépliez l'un des deux fournisseurs, marqués « Auto-hébergé » :
 
     - **OpenAI-compatible** : pour vLLM, speaches ou faster-whisper-server. La transcription en direct passe par le WebSocket `/v1/realtime` ; l'import d'un fichier audio passe par `/v1/audio/transcriptions`.
     - **Nemotron ASR (NIM, WebSocket)** : pour un serveur NVIDIA Speech NIM déployé chez vous. Le point d'accès gRPC hébergé par NVIDIA n'est pas pris en charge.
@@ -123,7 +123,7 @@ Les clés API sont rangées dans le trousseau du système, jamais en clair dans 
 
 | Symptôme | Piste |
 | --- | --- |
-| « Use HTTPS for provider credentials. » | L'hôte n'est pas reconnu comme privé : passez en HTTPS (reverse proxy, VPN) ou utilisez une adresse privée. |
+| « Utilisez HTTPS : le HTTP n'est accepté que sur cette machine ou un réseau privé. » | L'hôte n'est pas reconnu comme privé : passez en HTTPS (reverse proxy, VPN) ou utilisez une adresse privée. |
 | La liste des modèles LLM est vide | Vérifiez que `URL de base/models` répond (par exemple `curl http://localhost:11434/v1/models`) et que l'URL se termine bien par `/v1`. |
 | La transcription en direct se met en pause | Le serveur ne répond plus ou a refusé la clé. Syntheo tente de se reconnecter ; le passage manquant ne sera pas transcrit, faute d'audio conservé. |
 | Impossible de démarrer une écoute | Aucun fournisseur de transcription n'est configuré, ou le modèle choisi est un modèle « fichier ». |

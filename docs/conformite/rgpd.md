@@ -114,7 +114,7 @@ une suppression, l'effacement est retenté au lancement suivant.
   participants est puni par l'article 226-1 du Code pénal ; en entreprise, les
   salariés doivent être informés. Au démarrage de chaque capture,
   l'application affiche un rappel d'informer les participants ; il est activé
-  par défaut et se désactive dans Paramètres → Réunions (« Rappelez aux
+  par défaut et se désactive dans Paramètres → Réunions (« Rappeler aux
   participants l'enregistrement »).
 - **Choisir les endpoints d'inférence** et en assumer le traitement : un
   endpoint auto-hébergé reste sous le contrôle de l'utilisateur ; un endpoint
