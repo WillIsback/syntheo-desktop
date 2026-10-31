@@ -612,6 +612,15 @@ pub const APP_MIGRATION_STEPS: &[syntheo_db_migrate::MigrationStep] = &[
         scope: syntheo_db_migrate::MigrationScope::Plain,
         sql: include_str!("../migrations/20261024120000_syntheo_templates_fr.sql"),
     },
+    syntheo_db_migrate::MigrationStep {
+        id: "20261101120000_search_index_sessions_projection_columns",
+        scope: syntheo_db_migrate::MigrationScope::CloudsyncAlter {
+            table_name: "sessions",
+        },
+        sql: include_str!(
+            "../migrations/20261101120000_search_index_sessions_projection_columns.sql"
+        ),
+    },
 ];
 
 pub fn schema() -> syntheo_db_migrate::DbSchema {
