@@ -11,7 +11,6 @@ import { useHasTranscript } from "../shared";
 import { OverflowButton } from "./overflow";
 
 import { useNow } from "~/calendar/hooks";
-import { useShell } from "~/contexts/shell";
 import { useEventCountdown } from "~/session/hooks/useEventCountdown";
 import { useMeetingMicInUse } from "~/session/hooks/useMeetingMicInUse";
 import {
@@ -20,10 +19,8 @@ import {
 } from "~/session/hooks/useRemoteMeeting";
 import { useSessionEvent } from "~/session/hooks/useSessionEvent";
 import {
-  usesWindowsStyleTitleBar,
   useWindowControlsGutter,
   WINDOW_CONTROLS_GUTTER_CLASS,
-  WINDOW_CONTROLS_GUTTER_PLUS_32_CLASS,
 } from "~/shared/hooks/useWindowControlsGutter";
 import type { EditorView, Tab } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
@@ -46,7 +43,6 @@ export function OuterHeader({
   tab?: Extract<Tab, { type: "sessions" }>;
   standaloneWindow?: boolean;
 }) {
-  const { leftsidebar } = useShell();
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const sessionEvent = useSessionEvent(sessionId);
   const hasTranscript = useHasTranscript(sessionId);
@@ -54,8 +50,6 @@ export function OuterHeader({
   const audioExists = false;
   const now = useNow();
   const showWindowControlsGutter = useWindowControlsGutter();
-  const showSidebarTimelineHeaderGutter =
-    !standaloneWindow && !leftsidebar.expanded && !usesWindowsStyleTitleBar();
   const endedAt = sessionEvent?.ended_at
     ? safeParseDate(sessionEvent.ended_at)
     : null;
@@ -69,16 +63,11 @@ export function OuterHeader({
       data-tauri-drag-region
       className={cn([
         "relative flex w-full items-center gap-[2px]",
-        // 46px content box centers the 28px controls at 23px, matching the
-        // sidebar toggle row (pt-[9px] + size-7).
+        // 46px content box centers the 28px controls at 23px, on the macOS
+        // traffic-light baseline.
         "h-12 pb-0.5",
-        standaloneWindow &&
-          (showWindowControlsGutter ? WINDOW_CONTROLS_GUTTER_CLASS : "pl-2"),
-        !standaloneWindow && !showSidebarTimelineHeaderGutter && "pl-2",
-        showSidebarTimelineHeaderGutter &&
-          (showWindowControlsGutter
-            ? WINDOW_CONTROLS_GUTTER_PLUS_32_CLASS
-            : "pl-[32px]"),
+        // Plus de barre latérale : seul le gutter des feux macOS reste réservé.
+        showWindowControlsGutter ? WINDOW_CONTROLS_GUTTER_CLASS : "pl-2",
       ])}
     >
       <div

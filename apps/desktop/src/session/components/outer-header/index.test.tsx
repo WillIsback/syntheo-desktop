@@ -10,7 +10,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { EditorView } from "~/store/zustand/tabs/schema";
 
 const mocks = vi.hoisted(() => ({
-  leftsidebar: { expanded: true },
   sessionModes: {} as Record<string, string>,
   sessionEvents: {} as Record<string, any>,
   nowMs: 0,
@@ -52,10 +51,6 @@ vi.mock("@syntheo/plugin-opener2", () => ({
 
 vi.mock("~/calendar/hooks", () => ({
   useNow: () => new Date(mocks.nowMs),
-}));
-
-vi.mock("~/contexts/shell", () => ({
-  useShell: () => ({ leftsidebar: mocks.leftsidebar }),
 }));
 
 vi.mock("~/session/hooks/useSessionEvent", () => ({
@@ -173,7 +168,6 @@ function visibleAction() {
 
 describe("OuterHeader", () => {
   beforeEach(() => {
-    mocks.leftsidebar.expanded = true;
     mocks.sessionModes = {};
     mocks.sessionEvents = {};
     mocks.nowMs = new Date(BEFORE).getTime();

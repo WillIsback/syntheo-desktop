@@ -14,48 +14,34 @@ import {
   NOTE_SURFACE_MIN_WIDTH_PX,
   SETTINGS_SURFACE_MIN_WIDTH_PX,
   usesNoteSurfaceMinWidth,
+  VIEW_NAVIGATION_WIDTH_PX,
 } from "./layout-widths";
 
 import { ChatPanelFrame, ChatSessionHost } from "~/chat/components/chat-panel";
 import { PersistentChatPanel } from "~/chat/components/persistent-chat";
 import { useShell } from "~/contexts/shell";
 import { readZoomFactor } from "~/shared/zoom";
-import { hasCustomSidebarTab } from "~/sidebar/use-custom-sidebar";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 
 const RIGHT_CHAT_PANEL_MIN_WIDTH_PX = 320;
-const LEFT_SIDEBAR_MIN_WIDTH_PX = 200;
 
 export function MainChatPanels({
   autoSaveId = "main-chat",
   children,
-  leftSidebarAvailable = true,
   noteSurfaceMinWidth = NOTE_SURFACE_MIN_WIDTH_PX,
 }: Readonly<{
   autoSaveId?: string;
   children: React.ReactNode;
-  leftSidebarAvailable?: boolean;
   noteSurfaceMinWidth?: number;
 }>) {
-  const { chat, leftsidebar } = useShell();
+  const { chat } = useShell();
   const currentTab = useTabs((state) => state.currentTab);
   const bodyPanelContainerRef = useRef<HTMLDivElement>(null);
   const isAutomationsTab = currentTab?.type === "automations";
   const isRightPanelOpen = isAutomationsTab || chat.mode === "RightPanelOpen";
   const reserveNoteSurfaceMinWidth = usesNoteSurfaceMinWidth(currentTab);
-  const leftSidebarExpanded =
-    leftSidebarAvailable &&
-    leftsidebar.expanded &&
-    !(reserveNoteSurfaceMinWidth && leftsidebar.autoCollapsed);
-  const collapseLeftSidebar = useCallback(() => {
-    leftsidebar.setAutoCollapsed(true);
-  }, [leftsidebar.setAutoCollapsed]);
-  const restoreLeftSidebar = useCallback(() => {
-    leftsidebar.setAutoCollapsed(false);
-  }, [leftsidebar.setAutoCollapsed]);
   const bodyMinWidthPx = getMainBodyMinWidth({
     currentTab,
-    leftSidebarExpanded,
     noteSurfaceMinWidth,
   });
   const bodyMinWidth =
@@ -66,10 +52,6 @@ export function MainChatPanels({
   useNoteSurfaceWindowWidthGuard({
     bodyPanelContainerRef,
     enabled: reserveNoteSurfaceMinWidth,
-    preserveCollapseWhenDisabled: hasCustomSidebarTab(currentTab),
-    leftPanelOpen: leftSidebarExpanded,
-    collapseLeftPanel: collapseLeftSidebar,
-    restoreLeftPanel: restoreLeftSidebar,
     noteSurfaceMinWidth,
     rightPanelOpen: isRightPanelOpen,
   });
@@ -135,63 +117,42 @@ export function MainChatPanels({
 
 function getMainBodyMinWidth({
   currentTab,
-  leftSidebarExpanded,
   noteSurfaceMinWidth,
 }: {
   currentTab: Tab | null;
-  leftSidebarExpanded: boolean;
   noteSurfaceMinWidth: number;
 }) {
   if (currentTab?.type === "automations") {
-    return (
-      AUTOMATIONS_SURFACE_MIN_WIDTH_PX +
-      (leftSidebarExpanded ? LEFT_SIDEBAR_MIN_WIDTH_PX : 0)
-    );
+    return AUTOMATIONS_SURFACE_MIN_WIDTH_PX + VIEW_NAVIGATION_WIDTH_PX;
   }
 
   if (currentTab?.type === "settings") {
-    return (
-      SETTINGS_SURFACE_MIN_WIDTH_PX +
-      (leftSidebarExpanded ? LEFT_SIDEBAR_MIN_WIDTH_PX : 0)
-    );
+    return SETTINGS_SURFACE_MIN_WIDTH_PX + VIEW_NAVIGATION_WIDTH_PX;
   }
 
   if (!usesNoteSurfaceMinWidth(currentTab)) {
     return undefined;
   }
 
-  return (
-    noteSurfaceMinWidth + (leftSidebarExpanded ? LEFT_SIDEBAR_MIN_WIDTH_PX : 0)
-  );
+  return noteSurfaceMinWidth;
 }
 
+// Sans barre latérale, seule l'ouverture du panneau de chat à droite peut
+// rogner la surface de note : on élargit alors la fenêtre, puis on la rend à
+// sa taille à la fermeture du panneau.
 function useNoteSurfaceWindowWidthGuard({
   bodyPanelContainerRef,
-  collapseLeftPanel,
-  restoreLeftPanel,
-  preserveCollapseWhenDisabled,
   enabled,
-  leftPanelOpen,
   noteSurfaceMinWidth,
   rightPanelOpen,
 }: {
   bodyPanelContainerRef: React.RefObject<HTMLDivElement | null>;
-  collapseLeftPanel: () => void;
-  restoreLeftPanel: () => void;
   enabled: boolean;
-  preserveCollapseWhenDisabled: boolean;
-  leftPanelOpen: boolean;
   noteSurfaceMinWidth: number;
   rightPanelOpen: boolean;
 }) {
-  const collapsedSidebarWidthRef = useRef(LEFT_SIDEBAR_MIN_WIDTH_PX);
   const restorableExpansionCountRef = useRef(0);
-  const lastVisibleBodyWidthRef = useRef<number | null>(null);
-  const previousStateRef = useRef({
-    enabled: false,
-    leftPanelOpen: false,
-    rightPanelOpen: false,
-  });
+  const previousStateRef = useRef({ enabled: false, rightPanelOpen: false });
 
   const restoreWidthExpansions = useCallback(() => {
     const restoreCount = restorableExpansionCountRef.current;
@@ -203,24 +164,21 @@ function useNoteSurfaceWindowWidthGuard({
   }, []);
 
   useLayoutEffect(() => {
-    const currentState = { enabled, leftPanelOpen, rightPanelOpen };
-    const transitions = getPanelTransitions(
-      previousStateRef.current,
-      currentState,
-    );
-    const hasOpenPanel = enabled && (leftPanelOpen || rightPanelOpen);
+    const previousState = previousStateRef.current;
+    const rightPanelJustClosed =
+      previousState.rightPanelOpen && !rightPanelOpen;
+    const rightPanelJustOpened =
+      rightPanelOpen &&
+      (!previousState.enabled || !previousState.rightPanelOpen);
+    const hasOpenPanel = enabled && rightPanelOpen;
 
-    if (transitions.rightPanelJustClosed || (enabled && !hasOpenPanel)) {
+    previousStateRef.current = { enabled, rightPanelOpen };
+
+    if (rightPanelJustClosed || (enabled && !hasOpenPanel)) {
       restoreWidthExpansions();
     }
 
-    previousStateRef.current = currentState;
-
-    if (!hasOpenPanel) {
-      return;
-    }
-
-    if (!transitions.leftPanelJustOpened && !transitions.rightPanelJustOpened) {
+    if (!hasOpenPanel || !rightPanelJustOpened) {
       return;
     }
 
@@ -230,183 +188,48 @@ function useNoteSurfaceWindowWidthGuard({
     }
 
     const bodyWidth = getVisibleBodyWidth(bodyPanel);
-    if (bodyWidth <= 0) {
+    if (bodyWidth <= 0 || !isTauri()) {
       return;
     }
 
-    let leftSidebarWidth = getLeftSidebarWidth(bodyPanel, leftPanelOpen);
-    const rightPanelWidth = getRightPanelWidth(bodyPanel, rightPanelOpen);
-
-    if (
-      transitions.rightPanelJustOpened &&
-      shouldCollapseLeftForRightPanel({
-        bodyWidth,
-        leftPanelOpen,
-        leftSidebarWidth,
-        noteSurfaceMinWidth,
-      })
-    ) {
-      collapsedSidebarWidthRef.current = leftSidebarWidth;
-      collapseLeftPanel();
-      leftSidebarWidth = 0;
-    }
-
-    if (!isTauri()) {
-      return;
-    }
-
-    expandWindowForPanels({
+    expandWindowForRightPanel({
       bodyWidth,
-      expandLeft:
-        transitions.leftPanelJustOpened && !transitions.rightPanelJustOpened,
-      leftSidebarWidth,
       noteSurfaceMinWidth,
       onRestoreScheduled: () => {
         restorableExpansionCountRef.current += 1;
       },
-      rightPanelOpen,
-      rightPanelWidth,
+      rightPanelWidth: getRightPanelWidth(bodyPanel, rightPanelOpen),
     });
   }, [
     bodyPanelContainerRef,
-    collapseLeftPanel,
     enabled,
-    leftPanelOpen,
     noteSurfaceMinWidth,
     restoreWidthExpansions,
     rightPanelOpen,
   ]);
 
-  useLayoutEffect(() => {
-    lastVisibleBodyWidthRef.current = null;
-
-    if (!enabled) {
-      if (!preserveCollapseWhenDisabled) restoreLeftPanel();
-      return;
-    }
-
-    const bodyPanel = bodyPanelContainerRef.current;
-    if (!bodyPanel) {
-      return;
-    }
-
-    const handleResize = () => {
-      if (!leftPanelOpen) {
-        const width = getVisibleBodyWidth(bodyPanel);
-        if (width >= noteSurfaceMinWidth + collapsedSidebarWidthRef.current) {
-          restoreLeftPanel();
-        }
-        return;
-      }
-      collapsedSidebarWidthRef.current = getLeftSidebarWidth(bodyPanel, true);
-      collapseLeftPanelIfNoteSurfaceWouldShrink({
-        bodyPanel,
-        collapseLeftPanel,
-        lastVisibleBodyWidthRef,
-        noteSurfaceMinWidth,
-      });
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    const resizeObserver =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(handleResize)
-        : null;
-    resizeObserver?.observe(bodyPanel);
-
-    const shell = bodyPanel.closest<HTMLElement>(
-      "[data-testid='main-app-shell']",
-    );
-    if (shell) {
-      resizeObserver?.observe(shell);
-    }
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      resizeObserver?.disconnect();
-    };
-  }, [
-    bodyPanelContainerRef,
-    collapseLeftPanel,
-    enabled,
-    leftPanelOpen,
-    noteSurfaceMinWidth,
-    rightPanelOpen,
-    restoreLeftPanel,
-    preserveCollapseWhenDisabled,
-  ]);
-
   useLayoutEffect(() => restoreWidthExpansions, [restoreWidthExpansions]);
 }
 
-type PanelVisibilityState = {
-  enabled: boolean;
-  leftPanelOpen: boolean;
-  rightPanelOpen: boolean;
-};
-
-function getPanelTransitions(
-  previousState: PanelVisibilityState,
-  currentState: PanelVisibilityState,
-) {
-  return {
-    rightPanelJustClosed:
-      previousState.rightPanelOpen && !currentState.rightPanelOpen,
-    leftPanelJustOpened:
-      currentState.leftPanelOpen &&
-      (!previousState.enabled || !previousState.leftPanelOpen),
-    rightPanelJustOpened:
-      currentState.rightPanelOpen &&
-      (!previousState.enabled || !previousState.rightPanelOpen),
-  };
-}
-
-function shouldCollapseLeftForRightPanel({
+function expandWindowForRightPanel({
   bodyWidth,
-  leftPanelOpen,
-  leftSidebarWidth,
-  noteSurfaceMinWidth,
-}: {
-  bodyWidth: number;
-  leftPanelOpen: boolean;
-  leftSidebarWidth: number;
-  noteSurfaceMinWidth: number;
-}) {
-  return (
-    leftPanelOpen &&
-    leftSidebarWidth > 0 &&
-    bodyWidth - leftSidebarWidth < noteSurfaceMinWidth
-  );
-}
-
-function expandWindowForPanels({
-  bodyWidth,
-  expandLeft,
-  leftSidebarWidth,
   noteSurfaceMinWidth,
   onRestoreScheduled,
-  rightPanelOpen,
   rightPanelWidth,
 }: {
   bodyWidth: number;
-  expandLeft: boolean;
-  leftSidebarWidth: number;
   noteSurfaceMinWidth: number;
   onRestoreScheduled: () => void;
-  rightPanelOpen: boolean;
   rightPanelWidth: number;
 }) {
-  const requiredBodyWidth = noteSurfaceMinWidth + leftSidebarWidth;
   const requiredTotalWidth =
-    requiredBodyWidth + (rightPanelOpen ? RIGHT_CHAT_PANEL_MIN_WIDTH_PX : 0);
+    noteSurfaceMinWidth + RIGHT_CHAT_PANEL_MIN_WIDTH_PX;
   const visibleTotalWidth = bodyWidth + rightPanelWidth;
   const widthDeficit = Math.ceil(
     Math.max(
-      requiredBodyWidth - bodyWidth,
+      noteSurfaceMinWidth - bodyWidth,
       requiredTotalWidth - visibleTotalWidth,
-      rightPanelOpen ? RIGHT_CHAT_PANEL_MIN_WIDTH_PX - rightPanelWidth : 0,
+      RIGHT_CHAT_PANEL_MIN_WIDTH_PX - rightPanelWidth,
     ),
   );
 
@@ -414,53 +237,27 @@ function expandWindowForPanels({
     return;
   }
 
-  const restoreOnClose = !expandLeft;
-
-  if (restoreOnClose) {
-    onRestoreScheduled();
-  }
+  onRestoreScheduled();
 
   void windowsCommands.windowExpandWidth(
     Math.ceil(widthDeficit * readZoomFactor()),
     null,
     false,
-    expandLeft,
-    restoreOnClose,
+    false,
+    true,
   );
 }
 
-function collapseLeftPanelIfNoteSurfaceWouldShrink({
-  bodyPanel,
-  collapseLeftPanel,
-  lastVisibleBodyWidthRef,
-  noteSurfaceMinWidth,
-}: {
-  bodyPanel: HTMLElement;
-  collapseLeftPanel: () => void;
-  lastVisibleBodyWidthRef: React.MutableRefObject<number | null>;
-  noteSurfaceMinWidth: number;
-}) {
-  const visibleBodyWidth = getVisibleBodyWidth(bodyPanel);
-  if (visibleBodyWidth <= 0) {
-    return;
+function getRightPanelWidth(bodyPanel: HTMLElement, rightPanelOpen: boolean) {
+  if (!rightPanelOpen) {
+    return 0;
   }
 
-  const lastVisibleBodyWidth = lastVisibleBodyWidthRef.current;
-  lastVisibleBodyWidthRef.current = visibleBodyWidth;
+  const rightPanel = bodyPanel.ownerDocument.querySelector<HTMLElement>(
+    "[data-chat-right-panel]",
+  );
 
-  if (
-    lastVisibleBodyWidth === null ||
-    visibleBodyWidth >= lastVisibleBodyWidth
-  ) {
-    return;
-  }
-
-  const leftSidebarWidth = getLeftSidebarWidth(bodyPanel, true);
-  const noteSurfaceWidth = visibleBodyWidth - leftSidebarWidth;
-
-  if (noteSurfaceWidth < noteSurfaceMinWidth) {
-    collapseLeftPanel();
-  }
+  return rightPanel?.getBoundingClientRect().width ?? 0;
 }
 
 function getVisibleBodyWidth(bodyPanel: HTMLElement) {
@@ -491,29 +288,4 @@ function getVisibleBodyWidth(bodyPanel: HTMLElement) {
   }
 
   return Math.min(bodyWidth, visibleContainerBodyWidth);
-}
-
-function getRightPanelWidth(bodyPanel: HTMLElement, rightPanelOpen: boolean) {
-  if (!rightPanelOpen) {
-    return 0;
-  }
-
-  const rightPanel = bodyPanel.ownerDocument.querySelector<HTMLElement>(
-    "[data-chat-right-panel]",
-  );
-
-  return rightPanel?.getBoundingClientRect().width ?? 0;
-}
-
-function getLeftSidebarWidth(bodyPanel: HTMLElement, leftPanelOpen: boolean) {
-  if (!leftPanelOpen) {
-    return 0;
-  }
-
-  const leftSidebar = bodyPanel.querySelector<HTMLElement>(
-    "[data-left-sidebar-chrome], [data-left-sidebar-panel-content]",
-  );
-  const measuredWidth = leftSidebar?.getBoundingClientRect().width ?? 0;
-
-  return measuredWidth > 0 ? measuredWidth : LEFT_SIDEBAR_MIN_WIDTH_PX;
 }

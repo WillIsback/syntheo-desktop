@@ -5,16 +5,10 @@ import { commands as openerCommands } from "@syntheo/plugin-opener2";
 import { X } from "@syntheo/ui/components/icons";
 import { Button } from "@syntheo/ui/components/ui/button";
 import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
-import { cn } from "@syntheo/utils";
 
 import { useChangelogContent } from "./data";
 
 import { useShell } from "~/contexts/shell";
-import {
-  useWindowControlsGutter,
-  WINDOW_CONTROLS_GUTTER_PLUS_28_CLASS,
-  WINDOW_CONTROLS_GUTTER_PLUS_80_CLASS,
-} from "~/shared/hooks/useWindowControlsGutter";
 import { StandardContentWrapper } from "~/shared/main";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 
@@ -24,10 +18,8 @@ export function TabContentChangelog({
   tab: Extract<Tab, { type: "changelog" }>;
 }) {
   const { current } = tab.state;
-  const { chat, leftsidebar } = useShell();
+  const { chat } = useShell();
   const close = useTabs((state) => state.close);
-  const showSidebarTimelineHeaderGutter = !leftsidebar.expanded;
-  const showExpandedSidebarTimelineHeader = leftsidebar.expanded;
 
   useMountEffect(() => {
     if (chat.mode !== "FloatingClosed") {
@@ -41,14 +33,7 @@ export function TabContentChangelog({
     <StandardContentWrapper>
       <div className="flex h-full flex-col">
         <div data-tauri-drag-region className="shrink-0 pr-1 pl-3">
-          <ChangelogHeader
-            version={current}
-            showSidebarTimelineHeaderGutter={showSidebarTimelineHeaderGutter}
-            showExpandedSidebarTimelineHeader={
-              showExpandedSidebarTimelineHeader
-            }
-            onClose={() => close(tab)}
-          />
+          <ChangelogHeader version={current} onClose={() => close(tab)} />
         </div>
 
         <div className="relative mt-2 min-h-0 flex-1 overflow-hidden">
@@ -127,53 +112,23 @@ function ChangelogBody({
 }
 
 function ChangelogHeader({
-  showExpandedSidebarTimelineHeader,
-  showSidebarTimelineHeaderGutter,
   version,
   onClose,
 }: {
-  showExpandedSidebarTimelineHeader: boolean;
-  showSidebarTimelineHeaderGutter: boolean;
   version: string;
   onClose: () => void;
 }) {
   const { t } = useLingui();
-  const showWindowControlsGutter = useWindowControlsGutter();
   return (
     <div
       data-tauri-drag-region
-      className={cn([
-        "relative flex h-12 w-full items-center",
-        showSidebarTimelineHeaderGutter &&
-          (showWindowControlsGutter
-            ? WINDOW_CONTROLS_GUTTER_PLUS_80_CLASS
-            : "pl-[80px]"),
-      ])}
+      className="relative flex h-12 w-full items-center"
     >
       <div
         data-tauri-drag-region
-        className={cn([
-          "pointer-events-none absolute inset-y-0 flex items-center",
-          showExpandedSidebarTimelineHeader
-            ? "right-[70px] left-0 justify-start"
-            : showSidebarTimelineHeaderGutter
-              ? cn([
-                  "right-[70px] justify-start",
-                  showWindowControlsGutter
-                    ? WINDOW_CONTROLS_GUTTER_PLUS_28_CLASS
-                    : "left-[28px]",
-                ])
-              : "left-1/2 w-[min(640px,calc(100%_-_160px))] -translate-x-1/2 justify-center",
-        ])}
+        className="pointer-events-none absolute inset-y-0 left-1/2 flex w-[min(640px,calc(100%_-_160px))] -translate-x-1/2 items-center justify-center"
       >
-        <h1
-          className={cn([
-            "text-foreground truncate text-xl font-semibold",
-            showExpandedSidebarTimelineHeader || showSidebarTimelineHeaderGutter
-              ? "text-left"
-              : "text-center",
-          ])}
-        >
+        <h1 className="text-foreground truncate text-center text-xl font-semibold">
           <Trans>What's new in {version}?</Trans>
         </h1>
       </div>

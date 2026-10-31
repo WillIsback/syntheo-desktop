@@ -166,10 +166,6 @@ msgstr "Add"
 msgid "Add \"{0}\""
 msgstr "Add \"{0}\""
 
-#: src/sidebar/folder-materials.tsx
-msgid "Add a syllabus or PDF for this folder"
-msgstr "Add a syllabus or PDF for this folder"
-
 #: src/settings/automations/index.tsx
 msgid "Add a trigger and actions. Chat on the right can help you refine the workflow."
 msgstr "Add a trigger and actions. Chat on the right can help you refine the workflow."
@@ -217,10 +213,6 @@ msgstr "Add file"
 #: src/settings/general/spoken-languages.tsx
 msgid "Add language"
 msgstr "Add language"
-
-#: src/sidebar/folder-materials.tsx
-msgid "Add material"
-msgstr "Add material"
 
 #: src/settings/dictionary/index.tsx
 msgid "Add names, jargon, or product terms to prefer"
@@ -638,10 +630,6 @@ msgstr "Choose custom color"
 msgid "Choose export folder"
 msgstr "Choose export folder"
 
-#: src/settings/appearance/sidebar-item-fields.tsx
-msgid "Choose extra fields to show on each note."
-msgstr "Choose extra fields to show on each note."
-
 #: src/imports/screen.tsx
 msgid "Choose files"
 msgstr "Choose files"
@@ -1035,7 +1023,6 @@ msgid "Dark"
 msgstr "Dark"
 
 #: src/settings/automations/markdown-export-options.tsx
-#: src/sidebar/note-filter-menu.tsx
 msgid "Date"
 msgstr "Date"
 
@@ -1070,52 +1057,22 @@ msgstr "Default template"
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/session/components/outer-header/overflow/delete.tsx
 #: src/sidebar/automations.tsx
-#: src/sidebar/timeline/index.tsx
 #: src/templates/template-form.tsx
 #: src/templates/template-sidebar.tsx
 msgid "Delete"
 msgstr "Delete"
 
-#: src/sidebar/timeline/index.tsx
-msgid "Delete {pendingDeleteCount} selected notes?"
-msgstr "Delete {pendingDeleteCount} selected notes?"
-
-#: src/sidebar/timeline/index.tsx
-msgid "Delete 1 selected note?"
-msgstr "Delete 1 selected note?"
-
-#: src/sidebar/timeline/item.tsx
-msgid "Delete All Recurring Events"
-msgstr "Delete All Recurring Events"
-
 #: src/settings/automations/index.tsx
 msgid "Delete automation"
 msgstr "Delete automation"
 
-#: src/sidebar/timeline/item.tsx
-msgid "Delete Event"
-msgstr "Delete Event"
-
 #: src/folders/folder-editor.tsx
-#: src/sidebar/folder-materials.tsx
 msgid "Delete folder"
 msgstr "Delete folder"
-
-#: src/sidebar/timeline/item.tsx
-msgid "Delete Note"
-msgstr "Delete Note"
 
 #: src/templates/sections-editor.tsx
 msgid "Delete section {position}"
 msgstr "Delete section {position}"
-
-#: src/sidebar/timeline/index.tsx
-msgid "Delete Selected ({sessionCount})"
-msgstr "Delete Selected ({sessionCount})"
-
-#: src/sidebar/timeline/item.tsx
-msgid "Delete This Event"
-msgstr "Delete This Event"
 
 #: src/templates/sections-editor.tsx
 msgid "Describe in one line what Syntheo should write here."
@@ -1445,8 +1402,7 @@ msgstr "Float chat"
 msgid "Fn / Globe"
 msgstr "Fn / Globe"
 
-#: src/settings/appearance/sidebar-item-fields.tsx
-#: src/sidebar/note-filter-menu.tsx
+#: src/shared/open-note-dialog.tsx
 msgid "Folder"
 msgstr "Folder"
 
@@ -1467,6 +1423,7 @@ msgstr "Folder name"
 msgid "Folder: {currentPath}"
 msgstr "Folder: {currentPath}"
 
+#: src/shared/open-note-dialog.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Folders"
 msgstr "Folders"
@@ -1516,10 +1473,6 @@ msgstr "Get started"
 msgid "Get your attention when a summary is ready in the background."
 msgstr "Get your attention when a summary is ready in the background."
 
-#: src/sidebar/timeline/index.tsx
-msgid "Go back to now"
-msgstr "Go back to now"
-
 #: src/main/windows-title-bar.tsx
 #: src/sidebar/custom-sidebar-header.tsx
 msgid "Go home"
@@ -1548,14 +1501,6 @@ msgstr "Go to recent"
 #: src/settings/ai/stt/language-warning.tsx
 msgid "Got it"
 msgstr "Got it"
-
-#: src/sidebar/note-filter-menu.tsx
-msgid "Grouping"
-msgstr "Grouping"
-
-#: src/sidebar/note-filter-menu.tsx
-msgid "Grouping, {groupingLabel}"
-msgstr "Grouping, {groupingLabel}"
 
 #: src/settings/developers/index.tsx
 msgid "Guide"
@@ -1606,21 +1551,9 @@ msgstr "Hi, I'm Syntheo AI. Set up a language model and I'll be ready to help."
 msgid "Hide all notification panels, Dock alerts, and completion sounds."
 msgstr "Hide all notification panels, Dock alerts, and completion sounds."
 
-#: src/sidebar/timeline/index.tsx
-msgid "Hide Deleted Events"
-msgstr "Hide Deleted Events"
-
 #: src/settings/automations/index.tsx
 msgid "Hide preview"
 msgstr "Hide preview"
-
-#: src/main/windows-title-bar.tsx
-msgid "Hide sidebar"
-msgstr "Hide sidebar"
-
-#: src/main/windows-title-bar.tsx
-msgid "Hide Sidebar"
-msgstr "Hide Sidebar"
 
 #: src/session/components/living-document/index.tsx
 msgid "Hide transcript"
@@ -1697,17 +1630,9 @@ msgstr "Improve with examples"
 msgid "in {absDays} days"
 msgstr "in {absDays} days"
 
-#: src/sidebar/timeline/upcoming-meeting.ts
-msgid "In {minutes}m {seconds}s"
-msgstr "In {minutes}m {seconds}s"
-
 #: src/sidebar/timeline/utils/index.ts
 msgid "in {months} months"
 msgstr "in {months} months"
-
-#: src/sidebar/timeline/upcoming-meeting.ts
-msgid "In {totalSeconds}s"
-msgstr "In {totalSeconds}s"
 
 #: src/sidebar/timeline/utils/index.ts
 msgid "in {weeks} weeks"
@@ -1900,13 +1825,8 @@ msgid "Lock app"
 msgstr "Lock app"
 
 #: src/session/components/outer-header/overflow/lock-note.tsx
-#: src/sidebar/timeline/item.tsx
 msgid "Lock Note"
 msgstr "Lock Note"
-
-#: src/sidebar/timeline/item.tsx
-msgid "Locked note"
-msgstr "Locked note"
 
 #: src/settings/ai/llm/server-card.tsx
 msgid "Low"
@@ -1957,7 +1877,6 @@ msgid "Match your device"
 msgstr "Match your device"
 
 #: src/folders/folder-editor.tsx
-#: src/sidebar/folder-materials.tsx
 msgid "Materials"
 msgstr "Materials"
 
@@ -1980,10 +1899,6 @@ msgstr "Me"
 #: src/settings/ai/llm/server-card.tsx
 msgid "Medium"
 msgstr "Medium"
-
-#: src/sidebar/timeline/index.tsx
-msgid "Meeting"
-msgstr "Meeting"
 
 #: src/session/components/note-input/meeting-chat-highlights.tsx
 msgid "Meeting chat"
@@ -2184,6 +2099,10 @@ msgstr "New chat"
 msgid "New folder"
 msgstr "New folder"
 
+#: src/shared/open-note-dialog.tsx
+msgid "New note"
+msgstr "New note"
+
 #: src/main/windows-title-bar.tsx
 msgid "New Note"
 msgstr "New Note"
@@ -2197,7 +2116,6 @@ msgstr "New template"
 
 #: src/contacts/related-notes.tsx
 #: src/contacts/shared.tsx
-#: src/sidebar/note-filter-menu.tsx
 msgid "Newest"
 msgstr "Newest"
 
@@ -2301,10 +2219,6 @@ msgstr "No icons found"
 #: src/imports/screen.tsx
 msgid "No imports yet."
 msgstr "No imports yet."
-
-#: src/sidebar/timeline/index.tsx
-msgid "No items today"
-msgstr "No items today"
 
 #: src/settings/dictionary/index.tsx
 msgid "No match"
@@ -2412,13 +2326,8 @@ msgstr "notes"
 msgid "Notes"
 msgstr "Notes"
 
-#: src/settings/appearance/sidebar-item-fields.tsx
-msgid "Notes list"
-msgstr "Notes list"
-
 #. js-lingui-explicit-id
 #: src/folders/folder-editor.tsx
-#: src/sidebar/folder-materials.tsx
 msgid "Notes stay in All notes. Materials in this folder will be deleted."
 msgstr "Notes stay in All notes. This folder, its nested folders, and all their materials will be deleted."
 
@@ -2426,11 +2335,6 @@ msgstr "Notes stay in All notes. This folder, its nested folders, and all their 
 #: src/sidebar/settings-nav-groups.ts
 msgid "Notifications"
 msgstr "Notifications"
-
-#: src/sidebar/timeline/index.tsx
-#: src/sidebar/timeline/upcoming-meeting.ts
-msgid "Now"
-msgstr "Now"
 
 #: src/settings/ai/stt/server-card.tsx
 msgid "NVIDIA NIM · WebSocket"
@@ -2450,7 +2354,6 @@ msgstr "Older files that differ from your current data were kept as recovery cop
 
 #: src/contacts/related-notes.tsx
 #: src/contacts/shared.tsx
-#: src/sidebar/note-filter-menu.tsx
 msgid "Oldest"
 msgstr "Oldest"
 
@@ -2487,10 +2390,6 @@ msgstr "Open {0} settings"
 msgid "Open AI Settings"
 msgstr "Open AI Settings"
 
-#: src/sidebar/timeline/index.tsx
-msgid "Open calendar"
-msgstr "Open calendar"
-
 #: src/calendar/components/calendar-selection.tsx
 #: src/calendar/components/sidebar.tsx
 msgid "Open calendar account actions"
@@ -2501,7 +2400,6 @@ msgid "Open floating panel"
 msgstr "Open floating panel"
 
 #: src/session/components/outer-header/overflow/index.tsx
-#: src/sidebar/timeline/item.tsx
 msgid "Open in New Window"
 msgstr "Open in New Window"
 
@@ -2560,14 +2458,6 @@ msgstr "Opens System Settings and guides you to add Syntheo to the {0} list."
 #: src/calendar/components/apple/permission.tsx
 msgid "or"
 msgstr "or"
-
-#: src/sidebar/note-filter-menu.tsx
-msgid "Ordering"
-msgstr "Ordering"
-
-#: src/sidebar/note-filter-menu.tsx
-msgid "Ordering, {orderingLabel}"
-msgstr "Ordering, {orderingLabel}"
 
 #: src/contacts/details.tsx
 msgid "Organization"
@@ -2815,7 +2705,6 @@ msgstr "Remove"
 
 #. placeholder {0}: material.filename
 #: src/folders/folder-editor.tsx
-#: src/sidebar/folder-materials.tsx
 msgid "Remove {0}"
 msgstr "Remove {0}"
 
@@ -2848,14 +2737,6 @@ msgstr "Remove from favorites"
 #: src/contacts/profile-photo.tsx
 msgid "Remove photo"
 msgstr "Remove photo"
-
-#: src/sidebar/folder-materials.tsx
-msgid "Rename"
-msgstr "Rename"
-
-#: src/sidebar/folder-materials.tsx
-msgid "Rename folder"
-msgstr "Rename folder"
 
 #: src/automations/starters.tsx
 msgid "Render canonical Markdown"
@@ -3069,6 +2950,10 @@ msgstr "Search language..."
 msgid "Search notes and pages..."
 msgstr "Search notes and pages..."
 
+#: src/main/windows-title-bar.tsx
+msgid "Search Notes…"
+msgstr "Search Notes…"
+
 #: src/contacts/details.tsx
 msgid "Search or add company"
 msgstr "Search or add company"
@@ -3211,10 +3096,6 @@ msgstr "Setting up dictation…"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/sidebar/timeline/item.tsx
-msgid "Shared note"
-msgstr "Shared note"
-
 #: src/session/components/note-input/meeting-screen-gallery.tsx
 msgid "Shared screen at {time}"
 msgstr "Shared screen at {time}"
@@ -3231,10 +3112,6 @@ msgstr "Shared summary"
 msgid "Show a reminder when a recording starts."
 msgstr "Show a reminder when a recording starts."
 
-#: src/sidebar/timeline/item.tsx
-msgid "Show All Recurring Events"
-msgstr "Show All Recurring Events"
-
 #: src/settings/general/app-settings.tsx
 msgid "Show app in Dock"
 msgstr "Show app in Dock"
@@ -3243,25 +3120,15 @@ msgstr "Show app in Dock"
 msgid "Show Apple Calendar events in Syntheo."
 msgstr "Show Apple Calendar events in Syntheo."
 
-#: src/sidebar/timeline/index.tsx
-msgid "Show Deleted Events"
-msgstr "Show Deleted Events"
-
-#: src/sidebar/timeline/item.tsx
-msgid "Show Event"
-msgstr "Show Event"
-
 #: src/settings/general/meeting-settings.tsx
 msgid "Show floating bar"
 msgstr "Show floating bar"
 
 #: src/calendar/components/session-chip.tsx
-#: src/sidebar/timeline/item.tsx
 msgid "Show in Finder"
 msgstr "Show in Finder"
 
 #: src/calendar/components/session-chip.tsx
-#: src/sidebar/timeline/item.tsx
 msgid "Show in folder"
 msgstr "Show in folder"
 
@@ -3273,33 +3140,13 @@ msgstr "Show meeting times as 14:00 instead of 2:00 PM."
 msgid "Show release notes"
 msgstr "Show release notes"
 
-#: src/main/windows-title-bar.tsx
-msgid "Show sidebar"
-msgstr "Show sidebar"
-
-#: src/main/windows-title-bar.tsx
-msgid "Show Sidebar"
-msgstr "Show Sidebar"
-
 #: src/settings/general/app-settings.tsx
 msgid "Show Syntheo in the Dock and app switcher."
 msgstr "Show Syntheo in the Dock and app switcher."
 
-#: src/settings/appearance/sidebar-item-fields.tsx
-msgid "Show tags under the date and time."
-msgstr "Show tags under the date and time."
-
-#: src/settings/appearance/sidebar-item-fields.tsx
-msgid "Show the folder above the title."
-msgstr "Show the folder above the title."
-
 #: src/settings/general/timezone.tsx
 msgid "Show the timeline in your preferred timezone."
 msgstr "Show the timeline in your preferred timezone."
-
-#: src/sidebar/timeline/item.tsx
-msgid "Show This Event"
-msgstr "Show This Event"
 
 #: src/session/components/living-document/index.tsx
 msgid "Show transcript"
@@ -3353,10 +3200,6 @@ msgstr "Something went wrong"
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "Something went wrong while generating the summary."
 msgstr "Something went wrong while generating the summary."
-
-#: src/sidebar/note-filter-menu.tsx
-msgid "Sort notes"
-msgstr "Sort notes"
 
 #: src/contacts/related-notes.tsx
 #: src/contacts/shared.tsx
@@ -3484,7 +3327,6 @@ msgid "Stop auto-add"
 msgstr "Stop auto-add"
 
 #: src/session/components/outer-header/overflow/listening.tsx
-#: src/sidebar/timeline/item.tsx
 msgid "Stop listening"
 msgstr "Stop listening"
 
@@ -3682,10 +3524,6 @@ msgstr "System audio enabled"
 #: src/settings/dictation.tsx
 msgid "System permissions"
 msgstr "System permissions"
-
-#: src/settings/appearance/sidebar-item-fields.tsx
-msgid "Tags"
-msgstr "Tags"
 
 #: src/settings/developers/skills.tsx
 msgid "Teach coding agents when and how to use the Syntheo CLI and MCP"
@@ -4023,7 +3861,6 @@ msgid "Unlock"
 msgstr "Unlock"
 
 #: src/session/components/outer-header/overflow/lock-note.tsx
-#: src/sidebar/timeline/item.tsx
 msgid "Unlock Note"
 msgstr "Unlock Note"
 
@@ -4051,7 +3888,6 @@ msgstr "Unreachable"
 #: src/session/components/title-input.tsx
 #: src/shared/open-note-dialog.tsx
 #: src/shared/ui/resource-list/preview-header.tsx
-#: src/sidebar/timeline/item.tsx
 #: src/sidebar/toast/undo-delete-toast.tsx
 #: src/templates/details.tsx
 #: src/templates/template-preview.tsx
@@ -4168,6 +4004,10 @@ msgstr "View"
 #: src/contacts/organization-details.tsx
 msgid "View LinkedIn profile"
 msgstr "View LinkedIn profile"
+
+#: src/main/view-navigation.tsx
+msgid "View navigation"
+msgstr "View navigation"
 
 #: src/lock/screen.tsx
 msgid "View Note"
@@ -4292,10 +4132,6 @@ msgstr "you"
 #: src/calendar/components/apple/permission.tsx
 msgid "You can"
 msgstr "You can"
-
-#: src/sidebar/timeline/index.tsx
-msgid "You can undo this action for a short time."
-msgstr "You can undo this action for a short time."
 
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "You can use up to three example summaries."

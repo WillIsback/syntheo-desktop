@@ -71,8 +71,6 @@ const {
   useConfigValueMock,
   useSTTConnectionMock,
   isSupportedLanguagesLiveMock,
-  leftSidebarExpanded,
-  setLeftSidebarExpandedMock,
   deleteProcessedAudioForRetentionMock,
   listMicUsingApplicationsMock,
   sendMeetingChatMessageMock,
@@ -136,8 +134,6 @@ const {
   useConfigValueMock: vi.fn(),
   useSTTConnectionMock: vi.fn(),
   isSupportedLanguagesLiveMock: vi.fn(),
-  leftSidebarExpanded: { value: true },
-  setLeftSidebarExpandedMock: vi.fn(),
   deleteProcessedAudioForRetentionMock: vi.fn(),
   listMicUsingApplicationsMock: vi.fn(),
   sendMeetingChatMessageMock: vi.fn(),
@@ -301,15 +297,6 @@ vi.mock("~/session/attachments", () => ({
   catalogLocalSessionAudio: catalogLocalSessionAudioMock,
   markSessionAudioTranscriptionComplete:
     markSessionAudioTranscriptionCompleteMock,
-}));
-
-vi.mock("~/contexts/shell", () => ({
-  useShell: vi.fn(() => ({
-    leftsidebar: {
-      expanded: leftSidebarExpanded.value,
-      setExpanded: setLeftSidebarExpandedMock,
-    },
-  })),
 }));
 
 vi.mock("~/session/utils", () => ({
@@ -600,7 +587,6 @@ describe("useStartListening", () => {
           ? false
           : [],
     );
-    leftSidebarExpanded.value = true;
     useSTTConnectionMock.mockReturnValue({
       conn: {
         provider: "syntheo",
@@ -1136,7 +1122,6 @@ describe("useStartListening", () => {
     expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledBefore(
       endCloudsyncActivityMock,
     );
-    expect(setLeftSidebarExpandedMock).not.toHaveBeenCalled();
     consoleError.mockRestore();
   });
 

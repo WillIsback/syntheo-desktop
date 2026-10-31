@@ -8,20 +8,11 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  createNewNote: vi.fn(),
-  openSearch: vi.fn(),
-  toggleLeftSidebar: vi.fn(),
   isTauri: vi.fn(() => true),
   isFullscreen: vi.fn().mockResolvedValue(false),
   platform: "macos" as "linux" | "macos" | "windows",
   startDragging: vi.fn().mockResolvedValue(undefined),
   toggleMaximize: vi.fn().mockResolvedValue(undefined),
-  upcomingMeetingStatus: null as null | {
-    itemKey: string;
-    label: string;
-    title: string;
-  },
-  leftSidebarExpanded: true,
   currentTab: {
     active: true,
     pinned: false,
@@ -74,44 +65,24 @@ vi.mock("~/main/tab-content", () => ({
     ),
 }));
 
-vi.mock("~/sidebar/note-filter-menu", () => ({
-  SidebarNoteFilterMenu: () => <button type="button">Sort notes</button>,
+// Les navigations internes des vues (ex-barre latérale) sont simulées.
+vi.mock("~/sidebar/settings", () => ({
+  SettingsNav: () => <nav data-testid="view-nav">settings-nav</nav>,
 }));
-
-vi.mock("~/sidebar/timeline/upcoming-meeting", () => ({
-  useSidebarUpcomingMeetingStatus: () => mocks.upcomingMeetingStatus,
+vi.mock("~/sidebar/calendar", () => ({
+  CalendarNav: () => <nav data-testid="view-nav">calendar-nav</nav>,
 }));
-
-vi.mock("~/main/shell-sidebar", () => ({
-  ClassicMainSidebar: ({
-    timelineHeader,
-  }: {
-    timelineHeader?: React.ReactNode;
-  }) => (
-    <div data-testid="main-sidebar">
-      {timelineHeader}
-      <div data-sidebar-timeline-scroll />
-    </div>
-  ),
+vi.mock("~/sidebar/contacts", () => ({
+  ContactsNav: () => <nav data-testid="view-nav">contacts-nav</nav>,
 }));
-
-vi.mock("~/contexts/shell", () => ({
-  useShell: () => ({
-    leftsidebar: {
-      expanded: mocks.leftSidebarExpanded,
-      toggleExpanded: mocks.toggleLeftSidebar,
-    },
-  }),
+vi.mock("~/sidebar/templates", () => ({
+  TemplatesNav: () => <nav data-testid="view-nav">templates-nav</nav>,
 }));
-
-vi.mock("~/shared/open-note-dialog", () => ({
-  useOpenNoteDialog: () => ({
-    open: mocks.openSearch,
-  }),
+vi.mock("~/sidebar/automations", () => ({
+  AutomationsNav: () => <nav data-testid="view-nav">automations-nav</nav>,
 }));
-
-vi.mock("~/shared/useNewNote", () => ({
-  useNewNote: () => mocks.createNewNote,
+vi.mock("~/sidebar/folders", () => ({
+  FoldersNav: () => <nav data-testid="view-nav">folders-nav</nav>,
 }));
 
 vi.mock("~/store/zustand/tabs", () => ({
@@ -125,17 +96,12 @@ import { ClassicMainBody } from "~/main/body";
 
 describe("ClassicMainBody", () => {
   beforeEach(() => {
-    mocks.createNewNote.mockClear();
-    mocks.openSearch.mockClear();
-    mocks.toggleLeftSidebar.mockClear();
     mocks.isTauri.mockReturnValue(true);
     mocks.isFullscreen.mockReset();
     mocks.isFullscreen.mockResolvedValue(false);
     mocks.platform = "macos";
     mocks.startDragging.mockClear();
     mocks.toggleMaximize.mockClear();
-    mocks.upcomingMeetingStatus = null;
-    mocks.leftSidebarExpanded = true;
     mocks.currentTab = {
       active: true,
       pinned: false,
@@ -148,70 +114,54 @@ describe("ClassicMainBody", () => {
     cleanup();
   });
 
-  it("renders sidebar timeline chrome and current tab content", () => {
+  it("affiche l'onglet courant sans barre latérale ni bascule", () => {
     render(<ClassicMainBody />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Search" }));
-    fireEvent.click(screen.getByRole("button", { name: "New note" }));
-
-    expect(screen.getByTestId("main-sidebar")).toBeTruthy();
     expect(screen.getByTestId("main-tab-content").textContent).toContain(
       "empty",
     );
-    expect(mocks.openSearch).toHaveBeenCalledTimes(1);
-    expect(mocks.createNewNote).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("view-nav")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Show sidebar" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Hide sidebar" })).toBeNull();
+    expect(document.querySelector("[data-left-sidebar-chrome]")).toBeNull();
   });
 
-  it("shows the note filter while the sidebar is expanded", () => {
+  it("n'ajoute pas de navigation à une note", () => {
+    mocks.currentTab = {
+      active: true,
+      id: "s1",
+      pinned: false,
+      slotId: "slot-1",
+      type: "sessions",
+    };
+
     render(<ClassicMainBody />);
 
-    expect(screen.getByRole("button", { name: "Sort notes" })).toBeTruthy();
-  });
-
-  it("toggles the collapsed sidebar and hides the note filter", () => {
-    mocks.leftSidebarExpanded = false;
-
-    render(<ClassicMainBody />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Show sidebar" }));
-
-    expect(mocks.toggleLeftSidebar).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole("button", { name: "Sort notes" })).toBeNull();
+    expect(screen.queryByTestId("view-nav")).toBeNull();
   });
 
   it.each([
-    ["shows", undefined, true],
-    ["hides when that note is already open", "upcoming", false],
+    "settings",
+    "calendar",
+    "contacts",
+    "templates",
+    "automations",
+    "folders",
   ] as const)(
-    "%s the upcoming meeting badge on the collapsed sidebar toggle",
-    (_description, currentTabId, isBadgePresent) => {
-      mocks.leftSidebarExpanded = false;
-      mocks.upcomingMeetingStatus = {
-        itemKey: "session-upcoming",
-        label: "Starts in 3m",
-        title: "Devtool design sync",
-      };
-
-      if (currentTabId) {
-        mocks.currentTab = {
-          active: true,
-          id: currentTabId,
-          pinned: false,
-          slotId: "slot-1",
-          type: "sessions",
-        };
-      }
+    "la vue %s porte sa navigation dans sa zone de contenu",
+    (type) => {
+      mocks.currentTab = { active: true, pinned: false, slotId: "s", type };
 
       render(<ClassicMainBody />);
 
-      const sidebarToggle = screen.getByRole("button", {
-        name: "Show sidebar",
+      const aside = screen.getByRole("complementary", {
+        name: "View navigation",
       });
-      const badge = within(sidebarToggle).queryByTestId(
-        "collapsed-sidebar-upcoming-meeting-badge",
+      expect(within(aside).getByTestId("view-nav").textContent).toBe(
+        `${type}-nav`,
       );
-
-      expect(Boolean(badge)).toBe(isBadgePresent);
+      expect(screen.getByTestId("main-tab-content").textContent).toBe(type);
+      expect(aside.closest("[data-main-content-panel]")).toBeTruthy();
     },
   );
 
@@ -293,7 +243,7 @@ describe("ClassicMainBody", () => {
     const { container } = render(<ClassicMainBody />);
     const view = within(container);
 
-    expect(view.getByTestId("main-sidebar")).toBeTruthy();
+    expect(container.querySelector("[data-main-content-panel]")).toBeTruthy();
     expect(view.queryByTestId("main-tab-content")).toBeNull();
   });
 });

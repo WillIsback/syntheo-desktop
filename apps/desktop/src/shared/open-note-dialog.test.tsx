@@ -1,10 +1,20 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   openCurrent: vi.fn(),
   openNew: vi.fn(),
   onOpenChange: vi.fn(),
+  createNewNote: vi.fn(),
+  setSelectedPath: vi.fn(),
+  folderPaths: [] as string[],
   notes: [] as Array<{
     shareId: string;
     sessionId: string;
@@ -29,6 +39,17 @@ vi.mock("~/settings/team/mirror", () => ({
 
 vi.mock("~/session/queries", () => ({
   useSessionSummaries: () => mocks.sessions,
+  useFolderPaths: () => mocks.folderPaths,
+}));
+
+vi.mock("~/shared/useNewNote", () => ({
+  useNewNote: () => mocks.createNewNote,
+}));
+
+vi.mock("~/folders/selection", () => ({
+  useFolderSelection: {
+    getState: () => ({ setSelectedPath: mocks.setSelectedPath }),
+  },
 }));
 
 vi.mock("~/shared-notes/cache", () => ({
@@ -50,13 +71,21 @@ vi.mock("~/store/zustand/tabs", () => ({
     }),
 }));
 
-import { OpenNoteDialog } from "./open-note-dialog";
+import {
+  closeNoteDialog,
+  OpenNoteDialog,
+  openNoteDialog,
+  OpenNoteDialogProvider,
+  useOpenNoteDialog,
+} from "./open-note-dialog";
 
 describe("OpenNoteDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.notes = [];
     mocks.sessions = [];
+    mocks.folderPaths = [];
+    closeNoteDialog();
     globalThis.ResizeObserver = class {
       observe() {}
       unobserve() {}
@@ -118,5 +147,56 @@ describe("OpenNoteDialog", () => {
     });
 
     expect(screen.getByText("No results found.")).toBeTruthy();
+  });
+
+  it("propose « Nouvelle note » et crée une note", () => {
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+
+    fireEvent.click(screen.getByRole("option", { name: /New note/ }));
+
+    expect(mocks.onOpenChange).toHaveBeenCalledWith(false);
+    expect(mocks.createNewNote).toHaveBeenCalledOnce();
+  });
+
+  it("ouvre un dossier depuis la recherche (ex-filtre de la barre latérale)", () => {
+    mocks.folderPaths = ["Clients/ACME"];
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+
+    expect(screen.queryByRole("option", { name: /ACME/ })).toBeNull();
+
+    fireEvent.change(screen.getByPlaceholderText("Search notes and pages..."), {
+      target: { value: "acme" },
+    });
+    fireEvent.click(screen.getByRole("option", { name: /ACME/ }));
+
+    expect(mocks.setSelectedPath).toHaveBeenCalledWith("Clients/ACME");
+    expect(mocks.openNew).toHaveBeenCalledWith({ type: "folders" });
+  });
+
+  it("s'ouvre depuis n'importe où via openNoteDialog()", () => {
+    render(
+      <OpenNoteDialogProvider>
+        <p>contenu</p>
+      </OpenNoteDialogProvider>,
+    );
+
+    expect(
+      screen.queryByPlaceholderText("Search notes and pages..."),
+    ).toBeNull();
+
+    act(() => openNoteDialog());
+
+    expect(
+      screen.getByPlaceholderText("Search notes and pages..."),
+    ).toBeTruthy();
+  });
+
+  it("garde une API useOpenNoteDialog stable, même hors provider", () => {
+    const { result, rerender } = renderHook(() => useOpenNoteDialog());
+    const first = result.current;
+    rerender();
+
+    expect(result.current).toBe(first);
+    expect(result.current.open).toBe(openNoteDialog);
   });
 });
