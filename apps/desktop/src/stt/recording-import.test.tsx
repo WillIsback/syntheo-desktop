@@ -138,3 +138,35 @@ it("runs imports without any account and finishes them after the worker unmounts
   expect(job.state().status).toBe("done");
   job.client.clear();
 });
+
+// Issue #271 : le battement de cœur réécrivait la base toutes les 5 s, même au
+// repos, ce qui gardait le journal WAL de SQLite en écriture continue.
+it("keeps the idle worker heartbeat to a few database writes per minute", async () => {
+  vi.useFakeTimers();
+  mocks.execute.mockResolvedValue([]);
+  mocks.transaction.mockResolvedValue([]);
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const view = render(
+    <QueryClientProvider client={client}>
+      <RecordingImportWorker />
+    </QueryClientProvider>,
+  );
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(100);
+  });
+  const heartbeatWrites = () =>
+    mocks.transaction.mock.calls.filter(([statements]) =>
+      (statements as { sql: string }[]).some((statement) =>
+        statement.sql.includes("local_recording_import_worker"),
+      ),
+    ).length;
+  expect(heartbeatWrites()).toBe(1);
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(60_000);
+  });
+  expect(heartbeatWrites() - 1).toBeLessThanOrEqual(2);
+  view.unmount();
+  client.clear();
+});
