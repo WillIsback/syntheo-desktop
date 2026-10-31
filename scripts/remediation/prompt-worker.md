@@ -48,9 +48,11 @@ Si aucune commande n'est listée, ne lance rien et commit quand même après rel
   `secret-reel`. Pour les faux positifs, ajoute une entrée ciblée dans `.gitleaks.toml`
   (allowlist par chemin ou regex précise, jamais globale). Pour un secret réel, ne le
   copie pas, ne le commite pas : signale `SECRET_NEEDS_ROTATION: <fichier>:<ligne>`.
-- Pour `sonar` : corrige toutes les issues listées dans ce fichier. Priorise les
-  bugs et vulnérabilités, puis les code smells. Ne change pas le comportement
-  fonctionnel sans nécessité, et garde les tests existants verts.
+- Pour `aikido` : corrige toutes les issues listées dans ce fichier (SAST, IaC), en
+  commençant par les plus sévères. Chaque alerte donne une piste (`remediation`). Ne
+  change pas le comportement fonctionnel sans nécessité, et garde les tests existants
+  verts. Pour un faux positif avéré, ne contourne pas la règle : réponds
+  `needs-human` en expliquant pourquoi.
 - Commit en Conventional Commits : `fix(security): ...` ou `chore(deps): ...`.
 - Réponds en JSON, sans texte autour :
 

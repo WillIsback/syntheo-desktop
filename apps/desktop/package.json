@@ -18,8 +18,8 @@
     "tauri:build": "tauri build"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^2.0.41",
-    "@ai-sdk/react": "^3.0.160",
+    "@ai-sdk/openai-compatible": "^2.0.88",
+    "@ai-sdk/react": "^3.0.323",
     "@emoji-mart/data": "^1.2.1",
     "@floating-ui/react": "^0.27.20",
     "@fontsource-variable/geist": "^5.3.0",
@@ -83,7 +83,7 @@
     "@tauri-apps/plugin-os": "^2.4.0",
     "@tauri-apps/plugin-process": "^2.4.0",
     "@uidotdev/usehooks": "^2.4.1",
-    "ai": "^6.0.158",
+    "ai": "^6.0.320",
     "chroma-js": "^3.2.0",
     "cmdk": "1.1.1",
     "cuelume": "^0.2.8",
