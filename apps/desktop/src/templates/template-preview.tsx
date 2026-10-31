@@ -60,7 +60,7 @@ export function TemplatePreview({
                 {section.title.trim() || t`Untitled section`}
               </h3>
               {section.description.trim() ? (
-                <p className="text-faint text-sm whitespace-pre-line italic">
+                <p className="text-muted-foreground text-sm whitespace-pre-line italic">
                   {section.description}
                 </p>
               ) : null}

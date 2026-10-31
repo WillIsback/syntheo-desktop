@@ -375,7 +375,7 @@ export function OpenNoteDialog({
       >
         <NotePencil className="text-muted-foreground h-4 w-4 shrink-0" />
         <span className="truncate">{newNoteLabel}</span>
-        <kbd className="text-faint ml-auto shrink-0 font-sans text-xs">
+        <kbd className="text-muted-foreground ml-auto shrink-0 font-sans text-xs">
           Ctrl N
         </kbd>
       </CommandPrimitive.Item>

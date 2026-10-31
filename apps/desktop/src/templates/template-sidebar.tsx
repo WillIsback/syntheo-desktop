@@ -307,7 +307,7 @@ export function TemplatesSidebarContent({
                     label={autoLabel}
                     meta={
                       autoPrompt.trim() ? (
-                        <span className="text-faint text-xs">
+                        <span className="text-muted-foreground text-xs">
                           <Trans>customized</Trans>
                         </span>
                       ) : null
@@ -456,7 +456,7 @@ function UserTemplateListItem({
       meta={
         <>
           {isDefault ? (
-            <span className="text-faint text-xs font-normal">
+            <span className="text-muted-foreground text-xs font-normal">
               <Trans>default</Trans>
             </span>
           ) : null}

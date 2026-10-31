@@ -65,8 +65,8 @@
     --faint: 90 6% 48%; /* #7b8274 nouveau, jamais pour du texte à lire */
     --accent: 141 22% 18%; /* #24382b */
     --accent-foreground: 140 36% 72%; /* #9fd2b0 */
-    --destructive: 358 51% 37%; /* #8f2f33 */
-    --destructive-foreground: 4 67% 95%; /* #fbeceb */
+    --destructive: 358 66% 64%; /* #e0676b lot 6 : lisible en texte sur sumi (5.05:1) */
+    --destructive-foreground: 358 45% 12%; /* #2c1112 lot 6 : texte foncé sur rouge clair (5.26:1) */
     --alert: 358 35% 17%; /* #3a1c1d */
     --alert-foreground: 4 77% 75%; /* #f0938d */
     --alert-border: 359 36% 26%; /* #5a2a2b */
