@@ -18,7 +18,11 @@ use crate::actors::{ListenerConfigUpdate, ListenerInitError, ListenerMsg};
 use self::children::ChildKind;
 use self::mode::SessionModeState;
 
-const LISTENER_RETRY_DELAYS: [Duration; 5] = [
+// La première reconnexion est rapide : une coupure isolée (flux fermé par le
+// serveur ou par un proxy comme Caddy lors d'un rechargement) est réparée en
+// une seconde, au lieu de laisser la transcription en direct « en pause ».
+const LISTENER_RETRY_DELAYS: [Duration; 6] = [
+    Duration::from_secs(1),
     Duration::from_secs(2),
     Duration::from_secs(5),
     Duration::from_secs(10),
@@ -807,14 +811,25 @@ mod tests {
         assert!(should_retry_listener_failure(
             &DegradedError::ConnectionTimeout
         ));
-        assert_eq!(listener_retry_base_delay(0), Duration::from_secs(2));
-        assert_eq!(listener_retry_base_delay(3), Duration::from_secs(20));
+        assert_eq!(listener_retry_base_delay(0), Duration::from_secs(1));
+        assert_eq!(listener_retry_base_delay(1), Duration::from_secs(2));
+        assert_eq!(listener_retry_base_delay(4), Duration::from_secs(20));
         assert_eq!(listener_retry_base_delay(20), Duration::from_secs(30));
+    }
+
+    /// Une coupure isolée du flux (fermeture côté serveur ou proxy, rechargement
+    /// de Caddy) doit être réparée vite : chaque seconde de reconnexion est une
+    /// seconde affichée « en pause » et perdue pour la transcription.
+    #[test]
+    fn first_listener_reconnect_is_fast() {
+        let first = listener_retry_delay(0, None, "session-a");
+        assert!(first >= Duration::from_secs(1));
+        assert!(first <= Duration::from_millis(1_200));
     }
 
     #[test]
     fn listener_retry_delay_adds_jitter_and_honors_retry_after() {
-        let normal = listener_retry_delay(0, None, "session-a");
+        let normal = listener_retry_delay(1, None, "session-a");
         assert!(normal >= Duration::from_secs(2));
         assert!(normal <= Duration::from_millis(2_400));
 

@@ -39,7 +39,7 @@ describe("BatchState", () => {
     render(<BatchState requestedLiveTranscription />);
 
     expect(screen.getByRole("status").textContent).toMatch(
-      /^Transcript en direct en pause : Nemotron ASR \(NIM, WebSocket\) subit une panne\./,
+      /^Live transcription paused: Nemotron ASR \(NIM, WebSocket\) is having an outage\./,
     );
   });
 });

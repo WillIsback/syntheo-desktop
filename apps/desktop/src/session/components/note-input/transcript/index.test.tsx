@@ -70,6 +70,8 @@ vi.mock("./screens/interrupted", () => ({
   LiveTranscriptInterruptedNotice: () => (
     <p data-testid="live-transcript-paused" />
   ),
+  LiveTranscriptStatusNotice: ({ interrupted }: { interrupted: boolean }) =>
+    interrupted ? <p data-testid="live-transcript-paused" /> : null,
 }));
 
 vi.mock("~/stt/useUploadFile", () => ({
@@ -203,7 +205,7 @@ describe("Transcript", () => {
 
     render(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
 
-    expect(screen.queryByText("Finalizing transcript...")).toBeNull();
+    expect(screen.queryByText("Finalizing transcription…")).toBeNull();
     expect(screen.getByTestId("transcript-viewer")).not.toBeNull();
   });
 
@@ -287,7 +289,7 @@ describe("Transcript", () => {
     render(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
     expect(screen.getByTestId("transcript-viewer")).not.toBeNull();
     expect(screen.getByRole("status").textContent).toBe(
-      "Ce transcript est incomplet.",
+      "This transcription is incomplete.",
     );
   });
   it("incomplete_capture_banner_lists_dated_gaps", () => {
