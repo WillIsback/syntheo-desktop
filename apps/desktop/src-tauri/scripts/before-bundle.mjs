@@ -27,8 +27,4 @@ if (process.platform === "win32") {
   process.exit(0);
 }
 
-if (process.platform === "darwin") {
-  await runScript("compile-icons.sh");
-}
-
 await runScript("fix-dylib.sh");
