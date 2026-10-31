@@ -21,12 +21,10 @@ describe("StartButton", () => {
     const steps = button.querySelector("[data-steps]");
     expect(
       Array.from(steps?.children ?? []).map((step) => step.textContent),
-    ).toEqual(["備Prepare", "聴Listen", "結Synthesis"]);
-    for (const kanji of Array.from(
-      steps?.querySelectorAll(".font-kanji") ?? [],
-    )) {
-      expect(kanji.getAttribute("aria-hidden")).toBe("true");
-    }
+    ).toEqual(["1Prepare", "2Listen", "3Synthesis"]);
+    // Pas de kanji ici : un seul clin d'œil par zone (le filigrane 茶).
+    expect(steps?.querySelector(".font-kanji")).toBeNull();
+    expect(button.textContent).not.toMatch(/[備聴結]/);
   });
 
   it("utilise les jetons primary, rayon 16px et un focus visible", () => {
