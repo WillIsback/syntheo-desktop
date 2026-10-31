@@ -1,6 +1,8 @@
 // Must be the first import: React only reports commits to a devtools hook that
 // exists before react-dom evaluates.
 import "./devtools-bar/render-hook";
+import "@fontsource-variable/geist";
+import "@fontsource-variable/newsreader";
 import "./styles/globals.css";
 import "./styles/cursor.css";
 
