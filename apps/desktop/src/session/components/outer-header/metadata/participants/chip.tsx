@@ -74,7 +74,7 @@ export function ParticipantChip({
       {isEnhancing && (
         <span
           aria-hidden="true"
-          className="animate-shimmer pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/60 to-transparent"
+          className="animate-shimmer via-background/60 pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent to-transparent"
         />
       )}
       <span className="relative">{displayName}</span>

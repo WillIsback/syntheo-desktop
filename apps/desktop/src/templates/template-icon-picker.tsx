@@ -3,6 +3,7 @@ import { useLingui } from "@lingui/react/macro";
 import { useMemo, useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
+import { DesignColors } from "@syntheo/design-system";
 import { Check, MagnifyingGlass, X } from "@syntheo/ui/components/icons";
 import {
   AppFloatingPanel,
@@ -20,16 +21,21 @@ import {
   type TemplateIcon,
 } from "./template-icon";
 
+// Couleurs proposées pour l'icône d'un modèle ou d'un dossier. Ce sont des
+// valeurs enregistrées telles quelles avec le modèle (choix de l'utilisateur),
+// d'où les hex : la première est le gris par défaut stocké en base
+// (packages/db/src/schema.ts), les suivantes reprennent les couleurs
+// traditionnelles de l'identité « Thé vert » (identite.md, chart-1..5).
 const ICON_COLORS = [
-  "#9ca3af",
-  "#94a3b8",
-  "#5b67d8",
-  "#25b5c9",
-  "#4ab883",
-  "#f2bd00",
-  "#ef923d",
-  "#c99b92",
-  "#f05257",
+  "#9ca3af", // gris par défaut (DEFAULT_TEMPLATE_ICON)
+  "#5c6357", // 利休鼠 rikyū-nezumi (muted-foreground)
+  "#316745", // 千歳緑 chitose-midori (primary, chart-1)
+  "#165e83", // 藍 ai (chart-2)
+  "#00a3af", // 浅葱 asagi
+  "#93691a", // 山吹 yamabuki (chart-3)
+  "#ed6d3d", // 柿 kaki
+  "#674a8c", // 江戸紫 edo-murasaki (chart-4)
+  "#c53d43", // 紅 beni (chart-5)
 ];
 
 const EMOJI_CATEGORY_IDS = new Set([
@@ -328,7 +334,10 @@ export function TemplateIconPicker({
                       aria-label={`Use ${color}`}
                     >
                       {iconColor.toLowerCase() === color.toLowerCase() ? (
-                        <Check className="size-4 text-white" />
+                        <Check
+                          className="size-4"
+                          style={{ color: DesignColors.light.background }}
+                        />
                       ) : null}
                     </button>
                   ))}

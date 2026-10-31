@@ -66,7 +66,7 @@ export async function generateTemplate({
       icon: normalizeTemplateIcon({
         type: "icon",
         value: object.icon,
-        color: "#1a73e8",
+        color: "#165e83", // 藍 ai (chart-2), enregistré avec le modèle
       }),
       sections: object.sections,
     };

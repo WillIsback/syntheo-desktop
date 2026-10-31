@@ -7,6 +7,12 @@ import {
 } from "@syntheo/plugin-windows";
 import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
+import { tokensFor, withAlpha } from "./palette";
+
+// Sous-titres : toujours sur fond sumi (jetons sombres), comme des sous-titres
+// de télévision, quel que soit le thème de l'app.
+const CAPTION = tokensFor("dark");
+
 const LIVE_CAPTION_MIN_WIDTH = 260;
 const LIVE_CAPTION_MAX_WIDTH = 640;
 const LIVE_CAPTION_MIN_LINE_COUNT = 1;
@@ -122,13 +128,14 @@ export function LiveCaptionOverlay({
         style={{
           width,
           borderRadius: LIVE_CAPTION_CORNER_RADIUS,
-          background: `rgba(0, 0, 0, ${opacity})`,
+          background: withAlpha(CAPTION.background, opacity * 100),
         }}
       >
         <p
           data-tauri-drag-region
-          className="m-0 text-center text-[16px] leading-[22px] font-medium text-white"
+          className="m-0 text-center text-[16px] leading-[22px] font-medium"
           style={{
+            color: CAPTION.foreground,
             padding: `${LIVE_CAPTION_VERTICAL_PADDING}px ${LIVE_CAPTION_HORIZONTAL_PADDING}px`,
             minHeight:
               LIVE_CAPTION_LINE_HEIGHT * lineCount +
@@ -148,7 +155,7 @@ export function LiveCaptionOverlay({
           className="shrink-0"
           style={{
             height: LIVE_CAPTION_FOOTER_SEPARATOR_HEIGHT,
-            background: "rgba(255, 255, 255, 0.16)",
+            background: withAlpha(CAPTION.foreground, 16),
           }}
         />
         <div
@@ -171,7 +178,8 @@ export function LiveCaptionOverlay({
             onChange={(event) => {
               onOpacityChange(Number(event.currentTarget.value));
             }}
-            className="h-1 w-[120px] cursor-pointer appearance-none rounded-full bg-white/25"
+            className="h-1 w-[120px] cursor-pointer appearance-none rounded-full"
+            style={{ background: withAlpha(CAPTION.foreground, 25) }}
           />
           <span className="flex-1" />
           <button
@@ -179,10 +187,11 @@ export function LiveCaptionOverlay({
             data-tauri-drag-region="false"
             aria-label="Hide transcript"
             onClick={onHide}
-            className="h-5 rounded-full px-2 text-[11px] font-semibold text-white/90"
+            className="h-5 rounded-full px-2 text-[11px] font-semibold"
             style={{
-              background: "rgba(0, 0, 0, 0.42)",
-              boxShadow: "inset 0 0 0 0.5px rgba(255, 255, 255, 0.18)",
+              color: CAPTION.foreground,
+              background: withAlpha(CAPTION.card, 70),
+              boxShadow: `inset 0 0 0 0.5px ${withAlpha(CAPTION.foreground, 18)}`,
             }}
           >
             Hide

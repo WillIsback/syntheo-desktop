@@ -280,7 +280,7 @@ export function TemplatePickerPopover({
           icon: {
             type: "icon",
             value: "sparkles",
-            color: "#9ca3af",
+            color: DEFAULT_TEMPLATE_ICON.color,
           } satisfies TemplateIcon,
           onClick: () =>
             handleUseTemplate({
@@ -309,7 +309,7 @@ export function TemplatePickerPopover({
       {
         key: "create",
         title: "Create new template",
-        icon: <Plus className="h-3.5 w-3.5 text-blue-500" />,
+        icon: <Plus className="text-primary h-3.5 w-3.5" />,
         uppercase: false,
         items: [
           {
@@ -610,7 +610,7 @@ function TemplateResultButton({
           {title}
         </span>
         {isFavorite ? (
-          <Heart aria-hidden className="size-3.5 shrink-0 text-rose-500" />
+          <Heart aria-hidden className="text-primary size-3.5 shrink-0" />
         ) : null}
       </button>
       {regenerateLabel && onRegenerate ? (

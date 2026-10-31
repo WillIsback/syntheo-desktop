@@ -1,5 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 
+import { DesignColors } from "@syntheo/design-system";
 import { Check } from "@syntheo/ui/components/icons";
 import { cn } from "@syntheo/utils";
 
@@ -108,49 +109,46 @@ function ThemePreview({ theme }: { theme: ThemePreference }) {
 }
 
 function PreviewCanvas({ dark }: { dark: boolean }) {
+  // L'aperçu montre la palette du thème choisi, pas celle du thème courant :
+  // on lit donc les jetons TypeScript plutôt que les variables CSS.
+  const c = dark ? DesignColors.dark : DesignColors.light;
   return (
     <div
-      className={cn([
-        "absolute inset-0 flex flex-col p-3",
-        dark ? "bg-neutral-950 text-neutral-100" : "bg-white text-neutral-900",
-      ])}
+      className="absolute inset-0 flex flex-col p-3"
+      style={{ background: c.background, color: c.foreground }}
     >
       <div className="mb-3 flex gap-1">
-        <span className="size-1.5 rounded-full bg-red-400" />
-        <span className="size-1.5 rounded-full bg-amber-400" />
-        <span className="size-1.5 rounded-full bg-green-400" />
+        <span
+          className="size-1.5 rounded-full"
+          style={{ background: c.recording }}
+        />
+        <span
+          className="size-1.5 rounded-full"
+          style={{ background: c.faint }}
+        />
+        <span
+          className="size-1.5 rounded-full"
+          style={{ background: c.primary }}
+        />
       </div>
       <div className="flex flex-1 gap-3">
-        <div
-          className={cn([
-            "w-1/4 rounded-md",
-            dark ? "bg-neutral-800" : "bg-neutral-100",
-          ])}
-        />
+        <div className="w-1/4 rounded-md" style={{ background: c.muted }} />
         <div className="flex flex-1 flex-col gap-2 py-1">
           <span
-            className={cn([
-              "h-1.5 w-10 rounded-full",
-              dark ? "bg-neutral-300" : "bg-neutral-700",
-            ])}
+            className="h-1.5 w-10 rounded-full"
+            style={{ background: c.foreground }}
           />
           <span
-            className={cn([
-              "h-1 w-4/5 rounded-full",
-              dark ? "bg-neutral-700" : "bg-neutral-200",
-            ])}
+            className="h-1 w-4/5 rounded-full"
+            style={{ background: c.border }}
           />
           <span
-            className={cn([
-              "h-1 w-3/5 rounded-full",
-              dark ? "bg-neutral-700" : "bg-neutral-200",
-            ])}
+            className="h-1 w-3/5 rounded-full"
+            style={{ background: c.border }}
           />
           <span
-            className={cn([
-              "h-1 w-2/3 rounded-full",
-              dark ? "bg-neutral-700" : "bg-neutral-200",
-            ])}
+            className="h-1 w-2/3 rounded-full"
+            style={{ background: c.aiInk }}
           />
         </div>
       </div>

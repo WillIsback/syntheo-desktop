@@ -55,7 +55,7 @@ export function EventChip({
   const trackingId = event?.tracking_id_event ?? undefined;
   const recurrenceSeriesId = event?.recurrence_series_id ?? undefined;
   const isAllDay = !!event?.is_all_day;
-  const color = event?.calendar_color || "#888";
+  const color = event?.calendar_color || "hsl(var(--faint))";
 
   const startedAt = event?.started_at
     ? format(toTz(event.started_at, tz), timeFormat)

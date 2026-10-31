@@ -95,8 +95,8 @@ export function ContactPageHeader({
                 <DropdownMenuItem
                   onClick={onDelete}
                   className={cn([
-                    "cursor-pointer text-red-600 dark:text-red-400",
-                    "hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/50 dark:hover:text-red-300",
+                    "text-destructive cursor-pointer",
+                    "hover:bg-alert hover:text-alert-foreground",
                   ])}
                 >
                   <Trash />

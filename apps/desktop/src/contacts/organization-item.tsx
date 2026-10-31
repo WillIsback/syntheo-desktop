@@ -80,7 +80,7 @@ export function OrganizationItem({
         <span
           role="img"
           aria-label="Pinned organization"
-          className="shrink-0 p-1 text-blue-600"
+          className="text-primary shrink-0 p-1"
         >
           <PushPin className="size-3.5" weight="bold" />
         </span>
@@ -90,7 +90,7 @@ export function OrganizationItem({
           className={cn([
             "shrink-0 rounded-xs p-1 transition-colors",
             isPinned
-              ? "text-blue-600 hover:text-blue-700"
+              ? "text-primary hover:text-primary-hover"
               : "text-muted-foreground/70 hover:text-muted-foreground opacity-0 group-hover:opacity-100",
           ])}
           aria-label={isPinned ? "Unpin organization" : "Pin organization"}

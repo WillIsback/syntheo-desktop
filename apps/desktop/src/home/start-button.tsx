@@ -3,11 +3,13 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { Microphone } from "@syntheo/ui/components/icons";
 import { cn } from "@syntheo/utils";
 
-// Kanji d'ornement des trois étapes (identite.md § Clins d'œil).
+// Les trois étapes, numérotées comme dans la maquette (piste C). Les kanji
+// d'étape sont réservés à la capsule : l'accueil porte déjà son filigrane, et
+// identite.md limite les clins d'œil à un par zone.
 const STEPS = [
-  { kanji: "備", key: "prepare" },
-  { kanji: "聴", key: "listen" },
-  { kanji: "結", key: "synthesis" },
+  { number: "1", key: "prepare" },
+  { number: "2", key: "listen" },
+  { number: "3", key: "synthesis" },
 ] as const;
 
 // Le seul bouton `primary` de l'accueil : crée une note et l'ouvre.
@@ -63,8 +65,8 @@ export function StartButton({
               key={step.key}
               className="border-primary-foreground/25 rounded-pill border px-[9px] py-px opacity-85"
             >
-              <span aria-hidden="true" className="font-kanji mr-1 opacity-70">
-                {step.kanji}
+              <span aria-hidden="true" className="mr-1 tabular-nums opacity-70">
+                {step.number}
               </span>
               {labels[step.key]}
             </span>

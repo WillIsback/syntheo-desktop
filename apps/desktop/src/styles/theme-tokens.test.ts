@@ -57,6 +57,10 @@ describe("palette Syntheo « Thé vert »", () => {
     expect(dark["--background"]).toBe("105 7% 11%"); // #1b1e1a
     expect(dark["--border"]).toBe("105 7% 21%"); // #343a32
     expect(dark["--foreground"]).toBe("46 25% 90%"); // #ece9df
+    // Lot 6 : rouge clair + texte foncé, pour que `text-destructive` reste
+    // lisible sur le fond sumi (≥ 4.5:1, voir theme-contrast.test.ts).
+    expect(dark["--destructive"]).toBe("358 66% 64%"); // #e0676b
+    expect(dark["--destructive-foreground"]).toBe("358 45% 12%"); // #2c1112
   });
 
   it("réserve le rouge beni à l'écoute et au sceau, l'encre IA au vert", () => {
@@ -99,6 +103,9 @@ describe("DesignColors Syntheo", () => {
     expect(DesignColors.dark.background).toBe("#1B1E1A");
     expect(DesignColors.dark.border).toBe("#343A32");
     expect(DesignColors.dark.recording).toBe("#E5675F");
+    expect(DesignColors.dark.destructive).toBe("#E0676B");
+    expect(DesignColors.dark.destructiveForeground).toBe("#2C1112");
+    expect(DesignColors.light.chart3).toBe("#93691A"); // 39 70% 34%
   });
 
   it("expose les mêmes clés en clair et en sombre", () => {

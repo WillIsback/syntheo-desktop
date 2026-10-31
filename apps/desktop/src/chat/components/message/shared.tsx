@@ -54,7 +54,7 @@ export function MessageBubble({
       className={cn([
         "select-text-deep overflow-wrap-anywhere max-w-full min-w-0 text-sm",
         variant === "user" &&
-          "w-fit rounded-2xl bg-blue-100 px-3 py-1 text-neutral-800 [&_p]:[text-wrap:wrap]",
+          "bg-accent text-foreground w-fit rounded-2xl px-3 py-1 [&_p]:[text-wrap:wrap]",
         variant === "assistant" &&
           (isDarkAppearance
             ? "bg-accent text-accent-foreground rounded-2xl px-3 py-1"
@@ -64,7 +64,7 @@ export function MessageBubble({
             ? "bg-accent text-accent-foreground w-fit rounded-2xl px-3 py-1"
             : "text-foreground"),
         variant === "error" &&
-          "rounded-2xl border border-red-200 bg-red-50 px-3 py-1 text-red-600",
+          "border-alert-border bg-alert text-alert-foreground rounded-2xl border px-3 py-1",
         withActionButton && "group relative",
       ])}
     >
@@ -98,8 +98,8 @@ export function ActionButton({
           "text-muted-foreground hover:text-foreground",
         ],
         variant === "error" && [
-          "bg-red-100 hover:bg-red-200",
-          "text-red-600 hover:text-red-800",
+          "bg-alert hover:bg-alert-border",
+          "text-alert-foreground hover:text-destructive",
         ],
       ])}
     >

@@ -80,6 +80,13 @@ html[data-rounded-window] #root {
   --color-recording: hsl(var(--recording));
   --color-seal: hsl(var(--seal));
   --color-ai-ink: hsl(var(--ai-ink));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-scrim: var(--scrim);
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
   --color-muted: hsl(var(--muted));
@@ -91,9 +98,10 @@ html[data-rounded-window] #root {
 
   --color-sidebar-accent: hsl(var(--sidebar-accent));
 
-  --kbd-press-shadow-outer: rgba(0, 0, 0, 0.1);
-  --kbd-press-shadow-inset: rgba(255, 255, 255, 0.8);
-  --selection-overlay: rgba(59, 130, 246, 0.3);
+  /* Dérivés des jetons (tokens.css) : suivent le thème clair ou sombre. */
+  --kbd-press-shadow-outer: var(--kbd-shadow-outer);
+  --kbd-press-shadow-inset: var(--kbd-shadow-inset);
+  --selection-overlay: hsl(var(--primary) / 0.25);
 
   --animate-shimmer: shimmer 2s infinite;
   --animate-logo-shimmer-sweep: logo-shimmer-sweep 2.4s ease-in-out infinite;
@@ -313,14 +321,16 @@ html[data-rounded-window] #root {
   }
 }
 
-/* Search result highlighting styles — matches transcript's bg-yellow-200/50 and bg-yellow-500 */
+/* Surlignage de recherche, dérivé de chart-3 (山吹) comme le mot actif de la
+ * transcription. Texte foreground lisible dessus : ≥ 6:1 en clair, ≥ 5.9:1 en
+ * sombre (opacité réduite en sombre, chart-3 y étant plus clair). */
 .ProseMirror-search-match {
-  background-color: rgb(254 240 138 / 0.5);
+  background-color: hsl(var(--chart-3) / 0.25);
   border-radius: 2px;
 }
 
 .ProseMirror-active-search-match {
-  background-color: rgb(234 179 8) !important;
+  background-color: hsl(var(--chart-3) / 0.55) !important;
   border-radius: 2px;
 }
 
@@ -336,4 +346,25 @@ html[data-rounded-window] #root {
 .rounded-pill {
   border-radius: calc(infinity * 1px);
   corner-shape: round;
+}
+
+/* Mouvement réduit (lot 6) : on fige les animations décoratives en boucle
+ * (niveau sonore, points d'enregistrement, curseur de génération, reflets,
+ * squelettes). Les indicateurs de progression (animate-spin) restent. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-pulse,
+  .animate-ping,
+  .animate-bounce,
+  .animate-shimmer,
+  .animate-wiggle,
+  .animate-kbd-press,
+  .animate-logo-shimmer-sweep,
+  .animate-syntheo-dancing-stick,
+  [class*="animate-title-hover-scroll"] {
+    animation: none !important;
+  }
 }

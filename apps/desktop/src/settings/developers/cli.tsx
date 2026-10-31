@@ -132,7 +132,7 @@ function CliSection({
               {isInstalled && (
                 <CheckCircle
                   aria-label={t`Installed`}
-                  className="size-3.5 text-emerald-600"
+                  className="text-primary size-3.5"
                 />
               )}
             </h3>
@@ -205,9 +205,7 @@ function CliStatus({
       <span
         className={cn([
           "mt-1 size-2 shrink-0 rounded-full",
-          status.state === "conflict"
-            ? "bg-amber-500"
-            : "bg-muted-foreground/50",
+          status.state === "conflict" ? "bg-chart-3" : "bg-muted-foreground/50",
         ])}
       />
       <span className="text-muted-foreground break-all">

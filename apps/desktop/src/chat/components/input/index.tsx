@@ -191,7 +191,7 @@ function Container({
           "flex max-h-full border",
           isFloating
             ? [
-                "border-border/70 text-card-foreground max-h-40 min-h-10 flex-row overflow-hidden rounded-[20px] bg-white pr-[6px] pl-4 text-sm shadow-none",
+                "border-border/70 text-card-foreground bg-card max-h-40 min-h-10 flex-row overflow-hidden rounded-[20px] pr-[6px] pl-4 text-sm shadow-none",
                 "dark:bg-card dark:text-card-foreground",
                 hasVoiceStatus ? "items-stretch py-2" : "items-center py-[3px]",
               ]
@@ -308,7 +308,7 @@ function SendButton({
         "chat-input-send",
         "border-border text-muted-foreground/60 inline-flex size-7 shrink-0 items-center justify-center rounded-full border transition-all duration-100",
         !disabled && [
-          "bg-primary text-primary-foreground border-stone-600",
+          "bg-primary text-primary-foreground border-primary",
           "hover:bg-primary/90",
           "active:bg-primary/80 active:scale-[0.97]",
         ],

@@ -256,7 +256,9 @@ function RenderContent({ part }: { readonly part: Part }) {
   }
 
   if (part.state === "output-error") {
-    return <div className="text-sm text-red-500">Error: {part.errorText}</div>;
+    return (
+      <div className="text-destructive text-sm">Error: {part.errorText}</div>
+    );
   }
 
   return details.length > 0 ? (

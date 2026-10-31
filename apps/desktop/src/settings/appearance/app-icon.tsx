@@ -121,7 +121,7 @@ export function AppIconSelector() {
                 data-app-icon-stage=""
                 className={cn([
                   "rounded-pill pointer-events-none absolute bottom-0.5 left-1/2 h-4 w-14 -translate-x-1/2",
-                  "bg-sky-400/60 blur-md dark:bg-sky-300/55",
+                  "bg-primary/45 blur-md",
                   "transition-opacity duration-150",
                   selected ? "opacity-100" : "opacity-0",
                 ])}
@@ -130,7 +130,7 @@ export function AppIconSelector() {
                 aria-hidden
                 className={cn([
                   "rounded-pill pointer-events-none absolute bottom-1.5 left-1/2 h-1.5 w-8 -translate-x-1/2",
-                  "bg-sky-300/90 blur-[3px] dark:bg-sky-200/80",
+                  "bg-primary/70 blur-[3px]",
                   "transition-opacity duration-150",
                   selected ? "opacity-100" : "opacity-0",
                 ])}

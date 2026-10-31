@@ -254,8 +254,8 @@ function WorkflowCard({
         className={cn([
           "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
           kind === "trigger"
-            ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
-            : "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+            ? "bg-chart-3/15 text-foreground"
+            : "bg-chart-2/15 text-chart-2",
         ])}
       >
         {kind === "trigger" ? "1" : "+"}

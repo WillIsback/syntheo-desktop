@@ -141,7 +141,7 @@ export function TemplateUsesInput({
           </button>
         )}
       </div>
-      <p id={helpId} className="text-faint text-xs">
+      <p id={helpId} className="text-muted-foreground text-xs">
         <Trans>
           The kinds of meeting this template is meant for (team, role,
           frequency…).
