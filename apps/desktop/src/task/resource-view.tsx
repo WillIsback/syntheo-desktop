@@ -138,10 +138,12 @@ export function ResourceView({ resource }: { resource: TaskResource }) {
                   style={{
                     backgroundColor: label.color
                       ? `#${label.color}20`
-                      : "#e5e5e5",
-                    color: label.color ? `#${label.color}` : "#525252",
+                      : "hsl(var(--muted))",
+                    color: label.color
+                      ? `#${label.color}`
+                      : "hsl(var(--muted-foreground))",
                     border: `1px solid ${
-                      label.color ? `#${label.color}40` : "#d4d4d4"
+                      label.color ? `#${label.color}40` : "hsl(var(--border))"
                     }`,
                   }}
                 >
@@ -271,17 +273,17 @@ function StateBadge({
 
   if (isPR && isMerged) {
     label = t`Merged`;
-    colorClass = "bg-purple-100 text-purple-700";
+    colorClass = "bg-chart-4/15 text-chart-4";
     Icon = GitMerge;
   } else if (isClosed) {
     label = t`Closed`;
     colorClass = isPR
-      ? "bg-red-100 text-red-700"
-      : "bg-purple-100 text-purple-700";
+      ? "bg-alert text-alert-foreground"
+      : "bg-chart-4/15 text-chart-4";
     Icon = XCircle;
   } else {
     label = t`Open`;
-    colorClass = "bg-green-100 text-green-700";
+    colorClass = "bg-accent text-accent-foreground";
     Icon = isPR ? GitPullRequest : RadioButton;
   }
 

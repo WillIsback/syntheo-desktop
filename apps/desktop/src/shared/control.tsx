@@ -60,7 +60,7 @@ const ReportedErrorComponent = ({ error }: { error: Error }) => {
           <div className="border-border bg-card rounded-xl border p-6 shadow-xs">
             <div className="flex flex-col items-center gap-4 text-center">
               <motion.div
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50"
+                className="bg-alert flex h-12 w-12 items-center justify-center rounded-full"
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{
@@ -69,7 +69,7 @@ const ReportedErrorComponent = ({ error }: { error: Error }) => {
                   stiffness: 200,
                 }}
               >
-                <Warning className="h-6 w-6 text-red-500" />
+                <Warning className="text-destructive h-6 w-6" />
               </motion.div>
 
               <div className="flex flex-col gap-1.5">

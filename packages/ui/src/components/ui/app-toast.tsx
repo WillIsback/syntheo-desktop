@@ -700,8 +700,8 @@ function AppToast({ toast, size, stackDepth, stacked }: AppToastProps) {
                 toast.tone === "error"
                   ? "bg-destructive"
                   : toast.tone === "success"
-                    ? "bg-emerald-500"
-                    : "bg-blue-500",
+                    ? "bg-primary"
+                    : "bg-chart-2",
               ])}
               initial={false}
               animate={{ scaleX: progress }}
@@ -721,12 +721,12 @@ function AppToast({ toast, size, stackDepth, stacked }: AppToastProps) {
 function AppToastToneIcon({ tone }: Readonly<{ tone: AppToastTone }>) {
   switch (tone) {
     case "success":
-      return <CheckCircle className="text-emerald-600" />;
+      return <CheckCircle className="text-primary" />;
     case "warning":
-      return <WarningCircle className="text-amber-600" />;
+      return <WarningCircle className="text-chart-3" />;
     case "error":
       return <WarningCircle className="text-destructive" />;
     case "info":
-      return <Info className="text-blue-600" />;
+      return <Info className="text-chart-2" />;
   }
 }

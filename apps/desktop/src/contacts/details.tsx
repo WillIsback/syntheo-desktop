@@ -228,11 +228,11 @@ function DuplicateContactsBanner({
   const plural = count > 1;
 
   return (
-    <div className="border-border border-b bg-red-50 px-6 py-4">
-      <h4 className="mb-1 text-sm font-semibold text-red-900">
+    <div className="border-border bg-alert border-b px-6 py-4">
+      <h4 className="text-alert-foreground mb-1 text-sm font-semibold">
         {plural ? t`Duplicate contacts found` : t`Duplicate contact found`}
       </h4>
-      <p className="mb-3 text-sm text-red-800">
+      <p className="text-alert-foreground mb-3 text-sm">
         {plural
           ? t`${count} contacts share the same name or email. Merge them to consolidate all related notes and information.`
           : t`Another contact shares the same name or email. Merge them to consolidate all related notes and information.`}
@@ -798,7 +798,7 @@ export function ContactOrganizationSelector({
               <span className="text-base md:text-sm">{organization.name}</span>
               <span className="group text-muted-foreground ml-2">
                 <MinusCircle
-                  className="text-muted-foreground size-4 cursor-pointer hover:text-red-600"
+                  className="text-muted-foreground hover:text-destructive size-4 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemoveOrganization();

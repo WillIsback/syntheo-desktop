@@ -37,7 +37,8 @@
     --app-floating-border: 55 18% 87%; /* #e4e3d8 */
     --chart-1: 142 36% 30%; /* #316745 千歳緑 */
     --chart-2: 200 71% 30%; /* #165e83 藍 */
-    --chart-3: 39 70% 36%; /* #9c6f1c 山吹 */
+    --chart-3: 39 70%
+      34%; /* #93691a 山吹, lot 6 : 4.68:1 en texte sur kinari */
     --chart-4: 266 31% 42%; /* #674a8c 江戸紫 */
     --chart-5: 357 54% 51%; /* #c53d43 紅 */
     --sidebar-accent: 105 25% 91%; /* #e4ede1 */
@@ -46,6 +47,7 @@
     --kbd-shadow-inset: rgba(255, 255, 255, 0.8);
     --kbd-shadow-outer-hover: rgba(38, 42, 36, 0.15);
     --shadow-capsule: 0 8px 28px rgba(38, 42, 36, 0.18);
+    --scrim: rgba(38, 42, 36, 0.32); /* voile sous les dialogues (lot 6) */
   }
 
   .dark {
@@ -65,8 +67,10 @@
     --faint: 90 6% 48%; /* #7b8274 nouveau, jamais pour du texte à lire */
     --accent: 141 22% 18%; /* #24382b */
     --accent-foreground: 140 36% 72%; /* #9fd2b0 */
-    --destructive: 358 66% 64%; /* #e0676b lot 6 : lisible en texte sur sumi (5.05:1) */
-    --destructive-foreground: 358 45% 12%; /* #2c1112 lot 6 : texte foncé sur rouge clair (5.26:1) */
+    --destructive: 358 66%
+      64%; /* #e0676b lot 6 : lisible en texte sur sumi (5.05:1) */
+    --destructive-foreground: 358 45%
+      12%; /* #2c1112 lot 6 : texte foncé sur rouge clair (5.26:1) */
     --alert: 358 35% 17%; /* #3a1c1d */
     --alert-foreground: 4 77% 75%; /* #f0938d */
     --alert-border: 359 36% 26%; /* #5a2a2b */
@@ -90,5 +94,6 @@
     --kbd-shadow-inset: rgba(255, 255, 255, 0.08);
     --kbd-shadow-outer-hover: rgba(0, 0, 0, 0.5);
     --shadow-capsule: 0 8px 28px rgba(0, 0, 0, 0.5);
+    --scrim: rgba(0, 0, 0, 0.5); /* voile sous les dialogues (lot 6) */
   }
 }

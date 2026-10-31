@@ -312,7 +312,7 @@ function CustomWorkflowDetails({
 
   return (
     <AutomationDetailsLayout
-      icon={<Lightning className="text-violet-500" size={16} />}
+      icon={<Lightning className="text-chart-4" size={16} />}
       title={title}
       description={description}
       actions={
@@ -576,10 +576,10 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
                   className={cn([
                     "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
                     step.kind === "ai"
-                      ? "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
+                      ? "bg-chart-4/15 text-chart-4"
                       : step.kind === "trigger"
-                        ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
-                        : "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+                        ? "bg-chart-3/15 text-foreground"
+                        : "bg-chart-2/15 text-chart-2",
                   ])}
                 >
                   {step.kind === "ai" ? <Sparkle size={13} /> : index + 1}

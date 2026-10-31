@@ -137,7 +137,7 @@ export function ChatBodyEmpty({
             onClick={handleGoToSettings}
             className={cn([
               "border-primary bg-primary text-primary-foreground inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium",
-              "hover:bg-primary/90 shadow-[0_4px_14px_rgba(87,83,78,0.18)] transition-colors",
+              "hover:bg-primary/90 shadow-sm transition-colors",
             ])}
           >
             <Sparkle size={12} />
@@ -191,7 +191,7 @@ function BetaChip({ isDarkAppearance }: { isDarkAppearance: boolean }) {
         "rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
         isDarkAppearance
           ? "border-border bg-accent text-accent-foreground"
-          : "border-sky-200 bg-sky-100 text-sky-900",
+          : "border-primary/30 bg-accent text-accent-foreground",
       ])}
     >
       {t`Beta`}

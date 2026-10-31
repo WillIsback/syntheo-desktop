@@ -29,6 +29,11 @@ export const DesignColors = {
     floatingPanel: "#FBFAF5",
     floatingBorder: "#E4E3D8",
     scrim: "rgba(38, 42, 36, 0.32)",
+    chart1: "#316745",
+    chart2: "#165E83",
+    chart3: "#93691A",
+    chart4: "#674A8C",
+    chart5: "#C53D43",
   },
   dark: {
     background: "#1B1E1A",
@@ -60,6 +65,11 @@ export const DesignColors = {
     floatingPanel: "#232821",
     floatingBorder: "#3D443A",
     scrim: "rgba(0, 0, 0, 0.5)",
+    chart1: "#7DBF95",
+    chart2: "#6AA9CF",
+    chart3: "#D9AD5B",
+    chart4: "#A98BCF",
+    chart5: "#E5675F",
   },
 } as const;
 

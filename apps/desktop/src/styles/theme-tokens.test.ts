@@ -105,6 +105,7 @@ describe("DesignColors Syntheo", () => {
     expect(DesignColors.dark.recording).toBe("#E5675F");
     expect(DesignColors.dark.destructive).toBe("#E0676B");
     expect(DesignColors.dark.destructiveForeground).toBe("#2C1112");
+    expect(DesignColors.light.chart3).toBe("#93691A"); // 39 70% 34%
   });
 
   it("expose les mêmes clés en clair et en sombre", () => {

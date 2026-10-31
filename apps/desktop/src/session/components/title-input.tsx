@@ -476,7 +476,7 @@ const TitleInputInner = memo(
               "border-none bg-transparent focus:outline-hidden",
               "placeholder:text-muted-foreground text-left",
               variant === "breadcrumb"
-                ? "h-5 appearance-none p-0 text-sm leading-5 text-neutral-700 focus:underline dark:text-white"
+                ? "text-foreground h-5 appearance-none p-0 text-sm leading-5 focus:underline"
                 : TITLE_TEXT_CLASS[variant],
               variant === "document" &&
                 "text-foreground placeholder:text-faint focus-visible:ring-ring focus-visible:ring-offset-background h-11 rounded-md focus-visible:ring-2 focus-visible:ring-offset-4",

@@ -338,7 +338,7 @@ function DraftListItem({
       ])}
     >
       <span className="flex items-center gap-2">
-        <Lightning className="size-4 shrink-0 text-violet-500" />
+        <Lightning className="text-chart-4 size-4 shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium">{title}</span>
           <span className="text-muted-foreground mt-0.5 block truncate text-xs">
@@ -394,7 +394,7 @@ function WorkflowListItem({
       ])}
     >
       <span className="flex items-center gap-2">
-        <Lightning className="size-4 shrink-0 text-violet-500" />
+        <Lightning className="text-chart-4 size-4 shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium">
             {workflow.title.trim() || t`Untitled automation`}
@@ -455,7 +455,7 @@ function ChatAutomationListItem({
       ])}
     >
       <span className="flex items-center gap-2">
-        <Lightning className="size-4 shrink-0 text-violet-500" />
+        <Lightning className="text-chart-4 size-4 shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium">{automation.title}</span>
           {createdAt ? (

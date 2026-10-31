@@ -79,6 +79,13 @@ const TEXT_PAIRS: Array<[string, string]> = [
   ["ai-ink", "card"],
   ["recording", "background"],
   ["recording", "card"],
+  // Couleurs de catégorie (badges, niveaux de journal) employées en texte.
+  ["chart-2", "background"],
+  ["chart-2", "card"],
+  ["chart-3", "background"],
+  ["chart-3", "card"],
+  ["chart-4", "background"],
+  ["chart-4", "card"],
 ];
 
 describe.each([

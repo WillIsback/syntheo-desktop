@@ -1,7 +1,7 @@
 import { type CSSProperties, useMemo } from "react";
 
 import type { SegmentKey, SegmentWord } from "~/stt/live-segment";
-import { speakerColor } from "~/stt/speaker-palette";
+import { speakerColor, speakerColorDark } from "~/stt/speaker-palette";
 
 export type HighlightSegment = { text: string; isMatch: boolean };
 
@@ -82,7 +82,7 @@ export function getActiveLineIndex(
   return null;
 }
 
-export function getSegmentColor(key: SegmentKey): string {
+function getSpeakerIndex(key: SegmentKey): number {
   let speakerIndex = key.speaker_index ?? 0;
   if (key.speaker_human_id) {
     speakerIndex = 0;
@@ -91,16 +91,19 @@ export function getSegmentColor(key: SegmentKey): string {
         (Math.imul(speakerIndex, 31) + character.charCodeAt(0)) >>> 0;
     }
   }
+  return speakerIndex;
+}
 
+export function getSegmentColor(key: SegmentKey): string {
   // Palette Syntheo s1–s4 : couleur stable et cyclique par locuteur.
-  return speakerColor(speakerIndex);
+  return speakerColor(getSpeakerIndex(key));
 }
 
 export function getSegmentColorVars(key: SegmentKey): SegmentColorVars {
-  const color = getSegmentColor(key);
+  const speakerIndex = getSpeakerIndex(key);
   return {
-    "--segment-color-light": color,
-    "--segment-color-dark": color,
+    "--segment-color-light": speakerColor(speakerIndex),
+    "--segment-color-dark": speakerColorDark(speakerIndex),
   };
 }
 

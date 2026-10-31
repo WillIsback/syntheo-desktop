@@ -52,7 +52,7 @@ export function ErrorMessage({
         {showContextLengthHelp && (
           <button
             onClick={handleOpenFaq}
-            className="mt-2 flex items-center gap-1 text-xs text-red-700 underline hover:text-red-900"
+            className="text-alert-foreground hover:text-destructive mt-2 flex items-center gap-1 text-xs underline"
           >
             <ArrowSquareOut className="h-3 w-3" />
             <Trans>Learn how to fix this</Trans>

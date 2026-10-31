@@ -85,9 +85,9 @@ function AvatarImage({
     flexShrink: 0,
     overflow: "hidden",
     boxSizing: "border-box",
-    border: "1px solid rgb(0 0 0 / 0.1)",
+    border: "1px solid hsl(var(--border))",
     background: avatarFallbackGradient(recipe.seed),
-    boxShadow: "0 1px 2px rgb(0 0 0 / 0.08)",
+    boxShadow: "0 1px 2px hsl(var(--foreground) / 0.08)",
   } satisfies CSSProperties;
   const initialsStyle = {
     position: "absolute",

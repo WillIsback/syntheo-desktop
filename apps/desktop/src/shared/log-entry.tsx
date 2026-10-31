@@ -1,10 +1,10 @@
 import { cn } from "@syntheo/utils";
 
 const levelColors: Record<string, string> = {
-  ERROR: "text-red-700 dark:text-red-400",
-  WARN: "text-amber-700 dark:text-amber-400",
-  INFO: "text-blue-700 dark:text-blue-400",
-  DEBUG: "text-violet-700 dark:text-violet-400",
+  ERROR: "text-destructive",
+  WARN: "text-chart-3",
+  INFO: "text-chart-2",
+  DEBUG: "text-chart-4",
   TRACE: "text-muted-foreground",
 };
 

@@ -1,5 +1,7 @@
 import type { FloatingBarState } from "@syntheo/plugin-windows";
 
+import { tokensFor } from "./palette";
+
 export function DictationTranscript({
   dictation,
   colorScheme,
@@ -22,7 +24,7 @@ export function DictationTranscript({
   return (
     <p
       className="px-1 text-[15px] leading-6 break-words whitespace-pre-wrap"
-      style={{ color: colorScheme === "dark" ? "white" : "rgb(31, 28, 26)" }}
+      style={{ color: tokensFor(colorScheme).foreground }}
       aria-live="polite"
       aria-atomic="false"
     >

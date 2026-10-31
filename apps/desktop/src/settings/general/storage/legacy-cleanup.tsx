@@ -145,10 +145,10 @@ export function LegacyMigrationCleanupRow() {
             <CircleNotch className="text-muted-foreground mt-0.5 size-4 shrink-0 animate-spin" />
           )}
           {statusCopy.state === "success" && (
-            <CheckCircle className="mt-0.5 size-4 shrink-0 text-green-600" />
+            <CheckCircle className="text-primary mt-0.5 size-4 shrink-0" />
           )}
           {statusCopy.state === "warning" && (
-            <Warning className="mt-0.5 size-4 shrink-0 text-yellow-600" />
+            <Warning className="text-chart-3 mt-0.5 size-4 shrink-0" />
           )}
           {statusCopy.state === "unavailable" && (
             <Info className="text-muted-foreground mt-0.5 size-4 shrink-0" />
@@ -196,7 +196,7 @@ export function LegacyMigrationCleanupRow() {
             if (!cleanupMutation.isPending) setConfirmationOpen(open);
           }}
         >
-          <DialogContent className="border-border/45 bg-card/95 w-[calc(100vw-48px)] max-w-[320px] gap-0 overflow-hidden rounded-[26px] p-0 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:rounded-[26px] [&>button:last-child]:hidden">
+          <DialogContent className="border-border/45 bg-card/95 w-[calc(100vw-48px)] max-w-[320px] gap-0 overflow-hidden rounded-[26px] p-0 shadow-2xl backdrop-blur-xl sm:rounded-[26px] [&>button:last-child]:hidden">
             <DialogHeader className="items-center gap-2 px-5 pt-6 text-center sm:text-center">
               <DialogTitle className="text-foreground text-[13px] leading-5 font-semibold tracking-normal">
                 <Trans>Clean up legacy files?</Trans>
@@ -211,7 +211,7 @@ export function LegacyMigrationCleanupRow() {
             </DialogHeader>
 
             {cleanupMutation.error && (
-              <p className="mx-4 mt-3 text-center text-xs text-red-500">
+              <p className="text-destructive mx-4 mt-3 text-center text-xs">
                 {cleanupMutation.error.message}
               </p>
             )}

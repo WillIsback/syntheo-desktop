@@ -186,7 +186,7 @@ function CalendarToggleRow({
   enabled: boolean;
   onToggle: (enabled: boolean) => void | Promise<unknown>;
 }) {
-  const color = calendar.color ?? "#888";
+  const color = calendar.color ?? "hsl(var(--faint))";
 
   // Optimistic check state: the write goes through the DB queue and the
   // enabled prop only flips after the live query re-emits. The sequence

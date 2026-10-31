@@ -54,7 +54,7 @@ export function useAppleCalendarSelection() {
       grouped.get(source)!.push({
         id: cal.id,
         title: cal.name || "Untitled",
-        color: cal.color ?? "#888",
+        color: cal.color ?? "hsl(var(--faint))",
         enabled: cal.enabled ?? false,
       });
     }

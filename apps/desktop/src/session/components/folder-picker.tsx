@@ -91,7 +91,7 @@ export function FolderPicker({
             <Folder className="size-4 shrink-0" />
           )}
           {currentPath ? (
-            <span className="min-w-0 truncate text-xs text-neutral-600 @max-[480px]:sr-only dark:text-neutral-300">
+            <span className="text-muted-foreground min-w-0 truncate text-xs @max-[480px]:sr-only">
               {currentPath}
             </span>
           ) : null}

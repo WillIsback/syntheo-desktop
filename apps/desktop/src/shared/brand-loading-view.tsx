@@ -16,8 +16,8 @@ export function BrandLoadingView({ detail }: { detail?: string }) {
         <div
           className={cn([
             "relative w-[4.5rem]",
-            "drop-shadow-[0_10px_24px_rgba(0,0,0,0.10)]",
-            "dark:drop-shadow-[0_12px_28px_rgba(0,0,0,0.45)]",
+            "drop-shadow-lg",
+            "dark:drop-shadow-xl",
           ])}
         >
           <SyntheoMark className="text-foreground/20 w-full" />
