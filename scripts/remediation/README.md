@@ -1,4 +1,4 @@
-# Remédiation automatisée (GitHub + SonarCloud)
+# Remédiation automatisée (GitHub + Aikido)
 
 Boucle locale qui corrige les alertes de sécurité et de qualité avec le modèle
 `nvidia/Qwen3.8-Flash-Next-FP4-Local` (vLLM, DGX Spark), puis merge les correctifs
@@ -44,33 +44,42 @@ node scripts/remediation/orchestrate.mjs --task cs-packages-utils-src-folders.ts
 
 Par tâche, dans le clone :
 
-| Aire | Commande |
-|---|---|
-| JS/TS | `./node_modules/.bin/oxfmt --check <fichiers>` |
-| `apps/desktop/**` | `./node_modules/.bin/oxlint --quiet <fichiers>` + `./node_modules/.bin/tsc -p apps/desktop --noEmit` |
-| autres TS | `./node_modules/.bin/eslint <fichiers>` |
-| Markdown/JSON/YAML/TOML | `./node_modules/.bin/dprint check <fichiers>` |
-| Rust | `cargo clippy --manifest-path <crate>/Cargo.toml -- -D warnings` |
-| Lockfile pnpm | `pnpm install --offline --frozen-lockfile` |
+| Aire                    | Commande                                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------------------- |
+| JS/TS                   | `./node_modules/.bin/oxfmt --check <fichiers>`                                                       |
+| `apps/desktop/**`       | `./node_modules/.bin/oxlint --quiet <fichiers>` + `./node_modules/.bin/tsc -p apps/desktop --noEmit` |
+| autres TS               | `./node_modules/.bin/eslint <fichiers>`                                                              |
+| Markdown/JSON/YAML/TOML | `./node_modules/.bin/dprint check <fichiers>`                                                        |
+| Rust                    | `cargo clippy --manifest-path <crate>/Cargo.toml -- -D warnings`                                     |
+| Lockfile pnpm           | `pnpm install --offline --frozen-lockfile`                                                           |
 
 La CI complète ne tourne qu'une fois, sur la PR finale.
 
-## Phase 2 : SonarCloud
+## Phase 2 : Aikido
+
+Aikido a remplacé SonarCloud (app GitHub « Aikido PR Checks », exclusions dans
+`.aikido` à la racine). La collecte passe par l'API publique : créer un client
+API dans Aikido (Settings › Integrations › API, portée `issues:read`).
 
 ```sh
-# Collecter toutes les issues ouvertes (projet public, sans jeton)
-node scripts/remediation/collect-sonar.mjs
+export AIKIDO_CLIENT_ID=... AIKIDO_CLIENT_SECRET=...
+# Instance US : export AIKIDO_API_BASE=https://app.us.aikido.dev
+
+# Collecter les issues de code ouvertes (sast, iac par défaut)
+node scripts/remediation/collect-aikido.mjs
 
 # Ne garder que les fichiers les plus sévères (ex. 60 fichiers)
-node scripts/remediation/collect-sonar.mjs --limit 60
+node scripts/remediation/collect-aikido.mjs --limit 60
 
-# Exécuter avec le fichier de tâches Sonar
-REMEDIATION_TASKS=/tmp/opencode/syntheo-remediation/sonar-tasks.json \
+# Exécuter avec le fichier de tâches Aikido
+REMEDIATION_TASKS=/tmp/opencode/syntheo-remediation/aikido-tasks.json \
   node scripts/remediation/orchestrate.mjs --resume
 ```
 
-Le 28/10/2026 : 1 486 issues ouvertes sur 476 fichiers (7 BLOCKER, 139 CRITICAL,
-542 MAJOR, 798 MINOR). Commencer par `--limit 60`, puis élargir.
+Les dépendances et les secrets restent collectés par `collect-alerts.mjs`
+(Dependabot, Gitleaks). Avant de pousser, un correctif peut être revérifié en
+local avec le scan Aikido de Claude Code (plugin Aikido, outil `aikido_scan_paths`),
+qui applique les mêmes règles SAST, secrets et IaC.
 
 ## Fin de boucle
 
