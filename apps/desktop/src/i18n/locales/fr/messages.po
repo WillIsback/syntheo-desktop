@@ -1,17 +1,22 @@
+#
 msgid ""
 msgstr ""
-"POT-Creation-Date: 2026-05-19 13:42+0900\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"X-Generator: @lingui/cli\n"
-"Language: fr\n"
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-19 13:42+0900\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: \n"
+"X-Generator: @lingui/cli\n"
+
+#: src/templates/template-preview.tsx
+msgid "— Sample line written from this instruction."
+msgstr "— Exemple de ligne rédigée selon cette consigne."
 
 #: src/services/enhancer/summary-notification.ts
 msgid "\"{title}\" is ready to read."
@@ -40,6 +45,9 @@ msgstr "{0} n'a pas pu être installé"
 msgid "{0} is ready to use"
 msgstr "{0} est prêt à être utilisé"
 
+#~ msgid "{0} min"
+#~ msgstr "{0} min"
+
 #. placeholder {0}: issue.user?.login
 #: src/task/resource-view.tsx
 msgid "{0} opened on"
@@ -67,9 +75,18 @@ msgstr "{count} contacts partagent le même nom ou la même adresse e-mail. Fusi
 msgid "{count} more"
 msgstr "{count} de plus"
 
+#~ msgid "{count} of {total} collected"
+#~ msgstr "{count} sur {total} collectés"
+
+#~ msgid "{date}. Conversations: {count}"
+#~ msgstr "{date}. Conversations : {count}"
+
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "{entryCount} selected"
 msgstr "{entryCount} sélectionné(s)"
+
+#~ msgid "{model} can't transcribe {0}. Try another model or change your spoken languages."
+#~ msgstr "{model} ne peut pas transcrire {0}. Essayez un autre modèle ou modifiez vos langues parlées."
 
 #: src/settings/ai/stt/language-warning.tsx
 msgid "{model} can't transcribe {languages}. Try another model or change your spoken languages."
@@ -83,6 +100,9 @@ msgstr "{model} ne peut pas transcrire toutes les langues sélectionnées ensemb
 msgid "{months} months ago"
 msgstr "il y a {months} mois"
 
+#~ msgid "{peakCount} of {total} conversations ({share}) started on this weekday in the selected period."
+#~ msgstr "{peakCount} sur {total} conversations ({share}) ont commencé ce jour de la semaine sur la période sélectionnée."
+
 #: src/composer/index.tsx
 msgid "{primaryModifier} ↩ to send"
 msgstr "{primaryModifier} ↩ pour envoyer"
@@ -91,17 +111,44 @@ msgstr "{primaryModifier} ↩ pour envoyer"
 msgid "{title} deleted"
 msgstr "{title} supprimé"
 
+#~ msgid "{value} / {target} active weeks"
+#~ msgstr "{value} / {target} semaines actives"
+
+#~ msgid "{value} / {target} conversations"
+#~ msgstr "{value} / {target} conversations"
+
 #: src/sidebar/timeline/utils/index.ts
 msgid "{weeks} weeks ago"
 msgstr "Il y a {weeks} semaines"
+
+#: src/templates/template-form.tsx
+msgid "+ Add"
+msgstr "+ Ajouter"
+
+#: src/templates/sections-editor.tsx
+msgid "+ Add a section"
+msgstr "+ Ajouter une section"
+
+#: src/templates/template-sidebar.tsx
+msgid "+ New template"
+msgstr "+ Nouveau modèle"
 
 #: src/session/components/pending-proposals-banner.tsx
 msgid "1 pending edit"
 msgstr "1 modification en attente"
 
+#~ msgid "30 days"
+#~ msgstr "30 jours"
+
+#~ msgid "7 days"
+#~ msgstr "7 jours"
+
 #: src/sidebar/folder-name-dialog.tsx
 msgid "A folder with this name already exists."
 msgstr "Un dossier portant ce nom existe déjà."
+
+#~ msgid "A little more history will help"
+#~ msgstr "Un peu plus d'historique sera utile"
 
 #: src/automations/starters.tsx
 msgid "A Markdown file with the note, summary, and transcript."
@@ -110,10 +157,6 @@ msgstr "Un fichier Markdown contenant la note, le résumé et le transcript."
 #: src/sidebar/timeline/utils/index.ts
 msgid "a month ago"
 msgstr "il y a un mois"
-
-#: src/templates/template-sidebar.tsx
-msgid "A to Z"
-msgstr "A à Z"
 
 #: src/sidebar/timeline/utils/index.ts
 msgid "a week ago"
@@ -129,10 +172,16 @@ msgstr "Accessibilité"
 msgid "Action"
 msgstr "Action"
 
+#~ msgid "Active days"
+#~ msgstr "Jours actifs"
+
 #: src/chat/components/message/normal.tsx
 #: src/templates/template-icon-picker.tsx
 msgid "Activity"
 msgstr "Activité"
+
+#~ msgid "Activity over the past year"
+#~ msgstr "Activité au cours de l'année écoulée"
 
 #: src/contacts/shared.tsx
 #: src/settings/dictionary/index.tsx
@@ -156,6 +205,10 @@ msgstr "Ajoutez un déclencheur et des actions. Le chat à droite peut vous aide
 #: src/settings/automations/workflow-builder.tsx
 msgid "Add a trigger, then stack actions like Zapier."
 msgstr "Ajoutez un déclencheur, puis enchaînez les actions à la manière de Zapier."
+
+#: src/templates/template-form.tsx
+msgid "Add a use"
+msgstr "Ajouter un usage"
 
 #: src/settings/automations/workflow-builder.tsx
 msgid "Add an action"
@@ -217,6 +270,10 @@ msgstr "Ajouter des participants"
 msgid "Add person"
 msgstr "Ajoutez une personne"
 
+#: src/templates/template-preview.tsx
+msgid "Add sections to see the shape of the summary."
+msgstr "Ajoutez des sections pour voir la forme de la synthèse."
+
 #: src/settings/developers/skills.tsx
 msgid "Add skill to…"
 msgstr "Ajoutez une compétence à…"
@@ -228,6 +285,12 @@ msgstr "Ajouter une langue parlée"
 #: src/settings/automations/workflow-builder.tsx
 msgid "Add step"
 msgstr "Ajoutez une étape"
+
+#: src/templates/details.tsx
+#: src/templates/template-form.tsx
+#: src/templates/template-sidebar.tsx
+msgid "Add to favorites"
+msgstr "Ajouter aux favoris"
 
 #: src/calendar/components/event-chip.tsx
 msgid "Add to folder"
@@ -274,6 +337,16 @@ msgstr "Tous les événements"
 msgid "All Notes"
 msgstr "Toutes les notes"
 
+#~ msgid "All Set"
+#~ msgstr "Tout est prêt"
+
+#: src/templates/template-sidebar.tsx
+msgid "All templates"
+msgstr "Tous les modèles"
+
+#~ msgid "All time"
+#~ msgstr "Toute la période"
+
 #: src/session/components/outer-header/overflow/always-on-top.tsx
 msgid "Always on Top"
 msgstr "Toujours au premier plan"
@@ -298,9 +371,18 @@ msgstr "Animaux et nature"
 msgid "Another contact shares the same name or email. Merge them to consolidate all related notes and information."
 msgstr "Un autre contact partage le même nom ou la même adresse e-mail. Fusionnez-les pour regrouper toutes les notes et informations associées."
 
+#~ msgid "API Key"
+#~ msgstr "Clé API"
+
 #: src/settings/ai/shared/server-address.tsx
 msgid "API key (optional)"
 msgstr "Clé d'API (facultative)"
+
+#~ msgid "API key saved"
+#~ msgstr "Clé API enregistrée"
+
+#~ msgid "App"
+#~ msgstr "Application"
 
 #: src/settings/appearance/app-icon.tsx
 msgid "App icon"
@@ -348,6 +430,10 @@ msgstr "Posez toutes vos questions à Syntheo AI"
 msgid "Ask Syntheo anything"
 msgstr "Posez toutes vos questions à Syntheo"
 
+#: src/session/components/capsule/index.tsx
+msgid "Ask the note"
+msgstr "Demander à la note"
+
 #: src/task/resource-view.tsx
 msgid "Assignees:"
 msgstr "Personnes assignées :"
@@ -393,6 +479,12 @@ msgstr "Ajouter automatiquement les réunions futures ?"
 msgid "Automate what happens before, during, or after meetings based on the conditions you choose."
 msgstr "Automatisez ce qui se passe avant, pendant ou après les réunions en fonction des conditions que vous choisissez."
 
+#: src/session/components/living-document/fiche.tsx
+#: src/templates/auto-form.tsx
+#: src/templates/template-sidebar.tsx
+msgid "Automatic"
+msgstr "Automatique"
+
 #: src/settings/general/app-settings.tsx
 msgid "Automatically install updates"
 msgstr "Installer automatiquement les mises à jour"
@@ -430,6 +522,9 @@ msgstr "Automatisation retirée"
 msgid "Automations"
 msgstr "Automatisations"
 
+#~ msgid "Average across the capture days counted above."
+#~ msgstr "Moyenne sur les jours de capture comptabilisés ci-dessus."
+
 #: src/calendar/components/apple/permission.tsx
 #: src/calendar/components/event-chip.tsx
 #: src/instruction/index.tsx
@@ -437,9 +532,19 @@ msgstr "Automatisations"
 msgid "Back"
 msgstr "Retour"
 
+#~ msgid "Base URL"
+#~ msgstr "URL de base"
+
+#~ msgid "Based on captured conversations, including imported transcripts. Each conversation is counted once, on its first capture day in the selected period, using your calendar timezone. Deleted conversations are excluded."
+#~ msgstr "Basé sur les conversations capturées, y compris les transcripts importés. Chaque conversation est comptée une seule fois, le jour de sa première capture dans la période sélectionnée, en utilisant le fuseau horaire de votre calendrier. Les conversations supprimées sont exclues."
+
 #: src/chat/components/body/empty.tsx
 msgid "Based on the conversation so far, suggest a few questions I could ask next."
 msgstr "Sur la base de la conversation jusqu'à présent, suggérez quelques questions que je pourrais poser ensuite."
+
+#: src/session/components/capsule/index.tsx
+msgid "Begin listening"
+msgstr "Commencer l'écoute"
 
 #: src/chat/components/body/empty.tsx
 msgid "Beta"
@@ -465,9 +570,16 @@ msgstr "Canevas clair"
 msgid "Bring your meeting history"
 msgstr "Importez votre historique de réunions"
 
+#~ msgid "Busiest day"
+#~ msgstr "Jour le plus chargé"
+
 #: src/calendar/components/event-chip.tsx
 msgid "Busy"
 msgstr "Occupé"
+
+#: src/templates/utils.ts
+msgid "by {name}"
+msgstr "par {name}"
 
 #: src/settings/general/permissions.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -479,6 +591,7 @@ msgid "Calendar connected"
 msgstr "Calendrier connecté"
 
 #: src/calendar/components/apple/permission.tsx
+#: src/session/components/capsule/index.tsx
 #: src/settings/ai/shared/server-address.tsx
 #: src/settings/dictionary/index.tsx
 #: src/settings/general/storage/legacy-cleanup.tsx
@@ -496,6 +609,27 @@ msgstr "Annuler la modification de la date"
 msgid "Cancel dictation"
 msgstr "Annuler la dictée"
 
+#~ msgid "Capture 10 conversations. More moments you can return to."
+#~ msgstr "Capturer 10 conversations. Davantage de moments auxquels vous pouvez revenir."
+
+#~ msgid "Capture 100 conversations. A hundred stories, saved in your own words."
+#~ msgstr "Capturer 100 conversations. Cent histoires, enregistrées avec vos propres mots."
+
+#~ msgid "Capture 250 conversations. Your own library of shared knowledge."
+#~ msgstr "Capturer 250 conversations. Votre propre bibliothèque de connaissances partagées."
+
+#~ msgid "Capture 50 conversations. A growing collection of ideas and decisions."
+#~ msgstr "Capturer 50 conversations. Une collection croissante d’idées et de décisions."
+
+#~ msgid "Capture at least 5 conversations in this period to see patterns."
+#~ msgstr "Capturer au moins 5 conversations durant cette période pour identifier des tendances."
+
+#~ msgid "Capture conversations in 12 different weeks. A little at a time, at your own pace."
+#~ msgstr "Capturer des conversations sur 12 semaines différentes. Un peu à la fois, à votre rythme."
+
+#~ msgid "Capture conversations in 4 different weeks. They don't need to be consecutive."
+#~ msgstr "Capturer des conversations sur 4 semaines différentes. Elles n’ont pas besoin d’être consécutives."
+
 #: src/settings/general/meeting-settings.tsx
 msgid "Capture meeting chat in Memos"
 msgstr "Capturer le chat de réunion dans Memos"
@@ -503,6 +637,9 @@ msgstr "Capturer le chat de réunion dans Memos"
 #: src/settings/general/meeting-settings.tsx
 msgid "Capture shared screens in Memos"
 msgstr "Capturer les écrans partagés dans Memos"
+
+#~ msgid "Capture your first conversation. Every collection starts somewhere."
+#~ msgstr "Capturer votre première conversation. Toute collection commence quelque part."
 
 #: src/calendar/components/event-chip.tsx
 msgid "Change auto-add folder"
@@ -555,9 +692,15 @@ msgstr "Choisissez {0} fichiers d'exportation"
 msgid "Choose a file format and what to include."
 msgstr "Choisissez un format de fichier et les éléments à inclure."
 
+#~ msgid "Choose a language model for summaries and chat."
+#~ msgstr "Choisissez un modèle de langue pour les résumés et le chat."
+
 #: src/settings/automations/index.tsx
 msgid "Choose a starter from the sidebar, or create a workflow and add steps like Zapier."
 msgstr "Choisissez un modèle de départ dans la barre latérale, ou créez un flux de travail et ajoutez des étapes à la manière de Zapier."
+
+#~ msgid "Choose a transcription model to start listening."
+#~ msgstr "Choisissez un modèle de transcription pour commencer l'écoute."
 
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Choose an AI model before generating a format."
@@ -603,7 +746,7 @@ msgstr "Choisissez parmi cinq sons de fin."
 
 #: src/templates/auto-form.tsx
 msgid "Choose how Auto structures and styles your summaries."
-msgstr "Choisissez comment Auto structure et met en forme vos résumés."
+msgstr "Choisissez comment le mode Automatique structure et met en forme vos synthèses."
 
 #: src/settings/appearance/app-icon.tsx
 msgid "Choose how Syntheo appears in the Dock."
@@ -695,6 +838,15 @@ msgstr "Synchronisation cloud terminée"
 msgid "Collect action items"
 msgstr "Collecter les points d'action"
 
+#~ msgid "Collected"
+#~ msgstr "Collecté"
+
+#~ msgid "Collected {0}"
+#~ msgstr "Collecté {0}"
+
+#~ msgid "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome note doesn't."
+#~ msgstr "Les badges collectés vous restent acquis sur cet appareil, même lorsque vous supprimez une note ou faites une pause. Les transcripts importés sont comptabilisés ; la note de bienvenue ne l'est pas."
+
 #: src/settings/appearance/theme.tsx
 msgid "Color theme"
 msgstr "Thème de couleurs"
@@ -720,6 +872,16 @@ msgstr "commentaires"
 msgid "Company"
 msgstr "Entreprise"
 
+#~ msgid "Complete onboarding"
+#~ msgstr "Terminer l'intégration"
+
+#~ msgid "Complete onboarding. You're ready for your next conversation."
+#~ msgstr "Terminez l'intégration. Vous êtes prêt pour votre prochaine conversation."
+
+#: src/session/components/living-document/provenance.tsx
+msgid "Completed by Syntheo"
+msgstr "Complété par Syntheo"
+
 #: src/settings/general/notification.tsx
 msgid "Completion sound"
 msgstr "Son de fin"
@@ -728,6 +890,10 @@ msgstr "Son de fin"
 msgid "Composer"
 msgstr "Rédacteur"
 
+#: src/session/components/living-document/fiche.tsx
+msgid "Computer audio"
+msgstr "Son de l'ordinateur"
+
 #: src/composer/index.tsx
 msgid "Configure a chat model in Settings"
 msgstr "Configurez un modèle de discussion dans les paramètres"
@@ -735,6 +901,13 @@ msgstr "Configurez un modèle de discussion dans les paramètres"
 #: src/composer/index.tsx
 msgid "Configure a chat model to use the quick composer."
 msgstr "Configurez un modèle de discussion pour utiliser le rédacteur rapide."
+
+#~ msgid "Configure Providers"
+#~ msgstr "Configurer les fournisseurs"
+
+#: src/templates/template-generator-bar.tsx
+msgid "Configure your summary server in Settings to get section suggestions."
+msgstr "Configurez votre serveur de synthèse dans les paramètres pour obtenir des propositions de sections."
 
 #: src/session/components/note-input/enhanced/config-error.tsx
 msgid "Configurer le modèle"
@@ -753,10 +926,6 @@ msgstr "Confirmer"
 msgid "Connect {0}"
 msgstr "Connecter {0}"
 
-#: src/templates/template-generator-bar.tsx
-msgid "Connect a language model to generate a template."
-msgstr "Connectez un modèle de langage pour générer un modèle."
-
 #: src/onboarding/calendar.tsx
 #: src/onboarding/index.tsx
 msgid "Connect calendar"
@@ -771,6 +940,12 @@ msgstr "Connecté · {0} modèles disponibles"
 #: src/settings/ai/shared/server-card.tsx
 msgid "Connected · {0} ms"
 msgstr "Connecté · {0} ms"
+
+#~ msgid "Connected with your {0} subscription."
+#~ msgstr "Connecté à votre abonnement {0}."
+
+#~ msgid "Connected with your existing subscription."
+#~ msgstr "Connecté à votre abonnement existant."
 
 #: src/contacts/contact-page-header.tsx
 msgid "Contact options"
@@ -797,6 +972,18 @@ msgstr "Continuez dans votre navigateur, puis revenez dans Syntheo."
 msgid "Control listening without reopening Syntheo."
 msgstr "Contrôler l'écoute sans rouvrir Syntheo."
 
+#~ msgid "Conversations"
+#~ msgstr "Conversations"
+
+#~ msgid "Conversations by weekday"
+#~ msgstr "Conversations par jour de semaine"
+
+#~ msgid "Conversations per active day"
+#~ msgstr "Conversations par jour actif"
+
+#~ msgid "Conversations: {total}"
+#~ msgstr "Conversations : {total}"
+
 #: src/settings/dictation.tsx
 msgid "Copied"
 msgstr "Copié"
@@ -806,6 +993,7 @@ msgid "Copied to clipboard: {viewTitle}"
 msgstr "Copié dans le presse-papiers : {viewTitle}"
 
 #: src/main/windows-title-bar.tsx
+#: src/session/components/capsule/index.tsx
 #: src/session/components/note-input/header-enhanced.tsx
 #: src/session/components/note-input/header-raw.tsx
 #: src/session/components/note-input/header-transcript.tsx
@@ -905,9 +1093,18 @@ msgstr "Impossible de mettre à jour le dossier d'export"
 msgid "Could not update the note date."
 msgstr "Impossible de mettre à jour la date de la note."
 
+#~ msgid "Couldn't load your badges. Reopen this page to try again."
+#~ msgstr "Impossible de charger vos badges. Rouvrez cette page pour réessayer."
+
+#~ msgid "Couldn't load your insights. Reopen this page to try again."
+#~ msgstr "Impossible de charger vos statistiques. Rouvrez cette page pour réessayer."
+
 #: src/settings/general/account-profile.tsx
 msgid "Couldn't load your profile. Reopen this page to try again."
 msgstr "Impossible de charger votre profil. Rouvrez cette page pour réessayer."
+
+#~ msgid "Couldn't save your new badges."
+#~ msgstr "Impossible d'enregistrer vos nouveaux badges."
 
 #: src/contacts/profile-photo.tsx
 #: src/settings/general/account-profile.tsx
@@ -930,9 +1127,11 @@ msgstr "Créer un brief pour préparer cette réunion"
 msgid "Create new speaker"
 msgstr "Créer un nouvel intervenant"
 
-#: src/templates/details.tsx
-msgid "Create template"
-msgstr "Créer un modèle"
+#~ msgid "Create your account"
+#~ msgstr "Créer votre compte"
+
+#~ msgid "Create your Syntheo account. A place for your conversations to call home."
+#~ msgstr "Créez votre compte Syntheo. Un lieu où vos conversations se sentent chez elles."
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Created"
@@ -947,26 +1146,35 @@ msgstr "Créé {0}"
 msgid "Created {createdAt}"
 msgstr "Créé {createdAt}"
 
+#: src/templates/utils.ts
+msgid "Created by {name}"
+msgstr "Créé par {name}"
+
 #: src/session/components/note-input/raw.tsx
 msgid "Creating brief..."
 msgstr "Création du brief..."
 
 #: src/settings/general/audio-settings.tsx
-#: src/templates/auto-form.tsx
 msgid "Current default"
 msgstr "Valeur par défaut actuelle"
 
 #: src/templates/template-sidebar.tsx
-msgid "Customized"
-msgstr "Personnalisé"
+msgid "customized"
+msgstr "personnalisé"
 
 #: src/main/windows-title-bar.tsx
 msgid "Cut"
 msgstr "Couper"
 
+#~ msgid "Daily conversations"
+#~ msgstr "Conversations quotidiennes"
+
 #: src/settings/appearance/theme.tsx
 msgid "Dark"
 msgstr "Sombre"
+
+#~ msgid "Data"
+#~ msgstr "Données"
 
 #: src/settings/automations/markdown-export-options.tsx
 #: src/sidebar/note-filter-menu.tsx
@@ -977,11 +1185,19 @@ msgstr "Date"
 msgid "Date and time are required"
 msgstr "La date et l'heure sont obligatoires"
 
+#~ msgid "Date range"
+#~ msgstr "Plage de dates"
+
 #: src/edit/tab-content.tsx
 msgid "Decline"
 msgstr "Refuser"
 
+#: src/templates/template-sidebar.tsx
+msgid "default"
+msgstr "par défaut"
+
 #: src/settings/appearance/app-icon.tsx
+#: src/templates/template-sidebar.tsx
 msgid "Default"
 msgstr "Par défaut"
 
@@ -989,13 +1205,17 @@ msgstr "Par défaut"
 msgid "Default language for transcription and AI responses."
 msgstr "Langue par défaut pour la transcription et les réponses de l'IA."
 
+#: src/templates/auto-form.tsx
+#: src/templates/template-form.tsx
+msgid "Default template"
+msgstr "Modèle par défaut"
+
 #: src/contacts/contact-page-header.tsx
 #: src/folders/folder-editor.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/session/components/outer-header/overflow/delete.tsx
 #: src/sidebar/automations.tsx
 #: src/sidebar/timeline/index.tsx
-#: src/templates/sections-editor.tsx
 #: src/templates/template-form.tsx
 #: src/templates/template-sidebar.tsx
 msgid "Delete"
@@ -1030,6 +1250,10 @@ msgstr "Supprimer le dossier"
 msgid "Delete Note"
 msgstr "Supprimer la note"
 
+#: src/templates/sections-editor.tsx
+msgid "Delete section {position}"
+msgstr "Supprimer la section {position}"
+
 #: src/sidebar/timeline/index.tsx
 msgid "Delete Selected ({sessionCount})"
 msgstr "Supprimer la sélection ({sessionCount})"
@@ -1038,13 +1262,24 @@ msgstr "Supprimer la sélection ({sessionCount})"
 msgid "Delete This Event"
 msgstr "Supprimer cet événement"
 
+#~ msgid "Deprecated"
+#~ msgstr "Obsolète"
+
+#: src/templates/sections-editor.tsx
+msgid "Describe in one line what Syntheo should write here."
+msgstr "Décrivez en une ligne ce que Syntheo doit y écrire."
+
 #: src/templates/template-generator-bar.tsx
-msgid "Describe the meeting type…"
-msgstr "Décrivez le type de réunion…"
+msgid "Describe the meeting"
+msgstr "Décrire la réunion"
+
+#: src/templates/template-generator-bar.tsx
+msgid "Describe the meeting, Syntheo suggests the sections…"
+msgstr "Décrivez la réunion, Syntheo propose les sections…"
 
 #: src/templates/template-form.tsx
-msgid "Describe the template purpose..."
-msgstr "Décrivez l'objectif du modèle..."
+msgid "Description"
+msgstr "Description"
 
 #: src/settings/general/notification.tsx
 msgid "Detect meetings from microphone activity."
@@ -1101,10 +1336,18 @@ msgstr "Désactiver toutes les notifications"
 msgid "Disconnect"
 msgstr "Déconnecter"
 
+#: src/templates/template-form.tsx
+msgid "Display mode"
+msgstr "Mode d'affichage"
+
 #: src/main/windows-title-bar.tsx
 #: src/settings/imports/index.tsx
 msgid "Documentation"
 msgstr "Documentation"
+
+#: src/session/components/living-document/transcript-margin.tsx
+msgid "Done"
+msgstr "Terminé"
 
 #: src/settings/automations/index.tsx
 #: src/settings/automations/workflow-builder.tsx
@@ -1142,6 +1385,10 @@ msgstr "Doublons de contacts détectés"
 msgid "Duration"
 msgstr "Durée"
 
+#: src/templates/template-form.tsx
+msgid "e.g. Weekly, HR team"
+msgstr "ex. Hebdo, Équipe RH"
+
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Each example must be 12,000 characters or fewer."
 msgstr "Chaque exemple doit comporter 12,000 caractères ou moins."
@@ -1151,9 +1398,11 @@ msgid "Earlier versions of this note, newest first."
 msgstr "Versions antérieures de cette note, les plus récentes en premier."
 
 #: src/main/windows-title-bar.tsx
+#: src/session/components/living-document/transcript-margin.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/dictionary/index.tsx
 #: src/sidebar/automations.tsx
+#: src/templates/template-form.tsx
 msgid "Edit"
 msgstr "Modifier"
 
@@ -1209,6 +1458,9 @@ msgstr "Améliorer le contact {label}"
 msgid "Enter a full address, for example {placeholder}."
 msgstr "Saisissez une adresse complète, par exemple {placeholder}."
 
+#~ msgid "Enter a model identifier"
+#~ msgstr "Saisissez un identifiant de modèle"
+
 #: src/session/components/outer-header/metadata/date.tsx
 msgid "Enter a valid date and time"
 msgstr "Saisissez une date et une heure valides"
@@ -1222,9 +1474,11 @@ msgstr "Saisissez un nom de dossier valide."
 msgid "Enter another name"
 msgstr "Saisir un autre nom"
 
-#: src/templates/template-form.tsx
-msgid "Enter template title"
-msgstr "Saisissez le titre du modèle"
+#~ msgid "Enter your API key"
+#~ msgstr "Saisissez votre clé API"
+
+#~ msgid "Enter your API key (optional)"
+#~ msgstr "Saisissez votre clé API (facultative)"
 
 #: src/composer/index.tsx
 msgid "Esc to dismiss"
@@ -1233,6 +1487,9 @@ msgstr "Échap pour fermer"
 #: src/settings/general/notification.tsx
 msgid "Event notifications"
 msgstr "Notifications d'événements"
+
+#~ msgid "Every conversation adds to your story."
+#~ msgstr "Chaque conversation enrichit votre histoire."
 
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Example summary"
@@ -1254,6 +1511,7 @@ msgstr "Exclure les applications de la détection"
 msgid "Expected output"
 msgstr "Sortie attendue"
 
+#: src/session/components/capsule/index.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/session/components/outer-header/overflow/index.tsx
 msgid "Export"
@@ -1283,6 +1541,10 @@ msgstr "Export en cours..."
 msgid "Failed to copy memo"
 msgstr "Impossible de copier le mémo"
 
+#: src/session/components/capsule/session-capsule.tsx
+msgid "Failed to copy the note"
+msgstr "Impossible de copier la note"
+
 #: src/session/components/note-input/header-transcript.tsx
 msgid "Failed to copy transcript"
 msgstr "Impossible de copier le transcript"
@@ -1299,14 +1561,8 @@ msgstr "Échec du chargement du problème"
 msgid "Failed to load pull request"
 msgstr "Échec du chargement de la demande de fusion"
 
-#: src/templates/template-sidebar.tsx
-msgid "Favorite"
-msgstr "Ajouter aux favoris"
-
-#: src/templates/details.tsx
-#: src/templates/template-form.tsx
-msgid "Favorite template"
-msgstr "Ajouter le modèle aux favoris"
+#~ msgid "Familiar Face"
+#~ msgstr "Visage familier"
 
 #: src/settings/appearance/app-icon.tsx
 msgid "Field Journal"
@@ -1327,6 +1583,20 @@ msgstr "Nom de fichier"
 #: src/chat/components/body/empty.tsx
 msgid "Find key decisions."
 msgstr "Trouvez les décisions clés."
+
+#~ msgid "Finding Your Rhythm"
+#~ msgstr "Trouver votre rythme"
+
+#: src/session/components/capsule/index.tsx
+msgid "Finish"
+msgstr "Terminer"
+
+#: src/session/components/capsule/index.tsx
+msgid "Finishing…"
+msgstr "Finalisation…"
+
+#~ msgid "First Words"
+#~ msgstr "Premiers mots"
 
 #: src/templates/template-icon-picker.tsx
 msgid "Flags"
@@ -1390,13 +1660,12 @@ msgstr "Plein écran"
 msgid "Future meetings"
 msgstr "Réunions à venir"
 
+#~ msgid "General"
+#~ msgstr "Général"
+
 #: src/session/components/note-input/enhanced/index.tsx
 msgid "Generate summary"
 msgstr "Générer un résumé"
-
-#: src/templates/template-generator-bar.tsx
-msgid "Generate with AI"
-msgstr "Générer avec l'IA"
 
 #: src/session/components/note-input/enhanced/streaming.tsx
 #: src/session/components/title-input.tsx
@@ -1444,6 +1713,9 @@ msgstr "Aller à la section précédente"
 msgid "Go to recent"
 msgstr "Aller aux récents"
 
+#~ msgid "Good Listener"
+#~ msgstr "Bon auditeur"
+
 #: src/settings/ai/stt/language-warning.tsx
 msgid "Got it"
 msgstr "Compris"
@@ -1471,6 +1743,9 @@ msgstr "Ayez Syntheo prêt lorsque vous vous connectez."
 #: src/calendar/components/apple/permission.tsx
 msgid "Having trouble?"
 msgstr "Vous rencontrez des difficultés ?"
+
+#~ msgid "Hello, Syntheo"
+#~ msgstr "Bonjour, Syntheo"
 
 #: src/main/windows-title-bar.tsx
 #: src/settings/ai/shared/server-card.tsx
@@ -1513,6 +1788,10 @@ msgstr "Masquer la barre latérale"
 msgid "Hide Sidebar"
 msgstr "Masquer la barre latérale"
 
+#: src/session/components/living-document/index.tsx
+msgid "Hide transcript"
+msgstr "Masquer la transcription"
+
 #: src/settings/ai/llm/server-card.tsx
 msgid "High"
 msgstr "Élevé"
@@ -1530,6 +1809,12 @@ msgstr "Historique {0}/{1}"
 #: src/settings/dictation.tsx
 msgid "Hold your shortcut while speaking, then release it to finish."
 msgstr "Maintenez votre raccourci pendant que vous parlez, puis relâchez-le pour terminer."
+
+#~ msgid "Hours transcribed"
+#~ msgstr "Heures transcrites"
+
+#~ msgid "How much the model thinks before answering. Default leaves it to the provider."
+#~ msgstr "Niveau de réflexion du modèle avant de répondre. Par défaut, le fournisseur décide."
 
 #: src/contacts/humans.tsx
 msgid "Human"
@@ -1596,6 +1881,11 @@ msgstr "Dans {totalSeconds} s"
 msgid "in {weeks} weeks"
 msgstr "dans {weeks} semaines"
 
+#: src/templates/template-form.tsx
+#: src/templates/template-sidebar.tsx
+msgid "In favorites"
+msgstr "Favori"
+
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Include"
@@ -1605,13 +1895,11 @@ msgstr "Inclure"
 msgid "Include meeting ID"
 msgstr "Inclure l'ID de réunion"
 
-#: src/templates/sections-editor.tsx
-msgid "Insert above"
-msgstr "Insérer au-dessus"
+#~ msgid "Includes imported transcripts. Deleted conversations are excluded."
+#~ msgstr "Inclut les transcripts importés. Les conversations supprimées sont exclues."
 
-#: src/templates/sections-editor.tsx
-msgid "Insert below"
-msgstr "Insérer en dessous"
+#~ msgid "Insights"
+#~ msgstr "Analyses"
 
 #: src/settings/developers/cli.tsx
 msgid "Install"
@@ -1624,6 +1912,9 @@ msgstr "Installer pour tous les agents"
 #: src/settings/developers/cli.tsx
 msgid "Installed"
 msgstr "Installé"
+
+#~ msgid "Intelligence"
+#~ msgstr "Intelligence"
 
 #: src/settings/ai/shared/server-card.tsx
 msgid "Invalid address"
@@ -1666,6 +1957,9 @@ msgstr "Clé refusée"
 #: src/settings/general/index.tsx
 msgid "Language & Region"
 msgstr "Langue et région"
+
+#~ msgid "Language & transcription"
+#~ msgstr "Langue & transcription"
 
 #: src/settings/dictation.tsx
 msgid "Language and vocabulary"
@@ -1719,6 +2013,9 @@ msgstr "Laissez le champ vide pour utiliser la date et le titre de la réunion."
 msgid "Leave empty if the server has no authentication"
 msgstr "Laisser vide si le serveur n'a pas d'authentification"
 
+#~ msgid "Less"
+#~ msgstr "Moins"
+
 #: src/settings/appearance/theme.tsx
 msgid "Light"
 msgstr "Clair"
@@ -1736,13 +2033,31 @@ msgstr "Listez les éléments d'action jusqu'à présent."
 msgid "List action items."
 msgstr "Listez les éléments d'action."
 
+#: src/session/components/capsule/index.tsx
+msgid "Listen"
+msgstr "Écouter"
+
+#: src/session/components/living-document/fiche.tsx
+msgid "Listening"
+msgstr "Écoute"
+
+#: src/session/components/capsule/index.tsx
+msgid "Listening time"
+msgstr "Durée d'écoute"
+
 #: src/settings/dictation.tsx
 msgid "Listening…"
 msgstr "Écoute…"
 
+#~ msgid "Little steps worth keeping. Collect them at your own pace."
+#~ msgstr "Petites étapes à conserver. Collectez-les à votre rythme."
+
 #: src/settings/dictation.tsx
 msgid "Live transcript preview"
 msgstr "Voir le texte en direct"
+
+#~ msgid "Living Library"
+#~ msgstr "Bibliothèque vivante"
 
 #: src/templates/auto-form.tsx
 msgid "Loading Auto format..."
@@ -1756,10 +2071,19 @@ msgstr "Chargement des calendriers..."
 msgid "Loading edit…"
 msgstr "Chargement de la modification…"
 
+#~ msgid "Loading models..."
+#~ msgstr "Chargement des modèles..."
+
 #: src/settings/general/index.tsx
 #: src/settings/hydration-boundary.tsx
 msgid "Loading settings"
 msgstr "Chargement des paramètres"
+
+#~ msgid "Loading your badges…"
+#~ msgstr "Chargement de vos badges…"
+
+#~ msgid "Loading your insights…"
+#~ msgstr "Chargement de vos analyses…"
 
 #: src/changelog/index.tsx
 #: src/contacts/details.tsx
@@ -1850,6 +2174,9 @@ msgstr "Serveur MCP"
 msgid "Me"
 msgstr "Moi"
 
+#~ msgid "Median transcribed time. Conversations with timing: {0}."
+#~ msgstr "Durée transcrite médiane. Conversations avec minutage : {0}."
+
 #: src/settings/ai/llm/server-card.tsx
 msgid "Medium"
 msgstr "Moyen"
@@ -1882,6 +2209,10 @@ msgstr "Historique de réunion importé"
 msgid "Meeting info"
 msgstr "Informations sur la réunion"
 
+#: src/session/components/living-document/fiche.tsx
+msgid "Meeting type"
+msgstr "Type de réunion"
+
 #: src/settings/general/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Meetings"
@@ -1905,6 +2236,9 @@ msgstr "Mémo"
 msgid "Memo copied to clipboard"
 msgstr "Mémo copié dans le presse-papiers"
 
+#~ msgid "Memory Keeper"
+#~ msgstr "Gardien de mémoire"
+
 #: src/session/components/note-input/header-raw.tsx
 msgid "Memos"
 msgstr "Mémos"
@@ -1925,6 +2259,10 @@ msgstr "Message Syntheo AI"
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Metadata"
 msgstr "Métadonnées"
+
+#: src/session/components/living-document/fiche.tsx
+msgid "Mic"
+msgstr "Micro"
 
 #: src/onboarding/permissions.tsx
 #: src/settings/dictation.tsx
@@ -1962,6 +2300,9 @@ msgstr "Réduire"
 msgid "Model"
 msgstr "Modèle"
 
+#~ msgid "Model being used"
+#~ msgstr "Modèle utilisé"
+
 #: src/session/components/note-input/enhanced/streaming.tsx
 msgid "Model is thinking..."
 msgstr "Le modèle réfléchit..."
@@ -1978,21 +2319,27 @@ msgstr "Nom du modèle servi par votre serveur"
 msgid "Monday"
 msgstr "Lundi"
 
+#~ msgid "More"
+#~ msgstr "Plus"
+
+#: src/templates/template-form.tsx
+msgid "More actions"
+msgstr "Plus d'actions"
+
 #: src/settings/ai/llm/index.tsx
 msgid "More effort gives finer summaries, but slower. Auto leaves it to the server."
 msgstr "Plus d'effort donne des synthèses plus fines, mais plus lentes. Auto laisse le serveur décider."
 
+#~ msgid "Most conversations: {busiestDay}"
+#~ msgstr "Conversations les plus nombreuses : {busiestDay}"
+
 #: src/templates/sections-editor.tsx
-msgid "Move down"
-msgstr "Descendre"
+msgid "Move section {position}"
+msgstr "Déplacer la section {position}"
 
 #: src/calendar/components/event-chip.tsx
 msgid "Move this note"
 msgstr "Déplacer cette note"
-
-#: src/templates/sections-editor.tsx
-msgid "Move up"
-msgstr "Monter"
 
 #: src/settings/ai/stt/server-card.tsx
 msgid "Multilingual"
@@ -2005,6 +2352,10 @@ msgstr "Multilingue · locuteurs"
 #: src/sidebar/automations.tsx
 msgid "My automations"
 msgstr "Mes automatisations"
+
+#: src/templates/template-sidebar.tsx
+msgid "My favorites"
+msgstr "Mes favoris"
 
 #: src/sidebar/settings-nav-groups.ts
 msgid "My meetings"
@@ -2051,6 +2402,9 @@ msgid "New Note"
 msgstr "Nouvelle note"
 
 #: src/session/components/note-input/raw.tsx
+#: src/templates/details.tsx
+#: src/templates/template-form.tsx
+#: src/templates/utils.ts
 msgid "New template"
 msgstr "Nouveau modèle"
 
@@ -2178,6 +2532,12 @@ msgstr "Aucune langue correspondante trouvée"
 msgid "No matching people"
 msgstr "Aucune personne correspondante"
 
+#~ msgid "No models available."
+#~ msgstr "Aucun modèle disponible."
+
+#~ msgid "No models ready to use."
+#~ msgstr "Aucun modèle prêt à l'emploi."
+
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "No people"
 msgstr "Aucune personne"
@@ -2185,6 +2545,9 @@ msgstr "Aucune personne"
 #: src/contacts/organization-details.tsx
 msgid "No people in this organization"
 msgstr "Aucune personne dans cette organisation"
+
+#~ msgid "No providers found."
+#~ msgstr "Aucun fournisseur trouvé."
 
 #: src/chat/components/toolbar-controls.tsx
 msgid "No recent chats"
@@ -2205,17 +2568,31 @@ msgstr "Aucun résultat trouvé."
 msgid "No server yet"
 msgstr "Aucun serveur"
 
+#~ msgid "No single busiest day"
+#~ msgstr "Aucun jour particulièrement chargé"
+
 #: src/chat/components/input/use-dictation.ts
 msgid "No speech detected"
 msgstr "Aucune parole détectée"
 
+#: src/templates/template-sidebar.tsx
+msgid "No template found"
+msgstr "Aucun modèle trouvé"
+
 #: src/templates/details.tsx
+#: src/templates/template-sidebar.tsx
 msgid "No templates yet"
 msgstr "Aucun modèle pour le moment"
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "No transcript available"
 msgstr "Aucun transcript disponible"
+
+#~ msgid "Not available"
+#~ msgstr "Non disponible"
+
+#~ msgid "Not connected"
+#~ msgstr "Non connecté"
 
 #: src/settings/developers/cli.tsx
 msgid "Not installed"
@@ -2233,9 +2610,25 @@ msgstr "Non testé"
 msgid "note"
 msgstr "note"
 
+#: src/session/components/capsule/index.tsx
+msgid "Note capsule"
+msgstr "Capsule de la note"
+
+#: src/session/components/capsule/session-capsule.tsx
+msgid "Note copied to clipboard"
+msgstr "Note copiée dans le presse-papiers"
+
+#: src/session/components/living-document/index.tsx
+msgid "Note here what you want to remember. During the meeting, write freely: Syntheo will complete it."
+msgstr "Notez ici ce que vous voulez retenir. Pendant la réunion, écrivez librement : Syntheo complétera."
+
 #: src/lock/screen.tsx
 msgid "Note is Locked"
 msgstr "Note verrouillée"
+
+#: src/session/components/capsule/index.tsx
+msgid "Note steps"
+msgstr "Étapes de la note"
 
 #: src/settings/appearance/app-icon.tsx
 msgid "Notepad"
@@ -2423,10 +2816,14 @@ msgstr "Version de l'autre appareil"
 msgid "Others"
 msgstr "Autres"
 
+#~ msgid "Overview"
+#~ msgstr "Aperçu"
+
 #: src/shared/control.tsx
 msgid "Page not found"
 msgstr "Page introuvable"
 
+#: src/session/components/living-document/fiche.tsx
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Participants"
@@ -2491,6 +2888,10 @@ msgstr "Lire à partir d'ici"
 msgid "Post recording disclosure in meeting chat"
 msgstr "Publier la mention d'enregistrement dans le chat de la réunion"
 
+#: src/session/components/capsule/index.tsx
+msgid "Prepare"
+msgstr "Préparer"
+
 #: src/settings/general/notification.tsx
 msgid "Prepare for events with a 5-minute reminder."
 msgstr "Préparez-vous aux événements avec un rappel 5 minutes avant."
@@ -2521,6 +2922,7 @@ msgstr "Empêcher les applications sélectionnées de déclencher la détection 
 
 #: src/settings/automations/index.tsx
 #: src/settings/general/notification.tsx
+#: src/templates/template-form.tsx
 msgid "Preview"
 msgstr "Aperçu"
 
@@ -2531,6 +2933,9 @@ msgstr "Match précédent"
 #: src/settings/general/app-settings.tsx
 msgid "Privacy"
 msgstr "Confidentialité"
+
+#~ msgid "Pro"
+#~ msgstr "Pro"
 
 #: src/settings/appearance/app-icon.tsx
 msgid "Production"
@@ -2594,10 +2999,6 @@ msgstr "Récent"
 msgid "Reconnect"
 msgstr "Reconnecter"
 
-#: src/session/components/outer-header/index.tsx
-msgid "Record"
-msgstr "Enregistrer"
-
 #: src/settings/general/permissions.tsx
 msgid "Record other participants in meetings."
 msgstr "Enregistrez les autres participants aux réunions."
@@ -2658,6 +3059,10 @@ msgstr "Supprimer {0}"
 msgid "Remove {term}"
 msgstr "Supprimer {term}"
 
+#: src/templates/template-form.tsx
+msgid "Remove {use}"
+msgstr "Retirer {use}"
+
 #: src/settings/automations/index.tsx
 msgid "Remove automation"
 msgstr "Supprimer l'automatisation"
@@ -2670,6 +3075,10 @@ msgstr "Supprimer l'e-mail"
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Remove example {0}"
 msgstr "Supprimer l'exemple {0}"
+
+#: src/templates/template-sidebar.tsx
+msgid "Remove from favorites"
+msgstr "Retirer des favoris"
 
 #: src/contacts/contact-page-header.tsx
 #: src/contacts/profile-photo.tsx
@@ -2802,6 +3211,9 @@ msgstr "Révoquer"
 msgid "Right Command"
 msgstr "Commande droite"
 
+#~ msgid "Runs after the recording finishes, not during the meeting."
+#~ msgstr "S'exécute après la fin de l'enregistrement, et non pendant la réunion."
+
 #: src/settings/dictionary/index.tsx
 #: src/templates/auto-form.tsx
 msgid "Save"
@@ -2852,6 +3264,10 @@ msgstr "Faire défiler jusqu'en bas"
 msgid "Scroll to top"
 msgstr "Faire défiler jusqu'en haut"
 
+#: src/templates/template-sidebar.tsx
+msgid "Search a template"
+msgstr "Rechercher un modèle"
+
 #: src/sidebar/automations.tsx
 msgid "Search automations..."
 msgstr "Rechercher des automatisations..."
@@ -2892,12 +3308,24 @@ msgstr "Rechercher ou ajouter une entreprise"
 msgid "Search or create folder"
 msgstr "Rechercher ou créer un dossier"
 
+#~ msgid "Search or create new"
+#~ msgstr "Rechercher ou créer un nouvel élément"
+
+#~ msgid "Search providers"
+#~ msgstr "Rechercher des fournisseurs"
+
+#~ msgid "Search providers..."
+#~ msgstr "Rechercher des fournisseurs..."
+
 #: src/sidebar/settings.tsx
 msgid "Search settings..."
 msgstr "Rechercher des paramètres..."
 
-#: src/session/components/note-input/template-picker.tsx
 #: src/templates/template-sidebar.tsx
+msgid "Search templates"
+msgstr "Rechercher dans les modèles"
+
+#: src/session/components/note-input/template-picker.tsx
 msgid "Search templates..."
 msgstr "Rechercher des modèles..."
 
@@ -2912,8 +3340,24 @@ msgid "Search..."
 msgstr "Rechercher..."
 
 #: src/templates/sections-editor.tsx
-msgid "Section actions"
-msgstr "Actions de la section"
+msgid "Section {position} instruction"
+msgstr "Consigne de la section {position}"
+
+#: src/templates/sections-editor.tsx
+msgid "Section {position} title"
+msgstr "Titre de la section {position}"
+
+#: src/templates/sections-editor.tsx
+msgid "Section moved to position {position} of {total}."
+msgstr "Section déplacée en position {position} sur {total}."
+
+#: src/templates/sections-editor.tsx
+msgid "Section title"
+msgstr "Titre de la section"
+
+#: src/templates/sections-editor.tsx
+msgid "Sections"
+msgstr "Sections"
 
 #: src/session/components/folder-picker.tsx
 msgid "See all folders"
@@ -2923,9 +3367,15 @@ msgstr "Voir tous les dossiers"
 msgid "See all templates"
 msgstr "Voir tous les modèles"
 
+#~ msgid "Select a model"
+#~ msgstr "Sélectionnez un modèle"
+
 #: src/contacts/details.tsx
 msgid "Select a person to view details"
 msgstr "Sélectionnez une personne pour afficher les détails"
+
+#~ msgid "Select a provider"
+#~ msgstr "Sélectionnez un fournisseur"
 
 #: src/main/windows-title-bar.tsx
 msgid "Select All"
@@ -2992,10 +3442,11 @@ msgstr "Vues des notes de session"
 msgid "Session title"
 msgstr "Titre de la session"
 
-#: src/templates/auto-form.tsx
-#: src/templates/details.tsx
-msgid "Set as default"
-msgstr "Définissez par défaut"
+#~ msgid "Set {providerName} as the current provider?"
+#~ msgstr "Définissez {providerName} comme fournisseur actuel ?"
+
+#~ msgid "Set as current"
+#~ msgstr "Définissez comme actuel"
 
 #: src/session/components/note-input/enhanced/config-error.tsx
 msgid "Set up AI summaries"
@@ -3103,6 +3554,10 @@ msgstr "Afficher la chronologie dans votre fuseau horaire préféré."
 msgid "Show This Event"
 msgstr "Afficher cet événement"
 
+#: src/session/components/living-document/index.tsx
+msgid "Show transcript"
+msgstr "Afficher la transcription"
+
 #: src/settings/general/app-settings.tsx
 msgid "Show tray icon"
 msgstr "Afficher l'icône de la zone de notification"
@@ -3114,6 +3569,9 @@ msgstr "Afficher lorsqu'un résumé est prêt."
 #: src/settings/general/notification.tsx
 msgid "Show when initial cloud sync finishes."
 msgstr "Afficher lorsque la synchronisation initiale dans le cloud se termine."
+
+#~ msgid "Show words in the floating panel as you speak. Uses a live connection to your selected transcription provider when supported. Text is inserted when you finish."
+#~ msgstr "Afficher les mots dans le panneau flottant au fur et à mesure que vous parlez. Utilise une connexion en direct à votre fournisseur de transcription sélectionné si pris en charge. Le texte est inséré lorsque vous avez terminé."
 
 #: src/settings/developers/webhooks.tsx
 msgid "Signing secret copied"
@@ -3192,6 +3650,9 @@ msgstr "Étincelle"
 #: src/settings/dictation.tsx
 msgid "Speak into any text field, in any app. The text is inserted when you finish."
 msgstr "Parlez dans n'importe quel champ de texte, dans n'importe quelle application. Le texte s'insère quand vous avez terminé."
+
+#~ msgid "Speak into the focused text field in your apps. Your transcript appears when you finish."
+#~ msgstr "Parlez dans le champ de texte actif de vos applications. Votre transcript s'affiche lorsque vous avez terminé."
 
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "SQLite migration verification is incomplete"
@@ -3274,7 +3735,6 @@ msgid "Stone"
 msgstr "Pierre"
 
 #: src/composer/index.tsx
-#: src/session/components/outer-header/index.tsx
 msgid "Stop"
 msgstr "Arrêter"
 
@@ -3282,7 +3742,6 @@ msgstr "Arrêter"
 msgid "Stop auto-add"
 msgstr "Arrêter l'ajout automatique"
 
-#: src/session/components/outer-header/index.tsx
 #: src/session/components/outer-header/overflow/listening.tsx
 #: src/sidebar/timeline/item.tsx
 msgid "Stop listening"
@@ -3300,6 +3759,10 @@ msgstr "Arrêter la réponse"
 msgid "Stop transcription"
 msgstr "Arrêter la transcription"
 
+#: src/templates/template-form.tsx
+msgid "Stop using by default"
+msgstr "Ne plus utiliser par défaut"
+
 #: src/chat/components/input/index.tsx
 msgid "Stop voice input"
 msgstr "Arrêter la saisie vocale"
@@ -3312,6 +3775,9 @@ msgstr "Arrêter à la fin de la réunion"
 msgid "Storage"
 msgstr "Stockage"
 
+#~ msgid "Story Collector"
+#~ msgstr "Collecteur de récits"
+
 #: src/settings/general/notification.tsx
 msgid "Success"
 msgstr "Succès"
@@ -3320,6 +3786,10 @@ msgstr "Succès"
 msgid "Suggest a Feature"
 msgstr "Suggérer une fonctionnalité"
 
+#: src/templates/template-generator-bar.tsx
+msgid "Suggest sections"
+msgstr "Proposer des sections"
+
 #: src/chat/components/body/empty.tsx
 msgid "Suggest what to ask next."
 msgstr "Suggérez la prochaine question à poser."
@@ -3327,6 +3797,10 @@ msgstr "Suggérez la prochaine question à poser."
 #: src/session/components/note-input/raw.tsx
 msgid "Suggested templates"
 msgstr "Modèles suggérés"
+
+#: src/templates/template-generator-bar.tsx
+msgid "Suggesting…"
+msgstr "Proposition en cours…"
 
 #: src/contacts/details.tsx
 #: src/edit/tab-content.tsx
@@ -3353,9 +3827,17 @@ msgstr "Le format du résumé ne peut pas être vide."
 msgid "Summary generation failed"
 msgstr "Échec de la génération du résumé"
 
+#: src/templates/template-preview.tsx
+msgid "Summary preview"
+msgstr "Aperçu de la synthèse"
+
 #: src/services/enhancer/summary-notification.ts
 msgid "Summary ready"
 msgstr "Résumé prêt"
+
+#: src/session/components/living-document/summary-switcher.tsx
+msgid "Summary templates"
+msgstr "Modèles du compte-rendu"
 
 #: src/settings/general/week-start.tsx
 msgid "Sunday"
@@ -3411,10 +3893,15 @@ msgstr "Compétence Syntheo ajoutée à {0}"
 msgid "Syntheo skill added to {0} agents"
 msgstr "Compétence Syntheo ajoutée à {0} agents"
 
+#: src/templates/auto-form.tsx
+msgid "Syntheo structures the summary itself, without a fixed template. Used when no template is chosen for a meeting."
+msgstr "Syntheo structure lui-même la synthèse, sans modèle fixe. Utilisé quand aucun modèle n'est choisi pour une réunion."
+
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "Syntheo will retry automatically. This does not affect your notes."
 msgstr "Syntheo réessaiera automatiquement. Cela n'a aucune incidence sur vos notes."
 
+#: src/session/components/capsule/index.tsx
 #: src/settings/ai/llm/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Synthesis"
@@ -3471,15 +3958,23 @@ msgstr "Indiquez aux participants quand l'écoute commence ; cela ne confirme pa
 
 #: src/templates/auto-form.tsx
 #: src/templates/details.tsx
-#: src/templates/template-form.tsx
 msgid "Template actions"
 msgstr "Actions du modèle"
 
-#: src/templates/sections-editor.tsx
-msgid "Template content with Jinja2: {{ variable }}, {% if condition %}"
-msgstr "Contenu du modèle avec Jinja2 : {{ variable }}, {% if condition %}"
+#: src/templates/template-form.tsx
+msgid "Template icon"
+msgstr "Icône du modèle"
+
+#: src/templates/template-preview.tsx
+msgid "Template instruction"
+msgstr "Consigne du modèle"
+
+#: src/templates/template-form.tsx
+msgid "Template name"
+msgstr "Nom du modèle"
 
 #: src/sidebar/settings-nav-groups.ts
+#: src/templates/template-sidebar.tsx
 msgid "Templates"
 msgstr "Modèles"
 
@@ -3515,9 +4010,21 @@ msgstr "Testez la connexion pour lister les modèles servis."
 msgid "Testing…"
 msgstr "Test en cours…"
 
+#: src/session/components/living-document/provenance.tsx
+msgid "Text provenance"
+msgstr "Provenance du texte"
+
 #: src/settings/ai/stt/server-card.tsx
 msgid "The API key is optional for servers without authentication. It is kept in your system keychain."
 msgstr "La clé d'API est facultative pour un serveur sans authentification. Elle est gardée dans le trousseau de votre système."
+
+#: src/templates/auto-form.tsx
+msgid "The Automatic format is unavailable."
+msgstr "Le format Automatique est indisponible."
+
+#: src/templates/template-form.tsx
+msgid "The kinds of meeting this template is meant for (team, role, frequency…)."
+msgstr "Les réunions auxquelles ce modèle est destiné (équipe, rôle, fréquence…)."
 
 #: src/settings/ai/llm/index.tsx
 msgid "The language model that writes your meeting notes and answers when you ask a note a question."
@@ -3559,6 +4066,10 @@ msgstr "Le serveur a refusé la clé d'API. Vérifiez-la dans « Avancé », pui
 #: src/settings/ai/stt/index.tsx
 msgid "The server that turns speech into text during your meetings. Audio is never written to disk."
 msgstr "Le serveur qui transforme la voix en texte, pendant la réunion. L'audio n'est jamais écrit sur le disque."
+
+#: src/templates/template-generator-bar.tsx
+msgid "The summary server did not respond. Check that it is running, then try again."
+msgstr "Le serveur de synthèse n'a pas répondu. Vérifiez qu'il est démarré, puis réessayez."
 
 #: src/settings/appearance/theme.tsx
 msgid "Theme"
@@ -3630,6 +4141,10 @@ msgstr "Astuce : Ajoutez les noms des membres de l’équipe, les acronymes, le 
 msgid "Tip: The Syntheo team loves our users!"
 msgstr "Astuce : L’équipe Syntheo adore ses utilisateurs !"
 
+#: src/templates/sections-editor.tsx
+msgid "To move a section with the keyboard, focus its handle and use the up and down arrow keys."
+msgstr "Pour déplacer une section au clavier, placez le focus sur sa poignée et utilisez les flèches haut et bas."
+
 #: src/sidebar/timeline/utils/index.ts
 msgid "Today"
 msgstr "Aujourd’hui"
@@ -3657,6 +4172,8 @@ msgstr "Transcript"
 msgid "Transcript copied to clipboard"
 msgstr "Transcript copié dans le presse-papiers"
 
+#: src/session/components/living-document/index.tsx
+#: src/session/components/living-document/transcript-margin.tsx
 #: src/settings/ai/stt/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Transcription"
@@ -3729,9 +4246,16 @@ msgstr "Essayez de parler un peu plus près du microphone."
 msgid "Turn on Syntheo in System Settings → Privacy & Security → Calendars, then return here."
 msgstr "Activez Syntheo dans Réglages système → Confidentialité et sécurité → Calendriers, puis revenez ici."
 
+#: src/session/components/living-document/fiche.tsx
+msgid "Type"
+msgstr "Type"
+
 #: src/settings/appearance/app-icon.tsx
 msgid "Typewriter Key"
 msgstr "Touche machine à écrire"
+
+#~ msgid "Typical conversation length"
+#~ msgstr "Durée typique de la conversation"
 
 #: src/settings/developers/cli.tsx
 msgid "Unavailable"
@@ -3741,14 +4265,6 @@ msgstr "Indisponible"
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "Undo"
 msgstr "Annuler"
-
-#: src/templates/template-sidebar.tsx
-msgid "Unfavorite"
-msgstr "Retirer des favoris"
-
-#: src/templates/template-form.tsx
-msgid "Unfavorite template"
-msgstr "Retirer le modèle des favoris"
 
 #: src/calendar/components/event-chip.tsx
 msgid "Unfiled"
@@ -3771,6 +4287,9 @@ msgstr "Déverrouiller"
 msgid "Unlock Note"
 msgstr "Déverrouiller la note"
 
+#~ msgid "Unlock your login Keychain in the macOS prompt. Syntheo will retry saving this API key automatically."
+#~ msgstr "Déverrouillez votre trousseau de connexion dans l'invite macOS. Syntheo réessaiera d'enregistrer cette clé API automatiquement."
+
 #: src/contacts/details.tsx
 #: src/contacts/organization-details.tsx
 msgid "Unnamed"
@@ -3788,6 +4307,7 @@ msgstr "Détacher"
 msgid "Unreachable"
 msgstr "Injoignable"
 
+#: src/session/components/living-document/fiche.tsx
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/session/components/title-input.tsx
@@ -3796,7 +4316,8 @@ msgstr "Injoignable"
 #: src/sidebar/timeline/item.tsx
 #: src/sidebar/toast/undo-delete-toast.tsx
 #: src/templates/details.tsx
-#: src/templates/sections-editor.tsx
+#: src/templates/template-preview.tsx
+#: src/templates/template-sidebar.tsx
 msgid "Untitled"
 msgstr "Sans titre"
 
@@ -3809,6 +4330,10 @@ msgstr "Automatisation sans titre"
 msgid "Untitled Note"
 msgstr "Note sans titre"
 
+#: src/templates/template-preview.tsx
+msgid "Untitled section"
+msgstr "Section sans titre"
+
 #: src/edit/tab-content.tsx
 msgid "Untitled session"
 msgstr "Session sans titre"
@@ -3817,9 +4342,15 @@ msgstr "Session sans titre"
 msgid "Upcoming Event"
 msgstr "Événement à venir"
 
+#~ msgid "Update your personal contact card. Your sign-in email is managed separately."
+#~ msgstr "Mettez à jour votre fiche de contact personnelle. Votre adresse e-mail de connexion est gérée séparément."
+
 #: src/settings/plan-gate.tsx
 msgid "Upgrade"
 msgstr "Mettre à niveau"
+
+#~ msgid "Upgrade to Pro to use this provider."
+#~ msgstr "Passez à Pro pour utiliser ce fournisseur."
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
 #: src/session/components/outer-header/overflow/index.tsx
@@ -3842,6 +4373,12 @@ msgstr "Utilisez le format 24 heures"
 #: src/automations/starters.tsx
 msgid "Use a stable filename in the configured export directory."
 msgstr "Utilisez un nom de fichier stable dans le répertoire d'export configuré."
+
+#: src/templates/auto-form.tsx
+#: src/templates/details.tsx
+#: src/templates/template-form.tsx
+msgid "Use by default"
+msgstr "Utiliser par défaut"
 
 #: src/settings/general/index.tsx
 msgid "Use main language for summaries"
@@ -3870,6 +4407,10 @@ msgstr "Utilisez la reconnaissance faciale Windows Hello, le code PIN ou le mot 
 #: src/onboarding/permissions.tsx
 msgid "Use your microphone to capture your voice"
 msgstr "Utilisez votre microphone pour capter votre voix"
+
+#: src/templates/template-form.tsx
+msgid "Used for"
+msgstr "Utilisé pour"
 
 #: src/settings/general/spoken-languages.tsx
 msgid "Used for transcription and automatic summary language detection."
@@ -3928,6 +4469,9 @@ msgstr "Webhooks"
 msgid "Week starts on"
 msgstr "La semaine commence le"
 
+#~ msgid "Weekly streak: {0}"
+#~ msgstr "Série hebdomadaire : {0}"
+
 #: src/onboarding/index.tsx
 msgid "Welcome to Syntheo"
 msgstr "Bienvenue sur Syntheo"
@@ -3943,6 +4487,10 @@ msgstr "Quels sont mes points d'action issus de cette réunion ?"
 #: src/chat/components/body/empty.tsx
 msgid "What are my outstanding action items across my meetings?"
 msgstr "Quels sont mes points d'action en suspens dans mes réunions ?"
+
+#: src/templates/template-form.tsx
+msgid "What is this template for?"
+msgstr "À quoi sert ce modèle ?"
 
 #: src/chat/components/body/empty.tsx
 msgid "What key decisions were made in my recent meetings?"
@@ -3984,6 +4532,13 @@ msgstr "Travailler sur cette tâche"
 msgid "Workflow"
 msgstr "Flux de travail"
 
+#~ msgid "Workspace"
+#~ msgstr "Espace de travail"
+
+#: src/session/components/living-document/index.tsx
+msgid "Write freely, Syntheo will complete it."
+msgstr "Écrivez librement, Syntheo complétera."
+
 #: src/automations/starters.tsx
 msgid "Write to a folder"
 msgstr "Écrire dans un dossier"
@@ -3992,9 +4547,17 @@ msgstr "Écrire dans un dossier"
 msgid "Writing"
 msgstr "Écrire"
 
+#: src/templates/template-preview.tsx
+msgid "Written by Syntheo"
+msgstr "Rédigé par Syntheo"
+
 #: src/sidebar/timeline/utils/index.ts
 msgid "Yesterday"
 msgstr "Hier"
+
+#: src/templates/utils.ts
+msgid "you"
+msgstr "vous"
 
 #: src/calendar/components/apple/permission.tsx
 msgid "You can"
@@ -4008,14 +4571,33 @@ msgstr "Vous pouvez annuler cette action pendant une courte durée."
 msgid "You can use up to three example summaries."
 msgstr "Vous pouvez utiliser jusqu'à trois exemples de résumés."
 
+#~ msgid "Your badges"
+#~ msgstr "Vos badges"
+
+#~ msgid "Your busiest weekdays are tied at {peakCount} conversations each in the selected period."
+#~ msgstr "Vos jours de semaine les plus chargés sont à égalité avec {peakCount} conversations chacun sur la période sélectionnée."
+
+#~ msgid "Your conversation patterns"
+#~ msgstr "Vos habitudes de conversation"
+
 #: src/settings/dictionary/index.tsx
 msgid "Your dictionary is empty"
 msgstr "Votre dictionnaire est vide"
+
+#~ msgid "Your info"
+#~ msgstr "Vos informations"
+
+#~ msgid "Your insights"
+#~ msgstr "Vos analyses"
+
+#: src/session/components/living-document/index.tsx
+#: src/session/components/living-document/provenance.tsx
+msgid "Your notes"
+msgstr "Vos notes"
 
 #: src/services/enhancer/summary-notification.ts
 msgid "Your summary is ready."
 msgstr "Votre résumé est prêt."
 
-#: src/templates/template-sidebar.tsx
-msgid "Z to A"
-msgstr "Z à A"
+#~ msgid "Your week at a glance"
+#~ msgstr "Votre semaine en un coup d'œil"

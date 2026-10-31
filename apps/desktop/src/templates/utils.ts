@@ -1,3 +1,5 @@
+import { t as translate } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo } from "react";
 
 import { parseWebTemplates, type WebTemplate } from "./codec";
@@ -85,8 +87,12 @@ export function getTemplateCreatorLabel({
   creatorName?: string | null;
   format?: "full" | "short";
 }) {
-  const name = isUserTemplate ? creatorName?.trim() || "user" : "Syntheo";
-  return format === "short" ? `by ${name}` : `Created by ${name}`;
+  const name = isUserTemplate
+    ? creatorName?.trim() || translate`you`
+    : "Syntheo";
+  return format === "short"
+    ? translate`by ${name}`
+    : translate`Created by ${name}`;
 }
 
 export function filterWebTemplatesAgainstUserTemplates({
@@ -113,7 +119,49 @@ export function filterWebTemplatesAgainstUserTemplates({
   });
 }
 
+function templateMatchesSearch(template: UserTemplate, query: string) {
+  return [
+    template.title,
+    template.description,
+    template.category,
+    ...(template.targets ?? []),
+  ].some((value) => value?.toLowerCase().includes(query));
+}
+
+function compareTitles(a: { title?: string }, b: { title?: string }) {
+  return (a.title || "").localeCompare(b.title || "", "fr");
+}
+
+/**
+ * Répartit les modèles de l'utilisateur entre « Mes favoris » (épinglés, dans
+ * l'ordre d'épinglage) et « Tous les modèles » (les autres, par ordre
+ * alphabétique), après filtrage par la recherche.
+ */
+export function groupUserTemplates(
+  userTemplates: UserTemplate[],
+  search = "",
+): { favorites: UserTemplate[]; others: UserTemplate[] } {
+  const query = search.trim().toLowerCase();
+  const visible = query
+    ? userTemplates.filter((template) => templateMatchesSearch(template, query))
+    : userTemplates;
+
+  const favorites = visible
+    .filter((template) => template.pinned)
+    .sort(
+      (a, b) =>
+        (a.pinOrder ?? Infinity) - (b.pinOrder ?? Infinity) ||
+        compareTitles(a, b),
+    );
+  const others = visible
+    .filter((template) => !template.pinned)
+    .sort(compareTitles);
+
+  return { favorites, others };
+}
+
 export function useTemplateTab(tab: Extract<Tab, { type: "templates" }>) {
+  const { t } = useLingui();
   const updateTabState = useTabs((state) => state.updateTemplatesTabState);
   const userTemplates = useUserTemplates();
   const createTemplate = useCreateTemplate();
@@ -165,7 +213,7 @@ export function useTemplateTab(tab: Extract<Tab, { type: "templates" }>) {
 
   const createDefaultTemplate = useCallback(async () => {
     const id = await createTemplate({
-      title: "New Template",
+      title: t`New template`,
       description: "",
       sections: [],
     });
@@ -175,7 +223,7 @@ export function useTemplateTab(tab: Extract<Tab, { type: "templates" }>) {
     }
 
     return id;
-  }, [createTemplate, setSelectedMineId]);
+  }, [createTemplate, setSelectedMineId, t]);
 
   return {
     userTemplates,

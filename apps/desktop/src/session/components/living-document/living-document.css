@@ -1,0 +1,39 @@
+/* Document vivant (refonte « Thé vert », lot 2).
+ * Typographie de note d'identite.md : corps Geist 16/1.65, sections en
+ * Newsreader 22/1.35. Couleurs : uniquement les jetons. */
+
+[data-living-document] .note-typography {
+  --note-editor-font-size: 16px;
+  line-height: 1.65;
+}
+
+[data-living-document] .note-typography p {
+  line-height: 1.65;
+}
+
+[data-living-document] .note-typography :is(h1, h2, h3) {
+  font-family: var(--font-serif, "Newsreader", Georgia, serif);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.35;
+  margin-top: 10px;
+}
+
+/* Texte complété par Syntheo : encre ai-ink, jamais en italique ni en gris.
+ * Les actions générées en cases à cocher prennent la même encre. */
+[data-provenance="ai"] .note-typography {
+  color: hsl(var(--ai-ink));
+}
+
+[data-provenance="ai"] .note-typography input.task-checkbox {
+  border-color: hsl(var(--ai-ink));
+}
+
+[data-provenance="ai"] .note-typography input.task-checkbox:checked {
+  background-color: hsl(var(--ai-ink));
+  border-color: hsl(var(--ai-ink));
+}
+
+[data-provenance="user"] .note-typography {
+  color: hsl(var(--foreground));
+}

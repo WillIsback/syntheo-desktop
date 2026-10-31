@@ -26,7 +26,7 @@ afterEach(cleanup);
 
 function generateButton() {
   return screen.getByRole("button", {
-    name: /Generate with AI/,
+    name: /Suggest sections/,
   }) as HTMLButtonElement;
 }
 
@@ -55,15 +55,56 @@ describe("TemplateGeneratorBar", () => {
     });
 
     render(<TemplateGeneratorBar onGenerated={onGenerated} />);
-    fireEvent.change(screen.getByPlaceholderText(/Describe the meeting type/), {
-      target: { value: "point projet" },
-    });
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Describe the meeting" }),
+      {
+        target: { value: "point projet" },
+      },
+    );
     fireEvent.click(generateButton());
 
     await waitFor(() =>
       expect(onGenerated).toHaveBeenCalledWith(
         expect.objectContaining({ title: "Point projet" }),
       ),
+    );
+  });
+
+  it("utilise le nom et la description du modèle quand le champ est vide", async () => {
+    mocks.generateTemplate.mockResolvedValue({
+      title: "Comité",
+      description: "",
+      category: "",
+      icon: { type: "icon", value: "kanban", color: "#1a73e8" },
+      sections: [{ title: "Décisions", description: "d" }],
+    });
+
+    render(
+      <TemplateGeneratorBar
+        context="Comité de direction. Réunion mensuelle"
+        onGenerated={vi.fn()}
+      />,
+    );
+    fireEvent.click(generateButton());
+
+    await waitFor(() =>
+      expect(mocks.generateTemplate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: "Comité de direction. Réunion mensuelle",
+        }),
+      ),
+    );
+  });
+
+  it("explique quoi faire quand le serveur de synthèse ne répond pas", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.generateTemplate.mockRejectedValue(new Error("ECONNREFUSED"));
+
+    render(<TemplateGeneratorBar context="Point" onGenerated={vi.fn()} />);
+    fireEvent.click(generateButton());
+
+    expect((await screen.findByRole("alert")).textContent).toMatch(
+      /did not respond/,
     );
   });
 });

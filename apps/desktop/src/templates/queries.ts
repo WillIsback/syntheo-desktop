@@ -307,8 +307,8 @@ export function useToggleTemplateFavorite() {
 export function getTemplateCopyTitle(title: string) {
   const value = title.trim();
 
-  if (!value) return "Untitled (Copy)";
-  if (value.endsWith("(Copy)")) return value;
+  if (!value) return "Sans titre (copie)";
+  if (value.endsWith("(copie)") || value.endsWith("(Copy)")) return value;
 
-  return `${value} (Copy)`;
+  return `${value} (copie)`;
 }
