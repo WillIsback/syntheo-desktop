@@ -10,14 +10,25 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Noto Serif JP (OFL, voir fonts/noto-serif-jp-OFL.txt) réduit aux kanji
-   d'ornement 茶備聴結記, graisses 500 à 700. */
+   d'ornement 茶備聴結記, aux filigranes 藤 紅 et aux noms de palettes 緑茶 臙脂,
+   graisses 500 à 700. */
 @font-face {
   font-family: "Syntheo Kanji";
   src: url("./fonts/noto-serif-jp-kanji.woff2") format("woff2-variations");
   font-weight: 500 700;
   font-style: normal;
   font-display: block;
-  unicode-range: U+8336, U+5099, U+8074, U+7D50, U+8A18;
+  unicode-range:
+    U+8336,
+    U+5099,
+    U+8074,
+    U+7D50,
+    U+8A18,
+    U+85E4,
+    U+7D05,
+    U+7DD1,
+    U+81D9,
+    U+8102;
 }
 
 html[data-floating-bar],
