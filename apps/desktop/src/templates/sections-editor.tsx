@@ -1,22 +1,23 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Reorder, useDragControls } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 import type { TemplateSection } from "@syntheo/store";
-import { DotsSixVertical, DotsThree, Plus } from "@syntheo/ui/components/icons";
-import { Button } from "@syntheo/ui/components/ui/button";
-import {
-  AppFloatingPanel,
-  appFloatingMenuPanelClassName,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@syntheo/ui/components/ui/dropdown-menu";
-import { Input } from "@syntheo/ui/components/ui/input";
+import { DotsSixVertical, X } from "@syntheo/ui/components/icons";
 import { cn } from "@syntheo/utils";
 
+import { inlineFieldClassName, LineTextarea } from "./line-textarea";
+
 type SectionDraft = TemplateSection & { key: string };
+
+type PendingFocus = { key: string; target: "handle" | "title" } | null;
 
 function useEditableSections({
   disabled,
@@ -75,11 +76,7 @@ function useEditableSections({
   return {
     drafts,
     addSection: useCallback(
-      () =>
-        commit((prev) => [
-          ...prev,
-          { title: "", description: "", key: crypto.randomUUID() },
-        ]),
+      (draft: SectionDraft) => commit((prev) => [...prev, draft]),
       [commit],
     ),
     changeSection: useCallback(
@@ -89,19 +86,6 @@ function useEditableSections({
     ),
     deleteSection: useCallback(
       (key: string) => commit((prev) => prev.filter((s) => s.key !== key)),
-      [commit],
-    ),
-    insertSectionAt: useCallback(
-      (index: number) =>
-        commit((prev) => {
-          const next = [...prev];
-          next.splice(index, 0, {
-            title: "",
-            description: "",
-            key: crypto.randomUUID(),
-          });
-          return next;
-        }),
       [commit],
     ),
     moveSection: useCallback(
@@ -126,6 +110,10 @@ function useEditableSections({
   };
 }
 
+/**
+ * Sections d'un modèle : un titre et une consigne d'une ligne par section,
+ * réordonnables à la souris (poignée) ou au clavier (flèches sur la poignée).
+ */
 export function SectionsList({
   disabled,
   items,
@@ -135,13 +123,16 @@ export function SectionsList({
   items: TemplateSection[];
   onChange: (items: TemplateSection[]) => void;
 }) {
-  const controls = useDragControls();
+  const { t } = useLingui();
+  const hintId = useId();
+  const listRef = useRef<HTMLOListElement>(null);
+  const pendingFocus = useRef<PendingFocus>(null);
+  const [announcement, setAnnouncement] = useState("");
   const {
     drafts,
     addSection,
     changeSection,
     deleteSection,
-    insertSectionAt,
     moveSection,
     reorderSections,
   } = useEditableSections({
@@ -150,165 +141,190 @@ export function SectionsList({
     onChange,
   });
 
+  useEffect(() => {
+    const focus = pendingFocus.current;
+    if (!focus) return;
+    pendingFocus.current = null;
+    const selector =
+      focus.target === "handle"
+        ? `[data-section-handle="${focus.key}"]`
+        : `[data-section-title="${focus.key}"]`;
+    const element = listRef.current?.querySelector(selector);
+    if (element instanceof HTMLElement) element.focus();
+  }, [drafts]);
+
+  const handleMove = useCallback(
+    (key: string, direction: -1 | 1) => {
+      const index = drafts.findIndex((draft) => draft.key === key);
+      const nextIndex = index + direction;
+      if (index < 0 || nextIndex < 0 || nextIndex >= drafts.length) return;
+      pendingFocus.current = { key, target: "handle" };
+      moveSection(key, direction);
+      const position = nextIndex + 1;
+      const total = drafts.length;
+      setAnnouncement(t`Section moved to position ${position} of ${total}.`);
+    },
+    [drafts, moveSection, t],
+  );
+
+  const handleAdd = useCallback(() => {
+    const key = crypto.randomUUID();
+    pendingFocus.current = { key, target: "title" };
+    addSection({ key, title: "", description: "" });
+  }, [addSection]);
+
   return (
-    <div className="flex flex-col gap-3">
-      <Reorder.Group values={drafts} onReorder={reorderSections}>
-        <div className="flex flex-col gap-2">
-          {drafts.map((draft, index) => (
-            <Reorder.Item key={draft.key} value={draft}>
-              <SectionItem
-                disabled={disabled}
-                index={index}
-                total={drafts.length}
-                item={draft}
-                onChange={changeSection}
-                onDelete={deleteSection}
-                onInsertAbove={insertSectionAt}
-                onInsertBelow={insertSectionAt}
-                onMove={moveSection}
-                dragControls={controls}
-              />
-            </Reorder.Item>
-          ))}
-        </div>
+    <div className="flex flex-col">
+      {!disabled ? (
+        <p id={hintId} className="sr-only">
+          <Trans>
+            To move a section with the keyboard, focus its handle and use the up
+            and down arrow keys.
+          </Trans>
+        </p>
+      ) : null}
+      <Reorder.Group
+        as="ol"
+        axis="y"
+        ref={listRef}
+        values={drafts}
+        onReorder={reorderSections}
+        aria-label={t`Sections`}
+        className="border-border flex flex-col border-t"
+      >
+        {drafts.map((draft, index) => (
+          <SectionRow
+            key={draft.key}
+            disabled={disabled}
+            hintId={hintId}
+            index={index}
+            total={drafts.length}
+            item={draft}
+            onChange={changeSection}
+            onDelete={deleteSection}
+            onMove={handleMove}
+          />
+        ))}
       </Reorder.Group>
 
-      {!disabled && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-border bg-card text-foreground hover:bg-background h-auto w-fit rounded-full px-4 py-2.5 text-sm shadow-[0_2px_6px_rgba(87,83,78,0.08),0_10px_18px_-10px_rgba(87,83,78,0.22)]"
-          onClick={addSection}
-          disabled={disabled}
+      {!disabled ? (
+        <button
+          type="button"
+          onClick={handleAdd}
+          className="text-primary hover:text-primary-hover focus-visible:ring-ring/50 w-fit rounded-sm py-3 text-left text-sm font-semibold outline-hidden focus-visible:ring-2"
         >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Section
-        </Button>
-      )}
+          <Trans>+ Add a section</Trans>
+        </button>
+      ) : null}
+
+      <div aria-live="polite" className="sr-only">
+        {announcement}
+      </div>
     </div>
   );
 }
 
-function SectionItem({
+function SectionRow({
   disabled,
+  hintId,
   index,
   total,
   item,
   onChange,
   onDelete,
-  onInsertAbove,
-  onInsertBelow,
   onMove,
-  dragControls,
 }: {
   disabled: boolean;
+  hintId: string;
   index: number;
   total: number;
   item: SectionDraft;
   onChange: (item: SectionDraft) => void;
   onDelete: (key: string) => void;
-  onInsertAbove: (index: number) => void;
-  onInsertBelow: (index: number) => void;
   onMove: (key: string, direction: -1 | 1) => void;
-  dragControls: ReturnType<typeof useDragControls>;
 }) {
   const { t } = useLingui();
-  const [isFocused, setIsFocused] = useState(false);
+  const dragControls = useDragControls();
+  const position = index + 1;
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === "ArrowUp" && index > 0) {
+      event.preventDefault();
+      onMove(item.key, -1);
+    } else if (event.key === "ArrowDown" && index < total - 1) {
+      event.preventDefault();
+      onMove(item.key, 1);
+    }
+  };
 
   return (
-    <div className="group bg-card relative">
-      {!disabled && (
+    <Reorder.Item
+      value={item}
+      dragListener={false}
+      dragControls={dragControls}
+      className="group border-border bg-background grid grid-cols-[22px_26px_minmax(0,1fr)_auto] items-start gap-2 border-b py-3"
+    >
+      {disabled ? (
+        <span aria-hidden="true" />
+      ) : (
         <button
           type="button"
-          className="absolute top-2.5 -left-5 cursor-move opacity-0 transition-opacity group-hover:opacity-30 hover:opacity-60"
+          data-section-handle={item.key}
+          aria-label={t`Move section ${position}`}
+          aria-describedby={hintId}
           onPointerDown={(event) => dragControls.start(event)}
-          disabled={disabled}
+          onKeyDown={handleKeyDown}
+          className="text-faint hover:text-muted-foreground focus-visible:ring-ring/50 mt-1 flex size-6 cursor-grab touch-none items-center justify-center rounded-md outline-hidden focus-visible:ring-2 active:cursor-grabbing"
         >
-          <DotsSixVertical className="text-muted-foreground h-4 w-4" />
+          <DotsSixVertical className="size-4" />
         </button>
       )}
 
-      {!disabled && (
-        <div className="absolute top-2 right-2 opacity-0 transition-all group-hover:opacity-100">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="text-muted-foreground hover:text-muted-foreground h-7 w-7"
-                aria-label={t`Section actions`}
-              >
-                <DotsThree className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent variant="app" align="end">
-              <AppFloatingPanel className={appFloatingMenuPanelClassName}>
-                <DropdownMenuItem
-                  onClick={() => onInsertAbove(index)}
-                  className="cursor-pointer"
-                >
-                  <Trans>Insert above</Trans>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onInsertBelow(index + 1)}
-                  className="cursor-pointer"
-                >
-                  <Trans>Insert below</Trans>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onMove(item.key, -1)}
-                  disabled={index === 0}
-                  className="cursor-pointer"
-                >
-                  <Trans>Move up</Trans>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onMove(item.key, 1)}
-                  disabled={index === total - 1}
-                  className="cursor-pointer"
-                >
-                  <Trans>Move down</Trans>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onDelete(item.key)}
-                  className="cursor-pointer text-red-600 focus:text-red-600"
-                >
-                  <Trans>Delete</Trans>
-                </DropdownMenuItem>
-              </AppFloatingPanel>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
+      <span
+        aria-hidden="true"
+        className="text-faint pt-[7px] font-mono text-xs tabular-nums"
+      >
+        {String(position).padStart(2, "0")}
+      </span>
 
-      <div className="flex flex-col gap-1 pr-9">
-        <Input
+      <div className="flex min-w-0 flex-col">
+        <input
+          type="text"
+          data-section-title={item.key}
           disabled={disabled}
           value={item.title}
-          onChange={(e) => onChange({ ...item, title: e.target.value })}
-          placeholder={t`Untitled`}
-          className="placeholder:text-muted-foreground/60 border-0 bg-transparent p-0 font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-        />
-
-        <textarea
-          disabled={disabled}
-          value={item.description}
-          onChange={(e) => onChange({ ...item, description: e.target.value })}
-          placeholder={t`Template content with Jinja2: {{ variable }}, {% if condition %}`}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onChange={(event) => onChange({ ...item, title: event.target.value })}
+          aria-label={t`Section ${position} title`}
+          placeholder={t`Section title`}
           className={cn([
-            "min-h-[100px] w-full resize-y rounded-xl border p-3 text-sm transition-colors",
-            "focus-visible:outline-hidden",
-            disabled
-              ? "bg-muted"
-              : isFocused
-                ? "ring-primary/20 border-blue-500 ring-2"
-                : "border-input",
+            "w-full border-0 bg-transparent p-0 font-serif text-xl leading-snug font-medium",
+            inlineFieldClassName,
           ])}
         />
+        <LineTextarea
+          disabled={disabled}
+          value={item.description}
+          onChange={(event) =>
+            onChange({ ...item, description: event.target.value })
+          }
+          aria-label={t`Section ${position} instruction`}
+          placeholder={t`Describe in one line what Syntheo should write here.`}
+          className="text-muted-foreground pt-0.5 text-sm"
+        />
       </div>
-    </div>
+
+      {disabled ? (
+        <span aria-hidden="true" />
+      ) : (
+        <button
+          type="button"
+          onClick={() => onDelete(item.key)}
+          aria-label={t`Delete section ${position}`}
+          className="text-faint hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 rounded-md p-1.5 opacity-0 outline-hidden group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2"
+        >
+          <X className="size-3.5" />
+        </button>
+      )}
+    </Reorder.Item>
   );
 }

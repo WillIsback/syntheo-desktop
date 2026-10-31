@@ -1,9 +1,8 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 
-import { Check, DotsThree, Heart, Plus, X } from "@syntheo/ui/components/icons";
-import { Badge } from "@syntheo/ui/components/ui/badge";
+import { DotsThree, Star, X } from "@syntheo/ui/components/icons";
 import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
@@ -11,12 +10,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@syntheo/ui/components/ui/dropdown-menu";
-import { Input } from "@syntheo/ui/components/ui/input";
-import { Textarea } from "@syntheo/ui/components/ui/textarea";
 import { cn } from "@syntheo/utils";
 
+import { inlineFieldClassName, LineTextarea } from "./line-textarea";
 import {
   type UserTemplate,
   useSaveTemplate,
@@ -25,121 +24,129 @@ import {
 import { SectionsList } from "./sections-editor";
 import { TemplateGeneratorBar } from "./template-generator-bar";
 import { TemplateIconPicker } from "./template-icon-picker";
+import { TemplatePreview } from "./template-preview";
 
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
 
-function parseTargets(value: string) {
+type EditorMode = "edit" | "preview";
+
+function parseUses(value: string) {
   return value
     .split(",")
     .map((target) => target.trim())
     .filter(Boolean);
 }
 
-function TemplateTargetsInput({
+/**
+ * « Utilisé pour » : les types de réunion visés par le modèle. Stocké dans
+ * `targets_json` (anciens tags), sans migration.
+ */
+export function TemplateUsesInput({
   value,
   onChange,
 }: {
   value: string[];
   onChange: (value: string[]) => void;
 }) {
+  const { t } = useLingui();
+  const labelId = useId();
+  const helpId = useId();
   const [inputValue, setInputValue] = useState("");
-  const [isAddingTag, setIsAddingTag] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
 
-  const submitTargets = () => {
-    const nextTargets = parseTargets(inputValue);
-    if (nextTargets.length === 0) {
-      setInputValue("");
-      setIsAddingTag(false);
-      return;
+  const submit = (keepOpen: boolean) => {
+    const next = parseUses(inputValue);
+    if (next.length > 0) {
+      onChange([...value, ...next]);
     }
-
-    onChange([...value, ...nextTargets]);
     setInputValue("");
-    setIsAddingTag(false);
+    if (!keepOpen) {
+      setIsAdding(false);
+    }
   };
 
   return (
-    <div
-      role="presentation"
-      className="mt-2 flex min-h-6 w-full cursor-text flex-wrap items-center gap-1.5"
-      onClick={() => {
-        if (!isAddingTag) {
-          setIsAddingTag(true);
-          return;
-        }
-
-        inputRef.current?.focus();
-      }}
-    >
-      {value.map((target, index) => (
-        <Badge
-          key={`${target}-${index}`}
-          variant="secondary"
-          className="bg-muted flex h-6 items-center gap-1 rounded-md px-2 py-0.5 text-xs font-normal"
-        >
-          {target}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="ml-0.5 h-3 w-3 p-0 hover:bg-transparent"
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange(
-                value.filter((_, currentIndex) => currentIndex !== index),
-              );
-            }}
+    <div className="flex flex-col gap-1">
+      <div
+        role="group"
+        aria-labelledby={labelId}
+        aria-describedby={helpId}
+        className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-[13px]"
+      >
+        <span id={labelId} className="mr-0.5">
+          <Trans>Used for</Trans>
+        </span>
+        {value.map((use, index) => (
+          <span
+            key={`${use}-${index}`}
+            className="bg-muted text-foreground inline-flex items-center gap-1.5 rounded-md px-2 py-0.5"
           >
-            <X className="h-2.5 w-2.5" />
-          </Button>
-        </Badge>
-      ))}
-
-      {!isAddingTag ? (
-        <button
-          type="button"
-          className="bg-muted text-muted-foreground hover:bg-muted/80 inline-flex h-6 items-center gap-1 rounded-md px-2 py-0.5 text-xs transition-colors"
-          onClick={() => setIsAddingTag(true)}
-        >
-          <Plus className="h-3 w-3" />
-          Add tag
-        </button>
-      ) : (
-        <input
-          ref={inputRef}
-          type="text"
-          autoFocus
-          value={inputValue}
-          className="text-muted-foreground min-w-[84px] flex-1 bg-transparent py-0 text-xs leading-none outline-hidden"
-          onChange={(e) => setInputValue(e.target.value)}
-          onBlur={submitTargets}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === "Tab" || e.key === ",") {
-              if (!inputValue.trim()) {
+            {use}
+            <button
+              type="button"
+              aria-label={t`Remove ${use}`}
+              onClick={() =>
+                onChange(value.filter((_, current) => current !== index))
+              }
+              className="text-faint hover:text-foreground focus-visible:ring-ring/50 rounded-sm outline-hidden focus-visible:ring-2"
+            >
+              <X className="size-3" />
+            </button>
+          </span>
+        ))}
+        {isAdding ? (
+          <input
+            type="text"
+            autoFocus
+            value={inputValue}
+            aria-label={t`Add a use`}
+            placeholder={t`e.g. Weekly, HR team`}
+            className="border-input placeholder:text-faint focus-visible:ring-ring/50 text-foreground min-w-[120px] rounded-md border px-2 py-px outline-hidden focus-visible:ring-2"
+            onChange={(event) => setInputValue(event.target.value)}
+            onBlur={() => submit(false)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === ",") {
+                event.preventDefault();
+                if (inputValue.trim()) {
+                  submit(true);
+                } else {
+                  setIsAdding(false);
+                  queueMicrotask(() => addButtonRef.current?.focus());
+                }
                 return;
               }
-
-              e.preventDefault();
-              submitTargets();
-              return;
-            }
-
-            if (e.key === "Escape") {
-              e.preventDefault();
-              setInputValue("");
-              setIsAddingTag(false);
-              return;
-            }
-
-            if (e.key === "Backspace" && !inputValue && value.length > 0) {
-              e.preventDefault();
-              onChange(value.slice(0, -1));
-            }
-          }}
-        />
-      )}
+              if (event.key === "Escape") {
+                event.preventDefault();
+                setInputValue("");
+                setIsAdding(false);
+                queueMicrotask(() => addButtonRef.current?.focus());
+                return;
+              }
+              if (event.key === "Backspace" && !inputValue && value.length) {
+                event.preventDefault();
+                onChange(value.slice(0, -1));
+              }
+            }}
+          />
+        ) : (
+          <button
+            ref={addButtonRef}
+            type="button"
+            onClick={() => setIsAdding(true)}
+            className="border-input text-muted-foreground hover:bg-muted focus-visible:ring-ring/50 rounded-md border border-dashed px-2 py-px outline-hidden focus-visible:ring-2"
+          >
+            <Trans>+ Add</Trans>
+          </button>
+        )}
+      </div>
+      <p id={helpId} className="text-faint text-xs">
+        <Trans>
+          The kinds of meeting this template is meant for (team, role,
+          frequency…).
+        </Trans>
+      </p>
     </div>
   );
 }
@@ -157,15 +164,12 @@ export function TemplateForm({
   const { id } = template;
   const saveTemplate = useSaveTemplate();
   const toggleTemplateFavorite = useToggleTemplateFavorite();
+  const [mode, setMode] = useState<EditorMode>("edit");
   const [actionsOpen, setActionsOpen] = useState(false);
 
   const selectedTemplateId = useConfigValue("selected_template_id");
   const isDefault = selectedTemplateId === id;
-
   const setDefaultTemplateId = useSetSettingValue("selected_template_id");
-  const setSelectedTemplateId = () => {
-    setDefaultTemplateId(isDefault ? "" : id);
-  };
 
   const form = useForm({
     defaultValues: {
@@ -195,82 +199,79 @@ export function TemplateForm({
     },
   });
 
+  const newTemplateTitle = t`New template`;
+
   return (
-    <div className="flex h-full flex-1 flex-col">
-      <div className="flex h-12 items-center justify-between gap-3 pr-1 pl-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+    <div className="scroll-fade-y h-full overflow-y-auto">
+      <div className="flex max-w-[700px] flex-col gap-5 px-6 pt-6 pb-16 lg:px-11 lg:pt-8">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div
+            role="group"
+            aria-label={t`Display mode`}
+            className="border-input inline-flex overflow-hidden rounded-lg border"
+          >
+            {(
+              [
+                ["edit", t`Edit`],
+                ["preview", t`Preview`],
+              ] as const
+            ).map(([value, label], index) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={mode === value}
+                onClick={() => setMode(value)}
+                className={cn([
+                  "focus-visible:ring-ring/50 px-3 py-1.5 text-[13px] outline-hidden focus-visible:ring-2 focus-visible:ring-inset",
+                  index > 0 && "border-input border-l",
+                  mode === value
+                    ? "bg-primary text-primary-foreground font-semibold"
+                    : "bg-card hover:bg-muted",
+                ])}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {isDefault ? (
+            <span className="bg-accent text-accent-foreground rounded-md px-2 py-0.5 text-xs font-medium">
+              <Trans>Default template</Trans>
+            </span>
+          ) : null}
+          <span className="flex-1" />
           <form.Field name="icon">
             {(field) => (
               <TemplateIconPicker
                 size="sm"
+                label={t`Template icon`}
                 value={field.state.value}
                 onChange={field.handleChange}
               />
             )}
           </form.Field>
-          <form.Field name="title">
-            {(field) => (
-              <div className="relative max-w-full min-w-0">
-                <span
-                  aria-hidden="true"
-                  className="invisible block px-0 py-0 text-sm font-semibold whitespace-pre"
-                >
-                  {(field.state.value || t`Enter template title`) + " "}
-                </span>
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder={t`Enter template title`}
-                  className="absolute inset-0 h-auto w-full max-w-full min-w-0 border-0 px-0 py-0 text-sm font-semibold shadow-none focus-visible:ring-0 md:text-sm"
-                />
-              </div>
-            )}
-          </form.Field>
-        </div>
-        <div className="flex items-center gap-0">
           <Button
             type="button"
             size="sm"
             variant="ghost"
-            onClick={setSelectedTemplateId}
-            aria-pressed={isDefault}
-            title={isDefault ? "Remove as default" : "Set as default"}
+            aria-pressed={template.pinned}
+            onClick={() => void toggleTemplateFavorite(id)}
             className={cn([
-              "text-muted-foreground shrink-0 hover:text-black",
-              isDefault
-                ? "text-emerald-600 hover:bg-transparent hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                : null,
+              "h-8 rounded-lg px-2.5 text-[13px]",
+              template.pinned ? "text-primary" : "text-muted-foreground",
             ])}
           >
-            {isDefault ? (
-              <>
-                <Check className="size-3.5" weight="bold" />
-                Current default
-              </>
-            ) : (
-              "Set as default"
-            )}
-          </Button>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            onClick={() => toggleTemplateFavorite(id)}
-            className={cn([
-              "text-muted-foreground hover:text-foreground",
-              template.pinned && "text-rose-500 hover:text-rose-600",
-            ])}
-            title={
-              template.pinned ? t`Unfavorite template` : t`Favorite template`
-            }
-            aria-label={
-              template.pinned ? t`Unfavorite template` : t`Favorite template`
-            }
-          >
-            <Heart
-              className="size-4"
-              weight={template.pinned ? "bold" : "regular"}
+            <Star
+              aria-hidden="true"
+              className={cn([
+                "size-3.5",
+                template.pinned && "[&_path]:fill-current",
+              ])}
             />
+            {template.pinned ? (
+              <Trans>In favorites</Trans>
+            ) : (
+              <Trans>Add to favorites</Trans>
+            )}
           </Button>
           <DropdownMenu open={actionsOpen} onOpenChange={setActionsOpen}>
             <DropdownMenuTrigger asChild>
@@ -279,10 +280,10 @@ export function TemplateForm({
                 size="icon"
                 variant="ghost"
                 className={cn([
-                  "text-muted-foreground hover:text-foreground",
-                  actionsOpen && "bg-muted text-foreground hover:bg-accent",
+                  "text-muted-foreground hover:text-foreground size-8 rounded-lg",
+                  actionsOpen && "bg-muted text-foreground",
                 ])}
-                aria-label={t`Template actions`}
+                aria-label={t`More actions`}
               >
                 <DotsThree className="size-4" />
               </Button>
@@ -290,14 +291,25 @@ export function TemplateForm({
             <DropdownMenuContent variant="app" align="end">
               <AppFloatingPanel className={appFloatingMenuPanelClassName}>
                 <DropdownMenuItem
+                  onClick={() => setDefaultTemplateId(isDefault ? "" : id)}
+                  className="cursor-pointer"
+                >
+                  {isDefault ? (
+                    <Trans>Stop using by default</Trans>
+                  ) : (
+                    <Trans>Use by default</Trans>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() => handleDuplicateTemplate(id)}
                   className="cursor-pointer"
                 >
                   <Trans>Duplicate</Trans>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleDeleteTemplate(id)}
-                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  className="text-destructive focus:text-destructive cursor-pointer"
                 >
                   <Trans>Delete</Trans>
                 </DropdownMenuItem>
@@ -305,53 +317,99 @@ export function TemplateForm({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
 
-      <div className="relative min-h-0 flex-1 overflow-hidden">
-        <div className="scroll-fade-y h-full overflow-y-auto px-6 pt-3 pb-6">
-          <div className="min-w-0">
-            <form.Field name="description">
-              {(field) => (
-                <Textarea
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder={t`Describe the template purpose...`}
-                  className="text-muted-foreground min-h-[24px] resize-none border-0 px-0 py-0 text-sm shadow-none focus-visible:ring-0"
-                  rows={1}
-                />
-              )}
-            </form.Field>
+        {mode === "preview" ? (
+          <form.Subscribe
+            selector={(state) =>
+              [state.values.title, state.values.sections] as const
+            }
+          >
+            {([title, sections]) => (
+              <TemplatePreview title={title} sections={sections} />
+            )}
+          </form.Subscribe>
+        ) : (
+          <>
+            <div className="flex flex-col gap-1">
+              <form.Field name="title">
+                {(field) => (
+                  <input
+                    type="text"
+                    value={field.state.value}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    aria-label={t`Template name`}
+                    placeholder={t`Template name`}
+                    className={cn([
+                      "w-full border-0 bg-transparent p-0 font-serif text-[34px] leading-[1.1] font-medium",
+                      inlineFieldClassName,
+                    ])}
+                  />
+                )}
+              </form.Field>
+              <form.Field name="description">
+                {(field) => (
+                  <LineTextarea
+                    value={field.state.value}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    aria-label={t`Description`}
+                    placeholder={t`What is this template for?`}
+                    className="text-muted-foreground text-[15px]"
+                  />
+                )}
+              </form.Field>
+            </div>
+
             <form.Field name="targets">
               {(field) => (
-                <TemplateTargetsInput
+                <TemplateUsesInput
                   value={field.state.value}
                   onChange={field.handleChange}
                 />
               )}
             </form.Field>
-          </div>
 
-          <TemplateGeneratorBar
-            onGenerated={(generated) => {
-              form.setFieldValue("title", generated.title);
-              form.setFieldValue("description", generated.description);
-              form.setFieldValue("icon", generated.icon);
-              form.setFieldValue("sections", generated.sections);
-            }}
-          />
+            <form.Subscribe
+              selector={(state) =>
+                [state.values.title, state.values.description] as const
+              }
+            >
+              {([title, description]) => (
+                <TemplateGeneratorBar
+                  context={[
+                    title === newTemplateTitle ? "" : title,
+                    description,
+                  ]
+                    .map((part) => part.trim())
+                    .filter(Boolean)
+                    .join(". ")}
+                  onGenerated={(generated) => {
+                    const values = form.state.values;
+                    const untitled =
+                      !values.title.trim() || values.title === newTemplateTitle;
+                    if (untitled) {
+                      form.setFieldValue("title", generated.title);
+                      form.setFieldValue("icon", generated.icon);
+                    }
+                    if (!values.description.trim()) {
+                      form.setFieldValue("description", generated.description);
+                    }
+                    form.setFieldValue("sections", generated.sections);
+                  }}
+                />
+              )}
+            </form.Subscribe>
 
-          <form.Field name="sections">
-            {(field) => (
-              <div className="mt-6">
+            <form.Field name="sections">
+              {(field) => (
                 <SectionsList
                   disabled={false}
                   items={field.state.value}
                   onChange={(items) => field.handleChange(items)}
                 />
-              </div>
-            )}
-          </form.Field>
-        </div>
+              )}
+            </form.Field>
+          </>
+        )}
       </div>
     </div>
   );
