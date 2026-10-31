@@ -1,12 +1,13 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 
-import { DesignColors } from "@syntheo/design-system";
+import { DesignPalettes } from "@syntheo/design-system";
 import { Check } from "@syntheo/ui/components/icons";
 import { cn } from "@syntheo/utils";
 
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
 import { normalizeAppIconPreference } from "~/shared/theme/icon";
+import { normalizePalette, type PaletteId } from "~/shared/theme/palette";
 import { applyThemePreference } from "~/shared/theme/provider";
 import type { ThemePreference } from "~/shared/theme/resolve";
 
@@ -21,6 +22,7 @@ export function ThemeSelector() {
   const storedValue = useConfigValue("theme") as ThemePreference;
   const value = THEME_OPTIONS.includes(storedValue) ? storedValue : "system";
   const appIcon = normalizeAppIconPreference(useConfigValue("app_icon"));
+  const palette = normalizePalette(useConfigValue("palette"));
   const setTheme = useSetSettingValue("theme");
   const options = [
     { value: "light", label: t`Light`, description: t`Bright canvas` },
@@ -67,7 +69,7 @@ export function ThemeSelector() {
                 setTheme(option.value);
               }}
             >
-              <ThemePreview theme={option.value} />
+              <ThemePreview theme={option.value} palette={palette} />
               <div className="border-border flex items-center gap-2 border-t p-3">
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium">{option.label}</div>
@@ -95,23 +97,35 @@ export function ThemeSelector() {
   );
 }
 
-function ThemePreview({ theme }: { theme: ThemePreference }) {
+function ThemePreview({
+  theme,
+  palette,
+}: {
+  theme: ThemePreference;
+  palette: PaletteId;
+}) {
   return (
     <div aria-hidden="true" className="relative h-28 overflow-hidden">
-      <PreviewCanvas dark={theme === "dark"} />
+      <PreviewCanvas dark={theme === "dark"} palette={palette} />
       {theme === "system" ? (
         <div className="absolute inset-0 [clip-path:polygon(100%_0,100%_100%,0_100%)]">
-          <PreviewCanvas dark />
+          <PreviewCanvas dark palette={palette} />
         </div>
       ) : null}
     </div>
   );
 }
 
-function PreviewCanvas({ dark }: { dark: boolean }) {
-  // L'aperçu montre la palette du thème choisi, pas celle du thème courant :
-  // on lit donc les jetons TypeScript plutôt que les variables CSS.
-  const c = dark ? DesignColors.dark : DesignColors.light;
+function PreviewCanvas({
+  dark,
+  palette,
+}: {
+  dark: boolean;
+  palette: PaletteId;
+}) {
+  // L'aperçu montre le mode choisi (dans la palette active), pas le mode
+  // courant : on lit donc les jetons TypeScript plutôt que les variables CSS.
+  const c = dark ? DesignPalettes[palette].dark : DesignPalettes[palette].light;
   return (
     <div
       className="absolute inset-0 flex flex-col p-3"

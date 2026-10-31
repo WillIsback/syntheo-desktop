@@ -31,6 +31,7 @@ beforeEach(() => {
   getStoredSettingValues.mockReset();
   localStorage.clear();
   document.documentElement.className = "";
+  document.documentElement.removeAttribute("data-palette");
   mockSystemTheme(false);
 });
 
@@ -108,6 +109,32 @@ describe("bootstrapThemeFromSettings", () => {
 
     expect(document.documentElement.classList.contains("dark")).toBe(true);
     expect(localStorage.getItem("syntheo-theme")).toBe("dark");
+  });
+
+  it("applique et mémorise la palette enregistrée dans les paramètres", async () => {
+    getStoredSettingValues.mockResolvedValue({
+      values: { theme: "light", palette: "fuji" },
+      hasValues: new Set(["theme", "palette"]),
+    });
+
+    await bootstrapThemeFromSettings({ timeoutMs: 100 });
+
+    expect(document.documentElement.getAttribute("data-palette")).toBe("fuji");
+    expect(localStorage.getItem("syntheo-palette")).toBe("fuji");
+  });
+
+  it("revient à Thé vert sans palette enregistrée (paramètres antérieurs)", async () => {
+    document.documentElement.setAttribute("data-palette", "enji");
+    localStorage.setItem("syntheo-palette", "enji");
+    getStoredSettingValues.mockResolvedValue({
+      values: { theme: "dark" },
+      hasValues: new Set(["theme"]),
+    });
+
+    await bootstrapThemeFromSettings({ timeoutMs: 100 });
+
+    expect(document.documentElement.hasAttribute("data-palette")).toBe(false);
+    expect(localStorage.getItem("syntheo-palette")).toBe("cha");
   });
 
   it("does not hold startup past the deadline when settings load stalls", async () => {

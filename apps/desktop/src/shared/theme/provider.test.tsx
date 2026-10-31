@@ -5,6 +5,7 @@ const themeState = vi.hoisted(() => ({
   settingsReady: false,
   theme: "system" as "light" | "dark" | "system",
   appIcon: "default" as "default" | "stable" | "anagram" | "dev" | "staging",
+  palette: "cha" as string,
 }));
 
 const applyDocumentTheme = vi.hoisted(() =>
@@ -59,6 +60,9 @@ vi.mock("~/shared/config", () => ({
     if (key === "app_icon") {
       return themeState.appIcon;
     }
+    if (key === "palette") {
+      return themeState.palette;
+    }
     return themeState.theme;
   },
 }));
@@ -83,6 +87,9 @@ describe("AppThemeProvider", () => {
     themeState.settingsReady = false;
     themeState.theme = "system";
     themeState.appIcon = "default";
+    themeState.palette = "cha";
+    document.documentElement.removeAttribute("data-palette");
+    localStorage.removeItem("syntheo-palette");
     applyDocumentTheme.mockClear();
     writeStoredThemePreference.mockClear();
     setDockIcon.mockClear();
@@ -114,6 +121,41 @@ describe("AppThemeProvider", () => {
     expect(writeStoredThemePreference).not.toHaveBeenCalled();
     expect(setDockIcon).not.toHaveBeenCalled();
     expect(setNativeTheme).not.toHaveBeenCalled();
+  });
+
+  it("n'écrase pas la palette posée par theme-boot.js avant l'hydratation", () => {
+    document.documentElement.setAttribute("data-palette", "enji");
+    themeState.palette = "cha";
+
+    renderProvider();
+
+    expect(document.documentElement.getAttribute("data-palette")).toBe("enji");
+  });
+
+  it("applique et mémorise la palette des paramètres une fois prêts", async () => {
+    themeState.settingsReady = true;
+    themeState.palette = "fuji";
+
+    const view = renderProvider();
+
+    await waitFor(() =>
+      expect(document.documentElement.getAttribute("data-palette")).toBe(
+        "fuji",
+      ),
+    );
+    expect(localStorage.getItem("syntheo-palette")).toBe("fuji");
+
+    themeState.palette = "nimporte";
+    view.rerender(
+      <AppThemeProvider>
+        <div>child</div>
+      </AppThemeProvider>,
+    );
+
+    await waitFor(() =>
+      expect(document.documentElement.hasAttribute("data-palette")).toBe(false),
+    );
+    expect(localStorage.getItem("syntheo-palette")).toBe("cha");
   });
 
   it("applies the hydrated settings theme once SQLite is ready", async () => {

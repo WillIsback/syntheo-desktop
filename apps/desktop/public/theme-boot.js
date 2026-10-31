@@ -13,6 +13,16 @@
     theme === "dark" ? true : theme === "light" ? false : prefersDark;
   document.documentElement.classList.toggle("dark", isDark);
 
+  // Palette (Paramètres › Apparence), indépendante du thème : Thé vert = pas
+  // d'attribut. Aligné sur `normalizePalette` + `applyDocumentPalette`
+  // (src/shared/theme/palette.ts), resynchronisé par `AppThemeProvider`.
+  var palette = localStorage.getItem("syntheo-palette");
+  if (palette === "fuji" || palette === "enji") {
+    document.documentElement.setAttribute("data-palette", palette);
+  } else {
+    document.documentElement.removeAttribute("data-palette");
+  }
+
   // The undecorated Linux main window is transparent; `useRoundedWindowFrame`
   // takes over `data-rounded-window` once React mounts.
   var ua = navigator.userAgent;
