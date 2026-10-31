@@ -18,6 +18,14 @@ msgstr ""
 msgid "— Sample line written from this instruction."
 msgstr "— Exemple de ligne rédigée selon cette consigne."
 
+#: src/home/home-view.tsx
+msgid ", at {time}."
+msgstr ", à {time}."
+
+#: src/home/home-view.tsx
+msgid ", in progress."
+msgstr ", en cours."
+
 #: src/services/enhancer/summary-notification.ts
 msgid "\"{title}\" is ready to read."
 msgstr "\"{title}\" est prêt à être lu."
@@ -1280,6 +1288,10 @@ msgstr "Échap pour fermer"
 msgid "Event notifications"
 msgstr "Notifications d'événements"
 
+#: src/home/home-view.tsx
+msgid "Everything is processed on your local server"
+msgstr "Tout est traité sur votre serveur local"
+
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Example summary"
 msgstr "Exemple de résumé"
@@ -1506,6 +1518,14 @@ msgstr "Ayez Syntheo prêt lorsque vous vous connectez."
 msgid "Having trouble?"
 msgstr "Vous rencontrez des difficultés ?"
 
+#: src/home/home-view.tsx
+msgid "Hello {firstName}."
+msgstr "Bonjour {firstName}."
+
+#: src/home/home-view.tsx
+msgid "Hello."
+msgstr "Bonjour."
+
 #: src/main/windows-title-bar.tsx
 #: src/settings/ai/shared/server-card.tsx
 msgid "Help"
@@ -1556,6 +1576,10 @@ msgstr "Historique {0}/{1}"
 #: src/settings/dictation.tsx
 msgid "Hold your shortcut while speaking, then release it to finish."
 msgstr "Maintenez votre raccourci pendant que vous parlez, puis relâchez-le pour terminer."
+
+#: src/home/home-capsule.tsx
+msgid "Home capsule"
+msgstr "Capsule de l'accueil"
 
 #: src/contacts/humans.tsx
 msgid "Human"
@@ -1751,6 +1775,7 @@ msgstr "Listez les éléments d'action jusqu'à présent."
 msgid "List action items."
 msgstr "Listez les éléments d'action."
 
+#: src/home/start-button.tsx
 #: src/session/components/capsule/index.tsx
 msgid "Listen"
 msgstr "Écouter"
@@ -2078,7 +2103,6 @@ msgstr "Nouveau dossier"
 msgid "New note"
 msgstr "Nouvelle note"
 
-#: src/main/empty.tsx
 #: src/main/windows-title-bar.tsx
 msgid "New Note"
 msgstr "Nouvelle note"
@@ -2520,6 +2544,7 @@ msgstr "Lire à partir d'ici"
 msgid "Post recording disclosure in meeting chat"
 msgstr "Publier la mention d'enregistrement dans le chat de la réunion"
 
+#: src/home/start-button.tsx
 #: src/session/components/capsule/index.tsx
 msgid "Prepare"
 msgstr "Préparer"
@@ -2798,6 +2823,10 @@ msgstr "Redémarrer l'application"
 msgid "Restore"
 msgstr "Restaurer"
 
+#: src/home/note-index.tsx
+msgid "Resume"
+msgstr "Reprendre"
+
 #: src/session/components/note-input/header-transcript.tsx
 #: src/session/components/outer-header/overflow/listening.tsx
 msgid "Resume listening"
@@ -2880,6 +2909,10 @@ msgstr "Faire défiler jusqu'en bas"
 #: src/session/components/note-input/transcript/renderer/index.tsx
 msgid "Scroll to top"
 msgstr "Faire défiler jusqu'en haut"
+
+#: src/home/home-capsule.tsx
+msgid "Search a note"
+msgstr "Rechercher une note"
 
 #: src/templates/template-sidebar.tsx
 msgid "Search a template"
@@ -3056,7 +3089,6 @@ msgstr "Configurez les résumés par IA"
 msgid "Setting up dictation…"
 msgstr "Configuration de la dictée…"
 
-#: src/main/empty.tsx
 #: src/main/windows-title-bar.tsx
 #: src/shared/open-note-dialog.tsx
 #: src/sidebar/settings.tsx
@@ -3214,6 +3246,10 @@ msgstr "La vérification de la migration SQLite est incomplète"
 msgid "Stack another destination. Steps run top to bottom."
 msgstr "Empiler une autre destination. Les étapes s'exécutent de haut en bas."
 
+#: src/home/start-button.tsx
+msgid "Start a meeting"
+msgstr "Démarrer une réunion"
+
 #: src/session/components/outer-header/overflow/listening.tsx
 msgid "Start listening"
 msgstr "Démarrer l'écoute"
@@ -3224,10 +3260,6 @@ msgstr "Commencer l'écoute lorsqu'une réunion programmée commence."
 
 #: src/services/event-notification/index.ts
 msgid "Start recording"
-msgstr "Démarrer l'enregistrement"
-
-#: src/main/empty.tsx
-msgid "Start Recording"
 msgstr "Démarrer l'enregistrement"
 
 #: src/settings/general/app-settings.tsx
@@ -3449,6 +3481,7 @@ msgstr "Syntheo structure lui-même la synthèse, sans modèle fixe. Utilisé qu
 msgid "Syntheo will retry automatically. This does not affect your notes."
 msgstr "Syntheo réessaiera automatiquement. Cela n'a aucune incidence sur vos notes."
 
+#: src/home/start-button.tsx
 #: src/session/components/capsule/index.tsx
 #: src/settings/ai/llm/index.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -3685,6 +3718,10 @@ msgstr "Astuce : Ajoutez les noms des membres de l’équipe, les acronymes, le 
 msgid "Tip: The Syntheo team loves our users!"
 msgstr "Astuce : L’équipe Syntheo adore ses utilisateurs !"
 
+#: src/home/start-button.tsx
+msgid "Title and participants taken from the calendar"
+msgstr "Titre et participants repris depuis l'agenda"
+
 #: src/templates/sections-editor.tsx
 msgid "To move a section with the keyboard, focus its handle and use the up and down arrow keys."
 msgstr "Pour déplacer une section au clavier, placez le focus sur sa poignée et utilisez les flèches haut et bas."
@@ -3844,6 +3881,7 @@ msgstr "Détacher"
 msgid "Unreachable"
 msgstr "Injoignable"
 
+#: src/home/note-index.tsx
 #: src/session/components/living-document/fiche.tsx
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -3861,6 +3899,10 @@ msgstr "Sans titre"
 #: src/sidebar/automations.tsx
 msgid "Untitled automation"
 msgstr "Automatisation sans titre"
+
+#: src/home/home-view.tsx
+msgid "Untitled meeting"
+msgstr "Réunion sans titre"
 
 #: src/contacts/related-notes.tsx
 msgid "Untitled Note"
@@ -4098,6 +4140,10 @@ msgstr "Vous pouvez utiliser jusqu'à trois exemples de résumés."
 #: src/settings/dictionary/index.tsx
 msgid "Your dictionary is empty"
 msgstr "Votre dictionnaire est vide"
+
+#: src/home/home-view.tsx
+msgid "Your next meeting:"
+msgstr "Votre prochaine réunion :"
 
 #: src/session/components/living-document/index.tsx
 #: src/session/components/living-document/provenance.tsx
