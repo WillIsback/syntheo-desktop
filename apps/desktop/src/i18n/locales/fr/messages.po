@@ -1279,6 +1279,7 @@ msgid "Edo purple and pale wisteria. Elegant, a little more singular."
 msgstr "Violet d'Edo et glycine pâle. Élégant, un peu plus singulier."
 
 #: src/contacts/details.tsx
+#: src/settings/general/account-profile.tsx
 msgid "Email"
 msgstr "E-mail"
 
@@ -3646,6 +3647,10 @@ msgstr "Compétence Syntheo ajoutée à {0} agents"
 #: src/templates/auto-form.tsx
 msgid "Syntheo structures the summary itself, without a fixed template. Used when no template is chosen for a meeting."
 msgstr "Syntheo structure lui-même la synthèse, sans modèle fixe. Utilisé quand aucun modèle n'est choisi pour une réunion."
+
+#: src/settings/general/account-profile.tsx
+msgid "Syntheo uses it to recognize you among the attendees of your calendar meetings, so you are not counted as a participant. It stays on this device."
+msgstr "Syntheo s'en sert pour vous reconnaître parmi les participants des réunions de votre agenda, afin de ne pas vous compter comme participant. Elle reste sur cet appareil."
 
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "Syntheo will retry automatically. This does not affect your notes."

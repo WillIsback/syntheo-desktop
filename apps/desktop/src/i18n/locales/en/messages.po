@@ -1279,6 +1279,7 @@ msgid "Edo purple and pale wisteria. Elegant, a little more singular."
 msgstr "Edo purple and pale wisteria. Elegant, a little more singular."
 
 #: src/contacts/details.tsx
+#: src/settings/general/account-profile.tsx
 msgid "Email"
 msgstr "Email"
 
@@ -3646,6 +3647,10 @@ msgstr "Syntheo skill added to {0} agents"
 #: src/templates/auto-form.tsx
 msgid "Syntheo structures the summary itself, without a fixed template. Used when no template is chosen for a meeting."
 msgstr "Syntheo structures the summary itself, without a fixed template. Used when no template is chosen for a meeting."
+
+#: src/settings/general/account-profile.tsx
+msgid "Syntheo uses it to recognize you among the attendees of your calendar meetings, so you are not counted as a participant. It stays on this device."
+msgstr "Syntheo uses it to recognize you among the attendees of your calendar meetings, so you are not counted as a participant. It stays on this device."
 
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "Syntheo will retry automatically. This does not affect your notes."

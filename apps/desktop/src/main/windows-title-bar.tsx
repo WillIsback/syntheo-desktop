@@ -17,6 +17,7 @@ import { cn } from "@syntheo/utils";
 import { hasViewNavigation } from "./view-navigation";
 import { WindowsWindowControls } from "./windows-window-controls";
 
+import { documentationUrl } from "~/shared/documentation";
 import { openNoteDialog } from "~/shared/open-note-dialog";
 import { useNewNote } from "~/shared/useNewNote";
 import {
@@ -142,10 +143,7 @@ export function WindowsTitleBar() {
           <TitleBarMenu label={t`Help`} onPointerDown={rememberEditTarget}>
             <DropdownMenuItem
               onSelect={() =>
-                void openerCommands.openUrl(
-                  "https://github.com/WillIsback/syntheo-desktop#readme",
-                  null,
-                )
+                void openerCommands.openUrl(documentationUrl(), null)
               }
             >
               {t`Documentation`}

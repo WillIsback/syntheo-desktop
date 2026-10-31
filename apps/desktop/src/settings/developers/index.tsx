@@ -8,11 +8,11 @@ import { CliSettingsSections } from "./cli";
 import { WebhooksSection } from "./webhooks";
 
 import { SettingsPageTitle } from "~/settings/page-title";
+import { documentationUrl } from "~/shared/documentation";
 
 export { buildMcpConfiguration, getCliInstallNotification } from "./cli";
 
-const DEVELOPERS_GUIDE_URL =
-  "https://github.com/WillIsback/syntheo-desktop#readme";
+const DEVELOPERS_GUIDE_URL = documentationUrl("agents/overview");
 
 export function SettingsDevelopers() {
   return (
