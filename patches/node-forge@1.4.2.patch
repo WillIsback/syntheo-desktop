@@ -1,8 +1,8 @@
 diff --git a/lib/rsa.js b/lib/rsa.js
-index a4264822b4dcd6dca44ca3e59e410c982eed7183..d9cebfa2ed472c38cc2a6900d489912d5d7e2ec0 100644
+index 65f6e8469d8a7695f4438722577230136f9dd425..189c6a1ea66c1bf8da4a62889a26fb68aa44248f 100644
 --- a/lib/rsa.js
 +++ b/lib/rsa.js
-@@ -1172,7 +1172,9 @@ pki.setRsaPublicKey = pki.rsa.setPublicKey = function(n, e) {
+@@ -1201,7 +1201,9 @@ pki.setRsaPublicKey = pki.rsa.setPublicKey = function(n, e) {
            var capture = {};
            var errors = [];
            if(!asn1.validate(obj, digestInfoValidator, capture, errors) ||
