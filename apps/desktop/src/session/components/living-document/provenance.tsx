@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 
-// Légende « qui a écrit quoi » : vos notes à l'encre foreground, ce que
-// Syntheo ajoute en ai-ink (jamais en italique ni en gris).
+// Légende « qui a écrit quoi » : vos notes en user-ink (vert), ce que
+// Syntheo complète à l'encre foreground (jamais en italique ni en gris).
 export function ProvenanceLegend() {
   const { t } = useLingui();
 
@@ -11,17 +11,17 @@ export function ProvenanceLegend() {
       aria-label={t`Text provenance`}
       className="text-muted-foreground flex items-center gap-4 text-[13px]"
     >
+      <span className="text-user-ink flex items-center">
+        <i
+          aria-hidden="true"
+          className="bg-user-ink mr-1.5 inline-block size-2.5 rounded-[2px]"
+        />
+        <Trans>Your notes</Trans>
+      </span>
       <span className="text-foreground flex items-center">
         <i
           aria-hidden="true"
           className="bg-foreground mr-1.5 inline-block size-2.5 rounded-[2px]"
-        />
-        <Trans>Your notes</Trans>
-      </span>
-      <span className="text-ai-ink flex items-center">
-        <i
-          aria-hidden="true"
-          className="bg-ai-ink mr-1.5 inline-block size-2.5 rounded-[2px]"
         />
         <Trans>Completed by Syntheo</Trans>
       </span>

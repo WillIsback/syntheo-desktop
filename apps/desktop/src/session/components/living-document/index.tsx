@@ -356,7 +356,7 @@ function SynthesisStage(
 }
 
 // Fusion approchée : le compte-rendu généré puis, dans le même document, les
-// notes prises pendant la réunion (encre foreground).
+// notes prises pendant la réunion (encre user-ink).
 function UserNotesSection(props: LivingDocumentProps) {
   const headingId = `user-notes-${props.tab.id}`;
 

@@ -63,10 +63,10 @@ describe("palette Syntheo « Thé vert »", () => {
     expect(dark["--destructive-foreground"]).toBe("358 45% 12%"); // #2c1112
   });
 
-  it("réserve le rouge beni à l'écoute et au sceau, l'encre IA au vert", () => {
+  it("réserve le rouge beni à l'écoute et au sceau, l'encre des notes personnelles au vert", () => {
     for (const mode of [light, dark]) {
       expect(mode["--seal"]).toBe(mode["--recording"]);
-      expect(mode["--ai-ink"]).toBe(mode["--primary"]);
+      expect(mode["--user-ink"]).toBe(mode["--primary"]);
       expect(mode["--faint"]).toBeDefined();
       expect(mode["--shadow-capsule"]).toBeDefined();
     }
@@ -82,7 +82,7 @@ describe("jetons exposés à Tailwind", () => {
       "faint",
       "recording",
       "seal",
-      "ai-ink",
+      "user-ink",
     ]) {
       expect(css).toContain(`--color-${token}: hsl(var(--${token}));`);
     }

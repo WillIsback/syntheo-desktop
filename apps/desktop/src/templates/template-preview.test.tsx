@@ -31,6 +31,27 @@ describe("TemplatePreview", () => {
     expect(screen.getByText("Written by Syntheo")).toBeTruthy();
   });
 
+  it("écrit l'exemple de Syntheo à l'encre foreground, les consignes en muted", () => {
+    render(
+      <TemplatePreview
+        title="Point d'équipe"
+        sections={[
+          { title: "Décisions", description: "Ce qui a été tranché." },
+        ]}
+      />,
+    );
+
+    const sample = screen.getByText(
+      "— Sample line written from this instruction.",
+    );
+    expect(sample.className).toContain("text-foreground");
+    expect(sample.className).not.toMatch(/user-ink|italic|muted|faint/);
+    expect(screen.getByText("Ce qui a été tranché.").className).toContain(
+      "text-muted-foreground",
+    );
+    expect(document.body.innerHTML).not.toContain("ai-ink");
+  });
+
   it("invite à ajouter des sections quand il n'y en a pas", () => {
     render(<TemplatePreview title="" sections={[]} />);
 

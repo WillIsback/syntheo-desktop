@@ -162,7 +162,7 @@ describe("LivingDocument", () => {
     expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
   });
 
-  it("synthesises: provenance, generated text in ai-ink, user notes and seal", () => {
+  it("synthesises: provenance, generated text in foreground, user notes in user-ink and seal", () => {
     render(
       <LivingDocument
         {...makeProps({

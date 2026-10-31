@@ -19,21 +19,24 @@
   margin-top: 10px;
 }
 
-/* Texte complété par Syntheo : encre ai-ink, jamais en italique ni en gris.
- * Les actions générées en cases à cocher prennent la même encre. */
+/* Qui a écrit quoi (principe 4) : le compte-rendu complété par Syntheo est à
+ * l'encre foreground, jamais en italique ni en gris ; les notes personnelles
+ * de l'utilisateur sont en user-ink (vert). Les cases à cocher des actions
+ * prennent l'encre du texte qui les porte : foreground par défaut dans
+ * l'éditeur (packages/editor, task-list.css), user-ink dans les notes. */
 [data-provenance="ai"] .note-typography {
-  color: hsl(var(--ai-ink));
-}
-
-[data-provenance="ai"] .note-typography input.task-checkbox {
-  border-color: hsl(var(--ai-ink));
-}
-
-[data-provenance="ai"] .note-typography input.task-checkbox:checked {
-  background-color: hsl(var(--ai-ink));
-  border-color: hsl(var(--ai-ink));
+  color: hsl(var(--foreground));
 }
 
 [data-provenance="user"] .note-typography {
-  color: hsl(var(--foreground));
+  color: hsl(var(--user-ink));
+}
+
+[data-provenance="user"] .note-typography input.task-checkbox {
+  border-color: hsl(var(--user-ink));
+}
+
+[data-provenance="user"] .note-typography input.task-checkbox:checked {
+  background-color: hsl(var(--user-ink));
+  border-color: hsl(var(--user-ink));
 }

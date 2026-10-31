@@ -1,12 +1,12 @@
 /*
  * Syntheo · 緑茶 Thé vert : remplaçant proposé pour packages/design-system/src/tokens.css.
- * Même format HSL et mêmes noms que l'existant ; nouveaux : primary-hover, faint, recording, seal, ai-ink, shadow-capsule.
+ * Même format HSL et mêmes noms que l'existant ; nouveaux : primary-hover, faint, recording, seal, user-ink, shadow-capsule.
  * --radius passe de 0.5rem à 0.625rem (10px, radius-md des champs).
  */
 @layer base {
   :root {
     --background: 50 43% 97%; /* #fbfaf5 生成り kinari / 墨 sumi */
-    --foreground: 100 8% 15%; /* #262a24 encre de VOS notes */
+    --foreground: 100 8% 15%; /* #262a24 texte, encre du compte-rendu de Syntheo */
     --card: 48 100% 99%; /* #fffefa */
     --card-foreground: 100 8% 15%; /* #262a24 */
     --popover: 48 100% 99%; /* #fffefa */
@@ -31,7 +31,7 @@
     --ring: 142 36% 30%; /* #316745 = primary */
     --recording: 357 54% 51%; /* #c53d43 nouveau, 紅 beni : écoute seule */
     --seal: 357 54% 51%; /* #c53d43 nouveau, sceau 記 */
-    --ai-ink: 142 36% 30%; /* #316745 nouveau, texte ajouté par Syntheo */
+    --user-ink: 142 36% 30%; /* #316745 nouveau, notes personnelles de l'utilisateur */
     --app-floating-chrome: 53 22% 92%; /* #efeee6 */
     --app-floating-panel: 50 43% 97%; /* #fbfaf5 */
     --app-floating-border: 55 18% 87%; /* #e4e3d8 */
@@ -51,7 +51,7 @@
 
   .dark {
     --background: 105 7% 11%; /* #1b1e1a 生成り kinari / 墨 sumi */
-    --foreground: 46 25% 90%; /* #ece9df encre de VOS notes */
+    --foreground: 46 25% 90%; /* #ece9df texte, encre du compte-rendu de Syntheo */
     --card: 103 10% 14%; /* #232821 */
     --card-foreground: 46 25% 90%; /* #ece9df */
     --popover: 103 10% 14%; /* #232821 */
@@ -76,7 +76,7 @@
     --ring: 142 34% 62%; /* #7dbf95 = primary */
     --recording: 4 72% 64%; /* #e5675f nouveau, 紅 beni : écoute seule */
     --seal: 4 72% 64%; /* #e5675f nouveau, sceau 記 */
-    --ai-ink: 142 34% 62%; /* #7dbf95 nouveau, texte ajouté par Syntheo */
+    --user-ink: 142 34% 62%; /* #7dbf95 nouveau, notes personnelles de l'utilisateur */
     --app-floating-chrome: 105 9% 18%; /* #2c322a */
     --app-floating-panel: 103 10% 14%; /* #232821 */
     --app-floating-border: 102 8% 25%; /* #3d443a */
