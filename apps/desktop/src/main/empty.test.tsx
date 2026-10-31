@@ -2,14 +2,6 @@ import { cleanup, render, screen } from "@testing-library/react";
 import type React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  platform: vi.fn(() => "macos"),
-}));
-
-vi.mock("@tauri-apps/plugin-os", () => ({
-  platform: mocks.platform,
-}));
-
 vi.mock("~/shared/main", () => ({
   StandardContentWrapper: ({
     children,
@@ -25,25 +17,8 @@ vi.mock("~/shared/main", () => ({
   ),
 }));
 
-vi.mock("~/shared/useNewNote", () => ({
-  useNewNote: () => vi.fn(),
-  useNewNoteAndListen: () => vi.fn(),
-}));
-
-vi.mock("~/contexts/shell", () => ({
-  useShell: () => ({
-    chat: {
-      mode: "FloatingClosed",
-      sendEvent: vi.fn(),
-    },
-  }),
-}));
-
-vi.mock("~/store/zustand/tabs", () => ({
-  useTabs: (selector: (state: { openCurrent: () => void }) => unknown) =>
-    selector({
-      openCurrent: vi.fn(),
-    }),
+vi.mock("~/home", () => ({
+  HomePage: () => <div data-testid="home-page" />,
 }));
 
 import { TabContentEmpty } from "./empty";
@@ -51,10 +26,9 @@ import { TabContentEmpty } from "./empty";
 describe("TabContentEmpty", () => {
   afterEach(() => {
     cleanup();
-    mocks.platform.mockReturnValue("macos");
   });
 
-  it("shows the home actions and global chat FAB", () => {
+  it("affiche l'accueil guidé, sans le bouton de chat flottant", () => {
     render(
       <TabContentEmpty
         tab={{
@@ -66,9 +40,9 @@ describe("TabContentEmpty", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /New Note/ })).toBeTruthy();
+    expect(screen.getByTestId("home-page")).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: "Ask Syntheo anything" }),
-    ).toBeTruthy();
+      screen.queryByRole("button", { name: "Ask Syntheo anything" }),
+    ).toBeNull();
   });
 });
