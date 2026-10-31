@@ -221,7 +221,16 @@ export const createBasicSlice = <
     }
 
     const closedTabIndex = tabs.findIndex((t) => isSameTab(t, tab));
-    const nextActiveIndex = findNextActiveIndex(remainingTabs, closedTabIndex);
+    // Sans barre d'onglets, fermer l'onglet affiché doit ramener là d'où il a
+    // été ouvert (ex. revue d'une proposition du chat → la note courante), et
+    // non sur le voisin positionnel, qui peut être une autre note.
+    const originIndex = tabToClose.active
+      ? findReturnOriginIndex(remainingTabs, tabToClose)
+      : -1;
+    const nextActiveIndex =
+      originIndex === -1
+        ? findNextActiveIndex(remainingTabs, closedTabIndex)
+        : originIndex;
     const nextTabs = setActiveFlags(
       remainingTabs,
       remainingTabs[nextActiveIndex],
@@ -326,6 +335,18 @@ const deactivateAll = (tabs: Tab[]): Tab[] => {
 
 const findNextActiveIndex = (tabs: Tab[], closedIndex: number): number => {
   return closedIndex < tabs.length ? closedIndex : tabs.length - 1;
+};
+
+const findReturnOriginIndex = (tabs: Tab[], closedTab: Tab): number => {
+  if (!closedTab.returnToSlotId) {
+    return -1;
+  }
+  return tabs.findIndex(
+    (tab) =>
+      tab.slotId === closedTab.returnToSlotId &&
+      (!closedTab.returnToTabId ||
+        uniqueIdfromTab(tab) === closedTab.returnToTabId),
+  );
 };
 
 const updateWithHistory = <T extends BasicState & NavigationState>(
@@ -508,8 +529,11 @@ const reuseExistingTab = (
   );
 };
 
+// Onglets « de passage » dont on retient l'origine. La revue d'une proposition
+// (« edit ») n'est pas un onglet de navigation (Échap ne la quitte pas, cf.
+// RETURN_ORIGIN_TAB_TYPES), mais sa fermeture doit ramener à la note d'origine.
 const shouldTrackReturnOrigin = (tab: Tab): boolean =>
-  RETURN_ORIGIN_TAB_TYPES.includes(tab.type);
+  RETURN_ORIGIN_TAB_TYPES.includes(tab.type) || tab.type === "edit";
 
 const clearReturnOriginsForSlot = (tabs: Tab[], slotId: string): Tab[] => {
   return tabs.map((tab) =>

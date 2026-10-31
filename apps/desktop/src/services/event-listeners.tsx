@@ -18,6 +18,10 @@ import {
   getCalendarEventStartedAt,
 } from "~/calendar/queries";
 import { liveQueryClient } from "~/db";
+import {
+  hasPreparedNoteStart,
+  startPreparedNoteFromShortcut,
+} from "~/session/components/capsule/start-shortcut";
 import { createSession, getOrCreateSessionForEventId } from "~/session/queries";
 import { setSettingValue } from "~/settings/queries";
 import { useConfigValue, useConfigValues } from "~/shared/config";
@@ -648,6 +652,25 @@ function getEventIdsFromSource(source: NotificationSource | null): string[] {
   return [];
 }
 
+// « Êtes-vous en réunion ? » → oui, alors qu'une note est en Préparer au
+// premier plan : l'utilisateur prépare justement cette réunion. L'écoute
+// démarre dans cette note (même choix que Ctrl ⇧ N) au lieu d'en créer une
+// nouvelle. Sans note en préparation, rien ne change.
+function startDetectedMeetingInPreparedNote(
+  triggerAppIds: string[] | null,
+): boolean {
+  if (!hasPreparedNoteStart()) {
+    return false;
+  }
+
+  listenerStore
+    .getState()
+    .setTriggerAppIds(
+      triggerAppIds && triggerAppIds.length > 0 ? triggerAppIds : null,
+    );
+  return startPreparedNoteFromShortcut();
+}
+
 function handleConfirmAcceptTimeoutEvent(
   payload: ConfirmAcceptTimeoutEvent,
   openNewRef: OpenNewRef,
@@ -684,6 +707,13 @@ function handleConfirmAcceptTimeoutEvent(
   }
 
   if (source?.type !== "calendar_event" && source?.type !== "mic_detected") {
+    return;
+  }
+
+  if (
+    source.type === "mic_detected" &&
+    startDetectedMeetingInPreparedNote(triggerAppIds)
+  ) {
     return;
   }
 
@@ -761,6 +791,15 @@ function handleOptionSelectedEvent(
   openNewRef: OpenNewRef,
 ) {
   const eventIds = getEventIdsFromSource(payload.source);
+  // « Aucune de ces réunions » : comme un simple « oui ».
+  if (
+    payload.source?.type === "mic_detected" &&
+    payload.selected_index >= eventIds.length &&
+    startDetectedMeetingInPreparedNote(payload.source.app_ids ?? null)
+  ) {
+    return;
+  }
+
   const sessionPromise =
     payload.selected_index < eventIds.length
       ? getOrCreateSessionForEventId(eventIds[payload.selected_index])
