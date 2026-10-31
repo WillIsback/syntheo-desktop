@@ -153,6 +153,8 @@ Pour un fichier audio, votre serveur de transcription doit être configuré et e
 
 Si besoin, joignez le journal `app.log` de l'application, situé dans le dossier `logs` des données de l'application (sous Windows : `%LOCALAPPDATA%\fr.willisback.syntheo\logs`). Relisez-le avant de le partager.
 
+Les messages de la console de l'interface y apparaissent sous la forme `webview_console_event`, sans leur contenu : seuls le nombre d'arguments, l'étiquette du module qui les émet (par exemple `diagnostic="[speaker-context] error=Error(ERR_SQLITE_ERROR)"`) ainsi que le type et le code d'une erreur sont conservés. Le texte du message, celui des erreurs et toute autre valeur ne sont jamais écrits dans le journal.
+
 <Warning>
   Ne publiez jamais de clé API, de contenu de réunion ni l'adresse interne de vos serveurs dans une issue publique.
 </Warning>
