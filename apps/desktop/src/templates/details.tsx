@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
-import { DotsThree, Heart, Plus } from "@syntheo/ui/components/icons";
+import { DotsThree, Plus, Star } from "@syntheo/ui/components/icons";
 import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
@@ -98,7 +98,7 @@ function TemplateDetailEmpty({ onCreate }: { onCreate: () => void }) {
         className="gap-2"
       >
         <Plus className="size-4" />
-        <Trans>Create template</Trans>
+        <Trans>New template</Trans>
       </Button>
     </div>
   );
@@ -151,9 +151,9 @@ function WebTemplatePreview({
               size="sm"
               variant="ghost"
               onClick={() => onSetDefault(nextTemplate)}
-              className="text-muted-foreground shrink-0 hover:text-black"
+              className="text-muted-foreground hover:text-foreground shrink-0"
             >
-              <Trans>Set as default</Trans>
+              <Trans>Use by default</Trans>
             </Button>
             <Button
               type="button"
@@ -161,10 +161,10 @@ function WebTemplatePreview({
               variant="ghost"
               onClick={() => onFavorite(nextTemplate)}
               className="text-muted-foreground hover:text-foreground"
-              title={t`Favorite template`}
-              aria-label={t`Favorite template`}
+              title={t`Add to favorites`}
+              aria-label={t`Add to favorites`}
             >
-              <Heart className="size-4" />
+              <Star className="size-4" />
             </Button>
             <DropdownMenu open={actionsOpen} onOpenChange={setActionsOpen}>
               <DropdownMenuTrigger asChild>

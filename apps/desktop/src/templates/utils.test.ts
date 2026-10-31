@@ -6,6 +6,7 @@ import { DEFAULT_TEMPLATE_ICON } from "./template-icon";
 import {
   AUTO_TEMPLATE_ID,
   filterWebTemplatesAgainstUserTemplates,
+  groupUserTemplates,
   resolveTemplateTabSelection,
 } from "./utils";
 
@@ -126,5 +127,37 @@ describe("filterWebTemplatesAgainstUserTemplates", () => {
         ],
       }),
     ).toEqual([]);
+  });
+});
+
+describe("groupUserTemplates", () => {
+  const make = (
+    id: string,
+    title: string,
+    extra: Partial<UserTemplate> = {},
+  ): UserTemplate => ({ ...userTemplate, id, title, ...extra });
+
+  const templates = [
+    make("ca", "Conseil d'administration", { targets: ["PDG"] }),
+    make("equipe", "Point d'équipe", { pinned: true, pinOrder: 2 }),
+    make("entretien", "Entretien individuel", { pinned: true, pinOrder: 1 }),
+    make("annuel", "Entretien annuel", { targets: ["RH"] }),
+  ];
+
+  it("sépare les favoris (ordre d'épinglage) des autres (ordre alphabétique)", () => {
+    const { favorites, others } = groupUserTemplates(templates);
+
+    expect(favorites.map((t) => t.id)).toEqual(["entretien", "equipe"]);
+    expect(others.map((t) => t.id)).toEqual(["ca", "annuel"]);
+  });
+
+  it("filtre sur le nom et sur « Utilisé pour »", () => {
+    expect(groupUserTemplates(templates, "rh").others.map((t) => t.id)).toEqual(
+      ["annuel"],
+    );
+    expect(groupUserTemplates(templates, "entretien")).toEqual({
+      favorites: [templates[2]],
+      others: [templates[3]],
+    });
   });
 });
