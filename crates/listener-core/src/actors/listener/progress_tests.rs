@@ -193,3 +193,60 @@ fn frozen_or_empty_provisional_text_is_not_progress() {
         Some(32)
     );
 }
+
+/// Issue #271 : sur une vidéo en parole continue, le NIM n'a rien finalisé
+/// pendant 90 s et l'écoute s'est reconnectée (`UnfinalizedCap`). Le texte
+/// provisoire de ces 90 s doit être validé dans la transcription avant la
+/// reconnexion, ce que fait l'arrêt du flux (`post_stop` → `checkpoint`).
+#[test]
+fn nvidia_unfinalized_cap_commits_the_provisional_text_before_reconnecting() {
+    let mut session = Session::new();
+    let mut hypothesis = Vec::new();
+    let mut stalled_at = None;
+    for tick in 1..=1_200 {
+        if session.send_audio(tick) {
+            stalled_at = Some(tick);
+            break;
+        }
+        if tick == 50 {
+            session.receive(&completed_ms("Bonjour à tous.", 300.0, 4_800.0), tick);
+        } else if tick > 50 && tick % 5 == 0 {
+            hypothesis.push(format!("mot{tick}"));
+            session.receive(&delta(&hypothesis.join(" ")), tick);
+        }
+    }
+    let stalled_at = stalled_at.expect("the unfinalized cap recycles the stream");
+    let diagnostics = session.progress.diagnostics(session.time(stalled_at));
+    assert_eq!(
+        diagnostics.reason,
+        super::stream::StallReason::UnfinalizedCap
+    );
+    assert!(diagnostics.active_audio_secs < 1.0);
+
+    let checkpoint = session
+        .engine
+        .checkpoint()
+        .expect("the provisional hypothesis is committed");
+    // NIM hypotheses carry no word offsets: the committed text is the held
+    // final followed by the whole provisional segment.
+    let committed = checkpoint
+        .transcript_delta
+        .new_words
+        .iter()
+        .map(|word| word.text.trim())
+        .collect::<Vec<_>>()
+        .join(" ");
+    assert_eq!(
+        committed,
+        format!("Bonjour à tous. {}", hypothesis.join(" ")),
+        "provisional words lost at the reconnect"
+    );
+    assert!(checkpoint.transcript_delta.partials.is_empty());
+    assert!(
+        checkpoint
+            .transcript_delta
+            .new_words
+            .windows(2)
+            .all(|pair| pair[0].start_ms <= pair[1].start_ms)
+    );
+}
