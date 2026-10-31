@@ -12,12 +12,15 @@ const FINALIZE_HANDLE_TIMEOUT: std::time::Duration = std::time::Duration::from_s
 const MAX_FINAL_RESPONSES: usize = 64;
 const TRANSCRIPT_PROGRESS_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 const MIN_ACTIVE_AUDIO_SAMPLES: usize = crate::actors::SAMPLE_RATE as usize * 5;
+const MAX_TRACKED_CHANNELS: usize = 16;
 const MAX_UNFINALIZED_AUDIO_SAMPLES: usize = crate::actors::SAMPLE_RATE as usize * 90;
 
 pub(super) struct StreamProgress {
     last_progress_at: std::time::Instant,
     last_response_at: std::time::Instant,
     last_partials_hash: Option<u64>,
+    /// Last provisional hypothesis seen per provider channel, as a text hash.
+    provisional_hashes: Vec<(i32, u64)>,
     active_samples: usize,
     unfinalized_samples: usize,
 }
@@ -46,6 +49,7 @@ impl StreamProgress {
             last_progress_at: now,
             last_response_at: now,
             last_partials_hash: None,
+            provisional_hashes: Vec::new(),
             active_samples: 0,
             unfinalized_samples: 0,
         }
@@ -58,8 +62,55 @@ impl StreamProgress {
     }
 
     /// Any provider message, including ones carrying no transcript progress.
-    pub(super) fn observe_response(&mut self, now: std::time::Instant) {
+    ///
+    /// A provisional hypothesis whose text changed on its channel is progress in itself: on
+    /// continuous speech a server may go 30 s without finalizing while its hypothesis keeps
+    /// growing, and that must not be mistaken for a stall even when the transcript engine
+    /// discards the words (issue #268). Empty or repeated hypotheses prove nothing, so a server
+    /// that answers without new text still trips the watchdog.
+    pub(super) fn observe_response(&mut self, response: &StreamResponse, now: std::time::Instant) {
         self.last_response_at = now;
+        let StreamResponse::TranscriptResponse {
+            is_final: false,
+            channel,
+            channel_index,
+            ..
+        } = response
+        else {
+            return;
+        };
+        let text = channel
+            .alternatives
+            .first()
+            .map_or("", |alternative| alternative.transcript.trim());
+        if text.is_empty() {
+            return;
+        }
+        let mut hasher = DefaultHasher::new();
+        text.hash(&mut hasher);
+        let hash = hasher.finish();
+        let channel = channel_index.first().copied().unwrap_or_default();
+        let known = self
+            .provisional_hashes
+            .iter()
+            .position(|(known, _)| *known == channel);
+        match known {
+            Some(index) if self.provisional_hashes[index].1 == hash => {}
+            Some(index) => {
+                self.provisional_hashes[index].1 = hash;
+                self.mark_progress(now);
+            }
+            None if self.provisional_hashes.len() < MAX_TRACKED_CHANNELS => {
+                self.provisional_hashes.push((channel, hash));
+                self.mark_progress(now);
+            }
+            None => {}
+        }
+    }
+
+    fn mark_progress(&mut self, now: std::time::Instant) {
+        self.last_progress_at = now;
+        self.active_samples = 0;
     }
 
     pub(super) fn diagnostics(&self, now: std::time::Instant) -> StallDiagnostics {
@@ -102,8 +153,7 @@ impl StreamProgress {
             partials_hash = Some(hasher.finish());
         }
         if finalized || (partials_hash.is_some() && partials_hash != self.last_partials_hash) {
-            self.last_progress_at = now;
-            self.active_samples = 0;
+            self.mark_progress(now);
         }
         self.last_partials_hash = partials_hash;
         if finalized {
@@ -574,7 +624,7 @@ mod tests {
 
         // Empty provider messages keep the stream alive but are not transcript progress.
         let mut quiet = StreamProgress::new(now);
-        quiet.observe_response(now + Duration::from_secs(29));
+        quiet.observe_response(&terminal_response(), now + Duration::from_secs(29));
         assert!(quiet.observe_audio(MIN_ACTIVE_AUDIO_SAMPLES, now + Duration::from_secs(30)));
         let diagnostics = quiet.diagnostics(now + Duration::from_secs(30));
         assert_eq!(diagnostics.reason, StallReason::NoProgress);

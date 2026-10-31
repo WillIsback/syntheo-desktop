@@ -64,6 +64,30 @@ const LOCALES: &[(&str, &str)] = &[
 
 const MAX_SEGMENT_BYTES: usize = 1024 * 1024;
 
+/// How far past the audio already sent a word may end before its offsets are
+/// read as milliseconds rather than seconds.
+const WORD_TIME_SLACK_SECS: f64 = 1.0;
+
+/// Factor converting `words_info` offsets to seconds. Riva and the NIM report
+/// them in milliseconds (NVIDIA's reference realtime client prints them as
+/// "Start (ms)"), while the published schema says seconds. Read as seconds,
+/// millisecond offsets push the segment cursor hours ahead: every later
+/// partial then collapses onto that instant and is discarded as already
+/// transcribed, which the listener took for a stalled stream (issue #268).
+/// A server cannot time a word past the audio it received, so offsets beyond
+/// it can only be milliseconds.
+fn word_time_scale(words: &[Value], sent_secs: f64) -> f64 {
+    let last_end = words
+        .iter()
+        .filter_map(|word| word["end_time"].as_f64())
+        .fold(0.0_f64, f64::max);
+    if last_end > sent_secs + WORD_TIME_SLACK_SECS {
+        0.001
+    } else {
+        1.0
+    }
+}
+
 fn localized_language(lang: &syntheo_language::Language) -> String {
     if lang.region().is_some() {
         return lang.bcp47_code();
@@ -281,13 +305,14 @@ impl RealtimeSttAdapter for NvidiaAdapter {
                 };
                 let mut response = state.response(text, end, true);
                 if let Some(words) = value["words_info"]["words"].as_array() {
+                    let scale = word_time_scale(words, end);
                     let words: Vec<_> = words
                         .iter()
                         .filter_map(|word| {
                             Some(
                                 WordBuilder::new(word["word"].as_str()?)
-                                    .start(word["start_time"].as_f64()?)
-                                    .end(word["end_time"].as_f64()?)
+                                    .start(word["start_time"].as_f64()? * scale)
+                                    .end(word["end_time"].as_f64()? * scale)
                                     .confidence(word["confidence"].as_f64().unwrap_or(1.0))
                                     .speaker(
                                         word["speaker_tag"]
