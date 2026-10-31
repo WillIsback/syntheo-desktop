@@ -8,9 +8,10 @@ import {
 
 import { ActionButton, MessageBubble, MessageContainer } from "./shared";
 
-// Pas d'application web hébergée : l'aide renvoie à la documentation du dépôt.
-const CONTEXT_LENGTH_HELP_URL =
-  "https://github.com/WillIsback/syntheo-desktop#readme";
+import { documentationUrl } from "~/shared/documentation";
+
+// Pas d'application web hébergée : l'aide renvoie à la documentation publique.
+const CONTEXT_LENGTH_HELP_URL = documentationUrl("chat#guider-le-contexte");
 
 // `useChat().error` is typed as Error but holds whatever the transport threw.
 export function getChatErrorText(error: unknown): string {

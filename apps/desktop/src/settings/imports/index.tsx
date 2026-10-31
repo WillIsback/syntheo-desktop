@@ -6,9 +6,9 @@ import { Button } from "@syntheo/ui/components/ui/button";
 
 import { MeetingImportScreen } from "~/imports/screen";
 import { SettingsPageTitle } from "~/settings/page-title";
+import { documentationUrl } from "~/shared/documentation";
 
-const IMPORTS_DOCUMENTATION_URL =
-  "https://github.com/WillIsback/syntheo-desktop#readme";
+const IMPORTS_DOCUMENTATION_URL = documentationUrl("import-recordings");
 
 export function SettingsImports() {
   return (
