@@ -48,7 +48,10 @@ jobs:
           # @pierre/* déclare « apache-2.0 » en minuscules, une expression SPDX
           # invalide (l'action refuse de l'évaluer). Licence permissive réelle :
           # on les sort du contrôle de licence.
-          allow-dependencies-licenses: "pkg:npm/@pierre/diffs, pkg:npm/@pierre/highlights, pkg:npm/@pierre/theme, pkg:npm/@pierre/theming"
+          # node-forge est sous double licence « BSD-3-Clause OR GPL-2.0 » :
+          # l'action refuse toute expression contenant une licence refusée,
+          # même en alternative. On l'utilise sous BSD-3-Clause (outil de dev).
+          allow-dependencies-licenses: "pkg:npm/@pierre/diffs, pkg:npm/@pierre/highlights, pkg:npm/@pierre/theme, pkg:npm/@pierre/theming, pkg:npm/node-forge"
 
       - name: Valider le registre des exceptions de sécurité
         shell: bash
