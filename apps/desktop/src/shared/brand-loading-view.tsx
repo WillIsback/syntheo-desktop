@@ -1,6 +1,5 @@
+import { Logo } from "@syntheo/ui/components/logo";
 import { cn } from "@syntheo/utils";
-
-import { SyntheoMark } from "./syntheo-mark";
 
 export function BrandLoadingView({ detail }: { detail?: string }) {
   return (
@@ -13,19 +12,16 @@ export function BrandLoadingView({ detail }: { detail?: string }) {
       ])}
     >
       <div className="flex flex-col items-center">
-        <div
-          className={cn([
-            "relative w-[4.5rem]",
-            "drop-shadow-lg",
-            "dark:drop-shadow-xl",
-          ])}
-        >
-          <SyntheoMark className="text-foreground/20 w-full" />
+        <div className="relative w-[4.5rem]">
+          <Logo
+            variant="mark"
+            decorative
+            className="text-primary h-auto w-full opacity-25"
+          />
           <div
             aria-hidden="true"
             className={cn([
               "pointer-events-none absolute inset-0",
-              "text-foreground/75 dark:text-foreground/50",
               "[-webkit-mask-image:linear-gradient(105deg,transparent_36%,#000_50%,transparent_64%)]",
               "[mask-image:linear-gradient(105deg,transparent_36%,#000_50%,transparent_64%)]",
               "[-webkit-mask-size:220%_100%]",
@@ -34,7 +30,7 @@ export function BrandLoadingView({ detail }: { detail?: string }) {
               "motion-reduce:animate-none motion-reduce:opacity-0",
             ])}
           >
-            <SyntheoMark className="w-full" />
+            <Logo variant="mark" decorative className="h-auto w-full" />
           </div>
         </div>
         {detail ? (

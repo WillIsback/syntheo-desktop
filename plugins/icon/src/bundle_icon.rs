@@ -43,7 +43,7 @@ mod tests {
             let image = NSImage::initWithData(
                 NSImage::alloc(),
                 &NSData::with_bytes(include_bytes!(
-                    "../../../apps/desktop/src-tauri/icons/src/syntheo-anagram.png"
+                    "../../../packages/design-system/assets/brand/icon-512.png"
                 )),
             )
             .unwrap();

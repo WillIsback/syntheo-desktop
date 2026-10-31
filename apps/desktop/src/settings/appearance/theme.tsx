@@ -6,7 +6,6 @@ import { cn } from "@syntheo/utils";
 
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
-import { normalizeAppIconPreference } from "~/shared/theme/icon";
 import { normalizePalette, type PaletteId } from "~/shared/theme/palette";
 import { applyThemePreference } from "~/shared/theme/provider";
 import type { ThemePreference } from "~/shared/theme/resolve";
@@ -21,7 +20,6 @@ export function ThemeSelector() {
   const { t } = useLingui();
   const storedValue = useConfigValue("theme") as ThemePreference;
   const value = THEME_OPTIONS.includes(storedValue) ? storedValue : "system";
-  const appIcon = normalizeAppIconPreference(useConfigValue("app_icon"));
   const palette = normalizePalette(useConfigValue("palette"));
   const setTheme = useSetSettingValue("theme");
   const options = [
@@ -65,7 +63,7 @@ export function ThemeSelector() {
                   : "border-border hover:border-foreground/30 hover:bg-accent/20",
               ])}
               onClick={() => {
-                void applyThemePreference(option.value, appIcon);
+                void applyThemePreference(option.value);
                 setTheme(option.value);
               }}
             >
