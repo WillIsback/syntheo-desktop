@@ -4,11 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   currentTab: { type: "empty" } as { type: string } | null,
   platform: "macos" as "linux" | "macos" | "windows",
-  leftsidebar: {
-    expanded: true,
-    setExpanded: vi.fn(),
-    setLocked: vi.fn(),
-  },
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({
@@ -36,8 +31,17 @@ vi.mock("~/devtools-bar", () => ({
   DevtoolsStatusBar: () => null,
 }));
 
-vi.mock("~/contexts/shell", () => ({
-  useShell: () => ({ leftsidebar: mocks.leftsidebar }),
+vi.mock("./view-navigation", () => ({
+  hasViewNavigation: (tab: { type: string } | null) =>
+    tab !== null &&
+    [
+      "settings",
+      "calendar",
+      "contacts",
+      "templates",
+      "automations",
+      "folders",
+    ].includes(tab.type),
 }));
 
 vi.mock("~/store/zustand/tabs", () => ({
@@ -46,7 +50,7 @@ vi.mock("~/store/zustand/tabs", () => ({
   ) => selector({ currentTab: mocks.currentTab }),
 }));
 
-import { ClassicMainShellFrame } from "./shell-frame";
+import { ClassicMainShellFrame, resolveMainSurfaceChrome } from "./shell-frame";
 
 describe("ClassicMainShellFrame", () => {
   afterEach(cleanup);
@@ -54,9 +58,6 @@ describe("ClassicMainShellFrame", () => {
   beforeEach(() => {
     mocks.currentTab = { type: "empty" };
     mocks.platform = "macos";
-    mocks.leftsidebar.expanded = true;
-    mocks.leftsidebar.setExpanded.mockClear();
-    mocks.leftsidebar.setLocked.mockClear();
   });
 
   it.each([
@@ -75,6 +76,20 @@ describe("ClassicMainShellFrame", () => {
       } else {
         expect(screen.queryByTestId("windows-title-bar")).toBeNull();
       }
+    },
+  );
+
+  it.each([
+    ["sessions", "top-borderless"],
+    ["empty", "top-borderless"],
+    ["changelog", "top"],
+    ["settings", "left"],
+    ["templates", "left"],
+    ["onboarding", undefined],
+  ] as const)(
+    "habille la surface principale de %s sans barre latérale",
+    (type, chrome) => {
+      expect(resolveMainSurfaceChrome({ type })).toBe(chrome);
     },
   );
 });

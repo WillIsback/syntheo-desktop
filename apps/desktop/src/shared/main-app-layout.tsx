@@ -11,17 +11,12 @@ import {
 } from "./useNewNote";
 
 import { LocalBillingProvider } from "~/billing/local-billing";
+import { useFolderSelection } from "~/folders/selection";
 import { getOrCreateSessionForEventId } from "~/session/queries";
 import { openFoldersFromNavigation } from "~/shared/folders-navigation";
-import { leaveAllOverlayTabs } from "~/shared/leave-overlay-tab";
 import { useZoomShortcuts } from "~/shared/zoom";
-import { useSidebarNotes } from "~/sidebar/note-filter";
 import { UndoDeleteToast } from "~/sidebar/toast/undo-delete-toast";
-import {
-  isTabInputSupported,
-  RETURN_ORIGIN_TAB_TYPES,
-  useTabs,
-} from "~/store/zustand/tabs";
+import { isTabInputSupported, useTabs } from "~/store/zustand/tabs";
 
 export default function MainAppLayout() {
   useNavigationEvents();
@@ -66,11 +61,9 @@ const useNavigationEvents = () => {
           state: { selected: { type: "organization", id } },
         });
       } else if (type === "folder") {
-        useSidebarNotes.getState().setView("mine", id);
-        const tab = useTabs.getState().currentTab;
-        if (tab && RETURN_ORIGIN_TAB_TYPES.includes(tab.type)) {
-          leaveAllOverlayTabs();
-        }
+        // Sans barre latérale, un dossier s'ouvre dans sa propre vue.
+        useFolderSelection.getState().setSelectedPath(id);
+        openNew({ type: "folders" });
       }
     };
     (window as any).__SYNTHEO_NAVIGATE__ = navigateFromNative;

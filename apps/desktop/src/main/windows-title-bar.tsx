@@ -3,11 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useRef } from "react";
 
 import { commands as openerCommands } from "@syntheo/plugin-opener2";
-import {
-  ArrowLeft,
-  Sidebar,
-  SidebarSimple,
-} from "@syntheo/ui/components/icons";
+import { ArrowLeft } from "@syntheo/ui/components/icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,47 +14,29 @@ import {
 } from "@syntheo/ui/components/ui/dropdown-menu";
 import { cn } from "@syntheo/utils";
 
-import {
-  LeftSurfaceChromeButton,
-  SidebarNoteActions,
-} from "./sidebar-timeline-chrome";
+import { hasViewNavigation } from "./view-navigation";
 import { WindowsWindowControls } from "./windows-window-controls";
 
-import { useShell } from "~/contexts/shell";
-import { usesTitleBarSidebarActions } from "~/shared/hooks/useWindowControlsGutter";
-import { useOpenNoteDialog } from "~/shared/open-note-dialog";
+import { openNoteDialog } from "~/shared/open-note-dialog";
 import { useNewNote } from "~/shared/useNewNote";
 import {
   TITLE_BAR_SIDEBAR_ACTIONS_SLOT_ID,
   useCustomSidebarBack,
 } from "~/sidebar/custom-sidebar-header";
-import { useSidebarUpcomingMeetingStatus } from "~/sidebar/timeline/upcoming-meeting";
-import { hasCustomSidebarTab } from "~/sidebar/use-custom-sidebar";
 import { useTabs } from "~/store/zustand/tabs";
 
 const appWindow = getCurrentWindow();
 
-export function WindowsTitleBar({
-  showSidebarTimelineChrome,
-}: {
-  showSidebarTimelineChrome: boolean;
-}) {
-  const { leftsidebar } = useShell();
+// Barre de titre Windows / Linux : barre de menus (Fichier, Modifier, Afficher,
+// Aide), zone de déplacement de la fenêtre et contrôles natifs. Il n'y a plus
+// de barre latérale à afficher ou masquer.
+export function WindowsTitleBar() {
   const currentTab = useTabs((state) => state.currentTab);
   const openNew = useTabs((state) => state.openNew);
   const createNewNote = useNewNote();
-  const openNoteDialog = useOpenNoteDialog();
-  const upcomingMeetingStatus = useSidebarUpcomingMeetingStatus();
   const goBack = useCustomSidebarBack();
-  const showBackButton = hasCustomSidebarTab(currentTab);
+  const showBackButton = hasViewNavigation(currentTab);
   const editTargetRef = useRef<HTMLElement | null>(null);
-  const currentSessionId =
-    currentTab?.type === "sessions" ? currentTab.id : undefined;
-  const showUpcomingMeetingBadge =
-    !leftsidebar.expanded &&
-    !!upcomingMeetingStatus &&
-    (!currentSessionId ||
-      upcomingMeetingStatus.itemKey !== `session-${currentSessionId}`);
 
   const rememberEditTarget = useCallback(() => {
     editTargetRef.current =
@@ -90,35 +68,15 @@ export function WindowsTitleBar({
       >
         {showBackButton ? (
           <>
-            <LeftSurfaceChromeButton ariaLabel={t`Go home`} onClick={goBack}>
+            <TitleBarIconButton ariaLabel={t`Go home`} onClick={goBack}>
               <ArrowLeft size={16} />
-            </LeftSurfaceChromeButton>
+            </TitleBarIconButton>
             <div
               id={TITLE_BAR_SIDEBAR_ACTIONS_SLOT_ID}
               data-tauri-drag-region="false"
               className="flex items-center"
             />
           </>
-        ) : (
-          <LeftSurfaceChromeButton
-            ariaLabel={leftsidebar.expanded ? t`Hide sidebar` : t`Show sidebar`}
-            badge={showUpcomingMeetingBadge ? "upcomingMeeting" : null}
-            onClick={leftsidebar.toggleExpanded}
-          >
-            {leftsidebar.expanded ? (
-              <SidebarSimple size={16} />
-            ) : (
-              <Sidebar size={16} />
-            )}
-          </LeftSurfaceChromeButton>
-        )}
-        {usesTitleBarSidebarActions() &&
-        showSidebarTimelineChrome &&
-        leftsidebar.expanded ? (
-          <SidebarNoteActions
-            onNewNote={createNewNote}
-            onSearch={openNoteDialog.open}
-          />
         ) : null}
         <nav
           aria-label={t`Application menu`}
@@ -129,6 +87,10 @@ export function WindowsTitleBar({
             <DropdownMenuItem onSelect={createNewNote}>
               {t`New Note`}
               <DropdownMenuShortcut>Ctrl+N</DropdownMenuShortcut>
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={openNoteDialog}>
+              {t`Search Notes…`}
+              <DropdownMenuShortcut>Ctrl+K</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() =>
@@ -172,10 +134,6 @@ export function WindowsTitleBar({
             </DropdownMenuItem>
           </TitleBarMenu>
           <TitleBarMenu label={t`View`} onPointerDown={rememberEditTarget}>
-            <DropdownMenuItem onSelect={leftsidebar.toggleExpanded}>
-              {leftsidebar.expanded ? t`Hide Sidebar` : t`Show Sidebar`}
-              <DropdownMenuShortcut>Ctrl+\</DropdownMenuShortcut>
-            </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => void toggleFullscreen()}>
               {t`Full Screen`}
               <DropdownMenuShortcut>F11</DropdownMenuShortcut>
@@ -256,5 +214,32 @@ function TitleBarMenu({
         {children}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function TitleBarIconButton({
+  ariaLabel,
+  children,
+  onClick,
+}: {
+  ariaLabel: string;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      data-tauri-drag-region="false"
+      className={cn([
+        "relative flex size-7 items-center justify-center rounded-full",
+        "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
+        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
+      ])}
+      onClick={onClick}
+    >
+      {children}
+    </button>
   );
 }

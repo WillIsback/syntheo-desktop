@@ -1,7 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 
 import { AppIconSelector } from "./app-icon";
-import { SidebarItemFieldsSettings } from "./sidebar-item-fields";
 import { ThemeSelector } from "./theme";
 import { TimeFormatSettings } from "./time-format";
 
@@ -14,7 +13,6 @@ export function SettingsAppearance() {
       <ThemeSelector />
       <TimeFormatSettings />
       <AppIconSelector />
-      <SidebarItemFieldsSettings />
     </div>
   );
 }

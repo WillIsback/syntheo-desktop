@@ -3,6 +3,8 @@ import type { Tab } from "~/store/zustand/tabs";
 export const NOTE_SURFACE_MIN_WIDTH_PX = 500;
 export const AUTOMATIONS_SURFACE_MIN_WIDTH_PX = 600;
 export const SETTINGS_SURFACE_MIN_WIDTH_PX = 700;
+// Colonne de navigation interne des vues Paramètres, Modèles, Calendrier…
+export const VIEW_NAVIGATION_WIDTH_PX = 240;
 
 export function usesNoteSurfaceMinWidth(tab: Pick<Tab, "type"> | null) {
   return (

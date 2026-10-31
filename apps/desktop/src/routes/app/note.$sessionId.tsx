@@ -40,7 +40,6 @@ function StandaloneNoteContent({ sessionId }: { sessionId: string }) {
       <div className="bg-background flex h-screen w-screen">
         <MainChatPanels
           autoSaveId="standalone-note-chat"
-          leftSidebarAvailable={false}
           noteSurfaceMinWidth={STANDALONE_NOTE_SURFACE_MIN_WIDTH_PX}
         >
           <TabContentNote tab={tab} standaloneWindow />
