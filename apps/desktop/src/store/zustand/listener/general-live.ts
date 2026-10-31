@@ -314,6 +314,15 @@ const createSessionEventHandlers = <T extends LiveStore>(
       const currentLive = get().live;
 
       if (currentLive.status === "active" && currentLive.intervalId) {
+        // Le supervisor Rust a rouvert le flux STT tout seul : c'est un
+        // nouveau flux, la transcription reprend sans action de
+        // l'utilisateur et le chien de garde repart de zéro.
+        const reconnected =
+          payload.live_transcription_active &&
+          !payload.degraded &&
+          (currentLive.degraded !== null ||
+            currentLive.liveTranscriptionActive === false ||
+            currentLive.transcriptionStalled);
         setLiveState(set, (live) => {
           live.degraded = payload.degraded ?? null;
           live.requestedLiveTranscription =
@@ -322,7 +331,15 @@ const createSessionEventHandlers = <T extends LiveStore>(
           live.needsBatchRepair ||=
             payload.requested_live_transcription &&
             (!payload.live_transcription_active || payload.degraded !== null);
+          if (reconnected) {
+            live.stallAudibleSeconds = 0;
+            live.finalStallAudibleSeconds = 0;
+            live.transcriptionStalled = false;
+          }
         });
+        if (reconnected) {
+          toast.dismiss("live-transcription-stalled");
+        }
         return;
       }
 

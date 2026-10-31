@@ -486,6 +486,35 @@ describe("Basic Tab Actions", () => {
     });
   });
 
+  test("fermer la revue d'une proposition du chat revient à la note d'origine", () => {
+    // Sans barre d'onglets (refonte « Thé vert »), les onglets s'accumulent
+    // sans être vus. Fermer l'onglet de revue activait son voisin positionnel
+    // (le dernier onglet, souvent une note récemment créée) au lieu de la
+    // note sur laquelle l'utilisateur discutait avec le chat.
+    const current = createSessionTab({ id: "note-courante" });
+    const recent = createSessionTab({ id: "note-recente" });
+    useTabs.getState().openNew(current);
+    useTabs.getState().openNew(recent);
+    useTabs
+      .getState()
+      .select(
+        useTabs
+          .getState()
+          .tabs.find(
+            (tab) => tab.type === "sessions" && tab.id === "note-courante",
+          )!,
+      );
+
+    useTabs.getState().openNew({ type: "edit", requestId: "proposal-1" });
+    const reviewTab = useTabs.getState().currentTab!;
+    useTabs.getState().close(reviewTab);
+
+    expect(useTabs.getState()).toHaveCurrentTab({
+      type: "sessions",
+      id: "note-courante",
+    });
+  });
+
   test("close last tab empties store", () => {
     const only = createSessionTab({ active: true });
     useTabs.getState().openNew(only);

@@ -1,3 +1,5 @@
+import { Trans } from "@lingui/react/macro";
+
 import { Waveform } from "@syntheo/ui/components/icons";
 import { Spinner } from "@syntheo/ui/components/ui/spinner";
 
@@ -25,12 +27,21 @@ export function TranscriptListeningState({
       )}
       <div className="flex max-w-md flex-col gap-2">
         <p className="text-base font-medium">
-          {isFinalizing ? "Finalizing transcript..." : "Listening..."}
+          {isFinalizing ? (
+            <Trans>Finalizing transcription…</Trans>
+          ) : (
+            <Trans>Listening…</Trans>
+          )}
         </p>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          {isFinalizing
-            ? "Transcript is still being written."
-            : "Transcript will appear here when the first segment arrives."}
+          {isFinalizing ? (
+            <Trans>The transcription is still being written.</Trans>
+          ) : (
+            <Trans>
+              The transcription will appear here as soon as the first words
+              arrive.
+            </Trans>
+          )}
         </p>
       </div>
     </div>

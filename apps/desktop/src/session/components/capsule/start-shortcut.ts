@@ -15,6 +15,12 @@ export function registerPreparedNoteStart(handler: StartHandler) {
   };
 }
 
+// Une note en Préparer est-elle au premier plan ? (Utilisé aussi par la
+// notification de détection de réunion.)
+export function hasPreparedNoteStart(): boolean {
+  return currentHandler !== null;
+}
+
 export function startPreparedNoteFromShortcut(): boolean {
   if (!currentHandler) {
     return false;

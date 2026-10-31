@@ -100,6 +100,22 @@ msgstr "il y a {months} mois"
 msgid "{primaryModifier} ↩ to send"
 msgstr "{primaryModifier} ↩ pour envoyer"
 
+#: src/stt/live-transcript-interrupted.ts
+msgid "{providerName} is having an outage"
+msgstr "{providerName} subit une panne"
+
+#: src/stt/live-transcript-interrupted.ts
+msgid "{providerName} rejected the transcription settings"
+msgstr "{providerName} a refusé les réglages de transcription"
+
+#: src/stt/live-transcript-interrupted.ts
+msgid "{providerName} rejected your API key"
+msgstr "{providerName} a refusé votre clé d'API"
+
+#: src/stt/live-transcript-interrupted.ts
+msgid "{providerName} stopped sending text"
+msgstr "{providerName} n'envoie plus de texte"
+
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "{title} deleted"
 msgstr "{title} supprimé"
@@ -1408,6 +1424,10 @@ msgstr "Format de fichier"
 msgid "Filename"
 msgstr "Nom de fichier"
 
+#: src/session/components/note-input/transcript/screens/listening.tsx
+msgid "Finalizing transcription…"
+msgstr "Finalisation de la transcription…"
+
 #: src/chat/components/body/empty.tsx
 msgid "Find key decisions."
 msgstr "Trouvez les décisions clés."
@@ -1817,6 +1837,7 @@ msgstr "Écoute"
 msgid "Listening time"
 msgstr "Durée d'écoute"
 
+#: src/session/components/note-input/transcript/screens/listening.tsx
 #: src/settings/dictation.tsx
 msgid "Listening…"
 msgstr "Écoute…"
@@ -1824,6 +1845,18 @@ msgstr "Écoute…"
 #: src/settings/dictation.tsx
 msgid "Live transcript preview"
 msgstr "Voir le texte en direct"
+
+#: src/stt/live-transcript-interrupted.ts
+msgid "Live transcription paused: {cause}. No audio is kept: this passage will be missing from the transcription. Check the transcription server settings."
+msgstr "Transcription en direct en pause : {cause}. Aucun audio n'est conservé : ce passage manquera à la transcription. Vérifiez les réglages du serveur de transcription."
+
+#: src/stt/live-transcript-interrupted.ts
+msgid "Live transcription paused: {cause}. No audio is kept: this passage will be missing from the transcription. Reconnecting…"
+msgstr "Transcription en direct en pause : {cause}. Aucun audio n'est conservé : ce passage manquera à la transcription. Reconnexion…"
+
+#: src/stt/live-transcript-interrupted.ts
+msgid "Live transcription resumed."
+msgstr "Transcription en direct reprise."
 
 #: src/templates/auto-form.tsx
 msgid "Loading Auto format..."
@@ -3540,6 +3573,10 @@ msgstr "Syntheo peut entendre votre voix"
 msgid "Syntheo can read meeting details"
 msgstr "Syntheo peut lire les détails de la réunion"
 
+#: src/stt/live-transcript-interrupted.ts
+msgid "Syntheo cannot reach {providerName}"
+msgstr "Syntheo ne parvient pas à joindre {providerName}"
+
 #: src/settings/developers/cli.tsx
 msgid "Syntheo CLI"
 msgstr "Syntheo CLI"
@@ -3765,6 +3802,18 @@ msgstr "La modification du résumé n'a pas pu être préparée."
 msgid "The summary server did not respond. Check that it is running, then try again."
 msgstr "Le serveur de synthèse n'a pas répondu. Vérifiez qu'il est démarré, puis réessayez."
 
+#: src/session/components/note-input/transcript/screens/listening.tsx
+msgid "The transcription is still being written."
+msgstr "La transcription est encore en cours d'écriture."
+
+#: src/stt/live-transcript-interrupted.ts
+msgid "the transcription service"
+msgstr "le service de transcription"
+
+#: src/session/components/note-input/transcript/screens/listening.tsx
+msgid "The transcription will appear here as soon as the first words arrive."
+msgstr "La transcription apparaîtra ici dès les premiers mots."
+
 #: src/settings/appearance/theme.tsx
 msgid "Theme"
 msgstr "Thème"
@@ -3820,6 +3869,10 @@ msgstr "Cela nécessite Syntheo Pro"
 #: src/settings/ai/stt/server-card.tsx
 msgid "This server answers as {detectedLabel}."
 msgstr "Ce serveur répond comme {detectedLabel}."
+
+#: src/session/components/note-input/transcript/index.tsx
+msgid "This transcription is incomplete."
+msgstr "Cette transcription est incomplète."
 
 #. placeholder {0}: status.fileCount
 #. placeholder {1}: formatBytes(status.totalBytes)
@@ -4253,6 +4306,10 @@ msgstr "Hier"
 #: src/templates/utils.ts
 msgid "you"
 msgstr "vous"
+
+#: src/stt/live-transcript-interrupted.ts
+msgid "you are offline"
+msgstr "vous êtes hors ligne"
 
 #: src/calendar/components/apple/permission.tsx
 msgid "You can"

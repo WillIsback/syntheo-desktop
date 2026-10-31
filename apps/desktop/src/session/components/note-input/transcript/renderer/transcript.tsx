@@ -21,7 +21,7 @@ import {
   type TranscriptSearchRenderState,
 } from "./segment";
 import {
-  createSegmentKey,
+  createSegmentKeys,
   segmentsShallowEqual,
   useStableSegments,
 } from "./segment-hooks";
@@ -314,10 +314,7 @@ const SegmentsList = memo(
       search?.wholeWord,
     ]);
     const segmentKeys = useMemo(
-      () =>
-        segments.map((segment, index) =>
-          createSegmentKey(segment, transcriptId, index),
-        ),
+      () => createSegmentKeys(segments, transcriptId),
       [segments, transcriptId],
     );
     const virtual = useVirtualSegments({

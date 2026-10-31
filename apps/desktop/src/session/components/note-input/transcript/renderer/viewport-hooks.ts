@@ -7,6 +7,22 @@ import {
   useState,
 } from "react";
 
+// Délai pendant lequel un défilement est attribué au dernier geste de
+// l'utilisateur (l'inertie de la molette prolonge le geste).
+const USER_SCROLL_GESTURE_WINDOW_MS = 800;
+
+export function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+export function scrollBehavior(): ScrollBehavior {
+  return prefersReducedMotion() ? "auto" : "smooth";
+}
+
 export async function preserveScrollPosition<T>(
   element: HTMLElement | null,
   action: () => Promise<T>,
@@ -95,6 +111,16 @@ export function useScrollDetection(
     }
 
     lastScrollTopRef.current = element.scrollTop;
+    // Seul un geste de l'utilisateur (molette, toucher, clavier, barre de
+    // défilement) décroche le suivi. Un scrollTop qui recule parce que le
+    // contenu a rétréci (segment provisoire remplacé, hauteur réestimée) ne
+    // doit pas figer la marge en pleine écoute.
+    let lastUserGestureAt = Number.NEGATIVE_INFINITY;
+    const markUserGesture = () => {
+      lastUserGestureAt = performance.now();
+    };
+    const isUserScroll = () =>
+      performance.now() - lastUserGestureAt < USER_SCROLL_GESTURE_WINDOW_MS;
 
     const updateScrollState = () => {
       const bottomThreshold = 100;
@@ -121,21 +147,38 @@ export function useScrollDetection(
 
       const scrolledUp = currentTop < prevTop - 2;
       const scrolledDown = currentTop > prevTop + 2;
-      if (scrolledUp) {
+      const userScroll = isUserScroll();
+      if (scrolledUp && userScroll) {
         userScrolledAwayRef.current = true;
         setAutoScrollEnabled(false);
         setScrollTarget("bottom");
+        return;
       }
 
-      if (scrolledDown) {
+      if (scrolledDown && userScroll) {
         setScrollTarget("top");
       }
 
-      if (isNearBottom && !userScrolledAwayRef.current) {
+      // Revenir en bas (à la main) relance le suivi automatique.
+      if (isNearBottom && (userScroll || !userScrolledAwayRef.current)) {
+        userScrolledAwayRef.current = false;
         setAutoScrollEnabled(true);
+        if (userScroll) {
+          setScrollTarget(null);
+        }
       }
     };
 
+    const gestureEvents = [
+      "wheel",
+      "touchstart",
+      "touchmove",
+      "keydown",
+      "pointerdown",
+    ] as const;
+    gestureEvents.forEach((type) =>
+      element.addEventListener(type, markUserGesture, { passive: true }),
+    );
     element.addEventListener("scroll", handleScroll);
     handleScroll();
 
@@ -156,6 +199,9 @@ export function useScrollDetection(
     });
 
     return () => {
+      gestureEvents.forEach((type) =>
+        element.removeEventListener(type, markUserGesture),
+      );
       element.removeEventListener("scroll", handleScroll);
       resizeObserver?.disconnect();
       mutationObserver?.disconnect();
@@ -179,7 +225,7 @@ export function useScrollDetection(
     userScrolledAwayRef.current = false;
     setAutoScrollEnabled(true);
     setScrollTarget(null);
-    element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
+    element.scrollTo({ top: element.scrollHeight, behavior: scrollBehavior() });
   };
 
   const scrollToTop = () => {
@@ -187,8 +233,11 @@ export function useScrollDetection(
     if (!element) {
       return;
     }
+    // Remonter en haut est un choix explicite : on cesse de suivre l'écoute.
+    userScrolledAwayRef.current = true;
+    setAutoScrollEnabled(false);
     setScrollTarget(null);
-    element.scrollTo({ top: 0, behavior: "smooth" });
+    element.scrollTo({ top: 0, behavior: scrollBehavior() });
   };
 
   return {
