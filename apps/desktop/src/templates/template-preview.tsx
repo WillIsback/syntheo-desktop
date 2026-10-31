@@ -4,7 +4,8 @@ import type { TemplateSection } from "@syntheo/store";
 
 /**
  * Mode « Aperçu » : la forme de la synthèse que produira le modèle.
- * Les consignes sont en `faint`, le texte que Syntheo rédigera en `ai-ink`.
+ * Les consignes sont en `muted-foreground` (pastille `faint`), le texte que
+ * Syntheo rédigera à l'encre `foreground`, comme dans le compte-rendu.
  */
 export function TemplatePreview({
   title,
@@ -29,7 +30,7 @@ export function TemplatePreview({
         <span className="inline-flex items-center gap-1.5">
           <span
             aria-hidden="true"
-            className="bg-ai-ink inline-block size-2.5 rounded-[2px]"
+            className="bg-foreground inline-block size-2.5 rounded-[2px]"
           />
           <Trans>Written by Syntheo</Trans>
         </span>
@@ -64,7 +65,7 @@ export function TemplatePreview({
                   {section.description}
                 </p>
               ) : null}
-              <p className="text-ai-ink text-[15px]">
+              <p className="text-foreground text-[15px]">
                 <Trans>— Sample line written from this instruction.</Trans>
               </p>
             </section>

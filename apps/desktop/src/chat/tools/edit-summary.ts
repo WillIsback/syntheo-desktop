@@ -2,13 +2,14 @@ import { tool } from "ai";
 import { z } from "zod";
 
 import {
-  resolveActiveEnhancedNoteId,
   resolveCurrentSessionId,
+  resolveViewedSummaryId,
 } from "./current-session";
 import type { ToolDependencies } from "./types";
 
 import { usePendingEditStore } from "~/chat/tools/pending-edit-store";
 import { loadSessionContentSnapshot } from "~/session/content-queries";
+import { revealSummaryReviewInNote } from "~/session/proposal-review";
 import {
   applySessionProposal,
   declineSessionProposal,
@@ -35,6 +36,12 @@ function listSummaryCandidates(
   }));
 }
 
+function describeCandidates(candidates: SummaryCandidate[]): string {
+  return candidates
+    .map((candidate) => `"${candidate.enhancedNoteId}" (${candidate.title})`)
+    .join(", ");
+}
+
 export const buildEditSummaryTool = (
   deps: Pick<
     ToolDependencies,
@@ -55,7 +62,7 @@ export const buildEditSummaryTool = (
         .string()
         .optional()
         .describe(
-          "The specific summary ID (enhanced note ID) to edit. Defaults to the active summary in the session tab when possible.",
+          "Omit this to edit the summary the user is viewing. Only pass a summary ID returned by a previous edit_summary error (candidates); never pass a Session ID here.",
         ),
       content: z
         .string()
@@ -76,6 +83,7 @@ export const buildEditSummaryTool = (
       if (!sessionId) {
         return {
           status: "error",
+          code: "no_session",
           message:
             "No active session selected. Provide sessionId explicitly when calling edit_summary.",
         };
@@ -88,6 +96,7 @@ export const buildEditSummaryTool = (
       if (noteIds.length === 0) {
         return {
           status: "error",
+          code: "no_summary",
           message: "No summaries found for this session",
         };
       }
@@ -95,13 +104,30 @@ export const buildEditSummaryTool = (
       const noteIdSet = new Set(noteIds);
 
       const requestedEnhancedNoteId = params.enhancedNoteId;
-      const activeEnhancedNoteId = resolveActiveEnhancedNoteId(deps, sessionId);
+      // Le compte-rendu que l'utilisateur a sous les yeux dans le document
+      // vivant (et non la vue brute de l'onglet, parfois vide ou périmée).
+      const viewedEnhancedNoteId = resolveViewedSummaryId(
+        deps,
+        sessionId,
+        noteIds,
+      );
       const candidates = listSummaryCandidates(notes);
+      const requestedIsValid =
+        !!requestedEnhancedNoteId && noteIdSet.has(requestedEnhancedNoteId);
 
-      if (requestedEnhancedNoteId && !noteIdSet.has(requestedEnhancedNoteId)) {
+      // Le contexte du modèle ne donne que l'id de la note (« Session ID »),
+      // jamais celui des comptes-rendus : un id inconnu est le plus souvent
+      // l'id de la note ou un id inventé. Quand un compte-rendu est affiché,
+      // c'est lui que l'utilisateur veut modifier (et il valide le diff).
+      if (
+        requestedEnhancedNoteId &&
+        !requestedIsValid &&
+        !viewedEnhancedNoteId
+      ) {
         return {
           status: "error",
-          message: "That summary does not belong to the target session.",
+          code: "summary_not_in_session",
+          message: `Summary "${requestedEnhancedNoteId}" does not belong to session ${sessionId}. Retry with one of these enhancedNoteId values, or omit enhancedNoteId to edit the summary the user is viewing: ${describeCandidates(candidates)}.`,
           candidates,
         };
       }
@@ -110,20 +136,16 @@ export const buildEditSummaryTool = (
         notes.find((note) => !note.templateId)?.id ?? null;
 
       const enhancedNoteId =
-        (requestedEnhancedNoteId && noteIdSet.has(requestedEnhancedNoteId)
-          ? requestedEnhancedNoteId
-          : null) ??
-        (activeEnhancedNoteId && noteIdSet.has(activeEnhancedNoteId)
-          ? activeEnhancedNoteId
-          : null) ??
+        (requestedIsValid ? requestedEnhancedNoteId : null) ??
+        viewedEnhancedNoteId ??
         defaultEnhancedNoteId ??
         (noteIds.length === 1 ? noteIds[0] : null);
 
       if (!enhancedNoteId) {
         return {
           status: "error",
-          message:
-            "Multiple summaries exist for this session. Specify enhancedNoteId explicitly.",
+          code: "summary_ambiguous",
+          message: `Multiple summaries exist for this session. Retry with one of these enhancedNoteId values: ${describeCandidates(candidates)}.`,
           candidates,
         };
       }
@@ -143,6 +165,7 @@ export const buildEditSummaryTool = (
       } catch {
         return {
           status: "error",
+          code: "save_failed",
           message: "Failed to save the proposed summary edit.",
         };
       }
@@ -157,7 +180,11 @@ export const buildEditSummaryTool = (
           source: "chat",
           resolve,
         });
-        deps.openEditTab(toolCallId);
+        // Note affichée : la revue s'affiche dans le document vivant, sans
+        // ouvrir d'onglet de diff par-dessus. Sinon, onglet de revue.
+        if (!revealSummaryReviewInNote(sessionId, enhancedNoteId)) {
+          deps.openEditTab(toolCallId);
+        }
       });
 
       if (!approved) {
@@ -170,6 +197,7 @@ export const buildEditSummaryTool = (
       } catch {
         return {
           status: "error",
+          code: "apply_failed",
           message: "Failed to apply the summary edit.",
         };
       }

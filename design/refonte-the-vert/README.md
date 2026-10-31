@@ -21,7 +21,7 @@ Références en ligne (privées, compte du propriétaire) : design system <https
 1. **Un employé, pas un service.** Usage personnel, hébergement local. Pas de compte, de cloud, d'équipe ou de facturation à l'écran. Une seule mention technique : l'état des serveurs locaux.
 2. **Un document vivant.** Une note passe d'une fiche (Préparer) à une prise de notes avec la transcription en marge (Écouter), puis à un compte-rendu (Synthèse) sans changer d'écran.
 3. **Trois étapes toujours visibles** dans la capsule flottante en bas : 備 Préparer · 聴 Écouter · 結 Synthèse, avec la seule action utile du moment.
-4. **Qui a écrit quoi.** Le texte de l'utilisateur est à l'encre `foreground`, ce que Syntheo ajoute est en `ai-ink`, avec une légende.
+4. **Qui a écrit quoi.** Le compte-rendu que Syntheo complète est à l'encre `foreground`, jamais en italique ni en gris ; les notes personnelles de l'utilisateur sont en vert `user-ink`, avec une légende.
 5. **Accueil guidé.** Salutation, prochaine réunion de l'agenda, un seul grand bouton « Démarrer une réunion », puis la liste « Reprendre ».
 
 ## Règles du projet qui s'appliquent
@@ -41,7 +41,7 @@ Un lot = une issue = une PR. Les lots 1 à 5 dépendent du lot 0 ; ils sont ensu
 ### Lot 0 · Fondations (tokens, polices, fond)
 
 - Remplacer `packages/design-system/src/tokens.css` par `tokens.css` de ce dossier ; aligner `DesignColors` dans `packages/design-system/src/index.ts`.
-- Exposer les nouveaux jetons à Tailwind (`@theme` de `packages/ui/src/styles/globals.css` et `apps/desktop/src/styles/globals.css`) : `primary-hover`, `faint`, `recording`, `seal`, `ai-ink`, `shadow-capsule`.
+- Exposer les nouveaux jetons à Tailwind (`@theme` de `packages/ui/src/styles/globals.css` et `apps/desktop/src/styles/globals.css`) : `primary-hover`, `faint`, `recording`, `seal`, `user-ink`, `shadow-capsule`.
 - Polices : Geist (interface) et Newsreader (titres de note), embarquées ; Noto Serif JP en sous-ensemble limité aux kanji 茶備聴結記. Remplacer `--font-sans` (Inter) et ajouter `--font-serif`, `--font-kanji`.
 - Retirer le motif décoratif de fond (vague) des surfaces principales : le fond est uni `background`.
 - Mettre à jour `apps/desktop/src/styles/theme-tokens.test.ts` et `font-tokens.test.ts` (ils figent aujourd'hui le bleu et Inter).

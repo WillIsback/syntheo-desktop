@@ -1,3 +1,6 @@
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+
 import { Pencil } from "@syntheo/ui/components/icons";
 import { Button } from "@syntheo/ui/components/ui/button";
 
@@ -18,6 +21,9 @@ import {
 
 type EditSummaryOutput = {
   status?: string;
+  // Code stable de l'erreur, traduit pour l'utilisateur. `message` (en
+  // anglais, avec les ids candidats) est destiné au modèle seulement.
+  code?: string;
   message?: string;
   candidates?: Array<{
     enhancedNoteId: string;
@@ -29,6 +35,30 @@ type EditSummaryOutput = {
 
 function parseEditSummaryOutput(output: unknown): EditSummaryOutput | null {
   return parseMcpObjectOutput<EditSummaryOutput>(output);
+}
+
+function summaryErrorText(code: string | undefined): string {
+  switch (code) {
+    case "no_session":
+      return t`Open a note to edit its summary.`;
+    case "no_summary":
+      return t`This note has no summary to edit yet.`;
+    case "summary_not_in_session":
+    case "summary_ambiguous":
+      return t`Syntheo could not find this summary in the note. Ask again from the note.`;
+    case "save_failed":
+      return t`The proposed edit could not be saved.`;
+    case "apply_failed":
+      return t`The summary edit could not be applied.`;
+    default:
+      return t`The summary edit could not be prepared.`;
+  }
+}
+
+function memoErrorText(code: string | undefined): string {
+  return code === "no_session"
+    ? t`Open a note to edit its memo.`
+    : t`The memo edit could not be prepared.`;
 }
 
 function EditActions({
@@ -54,14 +84,18 @@ function EditActions({
         variant="outline"
         onClick={() => void declineProposalReview(toolCallId)}
       >
-        Decline
+        <Trans>Decline</Trans>
       </Button>
       <Button
         type="button"
         size="sm"
         onClick={() => void applyProposalReview(toolCallId)}
       >
-        Apply to {target}
+        {target === "memo" ? (
+          <Trans>Apply to memo</Trans>
+        ) : (
+          <Trans>Apply to summary</Trans>
+        )}
       </Button>
     </div>
   );
@@ -72,11 +106,11 @@ export const ToolEditSummary = defineTool({
   parseFn: parseEditSummaryOutput,
   isDone: (parsed) => parsed?.status === "applied",
   label: ({ running, failed, parsed }) => {
-    if (running) return "Edit summary — review tab opened";
-    if (failed) return "Summary edit failed";
-    if (parsed?.status === "applied") return "Summary updated";
-    if (parsed?.status === "declined") return "Summary edit declined";
-    return "Edit summary";
+    if (running) return t`Edit summary — waiting for your review`;
+    if (failed || parsed?.status === "error") return t`Summary edit failed`;
+    if (parsed?.status === "applied") return t`Summary updated`;
+    if (parsed?.status === "declined") return t`Summary edit declined`;
+    return t`Edit summary`;
   },
   renderBody: (input) =>
     input?.content ? (
@@ -84,22 +118,15 @@ export const ToolEditSummary = defineTool({
         <MarkdownPreview>{input.content}</MarkdownPreview>
       </ToolCardBody>
     ) : null,
-  renderFooter: ({ failed, errorText, parsed, toolCallId }) => (
+  renderFooter: ({ failed, parsed, toolCallId }) => (
     <>
-      <ToolCardFooters failed={failed} errorText={errorText} rawText={null}>
+      <ToolCardFooters
+        failed={failed}
+        errorText={failed ? summaryErrorText(undefined) : undefined}
+        rawText={null}
+      >
         {parsed?.status === "error" ? (
-          <div className="space-y-2">
-            <ToolCardFooterError text={parsed.message ?? "Unknown error"} />
-            {parsed.candidates && parsed.candidates.length > 0 ? (
-              <div className="border-border bg-muted text-muted-foreground space-y-1 rounded-md border p-2 text-[12px]">
-                {parsed.candidates.map((candidate) => (
-                  <div key={candidate.enhancedNoteId}>
-                    {candidate.title} ({candidate.enhancedNoteId})
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
+          <ToolCardFooterError text={summaryErrorText(parsed.code)} />
         ) : null}
       </ToolCardFooters>
       <EditActions toolCallId={toolCallId} target="summary" />
@@ -112,11 +139,11 @@ export const ToolEditMemo = defineTool({
   parseFn: parseEditSummaryOutput,
   isDone: (parsed) => parsed?.status === "applied",
   label: ({ running, failed, parsed }) => {
-    if (running) return "Edit memo — review tab opened";
-    if (failed) return "Memo edit failed";
-    if (parsed?.status === "applied") return "Memo updated";
-    if (parsed?.status === "declined") return "Memo edit declined";
-    return "Edit memo";
+    if (running) return t`Edit memo — waiting for your review`;
+    if (failed || parsed?.status === "error") return t`Memo edit failed`;
+    if (parsed?.status === "applied") return t`Memo updated`;
+    if (parsed?.status === "declined") return t`Memo edit declined`;
+    return t`Edit memo`;
   },
   renderBody: (input) =>
     input?.content ? (
@@ -124,11 +151,15 @@ export const ToolEditMemo = defineTool({
         <MarkdownPreview>{input.content}</MarkdownPreview>
       </ToolCardBody>
     ) : null,
-  renderFooter: ({ failed, errorText, parsed, toolCallId }) => (
+  renderFooter: ({ failed, parsed, toolCallId }) => (
     <>
-      <ToolCardFooters failed={failed} errorText={errorText} rawText={null}>
+      <ToolCardFooters
+        failed={failed}
+        errorText={failed ? memoErrorText(undefined) : undefined}
+        rawText={null}
+      >
         {parsed?.status === "error" ? (
-          <ToolCardFooterError text={parsed.message ?? "Unknown error"} />
+          <ToolCardFooterError text={memoErrorText(parsed.code)} />
         ) : null}
       </ToolCardFooters>
       <EditActions toolCallId={toolCallId} target="memo" />

@@ -133,4 +133,16 @@ describe("no hardcoded colors", () => {
     });
     expect(missing).toEqual([]);
   });
+
+  // L'encre verte est celle des notes de l'utilisateur (`user-ink`) : l'ancien
+  // jeton `ai-ink` (texte de Syntheo) ne doit pas revenir.
+  it("n'emploie plus l'ancien jeton ai-ink", () => {
+    const files = SCANNED.flatMap((dir) => productionFiles(join(ROOT, dir)));
+    const offenders = files.flatMap((path) =>
+      /\bai-ink\b|\baiInk\b/.test(readFileSync(path, "utf8"))
+        ? [relative(ROOT, path)]
+        : [],
+    );
+    expect(offenders).toEqual([]);
+  });
 });

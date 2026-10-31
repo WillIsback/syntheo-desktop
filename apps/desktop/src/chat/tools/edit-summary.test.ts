@@ -5,6 +5,13 @@ const mocks = vi.hoisted(() => ({
   persistChatSessionProposal: vi.fn(),
   applySessionProposal: vi.fn(),
   declineSessionProposal: vi.fn(),
+  revealSummaryReviewInNote: vi.fn(
+    (_sessionId: string, _noteId: string) => false,
+  ),
+}));
+
+vi.mock("~/session/proposal-review", () => ({
+  revealSummaryReviewInNote: mocks.revealSummaryReviewInNote,
 }));
 
 vi.mock("~/session/content-queries", () => ({
@@ -98,9 +105,10 @@ describe("edit summary chat tool", () => {
     expect(mocks.applySessionProposal).not.toHaveBeenCalled();
   });
 
-  it("returns canonical candidates when the requested summary is unrelated", async () => {
+  it("returns actionable candidates when the requested summary is unrelated and no summary is on screen", async () => {
     const editTool = buildEditSummaryTool({
-      getSessionId: () => "session-1",
+      // L'onglet affiché est une autre note : rien à quoi se rabattre.
+      getSessionId: () => "session-other",
       getEnhancedNoteId: () => undefined,
       openEditTab: vi.fn(),
     });
@@ -108,6 +116,7 @@ describe("edit summary chat tool", () => {
     await expect(
       (editTool as any).execute(
         {
+          sessionId: "session-1",
           enhancedNoteId: "summary-other",
           content: "Updated summary",
         },
@@ -115,7 +124,9 @@ describe("edit summary chat tool", () => {
       ),
     ).resolves.toEqual({
       status: "error",
-      message: "That summary does not belong to the target session.",
+      code: "summary_not_in_session",
+      message:
+        'Summary "summary-other" does not belong to session session-1. Retry with one of these enhancedNoteId values, or omit enhancedNoteId to edit the summary the user is viewing: "summary-1" (Summary).',
       candidates: [
         {
           enhancedNoteId: "summary-1",
@@ -125,5 +136,111 @@ describe("edit summary chat tool", () => {
       ],
     });
     expect(mocks.persistChatSessionProposal).not.toHaveBeenCalled();
+  });
+
+  describe("summary shown in the living document", () => {
+    beforeEach(() => {
+      mocks.loadSessionContentSnapshot.mockResolvedValue({
+        enhancedNotes: [
+          {
+            id: "summary-template",
+            title: "Point d'équipe",
+            markdown: "Template summary",
+            templateId: "template-1",
+            position: 0,
+          },
+          {
+            id: "summary-default",
+            title: "Summary",
+            markdown: "Default summary",
+            templateId: "",
+            position: 1,
+          },
+        ],
+      });
+    });
+
+    function buildTool(getEnhancedNoteId: () => string | undefined) {
+      return buildEditSummaryTool({
+        getSessionId: () => "session-1",
+        getEnhancedNoteId,
+        openEditTab: (requestId) => {
+          usePendingEditStore.getState().resolveEdit(requestId, true);
+        },
+      });
+    }
+
+    it("targets the summary on screen when the tab has no explicit view", async () => {
+      // Le document vivant montre le premier compte-rendu quand la vue de
+      // l'onglet est vide (ou raw / transcript, hérités de l'ancienne vue).
+      await (buildTool(() => undefined) as any).execute(
+        { content: "Shorter" },
+        { toolCallId: "request-1", messages: [] },
+      );
+
+      expect(mocks.persistChatSessionProposal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          targetId: "summary-template",
+          currentMarkdown: "Template summary",
+        }),
+      );
+    });
+
+    it("ignores a stale view id and targets the summary on screen", async () => {
+      await (buildTool(() => "summary:session-1") as any).execute(
+        { content: "Shorter" },
+        { toolCallId: "request-1", messages: [] },
+      );
+
+      expect(mocks.persistChatSessionProposal).toHaveBeenCalledWith(
+        expect.objectContaining({ targetId: "summary-template" }),
+      );
+    });
+
+    it("falls back to the summary on screen when the model passes a wrong id", async () => {
+      // Le modèle ne voit que « Session ID » dans son contexte : il le passe
+      // souvent comme enhancedNoteId.
+      await expect(
+        (buildTool(() => "summary-default") as any).execute(
+          { enhancedNoteId: "session-1", content: "Shorter" },
+          { toolCallId: "request-1", messages: [] },
+        ),
+      ).resolves.toEqual({ status: "applied" });
+
+      expect(mocks.persistChatSessionProposal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          targetId: "summary-default",
+          currentMarkdown: "Default summary",
+        }),
+      );
+    });
+
+    it("reviews the proposal in the note instead of opening a review tab", async () => {
+      mocks.revealSummaryReviewInNote.mockReturnValueOnce(true);
+      const openEditTab = vi.fn();
+      const editTool = buildEditSummaryTool({
+        getSessionId: () => "session-1",
+        getEnhancedNoteId: () => undefined,
+        openEditTab,
+      });
+
+      const pending = (editTool as any).execute(
+        { content: "Shorter" },
+        { toolCallId: "request-1", messages: [] },
+      );
+      await vi.waitFor(() => {
+        expect(usePendingEditStore.getState().edits.has("request-1")).toBe(
+          true,
+        );
+      });
+      usePendingEditStore.getState().resolveEdit("request-1", false);
+
+      await expect(pending).resolves.toEqual({ status: "declined" });
+      expect(mocks.revealSummaryReviewInNote).toHaveBeenCalledWith(
+        "session-1",
+        "summary-template",
+      );
+      expect(openEditTab).not.toHaveBeenCalled();
+    });
   });
 });

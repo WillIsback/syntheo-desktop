@@ -51,7 +51,7 @@ export function TemplateGeneratorBar({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="border-border bg-card focus-within:ring-ring/50 flex items-center gap-2 rounded-xl border py-1.5 pr-1.5 pl-3.5 focus-within:ring-2">
-        <Sparkle aria-hidden="true" className="text-ai-ink size-4 shrink-0" />
+        <Sparkle aria-hidden="true" className="text-primary size-4 shrink-0" />
         <input
           type="text"
           value={input}

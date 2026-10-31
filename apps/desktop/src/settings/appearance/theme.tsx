@@ -148,7 +148,7 @@ function PreviewCanvas({ dark }: { dark: boolean }) {
           />
           <span
             className="h-1 w-2/3 rounded-full"
-            style={{ background: c.aiInk }}
+            style={{ background: c.userInk }}
           />
         </div>
       </div>

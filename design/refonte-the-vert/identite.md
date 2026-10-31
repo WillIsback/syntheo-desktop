@@ -9,7 +9,7 @@ Valeurs exactes dans `tokens.css` (HSL arrondi ; hex en commentaire). Les noms r
 | Jeton | Clair | Sombre | Usage |
 |---|---|---|---|
 | `background` | `#fbfaf5` 生成り kinari | `#1b1e1a` 墨 sumi | Fond de l'app et de la note |
-| `foreground` | `#262a24` | `#ece9df` | Texte, encre des notes de l'utilisateur |
+| `foreground` | `#262a24` | `#ece9df` | Texte, encre du compte-rendu complété par Syntheo |
 | `card` / `popover` | `#fffefa` | `#232821` | Surfaces surélevées, menus, palette Ctrl K |
 | `primary` | `#316745` 千歳緑 chitose-midori | `#7dbf95` | Action principale, capsule, sélection |
 | `primary-hover` | `#25553a` | `#97ceaa` | Survol de primary (nouveau) |
@@ -22,7 +22,7 @@ Valeurs exactes dans `tokens.css` (HSL arrondi ; hex en commentaire). Les noms r
 | `border` / `input` | `#e4e3d8` / `#d8d7cb` | `#343a32` / `#3d443a` | Filets, bordures de champs |
 | `recording` | `#c53d43` 紅 beni | `#e5675f` | Écoute en cours, et rien d'autre (nouveau) |
 | `seal` | = recording | = recording | Sceau 記 (nouveau) |
-| `ai-ink` | = primary | = primary | Texte ajouté par Syntheo (nouveau) |
+| `user-ink` | = primary | = primary | Notes personnelles de l'utilisateur (nouveau, ≥ 4.5:1 sur background et card) ; le texte de Syntheo reste en `foreground` |
 | `destructive`, `alert*` | rouges | rouges | Suppression, bannières d'erreur |
 
 Un seul bouton `primary` par écran : le bouton Démarrer sur l'accueil, la capsule ensuite.
@@ -54,7 +54,7 @@ Un seul bouton `primary` par écran : le bouton Démarrer sur l'accueil, la caps
 - **Capsule** : fond `primary`, texte `primary-foreground`, pilule, `shadow-capsule`, centrée en bas. Étapes 備 聴 結 avant chaque libellé, étape courante en gras avec `aria-current="step"`. Une seule par fenêtre.
 - **StartButton** : pleine largeur de l'accueil, `primary`, rayon 16px, icône micro, titre 19px, aide, jetons des 3 étapes, `Ctrl N`.
 - **NoteIndex** (« Reprendre ») : tableau sans carte, lignes séparées par `border`, survol `accent`, date et durée en `muted-foreground`.
-- **Provenance** : légende « Vos notes » (`foreground`) / « Complété par Syntheo » (`ai-ink`). Le texte généré n'est jamais en italique ni en gris.
+- **Provenance** : légende « Vos notes » (`user-ink`, vert) / « Complété par Syntheo » (`foreground`). Le texte généré n'est jamais en italique ni en gris ; les cases à cocher des actions prennent l'encre du texte qui les porte.
 - **Seal** : carré 46px, bordure et kanji 記 en `seal`, rotation −5°, opacité 0.85, en bas à droite du compte-rendu terminé.
 - **Carte serveur** (paramètres) : adresse en mono, bouton « Tester la connexion », pastille d'état (connecté · latence / injoignable / test en cours), protocole détecté, modèles en boutons radio, « Avancé » replié.
 
