@@ -98,6 +98,95 @@ describe("probeServer", () => {
     expect(result).toMatchObject({ ok: true, protocol: "nvidia", models: [] });
   });
 
+  test("NIM sans proxy (tout ouvert) : connecté, sans liste de modèles", async () => {
+    const fetcher = vi.fn(
+      routes({
+        "http://192.168.1.20:9000/v1/health/ready": () =>
+          Response.json({ status: "ready" }),
+      }),
+    );
+
+    const result = await probeServer(
+      { type: "stt", baseUrl: "http://192.168.1.20:9000", apiKey: "" },
+      { fetcher, now: clock() },
+    );
+
+    expect(result).toMatchObject({ ok: true, protocol: "nvidia", models: [] });
+    // La sonde d'authentification interroge bien une route protégée.
+    expect(fetcher.mock.calls.map(([url]) => url)).toContain(
+      "http://192.168.1.20:9000/v1/models",
+    );
+  });
+
+  // Proxy authentifié (Caddy) devant un NIM : la sonde de santé reste
+  // ouverte, les routes de l'API (`/v1/*`) exigent la bonne clé ; hors de
+  // l'API, le NIM répond 404. C'est le cas qui affichait « connecté » à tort :
+  // `/models` à la racine ne disait rien de la clé.
+  const nimBehindProxy = (expectedKey: string) =>
+    vi.fn(async (url: string, init?: RequestInit) => {
+      const { pathname } = new URL(url);
+      if (pathname === "/v1/health/ready") {
+        return Response.json({ status: "ready" });
+      }
+      if (!pathname.startsWith("/v1/")) {
+        return new Response(null, { status: 404 });
+      }
+      const auth = new Headers(init?.headers).get("Authorization");
+      if (auth !== `Bearer ${expectedKey}`) {
+        return new Response(null, { status: 401 });
+      }
+      return new Response(null, { status: 404 });
+    });
+
+  test("NIM derrière un proxy avec la bonne clé : connecté", async () => {
+    const result = await probeServer(
+      {
+        type: "stt",
+        baseUrl: "https://asr.tail6cba9f.ts.net",
+        apiKey: "bonne-cle",
+      },
+      { fetcher: nimBehindProxy("bonne-cle"), now: clock() },
+    );
+
+    expect(result).toMatchObject({ ok: true, protocol: "nvidia", models: [] });
+  });
+
+  test.each([
+    ["fausse", "mauvaise-cle"],
+    ["absente", ""],
+  ])(
+    "NIM derrière un proxy avec une clé %s : clé refusée",
+    async (_label, apiKey) => {
+      const result = await probeServer(
+        { type: "stt", baseUrl: "https://asr.tail6cba9f.ts.net", apiKey },
+        { fetcher: nimBehindProxy("bonne-cle"), now: clock() },
+      );
+
+      expect(result).toEqual({
+        ok: false,
+        reason: "unauthorized",
+        status: 401,
+      });
+    },
+  );
+
+  test("NIM derrière un proxy qui répond 403 : clé refusée", async () => {
+    const fetcher = vi.fn(async (url: string) =>
+      url.endsWith("/v1/health/ready")
+        ? Response.json({ status: "ready" })
+        : new Response(null, {
+            status: url.endsWith("/v1/models") ? 403 : 404,
+          }),
+    );
+
+    const result = await probeServer(
+      { type: "stt", baseUrl: "http://192.168.1.20:9000", apiKey: "x" },
+      { fetcher, now: clock() },
+    );
+
+    expect(result).toEqual({ ok: false, reason: "unauthorized", status: 403 });
+  });
+
   test("signale un serveur injoignable", async () => {
     const fetcher = vi.fn(async () => {
       throw new TypeError("connection refused");
