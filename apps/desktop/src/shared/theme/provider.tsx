@@ -15,6 +15,12 @@ import {
   normalizeAppIconPreference,
   resolveDockIconName,
 } from "./icon";
+import {
+  applyDocumentPalette,
+  normalizePalette,
+  type PaletteId,
+  writeStoredPalette,
+} from "./palette";
 import type { ThemePreference } from "./resolve";
 import { useSettingsThemeReady } from "./use-settings-theme-ready";
 
@@ -25,20 +31,35 @@ let activeThemePreference: ThemePreference = "system";
 export function AppThemeProvider({ children }: { children: ReactNode }) {
   const theme = useConfigValue("theme") as ThemePreference;
   const appIcon = normalizeAppIconPreference(useConfigValue("app_icon"));
+  const palette = normalizePalette(useConfigValue("palette"));
   const settingsReady = useSettingsThemeReady();
 
   return (
     <>
       {settingsReady ? (
-        <ThemeSync
-          key={`${theme}:${appIcon}`}
-          theme={theme}
-          appIcon={appIcon}
-        />
+        <>
+          <ThemeSync
+            key={`${theme}:${appIcon}`}
+            theme={theme}
+            appIcon={appIcon}
+          />
+          <PaletteSync key={palette} palette={palette} />
+        </>
       ) : null}
       {children}
     </>
   );
+}
+
+// Chaque fenêtre (principale, flottantes) applique la palette des paramètres
+// synchronisés ; theme-boot.js a déjà posé la valeur mémorisée avant React.
+function PaletteSync({ palette }: { palette: PaletteId }) {
+  useMountEffect(() => {
+    applyDocumentPalette(palette);
+    writeStoredPalette(palette);
+  });
+
+  return null;
 }
 
 function ThemeSync({

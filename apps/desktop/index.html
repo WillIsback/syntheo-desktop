@@ -102,6 +102,32 @@
       html.dark .boot-splash-detail {
         color: hsl(86 8% 65%);
       }
+      /* Palettes (data-palette posé par theme-boot.js) : background et
+         muted-foreground de tokens.css, en clair puis en sombre. */
+      html[data-palette="fuji"] #boot-splash {
+        background: hsl(40 33% 98%);
+      }
+      html[data-palette="fuji"] .boot-splash-detail {
+        color: hsl(268 8% 39%);
+      }
+      html[data-palette="fuji"].dark #boot-splash {
+        background: hsl(260 10% 11%);
+      }
+      html[data-palette="fuji"].dark .boot-splash-detail {
+        color: hsl(266 9% 68%);
+      }
+      html[data-palette="enji"] #boot-splash {
+        background: hsl(60 100% 99%);
+      }
+      html[data-palette="enji"] .boot-splash-detail {
+        color: hsl(17 4% 39%);
+      }
+      html[data-palette="enji"].dark #boot-splash {
+        background: hsl(0 7% 11%);
+      }
+      html[data-palette="enji"].dark .boot-splash-detail {
+        color: hsl(10 7% 67%);
+      }
       @keyframes boot-splash-shimmer {
         0% {
           -webkit-mask-position: 120% 0%;

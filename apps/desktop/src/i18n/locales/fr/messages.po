@@ -687,6 +687,10 @@ msgstr "Choisissez l'apparence de Syntheo sur cet appareil."
 msgid "Choose template icon"
 msgstr "Choisir l'icône du modèle"
 
+#: src/settings/appearance/palette.tsx
+msgid "Choose the colors of Syntheo. Each palette follows the light or dark theme."
+msgstr "Choisissez les couleurs de Syntheo. Chaque palette suit le thème clair ou sombre."
+
 #: src/settings/general/audio-settings.tsx
 msgid "Choose the microphone that captures your voice."
 msgstr "Choisissez le microphone qui capture votre voix."
@@ -764,6 +768,10 @@ msgstr "Synchronisation cloud terminée"
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Collect action items"
 msgstr "Collecter les points d'action"
+
+#: src/settings/appearance/palette.tsx
+msgid "Color palette"
+msgstr "Palette de couleurs"
 
 #: src/settings/appearance/theme.tsx
 msgid "Color theme"
@@ -1266,6 +1274,10 @@ msgstr "Modifier le résumé"
 msgid "Edit summary — waiting for your review"
 msgstr "Modifier le résumé — en attente de votre validation"
 
+#: src/settings/appearance/palette.tsx
+msgid "Edo purple and pale wisteria. Elegant, a little more singular."
+msgstr "Violet d'Edo et glycine pâle. Élégant, un peu plus singulier."
+
 #: src/contacts/details.tsx
 #: src/settings/general/account-profile.tsx
 msgid "Email"
@@ -1553,6 +1565,10 @@ msgstr "Aller aux récents"
 msgid "Got it"
 msgstr "Compris"
 
+#: src/settings/appearance/palette.tsx
+msgid "Green tea"
+msgstr "Thé vert"
+
 #: src/settings/developers/index.tsx
 msgid "Guide"
 msgstr "Guide"
@@ -1752,6 +1768,14 @@ msgstr "Conserver cette version"
 #: src/settings/ai/shared/server-card.tsx
 msgid "Key refused"
 msgstr "Clé refusée"
+
+#: src/settings/appearance/palette.tsx
+msgid "Lacquer and ink"
+msgstr "Laque et encre"
+
+#: src/settings/appearance/palette.tsx
+msgid "Lacquer red and cherry blossom pink. The most contrasted."
+msgstr "Rouge laque et rose cerisier. Le plus contrasté."
 
 #: src/settings/general/index.tsx
 msgid "Language & Region"
@@ -2579,6 +2603,10 @@ msgstr "Autres"
 msgid "Page not found"
 msgstr "Page introuvable"
 
+#: src/settings/appearance/palette.tsx
+msgid "Palette"
+msgstr "Palette"
+
 #: src/session/components/living-document/fiche.tsx
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -2630,6 +2658,10 @@ msgstr "Téléphone"
 #: src/contacts/contact-page-header.tsx
 msgid "Pin"
 msgstr "Épingler"
+
+#: src/settings/appearance/palette.tsx
+msgid "Pine green on raw silk, with ink. Calm and plant-like."
+msgstr "Vert des pins sur soie écrue, à l'encre. Calme et végétal."
 
 #: src/settings/general/notification.tsx
 msgid "Play a sound when transcription, summaries, or cloud sync finish."
@@ -4271,6 +4303,10 @@ msgstr "Lorsque l'option est désactivée, les résumés suivent la langue déte
 #: src/settings/automations/workflow-builder.tsx
 msgid "When this happens"
 msgstr "Lorsque cela se produit"
+
+#: src/settings/appearance/palette.tsx
+msgid "Wisteria"
+msgstr "Glycine"
 
 #: src/settings/dictation.tsx
 msgid "Words appear in a small bubble while you speak. Text is inserted when you finish."

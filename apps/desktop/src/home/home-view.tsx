@@ -7,6 +7,16 @@ import { NoteIndex } from "./note-index";
 import type { RecentNote } from "./queries";
 import { StartButton } from "./start-button";
 
+import { type PaletteId, useDocumentPalette } from "~/shared/theme/palette";
+
+// Filigrane de l'accueil selon la palette (maquette, objet PAL) : 茶 Thé vert,
+// 藤 Glycine, 紅 Laque et encre.
+const WATERMARK: Record<PaletteId, string> = {
+  cha: "茶",
+  fuji: "藤",
+  enji: "紅",
+};
+
 export type HomeViewProps = {
   firstName: string;
   nextMeeting: NextMeeting | null;
@@ -30,6 +40,8 @@ export function HomeView({
   onOpenNote,
   onSearch,
 }: HomeViewProps) {
+  const palette = useDocumentPalette();
+
   return (
     <div
       data-tauri-drag-region
@@ -41,7 +53,7 @@ export function HomeView({
         data-home-watermark
         className="font-kanji text-primary pointer-events-none absolute top-16 right-12 text-[300px] leading-none font-bold opacity-[0.06] select-none"
       >
-        茶
+        {WATERMARK[palette]}
       </span>
       <div className="relative flex min-h-0 flex-1 justify-center overflow-y-auto px-6 pt-6 pb-24">
         <div className="mt-10 flex w-[640px] max-w-full flex-col gap-[26px]">
