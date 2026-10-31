@@ -16,19 +16,19 @@ Syntheo Desktop est un client local, sans serveur éditeur. La surface à évalu
 
 ## Clés API
 
-Les clés des serveurs d'inférence sont facultatives. Quand vous en saisissez une, Syntheo la range dans le trousseau du système : Secret Service sous Linux (il faut un trousseau déverrouillé, par exemple GNOME Keyring ou KWallet), Gestionnaire d'informations d'identification sous Windows. Elle n'est jamais écrite en clair dans la base locale ni compilée dans l'application. « Réinitialiser » sur le fournisseur la retire du trousseau.
+Les clés des serveurs d'inférence sont facultatives. Quand vous en saisissez une, Syntheo la range dans le trousseau du système : Secret Service sous Linux (il faut un trousseau déverrouillé, par exemple GNOME Keyring ou KWallet), Gestionnaire d'informations d'identification sous Windows. Elle n'est jamais écrite en clair dans la base locale ni compilée dans l'application. « Réinitialiser ce serveur… », dans la section « Avancé » de la carte serveur, la retire du trousseau.
 
 ## Transport
 
-Syntheo exige HTTPS vers un serveur d'inférence, sauf vers un hôte privé : `localhost`, `[::1]`, noms en `.local`, plages `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` et `100.64.0.0/10`. Une URL contenant des identifiants ou des paramètres de requête est refusée.
+Syntheo exige HTTPS vers un serveur d'inférence, sauf vers un hôte privé : `localhost`, `[::1]`, noms en `.local`, noms Tailscale en `.ts.net`, plages `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` et `100.64.0.0/10`. Une URL contenant des identifiants ou des paramètres de requête est refusée.
 
 HTTP en clair sur un réseau local reste lisible par quiconque y a accès. Dès que le serveur n'est pas sur la machine ou sur un réseau de confiance, placez-le derrière un reverse proxy TLS ou un VPN.
 
 ## Protéger le poste
 
-Les notes et transcripts sont stockés en clair dans la base locale. Activez le chiffrement du disque et le verrouillage de session.
+Les notes et transcriptions sont stockées en clair dans la base locale. Activez le chiffrement du disque et le verrouillage de session.
 
-Sous Windows, Paramètres → **Confidentialité** → « Verrouiller l'application » exige Windows Hello (visage, code PIN ou mot de passe) à l'ouverture de Syntheo. Sous Linux, cette option n'est pas disponible : la page affiche « L'authentification de l'appareil n'est pas disponible sur cet ordinateur. ».
+Sous Windows, **Paramètres → Avancé → Confidentialité** → « Verrouiller l'application » exige Windows Hello (visage, code PIN ou mot de passe) à l'ouverture de Syntheo. Sous Linux, cette option n'est pas disponible : la page affiche « L'authentification de l'appareil n'est pas disponible sur cet ordinateur. ».
 
 ## Déploiement géré
 

@@ -13,10 +13,10 @@ Les lectures sont idempotentes. Les outils de proposition créent ou refusent de
 | --- | --- | --- |
 | `list_meetings` | lecture | Liste paginée des réunions. |
 | `list_folders` | lecture | Liste paginée des dossiers. |
-| `get_meeting` | lecture | Détail d'une réunion, sans transcript. |
-| `get_meeting_transcript` | lecture | Page bornée du transcript. |
+| `get_meeting` | lecture | Détail d'une réunion, sans transcription. |
+| `get_meeting_transcript` | lecture | Page bornée de la transcription. |
 | `get_recurring_meeting_history` | lecture | Réunions de la même série récurrente. |
-| `export_meeting` | lecture | Enregistrement complet, transcripts compris. |
+| `export_meeting` | lecture | Enregistrement complet, transcriptions comprises. |
 | `propose_summary_edit` | écriture | Propose le remplacement d'un résumé. |
 | `propose_memo_edit` | écriture | Propose le remplacement de la note. |
 | `list_proposals` | lecture | Liste paginée des propositions. |
@@ -49,7 +49,7 @@ Renvoie `folders`, triés par chemin, et `pagination`. Chaque dossier contient `
 
 ### `get_meeting`
 
-Paramètre obligatoire : `meeting_id` (string). Renvoie les métadonnées de la réunion, dont `folder_path`, la note canonique, les résumés, les participants et les actions. Le transcript est volontairement à part. Pour une réunion importée, le résultat contient aussi `processing_status` et `recording_import` (sinon `null`).
+Paramètre obligatoire : `meeting_id` (string). Renvoie les métadonnées de la réunion, dont `folder_path`, la note canonique, les résumés, les participants et les actions. La transcription est volontairement à part. Pour une réunion importée, le résultat contient aussi `processing_status` et `recording_import` (sinon `null`).
 
 ### `get_meeting_transcript`
 
@@ -67,9 +67,9 @@ Paramètre obligatoire : `meeting_id` (string). Paramètres facultatifs : `limit
 
 ### `export_meeting`
 
-Paramètre obligatoire : `meeting_id` (string). Renvoie l'enregistrement complet et structuré de la réunion : métadonnées, note, résumés, participants, actions et transcripts. Préférez les outils de détail ou de transcript, sauf si la tâche exige vraiment un export complet.
+Paramètre obligatoire : `meeting_id` (string). Renvoie l'enregistrement complet et structuré de la réunion : métadonnées, note, résumés, participants, actions et transcriptions. Préférez les outils de détail ou de transcription, sauf si la tâche exige vraiment un export complet.
 
-Quand ils existent, `speakers` donne les noms référencés par les attributions de locuteurs du transcript, et `speaker_context` décrit le contexte micro et appel. Ces champs sont facultatifs.
+Quand ils existent, `speakers` donne les noms référencés par les attributions de locuteurs de la transcription, et `speaker_context` décrit le contexte micro et appel. Ces champs sont facultatifs.
 
 ### `propose_summary_edit`
 
@@ -118,7 +118,7 @@ Crée une réunion à partir d'un fichier audio présent sur l'ordinateur du ser
 | `folder_path` | string | — | Dossier existant. |
 | `request_key` | string | — | De 1 à 200 octets. Réutilisez la même clé pour réessayer le même import : l'outil renvoie la tâche d'origine, même après un échec. |
 
-Renvoie `meeting_id`, `job_id`, `processing_status`, `summary_status` et `error` (éventuellement `null`). Le fichier n'est pas copié : ne le déplacez pas avant la fin de la tâche. Interrogez `get_recording_import` jusqu'à `done` ou `failed`, et conservez les identifiants renvoyés si le client se déconnecte. Une tâche interrompue garde sa réunion et le transcript déjà produit ; elle n'est pas relancée automatiquement.
+Renvoie `meeting_id`, `job_id`, `processing_status`, `summary_status` et `error` (éventuellement `null`). Le fichier n'est pas copié : ne le déplacez pas avant la fin de la tâche. Interrogez `get_recording_import` jusqu'à `done` ou `failed`, et conservez les identifiants renvoyés si le client se déconnecte. Une tâche interrompue garde sa réunion et la transcription déjà produit ; elle n'est pas relancée automatiquement.
 
 ### `get_recording_import`
 
@@ -128,8 +128,8 @@ Paramètre obligatoire : `job_id` (string). Lit l'état durable sans lancer de t
 
 | URI | Type MIME | Contenu |
 | --- | --- | --- |
-| `syntheo://meetings/{meeting_id}` | `text/markdown` | Détail de la réunion, sans le texte du transcript. |
-| `syntheo://meetings/{meeting_id}/transcript{?offset,limit}` | `text/plain` | Une page bornée du transcript. `offset` vaut 0 par défaut et `limit` 200 (ramené à 500 mots au plus). Texte brut uniquement ; utilisez `get_meeting_transcript` pour obtenir `words`. |
+| `syntheo://meetings/{meeting_id}` | `text/markdown` | Détail de la réunion, sans le texte de la transcription. |
+| `syntheo://meetings/{meeting_id}/transcript{?offset,limit}` | `text/plain` | Une page bornée de la transcription. `offset` vaut 0 par défaut et `limit` 200 (ramené à 500 mots au plus). Texte brut uniquement ; utilisez `get_meeting_transcript` pour obtenir `words`. |
 | `syntheo://series/{series_id}` | `text/markdown` | Jusqu'à 100 réunions d'une série récurrente. |
 
 La liste des ressources renvoie les réunions récentes par pages de 20. Son curseur est un décalage numérique.

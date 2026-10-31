@@ -3,7 +3,7 @@ title: "Syntheo"
 description: "Enregistrez une réunion, prenez des notes et repartez avec un compte rendu clair, sans que vos données quittent votre infrastructure."
 ---
 
-Syntheo est une application de bureau pour Linux et Windows. Elle capte votre microphone et l'audio de votre ordinateur sans rejoindre l'appel comme un robot. Chaque réunion devient une note modifiable, avec vos mémos, le transcript et un résumé.
+Syntheo est une application de bureau pour Linux et Windows. Elle capte votre microphone et l'audio de votre ordinateur sans rejoindre l'appel comme un robot. Chaque réunion devient une note vivante : vous la préparez, Syntheo écoute, puis il complète vos notes en compte rendu.
 
 La transcription et les résumés passent uniquement par les serveurs que vous configurez (vLLM, Ollama, speaches, NVIDIA NIM…). Syntheo n'a ni compte, ni abonnement, ni télémétrie, et ne conserve jamais l'audio.
 
@@ -21,7 +21,7 @@ La transcription et les résumés passent uniquement par les serveurs que vous c
     Démarrez, suivez et terminez une capture.
   </Card>
   <Card title="Relire et exporter" icon="file-lines" href="/notes">
-    Travaillez vos mémos, le résumé et le transcript, puis exportez-les.
+    Relisez le compte rendu, vos notes et la transcription, puis exportez-les.
   </Card>
   <Card title="Vos données" icon="hard-drive" href="/data-and-privacy">
     Ce qui reste sur votre ordinateur et ce qui part vers vos serveurs.
@@ -47,15 +47,15 @@ La transcription et les résumés passent uniquement par les serveurs que vous c
     Détection de réunion, arrêt automatique et barre flottante.
   </Card>
   <Card title="Quelque chose ne fonctionne pas" icon="life-ring" href="/troubleshooting">
-    Audio absent, transcript bloqué, résumé qui n'apparaît pas.
+    Audio absent, transcription bloquée, compte rendu qui n'apparaît pas.
   </Card>
 </CardGroup>
 
 ## En bref
 
-1. Configurez votre serveur de transcription et votre LLM dans **Paramètres** (voir [Configurer la transcription et l'IA](/ai-setup)).
-2. Créez une « Nouvelle note », puis cliquez sur « Enregistrer » en haut à droite.
-3. Prenez des notes rapides dans « Mémos » pendant que Syntheo écoute.
-4. Cliquez sur « Arrêter » : Syntheo génère le résumé à partir du transcript et de vos mémos.
+1. Configurez votre serveur de transcription et votre serveur de synthèse dans **Paramètres → Mes serveurs** (voir [Configurer la transcription et l'IA](/ai-setup)).
+2. Sur l'accueil, cliquez sur « Démarrer une réunion », puis sur « Commencer l'écoute ».
+3. Prenez des notes rapides pendant que Syntheo écoute : la transcription défile dans la marge.
+4. Cliquez sur « Terminer » : Syntheo rédige le compte rendu à partir de la transcription et de vos notes.
 
 Vos notes sont stockées localement, dans une base SQLite sur votre ordinateur. L'audio vit en mémoire le temps d'être envoyé à votre serveur de transcription, puis disparaît. Voir [Données et confidentialité](/data-and-privacy).
