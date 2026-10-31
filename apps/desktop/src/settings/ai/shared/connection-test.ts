@@ -108,6 +108,22 @@ export async function probeServer(
         return { ok: false, reason: "unauthorized", status: health.status };
       }
       if (health.ok) {
+        // La sonde de santé reste souvent ouverte derrière un proxy
+        // authentifié (Caddy…) : elle ne dit rien de la clé. On interroge
+        // donc aussi une route protégée de l'API, en lecture seule. On ne
+        // reprend pas la création de session (`POST
+        // /v1/realtime/transcription_sessions`) qu'utilise l'adaptateur :
+        // elle émettrait un jeton éphémère à chaque test. Seuls 401 et 403
+        // comptent : un NIM sans proxy répond 404 ou 200, et c'est normal.
+        const authUrl = `${url.origin}/v1/models`;
+        const auth =
+          authUrl === `${base}/models` ? models : await request(authUrl);
+        if (auth.kind === "network") {
+          return { ok: false, reason: "unreachable" };
+        }
+        if (auth.status === 401 || auth.status === 403) {
+          return { ok: false, reason: "unauthorized", status: auth.status };
+        }
         return {
           ok: true,
           latencyMs: health.latencyMs,

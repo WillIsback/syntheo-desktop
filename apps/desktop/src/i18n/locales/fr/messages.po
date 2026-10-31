@@ -305,6 +305,7 @@ msgstr "Tous les événements"
 msgid "All Notes"
 msgstr "Toutes les notes"
 
+#: src/session/components/living-document/meeting-type-picker.tsx
 #: src/templates/template-sidebar.tsx
 msgid "All templates"
 msgstr "Tous les modèles"
@@ -435,7 +436,7 @@ msgstr "Ajouter automatiquement les réunions futures ?"
 msgid "Automate what happens before, during, or after meetings based on the conditions you choose."
 msgstr "Automatisez ce qui se passe avant, pendant ou après les réunions en fonction des conditions que vous choisissez."
 
-#: src/session/components/living-document/fiche.tsx
+#: src/session/components/living-document/meeting-type-picker.tsx
 #: src/templates/auto-form.tsx
 #: src/templates/template-sidebar.tsx
 msgid "Automatic"
@@ -1017,6 +1018,10 @@ msgstr "Création du brief..."
 msgid "Current default"
 msgstr "Valeur par défaut actuelle"
 
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "Current type"
+msgstr "Type actuel"
+
 #: src/templates/template-sidebar.tsx
 msgid "customized"
 msgstr "personnalisé"
@@ -1047,6 +1052,7 @@ msgstr "Refuser"
 msgid "default"
 msgstr "par défaut"
 
+#: src/session/components/living-document/meeting-type-picker.tsx
 #: src/settings/appearance/app-icon.tsx
 #: src/templates/template-sidebar.tsx
 msgid "Default"
@@ -1245,7 +1251,6 @@ msgid "Edit summary — waiting for your review"
 msgstr "Modifier le résumé — en attente de votre validation"
 
 #: src/contacts/details.tsx
-#: src/settings/general/account-profile.tsx
 msgid "Email"
 msgstr "E-mail"
 
@@ -1788,7 +1793,6 @@ msgid "Light"
 msgstr "Clair"
 
 #: src/contacts/details.tsx
-#: src/settings/general/account-profile.tsx
 msgid "LinkedIn"
 msgstr "LinkedIn"
 
@@ -1885,6 +1889,10 @@ msgstr "Allongez le résumé."
 msgid "Make the summary shorter."
 msgstr "Raccourcissez le résumé."
 
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "Manage templates"
+msgstr "Gérer les modèles"
+
 #: src/settings/automations/workflow-builder.tsx
 msgid "Markdown export"
 msgstr "Export Markdown"
@@ -1949,9 +1957,17 @@ msgstr "Historique de réunion importé"
 msgid "Meeting info"
 msgstr "Informations sur la réunion"
 
-#: src/session/components/living-document/fiche.tsx
+#: src/session/components/living-document/meeting-type-picker.tsx
 msgid "Meeting type"
 msgstr "Type de réunion"
+
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "Meeting type: {selectedLabel}"
+msgstr "Type de réunion : {selectedLabel}"
+
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "Meeting types"
+msgstr "Types de réunion"
 
 #: src/settings/general/index.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -2093,6 +2109,7 @@ msgstr "Multilingue · locuteurs"
 msgid "My automations"
 msgstr "Mes automatisations"
 
+#: src/session/components/living-document/meeting-type-picker.tsx
 #: src/templates/template-sidebar.tsx
 msgid "My favorites"
 msgstr "Mes favoris"
@@ -2269,6 +2286,10 @@ msgstr "Aucune langue correspondante trouvée"
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "No matching people"
 msgstr "Aucune personne correspondante"
+
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "No meeting type found"
+msgstr "Aucun type de réunion trouvé"
 
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "No people"
@@ -2569,7 +2590,6 @@ msgid "Permissions granted"
 msgstr "Autorisations accordées"
 
 #: src/contacts/details.tsx
-#: src/settings/general/account-profile.tsx
 msgid "Phone"
 msgstr "Téléphone"
 
@@ -2970,6 +2990,10 @@ msgstr "Faire défiler jusqu'en bas"
 #: src/session/components/note-input/transcript/renderer/index.tsx
 msgid "Scroll to top"
 msgstr "Faire défiler jusqu'en haut"
+
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "Search a meeting type"
+msgstr "Rechercher un type de réunion"
 
 #: src/home/home-capsule.tsx
 msgid "Search a note"
@@ -3983,7 +4007,7 @@ msgid "Unreachable"
 msgstr "Injoignable"
 
 #: src/home/note-index.tsx
-#: src/session/components/living-document/fiche.tsx
+#: src/session/components/living-document/meeting-type-picker.tsx
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/session/components/title-input.tsx
