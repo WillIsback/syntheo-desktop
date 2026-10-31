@@ -499,6 +499,7 @@ function resolveCorrectionEnhancedNoteId(
   params: CorrectionParams,
   deps: Pick<ToolDependencies, "getSessionId" | "getEnhancedNoteId">,
   sessionId: string,
+  snapshot: SessionContentSnapshot,
 ): string | undefined {
   if (params.enhancedNoteId !== undefined) {
     return params.enhancedNoteId;
@@ -506,7 +507,13 @@ function resolveCorrectionEnhancedNoteId(
   if (params.sessionId) {
     return undefined;
   }
-  return resolveActiveEnhancedNoteId(deps, sessionId);
+  // La vue de l'onglet peut désigner un compte-rendu disparu (id périmé) :
+  // on ne la suit que si elle existe encore, sinon on corrige tous les
+  // comptes-rendus de la note.
+  const viewId = resolveActiveEnhancedNoteId(deps, sessionId);
+  return viewId && snapshot.enhancedNotes.some((note) => note.id === viewId)
+    ? viewId
+    : undefined;
 }
 
 function resolveCorrectionScope({
@@ -527,11 +534,13 @@ function resolveCorrectionScope({
     return { editSummary, editTranscript };
   }
   if (target === "summary") {
+    const candidates = snapshot.enhancedNotes
+      .map((note) => `"${note.id}"`)
+      .join(", ");
     return {
       editSummary: false,
       editTranscript,
-      summaryError:
-        "The requested summary does not belong to the target session.",
+      summaryError: `Summary "${enhancedNoteId}" does not belong to session ${snapshot.sessionId}. Retry with one of these enhancedNoteId values, or omit enhancedNoteId: ${candidates}.`,
     };
   }
   return { editSummary: false, editTranscript };
@@ -670,7 +679,7 @@ export const buildApplySessionCorrectionTool = (
         .string()
         .optional()
         .describe(
-          "Optional summary ID to restrict summary edits. Defaults to summaries in the target session.",
+          "Omit this: the correction applies to the summary the user is viewing, or to every summary of the note. Only pass a summary ID returned by a previous error; never pass a Session ID here.",
         ),
       oldText: z
         .string()
@@ -706,11 +715,6 @@ export const buildApplySessionCorrectionTool = (
       }
 
       const target = params.target ?? "summary_and_transcript";
-      const enhancedNoteId = resolveCorrectionEnhancedNoteId(
-        params,
-        deps,
-        sessionId,
-      );
       const snapshot = await loadSessionContentSnapshot(sessionId);
       if (!snapshot) {
         return {
@@ -719,6 +723,12 @@ export const buildApplySessionCorrectionTool = (
           sessionId,
         };
       }
+      const enhancedNoteId = resolveCorrectionEnhancedNoteId(
+        params,
+        deps,
+        sessionId,
+        snapshot,
+      );
 
       const scope = resolveCorrectionScope({
         target,
@@ -728,6 +738,7 @@ export const buildApplySessionCorrectionTool = (
       if (scope.summaryError) {
         return {
           status: "error",
+          code: "summary_not_in_session",
           message: scope.summaryError,
           sessionId,
         };

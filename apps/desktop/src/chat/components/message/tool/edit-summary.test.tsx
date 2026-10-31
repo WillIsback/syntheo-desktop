@@ -106,6 +106,58 @@ describe("ToolEditSummary", () => {
     ).toBeNull();
   });
 
+  it("explains a tool error in the app language, without the model's message or ids", () => {
+    render(
+      <ToolEditSummary
+        part={{
+          ...part,
+          state: "output-available",
+          output: {
+            status: "error",
+            code: "summary_not_in_session",
+            message:
+              "That summary does not belong to the target session. Retry with summary-1.",
+            candidates: [{ enhancedNoteId: "summary-1", title: "Summary" }],
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Summary edit failed")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Syntheo could not find this summary in the note. Ask again from the note.",
+      ),
+    ).toBeTruthy();
+    expect(document.body.textContent).not.toContain("does not belong");
+    expect(document.body.textContent).not.toContain("summary-1");
+  });
+
+  it("falls back to a generic message for unknown tool errors", () => {
+    render(
+      <ToolEditSummary
+        part={{
+          ...part,
+          state: "output-available",
+          output: { status: "error", message: "Raw English failure" },
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByText("The summary edit could not be prepared."),
+    ).toBeTruthy();
+    expect(document.body.textContent).not.toContain("Raw English failure");
+  });
+
+  it("says the edit waits for the user's review", () => {
+    render(<ToolEditSummary part={part} />);
+
+    expect(
+      screen.getByText("Edit summary — waiting for your review"),
+    ).toBeTruthy();
+  });
+
   it("applies a reviewed memo edit from the chat card", () => {
     usePendingEditStore.getState().addEdit({
       requestId: "tool-call-1",

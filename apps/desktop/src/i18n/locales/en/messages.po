@@ -264,6 +264,10 @@ msgstr "Add to folder"
 msgid "Add webhook"
 msgstr "Add webhook"
 
+#: src/session/components/living-document/summary-review.tsx
+msgid "Added:"
+msgstr "Added:"
+
 #: src/settings/general/spoken-languages.tsx
 msgid "Additional spoken languages"
 msgstr "Additional spoken languages"
@@ -354,11 +358,14 @@ msgstr "Application menu"
 msgid "Apply to all"
 msgstr "Apply to all"
 
+#: src/chat/components/message/tool/edit-summary.tsx
 #: src/edit/tab-content.tsx
 msgid "Apply to memo"
 msgstr "Apply to memo"
 
+#: src/chat/components/message/tool/edit-summary.tsx
 #: src/edit/tab-content.tsx
+#: src/session/components/living-document/summary-review.tsx
 msgid "Apply to summary"
 msgstr "Apply to summary"
 
@@ -1030,7 +1037,9 @@ msgstr "Date"
 msgid "Date and time are required"
 msgstr "Date and time are required"
 
+#: src/chat/components/message/tool/edit-summary.tsx
 #: src/edit/tab-content.tsx
+#: src/session/components/living-document/summary-review.tsx
 msgid "Decline"
 msgstr "Decline"
 
@@ -1218,6 +1227,22 @@ msgstr "Edit"
 #: src/session/components/outer-header/metadata/date.tsx
 msgid "Edit date"
 msgstr "Edit date"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Edit memo"
+msgstr "Edit memo"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Edit memo — waiting for your review"
+msgstr "Edit memo — waiting for your review"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Edit summary"
+msgstr "Edit summary"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Edit summary — waiting for your review"
+msgstr "Edit summary — waiting for your review"
 
 #: src/contacts/details.tsx
 #: src/settings/general/account-profile.tsx
@@ -1951,6 +1976,18 @@ msgstr "Memo"
 msgid "Memo copied to clipboard"
 msgstr "Memo copied to clipboard"
 
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Memo edit declined"
+msgstr "Memo edit declined"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Memo edit failed"
+msgstr "Memo edit failed"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Memo updated"
+msgstr "Memo updated"
+
 #: src/session/components/note-input/header-raw.tsx
 msgid "Memos"
 msgstr "Memos"
@@ -2386,6 +2423,14 @@ msgstr "Open"
 msgid "Open {0} settings"
 msgstr "Open {0} settings"
 
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Open a note to edit its memo."
+msgstr "Open a note to edit its memo."
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Open a note to edit its summary."
+msgstr "Open a note to edit its summary."
+
 #: src/chat/components/body/empty.tsx
 msgid "Open AI Settings"
 msgstr "Open AI Settings"
@@ -2600,6 +2645,14 @@ msgstr "Production"
 msgid "Profile"
 msgstr "Profile"
 
+#: src/session/components/living-document/summary-review.tsx
+msgid "Proposed edit to the summary"
+msgstr "Proposed edit to the summary"
+
+#: src/session/components/living-document/summary-review.tsx
+msgid "Proposed summary edit"
+msgstr "Proposed summary edit"
+
 #: src/settings/ai/stt/server-card.tsx
 msgid "Protocol"
 msgstr "Protocol"
@@ -2737,6 +2790,14 @@ msgstr "Remove from favorites"
 #: src/contacts/profile-photo.tsx
 msgid "Remove photo"
 msgstr "Remove photo"
+
+#: src/session/components/living-document/summary-review.tsx
+msgid "Removed text is struck through, added text is highlighted."
+msgstr "Removed text is struck through, added text is highlighted."
+
+#: src/session/components/living-document/summary-review.tsx
+msgid "Removed:"
+msgstr "Removed:"
 
 #: src/automations/starters.tsx
 msgid "Render canonical Markdown"
@@ -3394,6 +3455,14 @@ msgstr "Summary"
 msgid "Summary complete"
 msgstr "Summary complete"
 
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Summary edit declined"
+msgstr "Summary edit declined"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Summary edit failed"
+msgstr "Summary edit failed"
+
 #: src/templates/auto-form.tsx
 msgid "Summary format"
 msgstr "Summary format"
@@ -3418,6 +3487,10 @@ msgstr "Summary ready"
 #: src/session/components/living-document/summary-switcher.tsx
 msgid "Summary templates"
 msgstr "Summary templates"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Summary updated"
+msgstr "Summary updated"
 
 #: src/settings/general/week-start.tsx
 msgid "Sunday"
@@ -3446,6 +3519,10 @@ msgstr "Syntheo can read meeting details"
 #: src/settings/developers/cli.tsx
 msgid "Syntheo CLI"
 msgstr "Syntheo CLI"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Syntheo could not find this summary in the note. Ask again from the note."
+msgstr "Syntheo could not find this summary in the note. Ask again from the note."
 
 #: src/lock/gate.tsx
 msgid "Syntheo is Locked"
@@ -3607,6 +3684,10 @@ msgstr "The kinds of meeting this template is meant for (team, role, frequency�
 msgid "The language model that writes your meeting notes and answers when you ask a note a question."
 msgstr "The language model that writes your meeting notes and answers when you ask a note a question."
 
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "The memo edit could not be prepared."
+msgstr "The memo edit could not be prepared."
+
 #: src/settings/dictation.tsx
 msgid "The one that captures your voice."
 msgstr "The one that captures your voice."
@@ -3614,6 +3695,10 @@ msgstr "The one that captures your voice."
 #: src/shared/control.tsx
 msgid "The page you're looking for doesn't exist."
 msgstr "The page you're looking for doesn't exist."
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "The proposed edit could not be saved."
+msgstr "The proposed edit could not be saved."
 
 #. placeholder {0}: health.message ?? ""
 #: src/settings/ai/llm/server-card.tsx
@@ -3644,6 +3729,14 @@ msgstr "The server refused the API key. Check it under “Advanced”, then test
 msgid "The server that turns speech into text during your meetings. Audio is never written to disk."
 msgstr "The server that turns speech into text during your meetings. Audio is never written to disk."
 
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "The summary edit could not be applied."
+msgstr "The summary edit could not be applied."
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "The summary edit could not be prepared."
+msgstr "The summary edit could not be prepared."
+
 #: src/templates/template-generator-bar.tsx
 msgid "The summary server did not respond. Check that it is running, then try again."
 msgstr "The summary server did not respond. Check that it is running, then try again."
@@ -3664,6 +3757,10 @@ msgstr "Thinking..."
 msgid "This device"
 msgstr "This device"
 
+#: src/session/components/living-document/summary-review.tsx
+msgid "This edit could not be saved. Try again."
+msgstr "This edit could not be saved. Try again."
+
 #: src/edit/tab-content.tsx
 msgid "This edit is no longer pending."
 msgstr "This edit is no longer pending."
@@ -3675,6 +3772,10 @@ msgstr "This information stays on your computer. It is used to recognize you in 
 #: src/calendar/components/event-chip.tsx
 msgid "This note"
 msgstr "This note"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "This note has no summary to edit yet."
+msgstr "This note has no summary to edit yet."
 
 #: src/session/components/note-conflict-banner.tsx
 msgid "This note was edited on another device at the same time. The later edit was kept."
