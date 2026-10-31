@@ -18,6 +18,7 @@ import {
   registerTranscriptSearchSource,
   type TranscriptSearchSource,
 } from "../../search/matching";
+import { scrollBehavior } from "./viewport-hooks";
 
 import type { Segment } from "~/stt/live-segment";
 
@@ -28,7 +29,25 @@ const SEGMENT_GAP = 16;
 const OVERSCAN_PX = 800;
 const FALLBACK_VIEWPORT_HEIGHT = 800;
 
-export function estimateTranscriptRowHeight(segment: Segment, index: number) {
+// Largeur moyenne d'un caractère du texte de transcription : 90 caractères
+// tiennent dans la colonne pleine largeur (~680px).
+const ESTIMATED_CHAR_WIDTH_PX = 7.5;
+
+function estimatedCharsPerRow(rowWidthPx?: number) {
+  if (!rowWidthPx || !Number.isFinite(rowWidthPx) || rowWidthPx <= 0) {
+    return ESTIMATED_ROW_CHARS;
+  }
+  return Math.max(12, Math.floor(rowWidthPx / ESTIMATED_CHAR_WIDTH_PX));
+}
+
+// La marge d'écoute ne fait que 280px : estimer avec la largeur réelle évite
+// que les hauteurs mesurées, bien plus grandes que l'estimation, ne décalent
+// brutalement les blocs à chaque mesure.
+export function estimateTranscriptRowHeight(
+  segment: Segment,
+  index: number,
+  rowWidthPx?: number,
+) {
   const characterCount = segment.words.reduce(
     (total, word) => total + word.text.length + 1,
     0,
@@ -36,7 +55,10 @@ export function estimateTranscriptRowHeight(segment: Segment, index: number) {
   const lineCount =
     characterCount === 0
       ? 0
-      : Math.max(1, Math.ceil(characterCount / ESTIMATED_ROW_CHARS));
+      : Math.max(
+          1,
+          Math.ceil(characterCount / estimatedCharsPerRow(rowWidthPx)),
+        );
   return (
     ESTIMATED_ROW_CHROME +
     lineCount * ESTIMATED_LINE_HEIGHT +
@@ -87,12 +109,13 @@ export function useVirtualSegments({
     };
   });
 
+  const listWidth = useElementWidth(listElement);
   const estimatedHeights = useMemo(
     () =>
       segments.map((segment, index) =>
-        estimateTranscriptRowHeight(segment, index),
+        estimateTranscriptRowHeight(segment, index, listWidth),
       ),
-    [segments],
+    [listWidth, segments],
   );
   const offsets = useMemo(() => {
     const values = [0];
@@ -242,7 +265,7 @@ export function useVirtualSegments({
       listElement &&
       scrollElement
     ) {
-      scrollToIndex(activeMatchIndex, "smooth");
+      scrollToIndex(activeMatchIndex, scrollBehavior());
       previousActiveMatchRef.current = activeMatchId;
     } else if (!activeMatchId) {
       previousActiveMatchRef.current = null;
@@ -263,7 +286,8 @@ export function useVirtualSegments({
               segment.words.map((word) => ({
                 id: word.id ?? null,
                 text: word.text.trim(),
-                scrollIntoView: () => scrollToIndexRef.current(index, "smooth"),
+                scrollIntoView: () =>
+                  scrollToIndexRef.current(index, scrollBehavior()),
               })),
             ),
           )
@@ -398,6 +422,29 @@ export function VirtualSegmentRow({
       {children}
     </div>
   );
+}
+
+function useElementWidth(element: HTMLElement | null): number | undefined {
+  const subscribe = useCallback(
+    (notify: () => void) => {
+      if (!element || typeof ResizeObserver === "undefined") {
+        return () => {};
+      }
+      const observer = new ResizeObserver(notify);
+      observer.observe(element);
+      return () => observer.disconnect();
+    },
+    [element],
+  );
+  // Arrondie à 10px près pour ne pas tout réestimer au moindre pixel.
+  const getSnapshot = useCallback(
+    () =>
+      element && element.clientWidth > 0
+        ? Math.round(element.clientWidth / 10) * 10
+        : undefined,
+    [element],
+  );
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 function useVirtualViewport(

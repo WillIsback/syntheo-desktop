@@ -89,6 +89,7 @@ describe("useScrollDetection", () => {
     );
 
     act(() => {
+      element.dispatchEvent(new Event("wheel"));
       element.scrollTop = 500;
       element.dispatchEvent(new Event("scroll"));
     });
@@ -101,6 +102,94 @@ describe("useScrollDetection", () => {
 
     expect(result.current.autoScrollEnabled).toBe(false);
     expect(result.current.scrollTarget).toBe("bottom");
+  });
+});
+
+describe("useScrollDetection pendant l'écoute", () => {
+  it("reste collé en bas quand le contenu rétrécit sans geste de l'utilisateur", () => {
+    // Un segment provisoire remplacé par sa version définitive (plus courte)
+    // fait reculer scrollTop sans que personne n'ait touché la marge.
+    const element = document.createElement("div");
+    setScrollMetrics(element, {
+      clientHeight: 100,
+      scrollHeight: 1000,
+      scrollTop: 900,
+    });
+    const containerRef = createRef<HTMLDivElement>();
+    containerRef.current = element;
+
+    const { result } = renderHook(() => useScrollDetection(containerRef, true));
+
+    act(() => {
+      setScrollMetrics(element, {
+        clientHeight: 100,
+        scrollHeight: 700,
+        scrollTop: 600,
+      });
+      element.dispatchEvent(new Event("scroll"));
+    });
+
+    expect(result.current.autoScrollEnabled).toBe(true);
+  });
+
+  it("arrête de suivre quand l'utilisateur remonte, puis reprend quand il revient en bas", () => {
+    const element = document.createElement("div");
+    setScrollMetrics(element, {
+      clientHeight: 100,
+      scrollHeight: 1000,
+      scrollTop: 900,
+    });
+    const containerRef = createRef<HTMLDivElement>();
+    containerRef.current = element;
+
+    const { result } = renderHook(() => useScrollDetection(containerRef, true));
+
+    act(() => {
+      element.dispatchEvent(new Event("wheel"));
+      element.scrollTop = 400;
+      element.dispatchEvent(new Event("scroll"));
+    });
+    expect(result.current.autoScrollEnabled).toBe(false);
+
+    act(() => {
+      element.dispatchEvent(new Event("wheel"));
+      element.scrollTop = 900;
+      element.dispatchEvent(new Event("scroll"));
+    });
+    expect(result.current.autoScrollEnabled).toBe(true);
+  });
+
+  it("respecte prefers-reduced-motion pour les boutons de défilement", () => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn((query: string) => ({
+        matches: query.includes("prefers-reduced-motion"),
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    );
+    const element = document.createElement("div");
+    setScrollMetrics(element, {
+      clientHeight: 100,
+      scrollHeight: 1000,
+      scrollTop: 400,
+    });
+    const scrollTo = vi.fn();
+    element.scrollTo = scrollTo as unknown as HTMLElement["scrollTo"];
+    const containerRef = createRef<HTMLDivElement>();
+    containerRef.current = element;
+
+    const { result } = renderHook(() => useScrollDetection(containerRef, true));
+    act(() => result.current.scrollToBottom());
+    act(() => result.current.scrollToTop());
+
+    expect(scrollTo).toHaveBeenNthCalledWith(1, {
+      top: 1000,
+      behavior: "auto",
+    });
+    expect(scrollTo).toHaveBeenNthCalledWith(2, { top: 0, behavior: "auto" });
+    vi.unstubAllGlobals();
   });
 });
 

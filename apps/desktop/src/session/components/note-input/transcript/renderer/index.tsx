@@ -158,7 +158,6 @@ export function TranscriptViewer({
   const {
     isAtTop,
     isAtBottom,
-    isNearBottom,
     canScroll,
     autoScrollEnabled,
     scrollToTop,
@@ -171,7 +170,9 @@ export function TranscriptViewer({
   const seek = NO_PLAYBACK_SEEK;
   const start = NO_PLAYBACK;
   const shouldAutoScroll = currentActive && autoScrollEnabled;
-  const shouldScrollLastTranscriptToEnd = currentActive && isNearBottom;
+  // Une seule règle de suivi : la dernière transcription ne recolle au bas
+  // que si le suivi automatique est actif (l'utilisateur n'a pas remonté).
+  const shouldScrollLastTranscriptToEnd = shouldAutoScroll;
   useAutoScroll(
     containerRef,
     [transcriptIds, liveSegments, shouldAutoScroll],

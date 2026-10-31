@@ -24,6 +24,11 @@ export function useStableSegments(segments: Segment[]): Segment[] {
   }, [segments]);
 }
 
+// Clé React (et clé du cache de hauteurs) d'une ligne de transcription.
+// Elle ne dépend que du canal et du début du bloc : pendant l'écoute, le
+// locuteur d'un bloc est souvent réattribué (diarisation, identités) et ses
+// mots provisoires deviennent définitifs. Si la clé changeait alors, la ligne
+// serait remontée, perdrait sa hauteur mesurée et toute la marge sauterait.
 export function createSegmentKey(
   segment: Segment,
   transcriptId: string,
@@ -33,10 +38,24 @@ export function createSegmentKey(
   return [
     transcriptId,
     segment.key.channel,
-    segment.key.speaker_index ?? "speaker-none",
-    segment.key.speaker_human_id ?? "human-none",
     firstWord ? `start-${firstWord.start_ms}` : `index-${fallbackIndex}`,
   ].join(":");
+}
+
+// Des clés en double feraient réutiliser par React la mauvaise ligne : deux
+// blocs qui commencent au même instant sur le même canal sont départagés par
+// leur rang d'apparition.
+export function createSegmentKeys(
+  segments: readonly Segment[],
+  transcriptId: string,
+): string[] {
+  const seen = new Map<string, number>();
+  return segments.map((segment, index) => {
+    const key = createSegmentKey(segment, transcriptId, index);
+    const occurrence = seen.get(key) ?? 0;
+    seen.set(key, occurrence + 1);
+    return occurrence === 0 ? key : `${key}:${occurrence}`;
+  });
 }
 
 function segmentsEqual(a: Segment, b: Segment) {
