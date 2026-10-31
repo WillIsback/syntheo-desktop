@@ -79,6 +79,8 @@ const TEXT_PAIRS: Array<[string, string]> = [
   ["ai-ink", "card"],
   ["recording", "background"],
   ["recording", "card"],
+  // Bouton « Commencer l'écoute » de la capsule : texte background sur recording.
+  ["background", "recording"],
   // Couleurs de catégorie (badges, niveaux de journal) employées en texte.
   ["chart-2", "background"],
   ["chart-2", "card"],

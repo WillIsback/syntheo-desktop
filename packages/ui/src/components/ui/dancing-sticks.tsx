@@ -106,7 +106,7 @@ export const DancingSticks = memo(function DancingSticks({
 
   return (
     <div
-      className="flex origin-center items-center justify-center"
+      className="flex origin-center items-center justify-center motion-reduce:transform-none!"
       style={containerStyle}
     >
       {stickParams.map(

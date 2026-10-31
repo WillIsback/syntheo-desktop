@@ -347,3 +347,24 @@ html[data-rounded-window] #root {
   border-radius: calc(infinity * 1px);
   corner-shape: round;
 }
+
+/* Mouvement réduit (lot 6) : on fige les animations décoratives en boucle
+ * (niveau sonore, points d'enregistrement, curseur de génération, reflets,
+ * squelettes). Les indicateurs de progression (animate-spin) restent. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-pulse,
+  .animate-ping,
+  .animate-bounce,
+  .animate-shimmer,
+  .animate-wiggle,
+  .animate-kbd-press,
+  .animate-logo-shimmer-sweep,
+  .animate-syntheo-dancing-stick,
+  [class*="animate-title-hover-scroll"] {
+    animation: none !important;
+  }
+}
