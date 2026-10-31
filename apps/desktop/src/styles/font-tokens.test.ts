@@ -32,12 +32,14 @@ describe("polices Syntheo « Thé vert »", () => {
     expect(main).not.toMatch(/@fontsource-variable\/inter/);
   });
 
-  it("limite le sous-ensemble kanji aux idéogrammes 茶備聴結記", () => {
+  // 茶備聴結記 : ornements de Thé vert ; 藤 紅 : filigranes de Glycine et de
+  // Laque et encre ; 緑 臙 脂 : noms 緑茶 / 臙脂 du sélecteur de palette.
+  it("limite le sous-ensemble kanji aux idéogrammes 茶備聴結記藤紅緑臙脂", () => {
     const face = globals.match(/@font-face\s*\{[^}]*"Syntheo Kanji"[^}]*\}/);
     expect(face).not.toBeNull();
     expect(face![0]).toMatch(/url\("\.\/fonts\/noto-serif-jp-kanji\.woff2"\)/);
     expect(face![0]).toMatch(
-      /unicode-range:\s*U\+8336,\s*U\+5099,\s*U\+8074,\s*U\+7D50,\s*U\+8A18;/,
+      /unicode-range:\s*U\+8336,\s*U\+5099,\s*U\+8074,\s*U\+7D50,\s*U\+8A18,\s*U\+85E4,\s*U\+7D05,\s*U\+7DD1,\s*U\+81D9,\s*U\+8102;/,
     );
     expect(
       existsSync(

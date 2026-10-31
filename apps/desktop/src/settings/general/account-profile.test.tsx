@@ -92,6 +92,7 @@ it("saves the contact fields and photo to the local owner's personal card", asyn
   for (const [label, value] of [
     ["Name", "Ada Lovelace"],
     ["Job Title", "Engineer"],
+    ["Email", "ada@example.com"],
     ["Notes", "My notes"],
   ]) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
@@ -102,9 +103,9 @@ it("saves the contact fields and photo to the local owner's personal card", asyn
     expect(mocks.save).toHaveBeenCalledWith("account-1", {
       name: "Ada Lovelace",
       jobTitle: "Engineer",
+      email: "ada@example.com",
       // Champs retirés du formulaire : les valeurs déjà enregistrées sont
       // conservées telles quelles, jamais effacées.
-      email: "kept@example.com",
       phone: "+33 6 12 34 56 78",
       linkedinUsername: "kept",
       memo: "My notes",
@@ -191,10 +192,15 @@ it("loads saved contact fields and removes a photo without clearing other detail
   );
 });
 
-it("ne demande plus l'adresse e-mail, le téléphone ni LinkedIn", () => {
+it("demande l'e-mail en expliquant son usage, plus le téléphone ni LinkedIn", () => {
   render(view());
-  expect(screen.getByLabelText("Name")).toBeTruthy();
-  for (const label of ["Email", "Phone", "LinkedIn"]) {
+  const email = screen.getByLabelText("Email") as HTMLInputElement;
+  expect(email.type).toBe("email");
+  expect(email.getAttribute("aria-describedby")).toBe("profile-email-help");
+  expect(document.getElementById("profile-email-help")?.textContent).toMatch(
+    /recognize you among the attendees/,
+  );
+  for (const label of ["Phone", "LinkedIn"]) {
     expect(screen.queryByLabelText(label)).toBeNull();
   }
 });

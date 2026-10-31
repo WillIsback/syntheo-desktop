@@ -33,6 +33,8 @@ import {
 } from "./layout";
 import { tokensFor, withAlpha } from "./palette";
 
+import { type PaletteId, useDocumentPalette } from "~/shared/theme/palette";
+
 export function FloatingBarOverlay({
   state,
   onStop,
@@ -46,7 +48,10 @@ export function FloatingBarOverlay({
   const isExpanded =
     state.liveCaptionToggleVisible && !state.liveCaptionMinimized;
   const showsHoverHandle = hovered && !isExpanded;
-  const colors = barColors(state);
+  // Re-rend la barre (et ses enfants, qui lisent la palette du document) quand
+  // la palette change dans les paramètres.
+  const palette = useDocumentPalette();
+  const colors = barColors(state, palette);
   const controlsWidth = compactControlsWidth(state.liveCaptionToggleVisible);
   const expandsUpward = state.layout?.expandsUpward ?? false;
 
@@ -423,9 +428,9 @@ type BarColors = {
   accentHover: string;
 };
 
-function barColors(state: FloatingBarState): BarColors {
+function barColors(state: FloatingBarState, palette: PaletteId): BarColors {
   const opacity = Math.min(Math.max(state.opacity, 0.35), 0.95);
-  const tokens = tokensFor(state.colorScheme);
+  const tokens = tokensFor(state.colorScheme, palette);
 
   return {
     surface: withAlpha(tokens.floatingChrome, opacity * 82),

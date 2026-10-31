@@ -687,6 +687,10 @@ msgstr "Choose how Syntheo looks on this device."
 msgid "Choose template icon"
 msgstr "Choose template icon"
 
+#: src/settings/appearance/palette.tsx
+msgid "Choose the colors of Syntheo. Each palette follows the light or dark theme."
+msgstr "Choose the colors of Syntheo. Each palette follows the light or dark theme."
+
 #: src/settings/general/audio-settings.tsx
 msgid "Choose the microphone that captures your voice."
 msgstr "Choose the microphone that captures your voice."
@@ -764,6 +768,10 @@ msgstr "Cloud sync complete"
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Collect action items"
 msgstr "Collect action items"
+
+#: src/settings/appearance/palette.tsx
+msgid "Color palette"
+msgstr "Color palette"
 
 #: src/settings/appearance/theme.tsx
 msgid "Color theme"
@@ -1266,7 +1274,12 @@ msgstr "Edit summary"
 msgid "Edit summary — waiting for your review"
 msgstr "Edit summary — waiting for your review"
 
+#: src/settings/appearance/palette.tsx
+msgid "Edo purple and pale wisteria. Elegant, a little more singular."
+msgstr "Edo purple and pale wisteria. Elegant, a little more singular."
+
 #: src/contacts/details.tsx
+#: src/settings/general/account-profile.tsx
 msgid "Email"
 msgstr "Email"
 
@@ -1552,6 +1565,10 @@ msgstr "Go to recent"
 msgid "Got it"
 msgstr "Got it"
 
+#: src/settings/appearance/palette.tsx
+msgid "Green tea"
+msgstr "Green tea"
+
 #: src/settings/developers/index.tsx
 msgid "Guide"
 msgstr "Guide"
@@ -1751,6 +1768,14 @@ msgstr "Keep this version"
 #: src/settings/ai/shared/server-card.tsx
 msgid "Key refused"
 msgstr "Key refused"
+
+#: src/settings/appearance/palette.tsx
+msgid "Lacquer and ink"
+msgstr "Lacquer and ink"
+
+#: src/settings/appearance/palette.tsx
+msgid "Lacquer red and cherry blossom pink. The most contrasted."
+msgstr "Lacquer red and cherry blossom pink. The most contrasted."
 
 #: src/settings/general/index.tsx
 msgid "Language & Region"
@@ -2578,6 +2603,10 @@ msgstr "Others"
 msgid "Page not found"
 msgstr "Page not found"
 
+#: src/settings/appearance/palette.tsx
+msgid "Palette"
+msgstr "Palette"
+
 #: src/session/components/living-document/fiche.tsx
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -2629,6 +2658,10 @@ msgstr "Phone"
 #: src/contacts/contact-page-header.tsx
 msgid "Pin"
 msgstr "Pin"
+
+#: src/settings/appearance/palette.tsx
+msgid "Pine green on raw silk, with ink. Calm and plant-like."
+msgstr "Pine green on raw silk, with ink. Calm and plant-like."
 
 #: src/settings/general/notification.tsx
 msgid "Play a sound when transcription, summaries, or cloud sync finish."
@@ -3615,6 +3648,10 @@ msgstr "Syntheo skill added to {0} agents"
 msgid "Syntheo structures the summary itself, without a fixed template. Used when no template is chosen for a meeting."
 msgstr "Syntheo structures the summary itself, without a fixed template. Used when no template is chosen for a meeting."
 
+#: src/settings/general/account-profile.tsx
+msgid "Syntheo uses it to recognize you among the attendees of your calendar meetings, so you are not counted as a participant. It stays on this device."
+msgstr "Syntheo uses it to recognize you among the attendees of your calendar meetings, so you are not counted as a participant. It stays on this device."
+
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "Syntheo will retry automatically. This does not affect your notes."
 msgstr "Syntheo will retry automatically. This does not affect your notes."
@@ -4266,6 +4303,10 @@ msgstr "When off, summaries follow the detected meeting language."
 #: src/settings/automations/workflow-builder.tsx
 msgid "When this happens"
 msgstr "When this happens"
+
+#: src/settings/appearance/palette.tsx
+msgid "Wisteria"
+msgstr "Wisteria"
 
 #: src/settings/dictation.tsx
 msgid "Words appear in a small bubble while you speak. Text is inserted when you finish."

@@ -123,6 +123,15 @@ export const SETTING_DEFINITIONS = {
     default: "default" as string,
     synced: true,
   },
+  // Palette de couleurs (Paramètres › Apparence) : « cha » 緑茶 Thé vert,
+  // « fuji » 藤 Glycine, « enji » 臙脂 Laque et encre. Indépendante du thème
+  // clair / sombre ; une valeur absente ou inconnue retombe sur Thé vert.
+  palette: {
+    type: "string",
+    path: ["general", "palette"],
+    default: "cha" as string,
+    synced: true,
+  },
   sidebar_show_folder: {
     type: "boolean",
     path: ["general", "sidebar_show_folder"],

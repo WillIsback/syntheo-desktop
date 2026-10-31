@@ -1,15 +1,24 @@
-import { DesignColors } from "@syntheo/design-system";
+import { type DesignColorSet, DesignPalettes } from "@syntheo/design-system";
 import type { FloatingBarState } from "@syntheo/plugin-windows";
+
+import { type PaletteId, readDocumentPalette } from "~/shared/theme/palette";
 
 // Les fenêtres flottantes (barre d'écoute, sous-titres, dictée) reçoivent leur
 // thème par `colorScheme` plutôt que par la classe `.dark` du document : on
-// dérive donc leurs couleurs des jetons TypeScript (DesignColors, alignés sur
-// tokens.css) au lieu de valeurs en dur.
+// dérive donc leurs couleurs des jetons TypeScript (DesignPalettes, alignés sur
+// tokens.css) au lieu de valeurs en dur. La palette (Thé vert, Glycine, Laque
+// et encre) est celle du document : `data-palette`, posé par theme-boot.js puis
+// tenu à jour par AppThemeProvider dans chaque fenêtre ; les écrans flottants
+// se re-rendent quand elle change (useDocumentPalette).
 
 export type FloatingColorScheme = FloatingBarState["colorScheme"];
 
-export function tokensFor(colorScheme: FloatingColorScheme) {
-  return colorScheme === "dark" ? DesignColors.dark : DesignColors.light;
+export function tokensFor(
+  colorScheme: FloatingColorScheme,
+  palette: PaletteId = readDocumentPalette(),
+): DesignColorSet {
+  const set = DesignPalettes[palette];
+  return colorScheme === "dark" ? set.dark : set.light;
 }
 
 /** Applique une transparence à un jeton (pourcentage d'opacité, 0 à 100). */

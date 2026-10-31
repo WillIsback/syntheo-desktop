@@ -8,7 +8,7 @@ Ce dossier décrit la refonte de l'UI de Syntheo Desktop : nouvelle identité vi
 |---|---|
 | `README.md` | Ce brief : principes, périmètre, découpage en lots, critères d'acceptation. |
 | `identite.md` | Règles de l'identité : couleurs, typo, formes, composants, clins d'œil japonais. |
-| `tokens.css` | Remplaçant prêt à l'emploi de `packages/design-system/src/tokens.css` (format HSL, clair + sombre). |
+| `tokens.css` | Copie de `packages/design-system/src/tokens.css` (format HSL, clair + sombre, palettes Thé vert, Glycine et Laque et encre). |
 | `maquettes/parcours-note.html` | Maquette cliquable de l'accueil et du parcours Préparer → Écouter → Synthèse. **Seule la piste C (« Document vivant ») est retenue**, avec la palette « Thé vert ». Les pistes A et B restent pour l'historique. |
 | `maquettes/parametres.html` | Maquette cliquable de la fenêtre des paramètres (clair et sombre). |
 
@@ -21,7 +21,7 @@ Références en ligne (privées, compte du propriétaire) : design system <https
 1. **Un employé, pas un service.** Usage personnel, hébergement local. Pas de compte, de cloud, d'équipe ou de facturation à l'écran. Une seule mention technique : l'état des serveurs locaux.
 2. **Un document vivant.** Une note passe d'une fiche (Préparer) à une prise de notes avec la transcription en marge (Écouter), puis à un compte-rendu (Synthèse) sans changer d'écran.
 3. **Trois étapes toujours visibles** dans la capsule flottante en bas : 備 Préparer · 聴 Écouter · 結 Synthèse, avec la seule action utile du moment.
-4. **Qui a écrit quoi.** Le compte-rendu que Syntheo complète est à l'encre `foreground`, jamais en italique ni en gris ; les notes personnelles de l'utilisateur sont en vert `user-ink`, avec une légende.
+4. **Qui a écrit quoi.** Le compte-rendu que Syntheo complète est à l'encre `foreground`, jamais en italique ni en gris ; les notes personnelles de l'utilisateur sont à l'encre `user-ink` (le primaire de la palette : vert pour Thé vert), avec une légende.
 5. **Accueil guidé.** Salutation, prochaine réunion de l'agenda, un seul grand bouton « Démarrer une réunion », puis la liste « Reprendre ».
 
 ## Règles du projet qui s'appliquent

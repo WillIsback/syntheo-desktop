@@ -101,6 +101,21 @@ describe("HomeView", () => {
     ).toBeTruthy();
   });
 
+  it.each([
+    ["fuji", "藤"],
+    ["enji", "紅"],
+  ])("prend le filigrane de la palette %s : %s", (palette, kanji) => {
+    document.documentElement.setAttribute("data-palette", palette);
+    try {
+      renderHome();
+      const watermark = document.querySelector("[data-home-watermark]");
+      expect(watermark?.textContent).toBe(kanji);
+      expect(watermark?.getAttribute("aria-hidden")).toBe("true");
+    } finally {
+      document.documentElement.removeAttribute("data-palette");
+    }
+  });
+
   it("la capsule ne propose que « Rechercher une note » (Ctrl K)", () => {
     const props = renderHome();
     const capsule = screen.getByRole("group", { name: "Home capsule" });
