@@ -9,7 +9,7 @@ Syntheo n'embarque aucun modèle et n'appelle aucun service cloud. Il se connect
 | Réglage | Rôle | Protocole |
 | --- | --- | --- |
 | **Transcription** | Transforme l'audio de la réunion, de la dictée ou d'un fichier importé en texte | OpenAI Realtime et `/v1/audio/transcriptions`, ou Nemotron ASR (NVIDIA NIM, WebSocket) |
-| **Intelligence** | Produit les comptes rendus, le chat sur les notes et le générateur de templates | API OpenAI-compatible (`/v1/chat/completions`, modèles lus dans `/v1/models`) |
+| **Synthèse** | Rédige les comptes rendus, répond dans le chat et propose les sections des modèles de compte rendu | API OpenAI-compatible (`/v1/chat/completions`, modèles lus dans `/v1/models`) |
 
 Aucune URL n'est imposée : vous saisissez celle de votre serveur. Sans serveur de transcription configuré et joignable, Syntheo ne transcrit rien, et comme l'audio n'est jamais conservé, il ne peut pas rattraper la transcription plus tard.
 
@@ -37,40 +37,59 @@ Exemples d'URL de base pour un serveur lancé sur le même poste, avec les ports
 Les ports dépendent de la façon dont vous lancez chaque serveur. Si deux serveurs tournent sur la même machine, donnez-leur des ports différents.
 
 <Note>
-  Syntheo accepte HTTP en clair uniquement vers un hôte privé : `localhost`, `[::1]`, les noms en `.local`, et les adresses IPv4 `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` et `100.64.0.0/10` (plage utilisée notamment par Tailscale). Partout ailleurs, y compris pour un nom d'hôte interne comme `gpu.entreprise.lan`, l'URL doit être en HTTPS ; sinon l'enregistrement est refusé avec le message « Utilisez HTTPS : le HTTP n'est accepté que sur cette machine ou un réseau privé. ». L'URL ne doit contenir ni identifiants, ni paramètres de requête.
+  Syntheo accepte HTTP en clair uniquement vers un hôte privé : `localhost`, `[::1]`, les noms en `.local`, et les adresses IPv4 `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` et `100.64.0.0/10` (plage utilisée par Tailscale), ainsi que les noms Tailscale en `.ts.net`. Partout ailleurs, y compris pour un nom d'hôte interne comme `gpu.entreprise.lan`, l'URL doit être en HTTPS ; sinon l'enregistrement est refusé avec le message « Utilisez HTTPS : le HTTP n'est accepté que sur cette machine ou un réseau privé. ». L'URL ne doit contenir ni identifiants, ni paramètres de requête.
 </Note>
 
-Ouvrez les **Paramètres** (<kbd>Ctrl</kbd> + <kbd>,</kbd>).
+Ouvrez les **Paramètres** (<kbd>Ctrl</kbd> + <kbd>,</kbd>). Les deux serveurs se trouvent dans le groupe « Mes serveurs » : **Transcription** et **Synthèse**. Une pastille à côté de chaque entrée indique l'état du serveur, rappelé en bas du menu (par exemple « Transcription · connectée »).
+
+## La carte serveur
+
+Chaque page présente une carte « Mon serveur ». Elle fonctionne de la même façon pour la transcription et pour la synthèse :
+
+- **« Adresse du serveur »** : l'adresse de base de votre serveur. Elle est enregistrée automatiquement pendant la saisie.
+- **« Tester la connexion »** : interroge le serveur et affiche le résultat dans la pastille d'état. Syntheo teste aussi la connexion dès qu'une adresse est enregistrée.
+- **« Modèle »** : les modèles servis, en boutons radio. Cliquez sur un modèle pour le choisir. Si le vôtre n'apparaît pas, cliquez sur « Saisir un autre nom » et tapez son identifiant exact.
+- **« Avancé »** (replié) : le champ « Clé d'API (facultative) » et « Réinitialiser ce serveur… », qui oublie l'adresse et la clé.
+- **« Aide »** (replié) : un rappel des protocoles et des adresses types.
+
+La pastille d'état prend l'une de ces valeurs :
+
+| État | Signification |
+| --- | --- |
+| « Aucun serveur » | Aucune adresse n'est saisie. |
+| « Non testé » | L'adresse est enregistrée, mais pas encore testée. |
+| « Test en cours… » | Syntheo interroge le serveur. |
+| « Connecté · … ms » | Le serveur répond ; la pastille indique la latence mesurée. Pour la synthèse, elle indique plutôt le nombre de modèles disponibles (« Connecté · … modèles disponibles »). |
+| « Injoignable » | Le serveur n'a pas répondu. |
+| « Clé refusée » | Le serveur a refusé la clé d'API. |
+| « Adresse invalide » | L'adresse n'est pas acceptée (voir la note ci-dessus). |
+
+En cas d'échec, un message sous le titre de la carte dit quoi faire, par exemple : « Le serveur n'a pas répondu à localhost:8000/v1. Vérifiez qu'il est démarré et que vous êtes sur le bon réseau (VPN, Tailscale), puis relancez le test. »
 
 ## Configurer la transcription
 
 <Steps>
   <Step title="Ouvrir la page Transcription">
-    Dans les Paramètres, ouvrez **Transcription**. La page contient deux blocs : « Modèle utilisé » en haut et « Configurer les fournisseurs » en dessous.
+    Dans les Paramètres, groupe « Mes serveurs », ouvrez **Transcription**.
   </Step>
-  <Step title="Choisir le fournisseur">
-    Sous « Configurer les fournisseurs », dépliez l'un des deux fournisseurs, marqués « Auto-hébergé » :
-
-    - **OpenAI-compatible** : pour vLLM, speaches ou faster-whisper-server. La transcription en direct passe par le WebSocket `/v1/realtime` ; l'import d'un fichier audio passe par `/v1/audio/transcriptions`.
-    - **Nemotron ASR (NIM, WebSocket)** : pour un serveur NVIDIA Speech NIM déployé chez vous. Le point d'accès gRPC hébergé par NVIDIA n'est pas pris en charge.
+  <Step title="Saisir l'adresse du serveur">
+    Dans « Adresse du serveur », saisissez l'adresse de votre serveur, par exemple `http://localhost:8000/v1` pour vLLM ou speaches, ou `http://localhost:9000/v1/realtime` pour un NIM. Pour un NIM, `http://localhost:9000` suffit aussi : Syntheo utilise toujours le chemin `/v1/realtime`.
   </Step>
-  <Step title="Saisir l'URL de base">
-    Renseignez le champ « URL de base », par exemple `http://localhost:8000/v1` pour vLLM ou speaches, ou `http://localhost:9000` pour un NIM. Pour le NIM, Syntheo ajoute lui-même `/v1/realtime`. Le fournisseur Nemotron ASR arrive avec une URL préremplie : remplacez-la par celle de votre serveur.
-
-    La saisie est enregistrée automatiquement. Pour effacer la configuration d'un fournisseur, utilisez « Réinitialiser ».
+  <Step title="Saisir la clé d'API (facultative)">
+    Si votre serveur exige une clé, ouvrez « Avancé » et remplissez « Clé d'API (facultative) ». Laissez le champ vide pour un serveur sans authentification.
   </Step>
-  <Step title="Saisir la clé API (facultative)">
-    Si votre serveur exige une clé, ouvrez « Avancé » et remplissez « Clé API » (« Saisissez votre clé API (facultative) »). Laissez le champ vide pour un serveur sans authentification.
+  <Step title="Tester la connexion">
+    Cliquez sur « Tester la connexion ». Syntheo détecte le protocole du serveur :
 
-    Ces serveurs n'ont pas de point de test commun : la clé n'est vérifiée qu'à l'ouverture d'une session de transcription. Le fournisseur affiche donc « Enregistré · Non connecté » jusqu'à la première écoute.
+    - **« OpenAI · temps réel et par lots »** : pour vLLM, speaches ou faster-whisper-server. La transcription en direct passe par le WebSocket `/v1/realtime` ; l'import d'un fichier audio passe par `/v1/audio/transcriptions`.
+    - **« NVIDIA NIM · WebSocket »** : pour un serveur NVIDIA Speech NIM déployé chez vous. Le point d'accès gRPC hébergé par NVIDIA n'est pas pris en charge.
+
+    Sous « Protocole », la mention « détecté automatiquement » confirme le choix. Si le serveur répond avec l'autre protocole, Syntheo l'indique (« Ce serveur répond comme… ») : cliquez sur « Utiliser ce protocole ».
   </Step>
   <Step title="Choisir le modèle">
-    Sous « Modèle utilisé », sélectionnez le fournisseur dans « Sélectionnez un fournisseur », puis saisissez le nom du modèle servi par votre déploiement dans « Saisissez un identifiant de modèle ». Ces serveurs ne publient pas leur liste de modèles de transcription : saisissez exactement l'identifiant que votre serveur attend.
+    Avec le protocole OpenAI, la liste « Modèle » reprend les modèles que publie votre serveur. Syntheo présélectionne le premier ; cliquez sur un autre pour en changer.
 
-    Pour Nemotron ASR, Syntheo propose les identifiants courants : `nemotron-asr-streaming` (anglais), `parakeet-tdt-0.6b-v3` (multilingue), `parakeet-tdt-0.6b-v2` (anglais) et `cache-aware-parakeet-rnnt-multi-asr-streaming-sortformer` (Nemotron ASR Streaming multilingue, français inclus). `nemotron-asr-streaming` est choisi par défaut.
-  </Step>
-  <Step title="Tester">
-    Lancez une courte écoute dans une note. Si le serveur est injoignable ou refuse la clé, Syntheo affiche une alerte qui en indique la cause.
+    Un NIM ne publie pas sa liste de modèles. Syntheo propose donc les identifiants connus : `nemotron-asr-streaming` (anglais), `parakeet-tdt-0.6b-v3` (multilingue), `parakeet-tdt-0.6b-v2` (anglais) et `cache-aware-parakeet-rnnt-multi-asr-streaming-sortformer` (multilingue, avec locuteurs). `nemotron-asr-streaming` est choisi par défaut.
   </Step>
 </Steps>
 
@@ -78,39 +97,37 @@ Ouvrez les **Paramètres** (<kbd>Ctrl</kbd> + <kbd>,</kbd>).
 
 Syntheo transcrit les réunions **pendant** la capture, et seulement ainsi : l'audio n'étant jamais conservé, il n'y a pas de transcription après coup. Le modèle choisi doit donc savoir diffuser en temps réel.
 
-- Avec **OpenAI-compatible**, tout modèle on-premise (par exemple Voxtral Realtime sur vLLM) est traité comme un modèle en temps réel. Les noms de modèles « fichier » de l'API OpenAI (`whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`…) ne servent qu'à l'import : Syntheo refuse de démarrer une capture avec eux, avec le message « Ce modèle ne transcrit qu'après l'enregistrement, ce qui supposerait de conserver l'audio. Choisissez un modèle de transcription en temps réel. ».
-- Avec **Nemotron ASR**, tous les modèles sont en temps réel. En revanche, l'import d'un fichier audio passe par le protocole OpenAI (`/v1/audio/transcriptions`) : il demande le fournisseur **OpenAI-compatible**.
+- Avec le protocole **OpenAI**, tout modèle on-premise (par exemple Voxtral Realtime sur vLLM) est traité comme un modèle en temps réel. Les noms de modèles « fichier » de l'API OpenAI (`whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`…) ne servent qu'à l'import : Syntheo refuse de démarrer une capture avec eux, avec le message « Ce modèle ne transcrit qu'après l'enregistrement, ce qui supposerait de conserver l'audio. Choisissez un modèle de transcription en temps réel. ».
+- Avec **NVIDIA NIM**, tous les modèles sont en temps réel. En revanche, l'import d'un fichier audio passe par le protocole OpenAI (`/v1/audio/transcriptions`) : il demande un serveur OpenAI.
 
 La dictée utilise le même serveur de transcription que les réunions.
 
-## Configurer l'IA (Intelligence)
+## Configurer la synthèse
 
 <Steps>
-  <Step title="Ouvrir la page Intelligence">
-    Dans les Paramètres, ouvrez **Intelligence**.
+  <Step title="Ouvrir la page Synthèse">
+    Dans les Paramètres, groupe « Mes serveurs », ouvrez **Synthèse**.
   </Step>
-  <Step title="Configurer le fournisseur">
-    Sous « Configurer les fournisseurs », dépliez **vLLM (OpenAI-compatible)**. C'est l'unique fournisseur LLM : il fonctionne avec tout serveur qui expose l'API OpenAI (`/v1/chat/completions` et `/v1/models`), pas seulement vLLM.
-
-    Renseignez le champ « URL de base » avec l'adresse de votre serveur (il est vide par défaut), par exemple `http://localhost:11434/v1` pour Ollama ou `http://localhost:8080/v1` pour llama.cpp server. Gardez le suffixe `/v1`.
+  <Step title="Saisir l'adresse du serveur">
+    Syntheo accepte tout serveur qui expose l'API OpenAI (`/v1/chat/completions` et `/v1/models`), pas seulement vLLM. Dans « Adresse du serveur (compatible OpenAI : vLLM, Ollama, llama.cpp, LM Studio) », saisissez par exemple `http://localhost:11434/v1` pour Ollama ou `http://localhost:8080/v1` pour llama.cpp server. Gardez le suffixe `/v1`.
   </Step>
-  <Step title="Saisir la clé API (facultative)">
-    Ouvrez « Avancé » et remplissez « Clé API » seulement si votre serveur en exige une (par exemple vLLM lancé avec `--api-key`). Elle est envoyée dans l'en-tête `Authorization: Bearer`.
+  <Step title="Saisir la clé d'API (facultative)">
+    Ouvrez « Avancé » et remplissez « Clé d'API (facultative) » seulement si votre serveur en exige une (par exemple vLLM lancé avec `--api-key`). Elle est envoyée dans l'en-tête `Authorization: Bearer`.
   </Step>
-  <Step title="Choisir le modèle">
-    Sous « Modèle utilisé », sélectionnez **vLLM (OpenAI-compatible)**, puis choisissez le modèle. Syntheo lit la liste dans `/v1/models` : seuls les modèles chargés par votre serveur apparaissent.
+  <Step title="Tester la connexion et choisir le modèle">
+    Cliquez sur « Tester la connexion ». Syntheo lit la liste dans `/v1/models` : seuls les modèles chargés par votre serveur apparaissent. Cliquez sur le modèle à utiliser.
   </Step>
   <Step title="Régler l'effort de raisonnement (facultatif)">
-    « Effort de raisonnement » propose « Par défaut », « Faible », « Moyen » et « Élevé ». « Par défaut » laisse le serveur décider. Les autres valeurs ne servent qu'avec un modèle qui sait raisonner et un serveur qui accepte ce paramètre.
+    « Effort de raisonnement » propose « Auto », « Faible », « Moyen » et « Élevé ». « Auto » laisse le serveur décider. Plus d'effort donne des synthèses plus fines, mais plus lentes. Les autres valeurs ne servent qu'avec un modèle qui sait raisonner et un serveur qui accepte ce paramètre.
   </Step>
 </Steps>
 
-Tant qu'aucun modèle n'est choisi, la page affiche « Choisissez un modèle de langue pour les résumés et le chat. ». Le même modèle sert aux comptes rendus, au chat, aux titres générés et au générateur de templates.
+Si le serveur répond mais que le modèle choisi échoue, la carte affiche « Le modèle choisi n'a pas répondu : » suivi de la cause. Le même modèle sert aux comptes rendus, au chat, aux titres générés et aux propositions de sections des modèles de compte rendu.
 
 ## Ce qui transite vers vos serveurs
 
 - Le **serveur de transcription** reçoit l'audio de la capture, de la dictée ou du fichier importé, au fil de l'eau. Syntheo n'écrit pas cet audio sur le disque.
-- Le **serveur LLM** reçoit le texte nécessaire à la tâche : transcript, notes, consignes du template, question posée dans le chat.
+- Le **serveur LLM** reçoit le texte nécessaire à la tâche : transcription, notes, consignes du modèle de compte rendu, question posée dans le chat.
 - Aucun en-tête n'identifie votre appareil. Syntheo ne contacte aucun autre service d'inférence et ne bascule jamais vers un service tiers si votre serveur ne répond pas : il affiche une erreur.
 
 Les clés API sont rangées dans le trousseau du système, jamais en clair dans la base locale. Détails dans [Données et confidentialité](/data-and-privacy).
@@ -124,8 +141,10 @@ Les clés API sont rangées dans le trousseau du système, jamais en clair dans 
 | Symptôme | Piste |
 | --- | --- |
 | « Utilisez HTTPS : le HTTP n'est accepté que sur cette machine ou un réseau privé. » | L'hôte n'est pas reconnu comme privé : passez en HTTPS (reverse proxy, VPN) ou utilisez une adresse privée. |
-| La liste des modèles LLM est vide | Vérifiez que `URL de base/models` répond (par exemple `curl http://localhost:11434/v1/models`) et que l'URL se termine bien par `/v1`. |
-| La transcription en direct se met en pause | Le serveur ne répond plus ou a refusé la clé. Syntheo tente de se reconnecter ; le passage manquant ne sera pas transcrit, faute d'audio conservé. |
-| Impossible de démarrer une écoute | Aucun fournisseur de transcription n'est configuré, ou le modèle choisi est un modèle « fichier ». |
+| La pastille indique « Injoignable » | Le serveur n'a pas répondu. Vérifiez qu'il est démarré et que vous êtes sur le bon réseau (VPN, Tailscale), puis relancez le test. |
+| La pastille indique « Clé refusée » | Vérifiez la clé dans « Avancé », puis relancez le test. |
+| La liste des modèles de synthèse est vide | Vérifiez que `URL de base/models` répond (par exemple `curl http://localhost:11434/v1/models`) et que l'adresse se termine bien par `/v1`. |
+| La transcription en direct se met en pause | Le serveur ne répond plus, ou il a refusé la clé ou les réglages. Dans le premier cas, Syntheo tente de se reconnecter. Le passage manquant ne sera pas transcrit, faute d'audio conservé. |
+| Impossible de démarrer une écoute | Aucun serveur de transcription n'est configuré, ou le modèle choisi est un modèle « fichier ». |
 
 Pour travailler sans connexion internet, voir [Utiliser Syntheo sans réseau](/offline).

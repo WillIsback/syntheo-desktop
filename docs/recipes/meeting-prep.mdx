@@ -3,7 +3,7 @@ title: "Préparer une réunion récurrente"
 description: "Construisez une fiche de préparation à partir de vos réunions précédentes."
 ---
 
-Cette recette aide un agent (via le [serveur MCP local](/agents/mcp) ou la [CLI](/agents/cli)) à préparer la prochaine occurrence d'une réunion récurrente sans charger tous les transcripts.
+Cette recette aide un agent (via le [serveur MCP local](/agents/mcp) ou la [CLI](/agents/cli)) à préparer la prochaine occurrence d'une réunion récurrente sans charger toutes les transcriptions.
 
 <Steps>
   <Step title="Retrouver les réunions précédentes">
@@ -33,7 +33,7 @@ Cette recette aide un agent (via le [serveur MCP local](/agents/mcp) ou la [CLI]
 
     Une série n'existe que pour une réunion liée à un événement récurrent de calendrier. Sur Linux et Windows, aucun calendrier n'est connecté : la liste est vide. Appuyez-vous alors sur la recherche par titre de la première étape.
   </Step>
-  <Step title="Utiliser le transcript avec parcimonie">
+  <Step title="Utiliser la transcription avec parcimonie">
     Si une décision n'est pas claire, appelez `get_meeting_transcript` avec `limit: 200`, ou lancez :
 
     ```bash

@@ -18,11 +18,11 @@ Tout se trouve dans le dossier de données de l'application :
 
 | Donnée | Stockage |
 | --- | --- |
-| Transcripts, notes, comptes rendus, contacts, dossiers, réglages | Base SQLite locale `app.db` |
-| Index de recherche plein texte | Dossier de données (copie indexée des transcripts et des notes) |
+| Transcriptions, notes, comptes rendus, contacts, dossiers, réglages | Base SQLite locale `app.db` |
+| Index de recherche plein texte | Dossier de données (copie indexée des transcriptions et des notes) |
 | Journaux techniques | Dossier de logs de l'application, avec masquage du contenu sensible et rotation par taille |
 | Clés API des serveurs d'inférence | Trousseau du système (Secret Service sous Linux, Gestionnaire d'informations d'identification sous Windows), jamais en clair dans la base |
-| Exports | Dossier choisi dans « Emplacement d'export » |
+| Exports | Dossier choisi dans « Emplacement d'export » (**Paramètres → Profil**) |
 | Audio | **Nulle part** : voir ci-dessous |
 
 <Warning>
@@ -37,14 +37,14 @@ L'audio de la capture vit en mémoire le temps d'être envoyé à votre serveur 
 - la dictée produit son audio en mémoire ;
 - l'import d'un fichier audio lit le fichier à son emplacement d'origine, sans le copier dans le dossier de données.
 
-Conséquence : si la transcription s'interrompt (serveur injoignable, clé refusée), le passage concerné manque au transcript. Syntheo l'indique et se reconnecte, mais ne peut pas le rattraper.
+Conséquence : si la transcription s'interrompt (serveur injoignable, clé refusée), le passage concerné manque à la transcription. Syntheo l'indique et se reconnecte, mais ne peut pas le rattraper.
 
 ## Ce qui sort de votre poste
 
 | Destination | Ce qui est envoyé | Quand |
 | --- | --- | --- |
 | Votre serveur de transcription | L'audio de la capture, de la dictée ou du fichier importé | Pendant la transcription |
-| Votre serveur LLM | Le texte utile à la tâche : transcript, notes, consignes du template, question du chat | Compte rendu, chat, générateur de templates |
+| Votre serveur de synthèse | Le texte utile à la tâche : transcription, notes, consignes du modèle de compte rendu, question du chat | Compte rendu, chat, « Proposer des sections » |
 
 Aucun en-tête n'identifie votre appareil. Syntheo ne bascule jamais vers un autre service si votre serveur ne répond pas.
 
@@ -58,12 +58,12 @@ Rien n'est envoyé à l'éditeur : pas de compte, pas de statistiques d'usage, p
 
 ## Supprimer vos données
 
-- **Une réunion** : supprimez-la dans l'application. Son transcript, ses notes et son entrée dans l'index de recherche disparaissent.
-- **Une clé API** : utilisez « Réinitialiser » sur le fournisseur dans Paramètres → Transcription ou Paramètres → Intelligence. La clé est retirée du trousseau.
+- **Une réunion** : supprimez-la dans l'application. Sa transcription, ses notes et son entrée dans l'index de recherche disparaissent.
+- **Une clé d'API** : dans **Paramètres → Transcription** ou **Paramètres → Synthèse**, ouvrez « Avancé », cliquez sur « Réinitialiser ce serveur… », puis sur « Réinitialiser ». L'adresse et la clé sont oubliées ; la clé est retirée du trousseau.
 - **Tout** : quittez Syntheo et supprimez le dossier de données, puis les exports que vous avez produits.
 
 ## Informer les participants
 
 Vous êtes responsable du traitement : informez les participants avant d'enregistrer une réunion. En France, enregistrer une conversation privée à leur insu est puni par l'article 226-1 du Code pénal.
 
-Au démarrage de chaque capture, Syntheo affiche un rappel. Il est activé par défaut ; pour le désactiver, ouvrez Paramètres → **Réunions** et désactivez « Rappeler aux participants l'enregistrement ».
+Au démarrage de chaque capture, Syntheo affiche un rappel. Il est activé par défaut ; pour le désactiver, ouvrez **Paramètres → Mes réunions → Réunions** et désactivez « Rappeler aux participants l'enregistrement ».

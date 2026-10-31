@@ -1,6 +1,6 @@
 ---
 title: "Agents : vue d'ensemble"
-description: "Donnez à un agent le contexte de vos réunions Syntheo, en local, sans exposer la base ni des transcripts entiers."
+description: "Donnez à un agent le contexte de vos réunions Syntheo, en local, sans exposer la base ni des transcriptions entières."
 ---
 
 Syntheo donne à un agent deux façons de lire vos réunions. Les deux passent par le même exécutable `syntheo` et lisent la base locale de l'application. Aucune ne passe par un serveur distant.
@@ -19,9 +19,9 @@ Commencez par [installer la CLI](/installation).
 1. Vérifiez que l'accès local est prêt avec `syntheo --json doctor`, ou utilisez un serveur MCP déjà connecté.
 2. Listez les réunions récentes ou cherchez un court fragment du titre. Pour un projet ou un client, listez les dossiers et filtrez par chemin de dossier.
 3. Utilisez un identifiant de réunion renvoyé par l'outil. N'en devinez jamais un.
-4. Lisez le détail de la réunion (note, résumés, participants, actions) avant de demander le transcript.
+4. Lisez le détail de la réunion (note, résumés, participants, actions) avant de demander la transcription.
 5. Ne demandez l'historique d'une série récurrente que si les réunions précédentes comptent.
-6. Lisez le transcript page par page, et arrêtez-vous dès que vous avez assez d'éléments.
+6. Lisez la transcription page par page, et arrêtez-vous dès que vous avez assez d'éléments.
 
 ## Fraîcheur des données
 
@@ -29,7 +29,7 @@ Les lectures portent sur la base locale, telle qu'elle est au moment de l'appel.
 
 ## Limites de sécurité
 
-Les agents passent par la CLI ou le MCP, jamais directement par SQLite. Ces interfaces appliquent les règles de Syntheo : note canonique, résumés générés, réunions récurrentes, texte du transcript.
+Les agents passent par la CLI ou le MCP, jamais directement par SQLite. Ces interfaces appliquent les règles de Syntheo : note canonique, résumés générés, réunions récurrentes, texte de la transcription.
 
 Les lectures restent bornées. Un agent ne peut pas modifier directement une note ou un résumé. Il peut seulement préparer une **proposition** avec les commandes `proposals` de la CLI ou les outils `propose_*` du MCP. Vous la vérifiez ensuite dans l'application : le bandeau « 1 modification en attente » apparaît sur la réunion, avec « Vérifier la note » ou « Vérifier le compte rendu ». Vous choisissez alors « Appliquer à la note », « Appliquer au résumé » ou « Refuser ».
 

@@ -17,12 +17,12 @@ Parcourez un thème, puis dépliez la question. Si quelque chose ne fonctionne p
   </Accordion>
 
   <Accordion title="Quels serveurs sont compatibles ?" id="serveurs-compatibles">
-    Pour la transcription en temps réel, **Paramètres → Transcription** propose deux fournisseurs :
+    Pour la transcription en temps réel, **Paramètres → Transcription** reconnaît deux protocoles :
 
-    - « OpenAI-compatible » : tout serveur qui parle le protocole OpenAI Realtime et `/v1/audio/transcriptions`, par exemple vLLM (avec Voxtral Realtime), speaches ou faster-whisper-server.
-    - « Nemotron ASR (NIM, WebSocket) » : un serveur NVIDIA Speech NIM déployé chez vous.
+    - « OpenAI · temps réel et par lots » : tout serveur qui parle le protocole OpenAI Realtime et `/v1/audio/transcriptions`, par exemple vLLM (avec Voxtral Realtime), speaches ou faster-whisper-server.
+    - « NVIDIA NIM · WebSocket » : un serveur NVIDIA Speech NIM déployé chez vous.
 
-    Pour les résumés et le chat, **Paramètres → Intelligence** propose « vLLM (OpenAI-compatible) » : tout serveur exposant `/v1/chat/completions` et `/v1/models`, comme vLLM, SGLang, llama.cpp server, Ollama, LM Studio, TGI ou NIM LLM.
+    Pour les comptes rendus et le chat, **Paramètres → Synthèse** accepte tout serveur compatible OpenAI exposant `/v1/chat/completions` et `/v1/models`, comme vLLM, SGLang, llama.cpp server, Ollama, LM Studio, TGI ou NIM LLM.
   </Accordion>
 
   <Accordion title="Syntheo rejoint-il l'appel ?" id="rejoint-l-appel">
@@ -38,11 +38,11 @@ Parcourez un thème, puis dépliez la question. Si quelque chose ne fonctionne p
 
 <AccordionGroup>
   <Accordion title="L'audio est-il conservé ?" id="audio-conserve">
-    Non. L'audio reste en mémoire le temps d'être envoyé à votre serveur de transcription, puis il est abandonné. Syntheo ne crée aucun fichier audio et ne propose pas de retranscrire une réunion après coup. Seuls le transcript, vos notes et les résumés sont enregistrés.
+    Non. L'audio reste en mémoire le temps d'être envoyé à votre serveur de transcription, puis il est abandonné. Syntheo ne crée aucun fichier audio et ne propose pas de retranscrire une réunion après coup. Seuls la transcription, vos notes et les comptes rendus sont enregistrés.
   </Accordion>
 
   <Accordion title="Que se passe-t-il si le serveur de transcription se coupe pendant une réunion ?" id="coupure-stt">
-    Syntheo tente de se reconnecter. Comme l'audio n'est pas conservé, la partie de la réunion prononcée pendant la coupure manque au transcript. Un bandeau l'indique avec ses horaires, par exemple « Transcription interrompue 14:32–14:35 ». Voir [Dépannage](/troubleshooting).
+    Syntheo tente de se reconnecter. Comme l'audio n'est pas conservé, la partie de la réunion prononcée pendant la coupure manque à la transcription. Un bandeau l'indique avec ses horaires, par exemple « Transcription interrompue 14:32–14:35 ». Voir [Dépannage](/troubleshooting).
   </Accordion>
 
   <Accordion title="Où sont stockées mes données ?" id="stockage">
@@ -65,8 +65,8 @@ Parcourez un thème, puis dépliez la question. Si quelque chose ne fonctionne p
 ## Réunions et notes
 
 <AccordionGroup>
-  <Accordion title="Puis-je corriger un transcript ou renommer un locuteur ?" id="corriger-transcript">
-    Oui. Vous pouvez modifier le texte du transcript et renommer les locuteurs. Voir [Notes](/notes).
+  <Accordion title="Puis-je corriger une transcription ou renommer un locuteur ?" id="corriger-transcript">
+    Oui. À l'étape Synthèse, affichez la transcription dans la marge, puis cliquez sur « Modifier » pour corriger le texte et renommer les locuteurs. Voir [Notes](/notes).
   </Accordion>
 
   <Accordion title="Syntheo distingue-t-il les locuteurs ?" id="locuteurs">
@@ -74,11 +74,11 @@ Parcourez un thème, puis dépliez la question. Si quelque chose ne fonctionne p
   </Accordion>
 
   <Accordion title="Puis-je importer un fichier audio existant ?" id="importer-audio">
-    Oui. Importez un fichier WAV, MP3, OGG, MP4, M4A, FLAC, WebM ou AAC dans une note vide. Syntheo l'envoie à votre serveur via `/v1/audio/transcriptions`, sans en garder de copie. Vous pouvez aussi importer un transcript SRT ou VTT. Voir [Importer un audio ou un transcript](/import-recordings).
+    Oui. Importez un fichier WAV, MP3, OGG, MP4, M4A, FLAC, WebM ou AAC dans une note vide. Syntheo l'envoie à votre serveur via `/v1/audio/transcriptions`, sans en garder de copie. Vous pouvez aussi importer une transcription SRT ou VTT. Voir [Importer un enregistrement](/import-recordings).
   </Accordion>
 
   <Accordion title="Quelles langues sont prises en charge ?" id="langues">
-    Choisissez votre langue principale dans **Paramètres → Général**, section « Langue et région ». Les langues réellement transcrites dépendent du modèle servi par votre serveur de transcription : vérifiez sa documentation. Voir [Langues](/languages).
+    Choisissez votre langue principale dans **Paramètres → Profil**, section « Langue et région ». Les langues réellement transcrites dépendent du modèle servi par votre serveur de transcription : vérifiez sa documentation. Voir [Langues](/languages).
   </Accordion>
 </AccordionGroup>
 

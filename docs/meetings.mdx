@@ -1,16 +1,39 @@
 ---
 title: "Enregistrer une réunion"
-description: "Démarrez, suivez et terminez une capture sans ajouter de robot à l'appel."
+description: "Préparez, écoutez et terminez une capture sans ajouter de robot à l'appel."
 ---
 
 ## Avant de commencer
 
-Syntheo a besoin d'un serveur de transcription en temps réel configuré dans **Paramètres → Transcription**. Sans lui, l'écoute ne démarre pas. Pour obtenir un résumé, configurez aussi un LLM dans **Paramètres → Intelligence**. Voir [Configurer la transcription et l'IA](/ai-setup).
+Syntheo a besoin d'un serveur de transcription en temps réel configuré dans **Paramètres → Transcription**. Sans lui, l'écoute ne démarre pas. Pour obtenir un compte rendu, configurez aussi un serveur de synthèse dans **Paramètres → Synthèse**. Voir [Configurer la transcription et l'IA](/ai-setup).
 
-## Démarrer l'enregistrement
+## Une note en trois étapes
 
-1. Créez une « Nouvelle note » ou ouvrez une note existante.
-2. Cliquez sur « Enregistrer » en haut à droite.
+Une note de réunion est un document vivant. Elle passe par trois étapes sans changer d'écran. La capsule en bas de la fenêtre affiche l'étape en cours et la seule action utile du moment :
+
+| Étape | Ce que vous voyez | Capsule |
+| --- | --- | --- |
+| 備 Préparer | Une fiche (type de réunion, participants, écoute) et vos notes | « Annuler » · « Commencer l'écoute » |
+| 聴 Écouter | Vos notes, avec la transcription dans la marge de droite | Chronomètre, niveau sonore, « Terminer » |
+| 結 Synthèse | Le compte rendu, puis vos notes | « Copier » · « Exporter » · « Demander à la note » |
+
+## Préparer la réunion
+
+1. Sur l'accueil, cliquez sur « Démarrer une réunion » (<kbd>Ctrl</kbd> + <kbd>N</kbd>). Une nouvelle note s'ouvre à l'étape **Préparer**.
+2. Saisissez le titre en haut de la note.
+3. Remplissez la fiche :
+   - **« Type »** : le type de réunion, c'est-à-dire le modèle de compte rendu. Cliquez dessus, tapez quelques lettres dans « Rechercher un type de réunion », puis choisissez un modèle. « Automatique » laisse Syntheo structurer le compte rendu lui-même. « Gérer les modèles » ouvre l'éditeur de modèles.
+   - **« Participants »** : ajoutez les personnes présentes.
+   - **« Écoute »** : rappelle les sources captées (« Micro », « Son de l'ordinateur ») et vos langues parlées.
+4. Notez ce que vous voulez retenir dans la zone de notes.
+
+Le type de réunion choisit le modèle du futur compte rendu. Il ne modifie pas ce que vous avez déjà écrit.
+
+« Annuler » vous ramène à l'écran précédent.
+
+## Démarrer l'écoute
+
+Cliquez sur « Commencer l'écoute » dans la capsule, ou appuyez sur <kbd>Ctrl</kbd> + <kbd>Maj</kbd> + <kbd>N</kbd>. Ailleurs dans l'application, ce raccourci crée une nouvelle note et lance l'écoute.
 
 Syntheo capte votre microphone et l'audio système de l'ordinateur. Il ne rejoint pas la réunion comme participant : les autres personnes ne voient pas de robot dans l'appel.
 
@@ -22,15 +45,19 @@ Au démarrage, Syntheo affiche un rappel pour informer les participants que la r
 
 ## Pendant la réunion
 
-Utilisez l'onglet « Mémos » pour vos propres notes. Elles peuvent rester brouillonnes : le résumé s'appuie à la fois sur la conversation et sur vos mémos.
+Écrivez librement dans la colonne principale. Vos notes peuvent rester brouillonnes : le compte rendu s'appuie à la fois sur la conversation et sur vos notes.
 
-Ouvrez l'onglet « Transcript » pour suivre le texte en direct. Syntheo distingue votre voix (microphone) de celle des autres participants (audio système). Si votre serveur de transcription renvoie des locuteurs, Syntheo les affiche aussi ; vous pouvez ensuite les renommer.
+La transcription défile dans la marge de droite. Syntheo distingue votre voix (microphone) de celle des autres participants (audio système). Si votre serveur de transcription renvoie des locuteurs, Syntheo les affiche aussi ; vous pourrez les renommer ensuite. Si la fenêtre est trop étroite, la marge est masquée.
+
+La capsule affiche le temps d'écoute et le niveau sonore.
 
 L'audio n'est jamais écrit sur le disque : il reste en mémoire le temps d'être envoyé à votre serveur de transcription.
 
 ### Si la transcription s'interrompt
 
-Si la connexion au serveur de transcription se coupe, Syntheo continue de capter l'audio et tente de se reconnecter. Comme l'audio n'est pas conservé, le passage manqué ne peut pas être rattrapé : le transcript indique un trou daté, par exemple « Transcription interrompue 14:32–14:35 ».
+Si la connexion au serveur de transcription se coupe, Syntheo continue de capter l'audio. En bas de la marge, un message l'indique, par exemple « Transcription en direct en pause : vous êtes hors ligne. Aucun audio n'est conservé : ce passage manquera à la transcription. Reconnexion… ». Quand le flux revient, Syntheo affiche brièvement « Transcription en direct reprise. ».
+
+Comme l'audio n'est pas conservé, le passage manqué ne peut pas être rattrapé : la transcription indique un trou daté, par exemple « Transcription interrompue 14:32–14:35 ». Voir [Dépannage](/troubleshooting).
 
 ### Garder les commandes à portée de main
 
@@ -38,11 +65,11 @@ Si « Afficher la barre flottante » est activé dans **Paramètres → Réunion
 
 ## Terminer la réunion
 
-Cliquez sur « Arrêter ». Syntheo finalise le transcript, puis génère le résumé si un LLM est configuré. Le résumé apparaît dans l'onglet « Résumé ».
+Cliquez sur « Terminer » dans la capsule. Syntheo finalise la transcription (« Finalisation… »), puis passe à l'étape **Synthèse**. Il rédige le compte rendu si un serveur de synthèse est configuré.
 
-Si la conversation reprend, vous pouvez relancer l'écoute sur la même note depuis le même bouton.
+Si la conversation reprend, ouvrez le menu **•••** de la note et choisissez « Reprendre l'écoute ».
 
-Pour relire, corriger et exporter la note, voir [Notes, résumés et exports](/notes).
+Pour relire, corriger et exporter la note, voir [Notes, comptes rendus et transcriptions](/notes).
 
 ## Partir d'un enregistrement existant
 
