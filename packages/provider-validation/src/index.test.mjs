@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  isPrivateHost,
   ProviderCredentialError,
   providerCredentialIdentity,
   validateProviderBaseUrl,
@@ -277,4 +278,34 @@ test("validateProviderBaseUrl_accepts_private_hosts_and_https", () => {
   ]) {
     assert.ok(validateProviderBaseUrl(baseUrl) instanceof URL);
   }
+});
+
+test("isPrivateHost_accepte_les_noms_magicdns_du_tailnet", () => {
+  for (const host of [
+    "machine.tailnet.ts.net",
+    "spark.tail6cba9f.ts.net",
+    "SPARK.Tail6cba9f.TS.NET",
+  ]) {
+    assert.equal(isPrivateHost(host), true, host);
+  }
+  const url = validateProviderBaseUrl("http://machine.tailnet.ts.net:9000");
+  assert.equal(url.hostname, "machine.tailnet.ts.net");
+});
+
+test("isPrivateHost_refuse_les_imitations_du_suffixe_ts_net", () => {
+  for (const host of [
+    "ts.net",
+    ".ts.net",
+    "evil-ts.net",
+    "machine.evil-ts.net",
+    "machine.ts.net.evil.com",
+    "machine.ts.network",
+    "machinets.net",
+  ]) {
+    assert.equal(isPrivateHost(host), false, host);
+  }
+  assert.throws(
+    () => validateProviderBaseUrl("http://evil-ts.net:9000"),
+    /Utilisez HTTPS : le HTTP n'est accepté que sur cette machine ou un réseau privé\./,
+  );
 });

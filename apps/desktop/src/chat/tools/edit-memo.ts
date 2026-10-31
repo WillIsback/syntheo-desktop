@@ -40,6 +40,7 @@ export const buildEditMemoTool = (
       if (!sessionId) {
         return {
           status: "error",
+          code: "no_session",
           message:
             "No active session selected. Provide sessionId explicitly when calling edit_memo.",
         };

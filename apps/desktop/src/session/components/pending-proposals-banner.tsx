@@ -3,8 +3,8 @@ import { Trans } from "@lingui/react/macro";
 import { Button } from "@syntheo/ui/components/ui/button";
 
 import {
-  openProposalReview,
   proposalKindLabel,
+  reviewPendingProposal,
 } from "~/session/proposal-review";
 import { usePendingSessionProposals } from "~/session/queries";
 
@@ -31,7 +31,9 @@ export function PendingProposalsBanner({ sessionId }: { sessionId: string }) {
               type="button"
               size="sm"
               variant="outline"
-              onClick={() => openProposalReview(proposal.id)}
+              // Compte-rendu : revue dans le document vivant si la note est
+              // affichée ; sinon (ou pour le mémo), onglet de revue.
+              onClick={() => reviewPendingProposal(proposal)}
             >
               {proposalKindLabel(proposal.kind) === "memo" ? (
                 <Trans>Review memo</Trans>

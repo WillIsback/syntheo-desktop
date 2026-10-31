@@ -1,7 +1,15 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
-import { getMeetingTypeTemplates, PrepareFiche } from "./fiche";
+import { PrepareFiche } from "./fiche";
 
 import type { UserTemplate } from "~/templates";
 
@@ -40,37 +48,11 @@ function template(id: string, extra: Partial<UserTemplate> = {}): UserTemplate {
   } as unknown as UserTemplate;
 }
 
-describe("getMeetingTypeTemplates", () => {
-  it("lists the selected template, favourites, then defaults, without duplicates", () => {
-    const templates = [
-      template("default-daily-standup"),
-      template("fav-b", { pinned: true, pinOrder: 2 }),
-      template("fav-a", { pinned: true, pinOrder: 1 }),
-      template("custom"),
-      template("default-one-on-one-meeting"),
-    ];
-
-    expect(
-      getMeetingTypeTemplates(templates, "custom").map(({ id }) => id),
-    ).toEqual([
-      "custom",
-      "fav-a",
-      "fav-b",
-      "default-daily-standup",
-      "default-one-on-one-meeting",
-    ]);
-    expect(
-      getMeetingTypeTemplates(templates, "fav-b").map(({ id }) => id),
-    ).toEqual([
-      "fav-b",
-      "fav-a",
-      "default-daily-standup",
-      "default-one-on-one-meeting",
-    ]);
-  });
-});
-
 describe("PrepareFiche", () => {
+  beforeAll(() => {
+    Element.prototype.scrollIntoView ??= vi.fn();
+  });
+
   beforeEach(() => {
     mocks.rawTemplateId = "";
     mocks.templates = [template("default-daily-standup", { title: "Point" })];
@@ -95,16 +77,28 @@ describe("PrepareFiche", () => {
     expect(screen.getByText("French")).not.toBeNull();
   });
 
-  it("marks the chosen type and changes it on click", () => {
+  it("shows the chosen type and changes it from the searchable picker", () => {
     const onSelectTemplate = vi.fn();
     render(<PrepareFiche sessionId="s" onSelectTemplate={onSelectTemplate} />);
 
-    const automatic = screen.getByRole("button", { name: "Automatic" });
-    const point = screen.getByRole("button", { name: "Point" });
-    expect(automatic.getAttribute("aria-pressed")).toBe("true");
-    expect(point.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Meeting type: Automatic" }),
+    );
+    fireEvent.change(
+      screen.getByRole("combobox", { name: "Search a meeting type" }),
+      { target: { value: "poi" } },
+    );
+    fireEvent.click(screen.getByRole("option", { name: "Point" }));
 
-    fireEvent.click(point);
     expect(onSelectTemplate).toHaveBeenCalledWith("default-daily-standup");
+  });
+
+  it("shows the title of the session's template", () => {
+    mocks.rawTemplateId = "default-daily-standup";
+    render(<PrepareFiche sessionId="s" onSelectTemplate={vi.fn()} />);
+
+    expect(
+      screen.getByRole("button", { name: "Meeting type: Point" }),
+    ).toBeTruthy();
   });
 });

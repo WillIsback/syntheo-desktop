@@ -23,7 +23,7 @@
   --color-faint: hsl(var(--faint));
   --color-recording: hsl(var(--recording));
   --color-seal: hsl(var(--seal));
-  --color-ai-ink: hsl(var(--ai-ink));
+  --color-user-ink: hsl(var(--user-ink));
 
   --color-chart-1: hsl(var(--chart-1));
   --color-chart-2: hsl(var(--chart-2));

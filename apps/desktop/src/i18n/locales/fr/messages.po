@@ -280,6 +280,10 @@ msgstr "Ajoutez au dossier"
 msgid "Add webhook"
 msgstr "Ajoutez un webhook"
 
+#: src/session/components/living-document/summary-review.tsx
+msgid "Added:"
+msgstr "Ajouté :"
+
 #: src/settings/general/spoken-languages.tsx
 msgid "Additional spoken languages"
 msgstr "Langues parlées supplémentaires"
@@ -317,6 +321,7 @@ msgstr "Tous les événements"
 msgid "All Notes"
 msgstr "Toutes les notes"
 
+#: src/session/components/living-document/meeting-type-picker.tsx
 #: src/templates/template-sidebar.tsx
 msgid "All templates"
 msgstr "Tous les modèles"
@@ -370,11 +375,14 @@ msgstr "Menu de l'application"
 msgid "Apply to all"
 msgstr "Appliquer à tout"
 
+#: src/chat/components/message/tool/edit-summary.tsx
 #: src/edit/tab-content.tsx
 msgid "Apply to memo"
 msgstr "Appliquer à la note"
 
+#: src/chat/components/message/tool/edit-summary.tsx
 #: src/edit/tab-content.tsx
+#: src/session/components/living-document/summary-review.tsx
 msgid "Apply to summary"
 msgstr "Appliquer au résumé"
 
@@ -444,7 +452,7 @@ msgstr "Ajouter automatiquement les réunions futures ?"
 msgid "Automate what happens before, during, or after meetings based on the conditions you choose."
 msgstr "Automatisez ce qui se passe avant, pendant ou après les réunions en fonction des conditions que vous choisissez."
 
-#: src/session/components/living-document/fiche.tsx
+#: src/session/components/living-document/meeting-type-picker.tsx
 #: src/templates/auto-form.tsx
 #: src/templates/template-sidebar.tsx
 msgid "Automatic"
@@ -1026,6 +1034,10 @@ msgstr "Création du brief..."
 msgid "Current default"
 msgstr "Valeur par défaut actuelle"
 
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "Current type"
+msgstr "Type actuel"
+
 #: src/templates/template-sidebar.tsx
 msgid "customized"
 msgstr "personnalisé"
@@ -1046,7 +1058,9 @@ msgstr "Date"
 msgid "Date and time are required"
 msgstr "La date et l'heure sont obligatoires"
 
+#: src/chat/components/message/tool/edit-summary.tsx
 #: src/edit/tab-content.tsx
+#: src/session/components/living-document/summary-review.tsx
 msgid "Decline"
 msgstr "Refuser"
 
@@ -1054,6 +1068,7 @@ msgstr "Refuser"
 msgid "default"
 msgstr "par défaut"
 
+#: src/session/components/living-document/meeting-type-picker.tsx
 #: src/settings/appearance/app-icon.tsx
 #: src/templates/template-sidebar.tsx
 msgid "Default"
@@ -1235,8 +1250,23 @@ msgstr "Modifier"
 msgid "Edit date"
 msgstr "Modifier la date"
 
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Edit memo"
+msgstr "Modifier le mémo"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Edit memo — waiting for your review"
+msgstr "Modifier le mémo — en attente de votre validation"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Edit summary"
+msgstr "Modifier le résumé"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Edit summary — waiting for your review"
+msgstr "Modifier le résumé — en attente de votre validation"
+
 #: src/contacts/details.tsx
-#: src/settings/general/account-profile.tsx
 msgid "Email"
 msgstr "E-mail"
 
@@ -1783,7 +1813,6 @@ msgid "Light"
 msgstr "Clair"
 
 #: src/contacts/details.tsx
-#: src/settings/general/account-profile.tsx
 msgid "LinkedIn"
 msgstr "LinkedIn"
 
@@ -1893,6 +1922,10 @@ msgstr "Allongez le résumé."
 msgid "Make the summary shorter."
 msgstr "Raccourcissez le résumé."
 
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "Manage templates"
+msgstr "Gérer les modèles"
+
 #: src/settings/automations/workflow-builder.tsx
 msgid "Markdown export"
 msgstr "Export Markdown"
@@ -1957,9 +1990,17 @@ msgstr "Historique de réunion importé"
 msgid "Meeting info"
 msgstr "Informations sur la réunion"
 
-#: src/session/components/living-document/fiche.tsx
+#: src/session/components/living-document/meeting-type-picker.tsx
 msgid "Meeting type"
 msgstr "Type de réunion"
+
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "Meeting type: {selectedLabel}"
+msgstr "Type de réunion : {selectedLabel}"
+
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "Meeting types"
+msgstr "Types de réunion"
 
 #: src/settings/general/index.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -1983,6 +2024,18 @@ msgstr "Mémo"
 #: src/session/components/note-input/header-raw.tsx
 msgid "Memo copied to clipboard"
 msgstr "Mémo copié dans le presse-papiers"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Memo edit declined"
+msgstr "Modification du mémo refusée"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Memo edit failed"
+msgstr "Échec de la modification du mémo"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Memo updated"
+msgstr "Mémo mis à jour"
 
 #: src/session/components/note-input/header-raw.tsx
 msgid "Memos"
@@ -2089,6 +2142,7 @@ msgstr "Multilingue · locuteurs"
 msgid "My automations"
 msgstr "Mes automatisations"
 
+#: src/session/components/living-document/meeting-type-picker.tsx
 #: src/templates/template-sidebar.tsx
 msgid "My favorites"
 msgstr "Mes favoris"
@@ -2266,6 +2320,10 @@ msgstr "Aucune langue correspondante trouvée"
 msgid "No matching people"
 msgstr "Aucune personne correspondante"
 
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "No meeting type found"
+msgstr "Aucun type de réunion trouvé"
+
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "No people"
 msgstr "Aucune personne"
@@ -2419,6 +2477,14 @@ msgstr "Ouvrir"
 msgid "Open {0} settings"
 msgstr "Ouvrir les paramètres de {0}"
 
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Open a note to edit its memo."
+msgstr "Ouvrez une note pour modifier son mémo."
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Open a note to edit its summary."
+msgstr "Ouvrez une note pour modifier son résumé."
+
 #: src/chat/components/body/empty.tsx
 msgid "Open AI Settings"
 msgstr "Ouvrir les paramètres de l'IA"
@@ -2557,7 +2623,6 @@ msgid "Permissions granted"
 msgstr "Autorisations accordées"
 
 #: src/contacts/details.tsx
-#: src/settings/general/account-profile.tsx
 msgid "Phone"
 msgstr "Téléphone"
 
@@ -2632,6 +2697,14 @@ msgstr "Production"
 #: src/sidebar/settings-nav-groups.ts
 msgid "Profile"
 msgstr "Profil"
+
+#: src/session/components/living-document/summary-review.tsx
+msgid "Proposed edit to the summary"
+msgstr "Modification proposée du résumé"
+
+#: src/session/components/living-document/summary-review.tsx
+msgid "Proposed summary edit"
+msgstr "Modification proposée du résumé"
 
 #: src/settings/ai/stt/server-card.tsx
 msgid "Protocol"
@@ -2770,6 +2843,14 @@ msgstr "Retirer des favoris"
 #: src/contacts/profile-photo.tsx
 msgid "Remove photo"
 msgstr "Supprimer la photo"
+
+#: src/session/components/living-document/summary-review.tsx
+msgid "Removed text is struck through, added text is highlighted."
+msgstr "Le texte retiré est barré, le texte ajouté est surligné."
+
+#: src/session/components/living-document/summary-review.tsx
+msgid "Removed:"
+msgstr "Retiré :"
 
 #: src/automations/starters.tsx
 msgid "Render canonical Markdown"
@@ -2942,6 +3023,10 @@ msgstr "Faire défiler jusqu'en bas"
 #: src/session/components/note-input/transcript/renderer/index.tsx
 msgid "Scroll to top"
 msgstr "Faire défiler jusqu'en haut"
+
+#: src/session/components/living-document/meeting-type-picker.tsx
+msgid "Search a meeting type"
+msgstr "Rechercher un type de réunion"
 
 #: src/home/home-capsule.tsx
 msgid "Search a note"
@@ -3427,6 +3512,14 @@ msgstr "Résumé"
 msgid "Summary complete"
 msgstr "Résumé terminé"
 
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Summary edit declined"
+msgstr "Modification du résumé refusée"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Summary edit failed"
+msgstr "Échec de la modification du résumé"
+
 #: src/templates/auto-form.tsx
 msgid "Summary format"
 msgstr "Format du résumé"
@@ -3451,6 +3544,10 @@ msgstr "Résumé prêt"
 #: src/session/components/living-document/summary-switcher.tsx
 msgid "Summary templates"
 msgstr "Modèles du compte-rendu"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Summary updated"
+msgstr "Résumé mis à jour"
 
 #: src/settings/general/week-start.tsx
 msgid "Sunday"
@@ -3483,6 +3580,10 @@ msgstr "Syntheo ne parvient pas à joindre {providerName}"
 #: src/settings/developers/cli.tsx
 msgid "Syntheo CLI"
 msgstr "Syntheo CLI"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Syntheo could not find this summary in the note. Ask again from the note."
+msgstr "Syntheo n'a pas trouvé ce résumé dans la note. Redemandez depuis la note."
 
 #: src/lock/gate.tsx
 msgid "Syntheo is Locked"
@@ -3644,6 +3745,10 @@ msgstr "Les réunions auxquelles ce modèle est destiné (équipe, rôle, fréqu
 msgid "The language model that writes your meeting notes and answers when you ask a note a question."
 msgstr "Le modèle de langage qui rédige vos comptes-rendus et répond quand vous interrogez une note."
 
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "The memo edit could not be prepared."
+msgstr "La modification du mémo n'a pas pu être préparée."
+
 #: src/settings/dictation.tsx
 msgid "The one that captures your voice."
 msgstr "Celui qui capte votre voix."
@@ -3651,6 +3756,10 @@ msgstr "Celui qui capte votre voix."
 #: src/shared/control.tsx
 msgid "The page you're looking for doesn't exist."
 msgstr "La page que vous recherchez n'existe pas."
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "The proposed edit could not be saved."
+msgstr "La modification proposée n'a pas pu être enregistrée."
 
 #. placeholder {0}: health.message ?? ""
 #: src/settings/ai/llm/server-card.tsx
@@ -3680,6 +3789,14 @@ msgstr "Le serveur a refusé la clé d'API. Vérifiez-la dans « Avancé », pui
 #: src/settings/ai/stt/index.tsx
 msgid "The server that turns speech into text during your meetings. Audio is never written to disk."
 msgstr "Le serveur qui transforme la voix en texte, pendant la réunion. L'audio n'est jamais écrit sur le disque."
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "The summary edit could not be applied."
+msgstr "La modification du résumé n'a pas pu être appliquée."
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "The summary edit could not be prepared."
+msgstr "La modification du résumé n'a pas pu être préparée."
 
 #: src/templates/template-generator-bar.tsx
 msgid "The summary server did not respond. Check that it is running, then try again."
@@ -3713,6 +3830,10 @@ msgstr "Réflexion..."
 msgid "This device"
 msgstr "Cet appareil"
 
+#: src/session/components/living-document/summary-review.tsx
+msgid "This edit could not be saved. Try again."
+msgstr "Cette modification n'a pas pu être enregistrée. Réessayez."
+
 #: src/edit/tab-content.tsx
 msgid "This edit is no longer pending."
 msgstr "Cette modification n'est plus en attente."
@@ -3724,6 +3845,10 @@ msgstr "Ces informations restent sur votre poste. Elles servent à vous reconna�
 #: src/calendar/components/event-chip.tsx
 msgid "This note"
 msgstr "Cette note"
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "This note has no summary to edit yet."
+msgstr "Cette note n'a pas encore de résumé à modifier."
 
 #: src/session/components/note-conflict-banner.tsx
 msgid "This note was edited on another device at the same time. The later edit was kept."
@@ -3935,7 +4060,7 @@ msgid "Unreachable"
 msgstr "Injoignable"
 
 #: src/home/note-index.tsx
-#: src/session/components/living-document/fiche.tsx
+#: src/session/components/living-document/meeting-type-picker.tsx
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/session/components/title-input.tsx

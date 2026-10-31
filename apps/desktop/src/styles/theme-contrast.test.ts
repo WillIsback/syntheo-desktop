@@ -75,8 +75,8 @@ const TEXT_PAIRS: Array<[string, string]> = [
   ["destructive", "card"],
   ["alert-foreground", "background"],
   ["alert-foreground", "card"],
-  ["ai-ink", "background"],
-  ["ai-ink", "card"],
+  ["user-ink", "background"],
+  ["user-ink", "card"],
   ["recording", "background"],
   ["recording", "card"],
   // Bouton « Commencer l'écoute » de la capsule : texte background sur recording.
