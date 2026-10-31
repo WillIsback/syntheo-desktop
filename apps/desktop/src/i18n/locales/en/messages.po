@@ -574,6 +574,10 @@ msgstr "Busiest day"
 msgid "Busy"
 msgstr "Busy"
 
+#: src/templates/utils.ts
+msgid "by {name}"
+msgstr "by {name}"
+
 #: src/settings/general/permissions.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Calendar"
@@ -1152,6 +1156,10 @@ msgstr "Created {0}"
 #: src/settings/automations/index.tsx
 msgid "Created {createdAt}"
 msgstr "Created {createdAt}"
+
+#: src/templates/utils.ts
+msgid "Created by {name}"
+msgstr "Created by {name}"
 
 #: src/session/components/note-input/raw.tsx
 msgid "Creating brief..."
@@ -4247,6 +4255,10 @@ msgstr "Written by Syntheo"
 #: src/sidebar/timeline/utils/index.ts
 msgid "Yesterday"
 msgstr "Yesterday"
+
+#: src/templates/utils.ts
+msgid "you"
+msgstr "you"
 
 #: src/calendar/components/apple/permission.tsx
 msgid "You can"

@@ -1,3 +1,4 @@
+import { t as translate } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo } from "react";
 
@@ -86,8 +87,12 @@ export function getTemplateCreatorLabel({
   creatorName?: string | null;
   format?: "full" | "short";
 }) {
-  const name = isUserTemplate ? creatorName?.trim() || "vous" : "Syntheo";
-  return format === "short" ? `par ${name}` : `Créé par ${name}`;
+  const name = isUserTemplate
+    ? creatorName?.trim() || translate`you`
+    : "Syntheo";
+  return format === "short"
+    ? translate`by ${name}`
+    : translate`Created by ${name}`;
 }
 
 export function filterWebTemplatesAgainstUserTemplates({
