@@ -21,6 +21,8 @@ import { SearchBar } from "./search/bar";
 import { useSearch } from "./search/context";
 import { Transcript } from "./transcript";
 
+import type { NoteStage } from "~/session/components/capsule/stage";
+import { LivingDocument } from "~/session/components/living-document";
 import { useCurrentNoteTab } from "~/session/components/shared";
 import {
   registerCanonicalSessionEditor,
@@ -57,6 +59,8 @@ type NoteInputProps = {
   sessionMode?: SessionMode;
   transcriptEditMode?: boolean;
   onTranscriptEditModeChange?: (editMode: boolean) => void;
+  // Document vivant : l'étape remplace les onglets Résumé / Notes / Transcript.
+  stage?: NoteStage;
 };
 
 export function shouldShowTranscriptTabSpinner(sessionMode: SessionMode) {
@@ -155,6 +159,7 @@ const NoteInputContent = forwardRef<
       sessionMode,
       transcriptEditMode = false,
       onTranscriptEditModeChange,
+      stage,
     },
     ref,
   ) => {
@@ -332,6 +337,44 @@ const NoteInputContent = forwardRef<
       (view: EditorView) => unregisterCanonicalSessionEditor(sessionId, view),
       [sessionId],
     );
+
+    if (stage) {
+      return (
+        <div className="-mx-2 flex h-full flex-col">
+          {showSearchBar && isSearchableTab && (
+            <div className="px-3 pt-1">
+              <SearchBar
+                editorRef={internalEditorRef}
+                allowReplace={isEditableTab}
+              />
+            </div>
+          )}
+          <div className="relative min-h-0 flex-1 overflow-hidden">
+            <LivingDocument
+              tab={tab}
+              stage={stage}
+              sessionMode={sessionMode}
+              rawMd={rawMd}
+              sessionTitle={sessionTitle}
+              eventTitle={eventTitle}
+              eventDescription={eventDescription}
+              editorTabs={editorTabs}
+              currentTab={renderedCurrentTab}
+              onSelectView={handleTabChange}
+              editorRef={internalEditorRef}
+              scrollRef={scrollRef}
+              onContainerMouseDown={handleContainerMouseDown}
+              onScroll={onScroll}
+              onNavigateToTitle={onNavigateToTitle}
+              onViewReady={handleSessionViewReady}
+              onViewDisposed={handleSessionViewDisposed}
+              transcriptEditMode={transcriptEditMode}
+              onTranscriptEditModeChange={onTranscriptEditModeChange}
+            />
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="-mx-2 flex h-full flex-col">
