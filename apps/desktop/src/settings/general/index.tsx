@@ -190,11 +190,19 @@ function SettingsSectionContent({
   });
   return (
     <div className="flex flex-col gap-8">
-      <SettingsPageTitle
-        title={
-          section === "app" ? <Trans>General</Trans> : <Trans>Meetings</Trans>
-        }
-      />
+      {section === "app" ? (
+        <SettingsPageTitle
+          title={<Trans>Profile</Trans>}
+          lede={
+            <Trans>
+              This information stays on your computer. It is used to recognize
+              you in transcripts and to sign your meeting notes.
+            </Trans>
+          }
+        />
+      ) : (
+        <SettingsPageTitle title={<Trans>Meetings</Trans>} />
+      )}
 
       {section === "app" && (
         <>

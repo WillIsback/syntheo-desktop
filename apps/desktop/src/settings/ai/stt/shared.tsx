@@ -70,7 +70,7 @@ const _PROVIDERS = [
         url: "https://docs.nvidia.com/nim/speech/latest/reference/api-references/asr/realtime-asr.html",
       },
       setup: {
-        label: "API setup",
+        label: "Mise en route du NIM",
         url: "https://docs.nvidia.com/nim/speech/latest/get-started/tutorials/asr.html",
       },
     },

@@ -71,10 +71,21 @@ export function DictationShortcut({ shortcut }: { shortcut: string }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-4">
-        <span id="dictation-shortcut-label" className="text-sm font-medium">
-          <Trans>Dictation shortcut</Trans>
-        </span>
+      <div className="flex items-center justify-between gap-5">
+        <div className="min-w-0 flex-1">
+          <span
+            id="dictation-shortcut-label"
+            className="block text-[15px] font-medium"
+          >
+            <Trans>Dictation shortcut</Trans>
+          </span>
+          <p className="text-muted-foreground text-[13px]">
+            <Trans>
+              Click the shortcut to record a new key combination. Press Escape
+              to cancel.
+            </Trans>
+          </p>
+        </div>
         <Button
           type="button"
           variant="outline"
@@ -126,7 +137,7 @@ export function DictationShortcut({ shortcut }: { shortcut: string }) {
               {shortcut.split("+").map((key) => (
                 <kbd
                   key={key}
-                  className="bg-muted rounded border px-1.5 py-0.5 font-sans text-xs"
+                  className="border-input bg-card rounded-md border border-b-2 px-1.5 py-0.5 font-mono text-xs"
                 >
                   {labels[key] ?? key.replace(/^(Key|Digit)/, "")}
                 </kbd>
@@ -135,12 +146,6 @@ export function DictationShortcut({ shortcut }: { shortcut: string }) {
           )}
         </Button>
       </div>
-      <p className="text-muted-foreground text-xs">
-        <Trans>
-          Click the shortcut to record a new key combination. Press Escape to
-          cancel.
-        </Trans>
-      </p>
       {save.error && (
         <p role="alert" className="text-destructive text-sm">
           {save.error.message}

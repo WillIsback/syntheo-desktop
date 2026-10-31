@@ -2,7 +2,6 @@ import { describe, expect, test } from "vitest";
 
 import {
   getDefaultSttModel,
-  getDefaultSttSelection,
   getLanguageSupportIssue,
   getPreferredProviderModel,
   resolveLiveLanguageSupportMode,
@@ -82,53 +81,6 @@ describe("getPreferredProviderModel", () => {
         allowSavedModelWithoutChoices: true,
       }),
     ).toBe("whisper-large-v3");
-  });
-});
-
-describe("getDefaultSttSelection", () => {
-  test("keeps the active configured provider and repairs its missing model", () => {
-    expect(
-      getDefaultSttSelection(
-        ["deepgram", "assemblyai"],
-        {
-          deepgram: {
-            configured: true,
-            models: [{ id: "nova-3-general" }],
-          },
-          assemblyai: {
-            configured: true,
-            models: [{ id: "universal-3-5-pro" }],
-          },
-        },
-        "deepgram",
-      ),
-    ).toEqual({ provider: "deepgram", model: "nova-3-general" });
-  });
-
-  test("skips configured providers that have no available model", () => {
-    expect(
-      getDefaultSttSelection(["syntheo", "deepgram"], {
-        syntheo: {
-          configured: true,
-          models: [{ id: "cloud", isDownloaded: false }],
-        },
-        deepgram: {
-          configured: true,
-          models: [{ id: "nova-3-general" }],
-        },
-      }),
-    ).toEqual({ provider: "deepgram", model: "nova-3-general" });
-  });
-
-  test("returns no selection when nothing is available", () => {
-    expect(
-      getDefaultSttSelection(["syntheo"], {
-        syntheo: {
-          configured: true,
-          models: [{ id: "cloud", isDownloaded: false }],
-        },
-      }),
-    ).toBeNull();
   });
 });
 

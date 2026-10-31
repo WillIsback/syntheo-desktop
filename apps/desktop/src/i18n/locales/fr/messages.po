@@ -45,11 +45,6 @@ msgstr "{0} n'a pas pu être installé"
 msgid "{0} is ready to use"
 msgstr "{0} est prêt à être utilisé"
 
-#. placeholder {0}: number.format(stats.medianMinutes)
-#: src/settings/stats/insights.tsx
-msgid "{0} min"
-msgstr "{0} min"
-
 #. placeholder {0}: issue.user?.login
 #: src/task/resource-view.tsx
 msgid "{0} opened on"
@@ -73,34 +68,25 @@ msgstr "il y a {absDays} jours"
 msgid "{count} contacts share the same name or email. Merge them to consolidate all related notes and information."
 msgstr "{count} contacts partagent le même nom ou la même adresse e-mail. Fusionnez-les pour regrouper toutes les notes et informations associées."
 
-#: src/settings/stats/badge-collection.tsx
-msgid "{count} of {total} collected"
-msgstr "{count} sur {total} collectés"
-
-#: src/settings/stats/index.tsx
-msgid "{date}. Conversations: {count}"
-msgstr "{date}. Conversations : {count}"
+#: src/settings/ai/stt/language-warning.tsx
+msgid "{count} more"
+msgstr "{count} de plus"
 
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "{entryCount} selected"
 msgstr "{entryCount} sélectionné(s)"
 
-#. placeholder {0}: formatLanguageList(unsupportedLanguages)
-#: src/settings/ai/stt/select.tsx
-msgid "{model} can't transcribe {0}. Try another model or change your spoken languages."
-msgstr "{model} ne peut pas transcrire {0}. Essayez un autre modèle ou modifiez vos langues parlées."
+#: src/settings/ai/stt/language-warning.tsx
+msgid "{model} can't transcribe {languages}. Try another model or change your spoken languages."
+msgstr "{model} ne sait pas transcrire {languages}. Essayez un autre modèle ou changez vos langues parlées."
 
-#: src/settings/ai/stt/select.tsx
+#: src/settings/ai/stt/language-warning.tsx
 msgid "{model} can't transcribe all selected languages together. Try another model or use fewer spoken languages."
 msgstr "{model} ne peut pas transcrire toutes les langues sélectionnées ensemble. Essayez un autre modèle ou utilisez moins de langues parlées."
 
 #: src/sidebar/timeline/utils/index.ts
 msgid "{months} months ago"
 msgstr "il y a {months} mois"
-
-#: src/settings/stats/insights.tsx
-msgid "{peakCount} of {total} conversations ({share}) started on this weekday in the selected period."
-msgstr "{peakCount} sur {total} conversations ({share}) ont commencé ce jour de la semaine sur la période sélectionnée."
 
 #: src/composer/index.tsx
 msgid "{primaryModifier} ↩ to send"
@@ -109,14 +95,6 @@ msgstr "{primaryModifier} ↩ pour envoyer"
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "{title} deleted"
 msgstr "{title} supprimé"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "{value} / {target} active weeks"
-msgstr "{value} / {target} semaines actives"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "{value} / {target} conversations"
-msgstr "{value} / {target} conversations"
 
 #: src/sidebar/timeline/utils/index.ts
 msgid "{weeks} weeks ago"
@@ -138,21 +116,9 @@ msgstr "+ Nouveau modèle"
 msgid "1 pending edit"
 msgstr "1 modification en attente"
 
-#: src/settings/stats/date-range.tsx
-msgid "30 days"
-msgstr "30 jours"
-
-#: src/settings/stats/date-range.tsx
-msgid "7 days"
-msgstr "7 jours"
-
 #: src/sidebar/folder-name-dialog.tsx
 msgid "A folder with this name already exists."
 msgstr "Un dossier portant ce nom existe déjà."
-
-#: src/settings/stats/insights.tsx
-msgid "A little more history will help"
-msgstr "Un peu plus d'historique sera utile"
 
 #: src/automations/starters.tsx
 msgid "A Markdown file with the note, summary, and transcript."
@@ -176,18 +142,10 @@ msgstr "Accessibilité"
 msgid "Action"
 msgstr "Action"
 
-#: src/settings/stats/index.tsx
-msgid "Active days"
-msgstr "Jours actifs"
-
 #: src/chat/components/message/normal.tsx
 #: src/templates/template-icon-picker.tsx
 msgid "Activity"
 msgstr "Activité"
-
-#: src/settings/stats/index.tsx
-msgid "Activity over the past year"
-msgstr "Activité au cours de l'année écoulée"
 
 #: src/contacts/shared.tsx
 #: src/settings/dictionary/index.tsx
@@ -310,7 +268,7 @@ msgstr "Ajoutez un webhook"
 msgid "Additional spoken languages"
 msgstr "Langues parlées supplémentaires"
 
-#: src/settings/ai/shared/index.tsx
+#: src/settings/ai/shared/server-address.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Advanced"
 msgstr "Avancé"
@@ -343,17 +301,9 @@ msgstr "Tous les événements"
 msgid "All Notes"
 msgstr "Toutes les notes"
 
-#: src/settings/stats/badge-collection.tsx
-msgid "All Set"
-msgstr "Tout est prêt"
-
 #: src/templates/template-sidebar.tsx
 msgid "All templates"
 msgstr "Tous les modèles"
-
-#: src/settings/stats/date-range.tsx
-msgid "All time"
-msgstr "Toute la période"
 
 #: src/session/components/outer-header/overflow/always-on-top.tsx
 msgid "Always on Top"
@@ -379,17 +329,9 @@ msgstr "Animaux et nature"
 msgid "Another contact shares the same name or email. Merge them to consolidate all related notes and information."
 msgstr "Un autre contact partage le même nom ou la même adresse e-mail. Fusionnez-les pour regrouper toutes les notes et informations associées."
 
-#: src/settings/ai/shared/index.tsx
-msgid "API Key"
-msgstr "Clé API"
-
-#: src/settings/ai/shared/provider-selection-prompt.ts
-msgid "API key saved"
-msgstr "Clé API enregistrée"
-
-#: src/sidebar/settings-nav-groups.ts
-msgid "App"
-msgstr "Application"
+#: src/settings/ai/shared/server-address.tsx
+msgid "API key (optional)"
+msgstr "Clé d'API (facultative)"
 
 #: src/settings/appearance/app-icon.tsx
 msgid "App icon"
@@ -466,6 +408,10 @@ msgstr "Authentifiez-vous pour continuer."
 msgid "Authenticating…"
 msgstr "Authentification…"
 
+#: src/settings/ai/llm/server-card.tsx
+msgid "Auto"
+msgstr "Auto"
+
 #: src/templates/auto-form.tsx
 msgid "Auto summary format"
 msgstr "Format de résumé automatique"
@@ -525,24 +471,12 @@ msgstr "Automatisation retirée"
 msgid "Automations"
 msgstr "Automatisations"
 
-#: src/settings/stats/insights.tsx
-msgid "Average across the capture days counted above."
-msgstr "Moyenne sur les jours de capture comptabilisés ci-dessus."
-
 #: src/calendar/components/apple/permission.tsx
 #: src/calendar/components/event-chip.tsx
 #: src/instruction/index.tsx
 #: src/sidebar/custom-sidebar-header.tsx
 msgid "Back"
 msgstr "Retour"
-
-#: src/settings/ai/shared/index.tsx
-msgid "Base URL"
-msgstr "URL de base"
-
-#: src/settings/stats/insights.tsx
-msgid "Based on captured conversations, including imported transcripts. Each conversation is counted once, on its first capture day in the selected period, using your calendar timezone. Deleted conversations are excluded."
-msgstr "Basé sur les conversations capturées, y compris les transcripts importés. Chaque conversation est comptée une seule fois, le jour de sa première capture dans la période sélectionnée, en utilisant le fuseau horaire de votre calendrier. Les conversations supprimées sont exclues."
 
 #: src/chat/components/body/empty.tsx
 msgid "Based on the conversation so far, suggest a few questions I could ask next."
@@ -576,10 +510,6 @@ msgstr "Canevas clair"
 msgid "Bring your meeting history"
 msgstr "Importez votre historique de réunions"
 
-#: src/settings/stats/insights.tsx
-msgid "Busiest day"
-msgstr "Jour le plus chargé"
-
 #: src/calendar/components/event-chip.tsx
 msgid "Busy"
 msgstr "Occupé"
@@ -599,6 +529,7 @@ msgstr "Calendrier connecté"
 
 #: src/calendar/components/apple/permission.tsx
 #: src/session/components/capsule/index.tsx
+#: src/settings/ai/shared/server-address.tsx
 #: src/settings/dictionary/index.tsx
 #: src/settings/general/storage/legacy-cleanup.tsx
 #: src/shared/ui/destructive-confirmation-dialog.tsx
@@ -615,34 +546,6 @@ msgstr "Annuler la modification de la date"
 msgid "Cancel dictation"
 msgstr "Annuler la dictée"
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Capture 10 conversations. More moments you can return to."
-msgstr "Capturer 10 conversations. Davantage de moments auxquels vous pouvez revenir."
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Capture 100 conversations. A hundred stories, saved in your own words."
-msgstr "Capturer 100 conversations. Cent histoires, enregistrées avec vos propres mots."
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Capture 250 conversations. Your own library of shared knowledge."
-msgstr "Capturer 250 conversations. Votre propre bibliothèque de connaissances partagées."
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Capture 50 conversations. A growing collection of ideas and decisions."
-msgstr "Capturer 50 conversations. Une collection croissante d’idées et de décisions."
-
-#: src/settings/stats/insights.tsx
-msgid "Capture at least 5 conversations in this period to see patterns."
-msgstr "Capturer au moins 5 conversations durant cette période pour identifier des tendances."
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Capture conversations in 12 different weeks. A little at a time, at your own pace."
-msgstr "Capturer des conversations sur 12 semaines différentes. Un peu à la fois, à votre rythme."
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Capture conversations in 4 different weeks. They don't need to be consecutive."
-msgstr "Capturer des conversations sur 4 semaines différentes. Elles n’ont pas besoin d’être consécutives."
-
 #: src/settings/general/meeting-settings.tsx
 msgid "Capture meeting chat in Memos"
 msgstr "Capturer le chat de réunion dans Memos"
@@ -650,10 +553,6 @@ msgstr "Capturer le chat de réunion dans Memos"
 #: src/settings/general/meeting-settings.tsx
 msgid "Capture shared screens in Memos"
 msgstr "Capturer les écrans partagés dans Memos"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Capture your first conversation. Every collection starts somewhere."
-msgstr "Capturer votre première conversation. Toute collection commence quelque part."
 
 #: src/calendar/components/event-chip.tsx
 msgid "Change auto-add folder"
@@ -706,17 +605,9 @@ msgstr "Choisissez {0} fichiers d'exportation"
 msgid "Choose a file format and what to include."
 msgstr "Choisissez un format de fichier et les éléments à inclure."
 
-#: src/settings/ai/llm/select.tsx
-msgid "Choose a language model for summaries and chat."
-msgstr "Choisissez un modèle de langue pour les résumés et le chat."
-
 #: src/settings/automations/index.tsx
 msgid "Choose a starter from the sidebar, or create a workflow and add steps like Zapier."
 msgstr "Choisissez un modèle de départ dans la barre latérale, ou créez un flux de travail et ajoutez des étapes à la manière de Zapier."
-
-#: src/settings/ai/stt/select.tsx
-msgid "Choose a transcription model to start listening."
-msgstr "Choisissez un modèle de transcription pour commencer l'écoute."
 
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Choose an AI model before generating a format."
@@ -776,7 +667,6 @@ msgstr "Choisissez l'apparence de Syntheo sur cet appareil."
 msgid "Choose template icon"
 msgstr "Choisir l'icône du modèle"
 
-#: src/settings/dictation.tsx
 #: src/settings/general/audio-settings.tsx
 msgid "Choose the microphone that captures your voice."
 msgstr "Choisissez le microphone qui capture votre voix."
@@ -800,7 +690,6 @@ msgstr "Nettoyage en cours..."
 #: src/contacts/related-notes.tsx
 #: src/contacts/shared.tsx
 #: src/folders/sidebar.tsx
-#: src/settings/ai/shared/provider-search.tsx
 #: src/sidebar/automations.tsx
 #: src/sidebar/settings.tsx
 #: src/templates/template-icon-picker.tsx
@@ -856,19 +745,6 @@ msgstr "Synchronisation cloud terminée"
 msgid "Collect action items"
 msgstr "Collecter les points d'action"
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Collected"
-msgstr "Collecté"
-
-#. placeholder {0}: new Intl.DateTimeFormat(i18n.locale, { dateStyle: "medium", }).format(new Date(selected.collectedAt))
-#: src/settings/stats/badge-collection.tsx
-msgid "Collected {0}"
-msgstr "Collecté {0}"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Collected badges stay yours on this device, even when you delete a note or take a break. Imported transcripts count; the welcome note doesn't."
-msgstr "Les badges collectés vous restent acquis sur cet appareil, même lorsque vous supprimez une note ou faites une pause. Les transcripts importés sont comptabilisés ; la note de bienvenue ne l'est pas."
-
 #: src/settings/appearance/theme.tsx
 msgid "Color theme"
 msgstr "Thème de couleurs"
@@ -894,14 +770,6 @@ msgstr "commentaires"
 msgid "Company"
 msgstr "Entreprise"
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Complete onboarding"
-msgstr "Terminer l'intégration"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Complete onboarding. You're ready for your next conversation."
-msgstr "Terminez l'intégration. Vous êtes prêt pour votre prochaine conversation."
-
 #: src/session/components/living-document/provenance.tsx
 msgid "Completed by Syntheo"
 msgstr "Complété par Syntheo"
@@ -926,11 +794,6 @@ msgstr "Configurez un modèle de discussion dans les paramètres"
 msgid "Configure a chat model to use the quick composer."
 msgstr "Configurez un modèle de discussion pour utiliser le rédacteur rapide."
 
-#: src/settings/ai/llm/configure.tsx
-#: src/settings/ai/stt/configure.tsx
-msgid "Configure Providers"
-msgstr "Configurer les fournisseurs"
-
 #: src/templates/template-generator-bar.tsx
 msgid "Configure your summary server in Settings to get section suggestions."
 msgstr "Configurez votre serveur de synthèse dans les paramètres pour obtenir des propositions de sections."
@@ -947,11 +810,8 @@ msgstr "Configurez un modèle de langage (endpoint compatible OpenAI de votre in
 msgid "Confirm"
 msgstr "Confirmer"
 
-#. placeholder {0}: config.displayName
 #. placeholder {0}: provider.displayName
-#. placeholder {0}: subscriptionProvider.displayName
 #: src/calendar/components/sidebar.tsx
-#: src/settings/ai/shared/index.tsx
 msgid "Connect {0}"
 msgstr "Connecter {0}"
 
@@ -960,14 +820,15 @@ msgstr "Connecter {0}"
 msgid "Connect calendar"
 msgstr "Connecter le calendrier"
 
-#. placeholder {0}: subscriptionProvider.displayName
-#: src/settings/ai/shared/index.tsx
-msgid "Connected with your {0} subscription."
-msgstr "Connecté à votre abonnement {0}."
+#. placeholder {0}: models.length
+#: src/settings/ai/llm/server-card.tsx
+msgid "Connected · {0} models available"
+msgstr "Connecté · {0} modèles disponibles"
 
-#: src/settings/ai/shared/index.tsx
-msgid "Connected with your existing subscription."
-msgstr "Connecté à votre abonnement existant."
+#. placeholder {0}: state.latencyMs
+#: src/settings/ai/shared/server-card.tsx
+msgid "Connected · {0} ms"
+msgstr "Connecté · {0} ms"
 
 #: src/contacts/contact-page-header.tsx
 msgid "Contact options"
@@ -993,22 +854,6 @@ msgstr "Continuez dans votre navigateur, puis revenez dans Syntheo."
 #: src/settings/general/meeting-settings.tsx
 msgid "Control listening without reopening Syntheo."
 msgstr "Contrôler l'écoute sans rouvrir Syntheo."
-
-#: src/settings/stats/index.tsx
-msgid "Conversations"
-msgstr "Conversations"
-
-#: src/settings/stats/insights.tsx
-msgid "Conversations by weekday"
-msgstr "Conversations par jour de semaine"
-
-#: src/settings/stats/insights.tsx
-msgid "Conversations per active day"
-msgstr "Conversations par jour actif"
-
-#: src/settings/stats/insights.tsx
-msgid "Conversations: {total}"
-msgstr "Conversations : {total}"
 
 #: src/settings/dictation.tsx
 msgid "Copied"
@@ -1119,21 +964,9 @@ msgstr "Impossible de mettre à jour le dossier d'export"
 msgid "Could not update the note date."
 msgstr "Impossible de mettre à jour la date de la note."
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Couldn't load your badges. Reopen this page to try again."
-msgstr "Impossible de charger vos badges. Rouvrez cette page pour réessayer."
-
-#: src/settings/stats/index.tsx
-msgid "Couldn't load your insights. Reopen this page to try again."
-msgstr "Impossible de charger vos statistiques. Rouvrez cette page pour réessayer."
-
 #: src/settings/general/account-profile.tsx
 msgid "Couldn't load your profile. Reopen this page to try again."
 msgstr "Impossible de charger votre profil. Rouvrez cette page pour réessayer."
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Couldn't save your new badges."
-msgstr "Impossible d'enregistrer vos nouveaux badges."
 
 #: src/contacts/profile-photo.tsx
 #: src/settings/general/account-profile.tsx
@@ -1155,14 +988,6 @@ msgstr "Créer un brief pour préparer cette réunion"
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "Create new speaker"
 msgstr "Créer un nouvel intervenant"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Create your account"
-msgstr "Créer votre compte"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Create your Syntheo account. A place for your conversations to call home."
-msgstr "Créez votre compte Syntheo. Un lieu où vos conversations se sentent chez elles."
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Created"
@@ -1197,17 +1022,9 @@ msgstr "personnalisé"
 msgid "Cut"
 msgstr "Couper"
 
-#: src/settings/stats/index.tsx
-msgid "Daily conversations"
-msgstr "Conversations quotidiennes"
-
 #: src/settings/appearance/theme.tsx
 msgid "Dark"
 msgstr "Sombre"
-
-#: src/sidebar/settings-nav-groups.ts
-msgid "Data"
-msgstr "Données"
 
 #: src/settings/automations/markdown-export-options.tsx
 #: src/sidebar/note-filter-menu.tsx
@@ -1218,10 +1035,6 @@ msgstr "Date"
 msgid "Date and time are required"
 msgstr "La date et l'heure sont obligatoires"
 
-#: src/settings/stats/date-range.tsx
-msgid "Date range"
-msgstr "Plage de dates"
-
 #: src/edit/tab-content.tsx
 msgid "Decline"
 msgstr "Refuser"
@@ -1230,7 +1043,6 @@ msgstr "Refuser"
 msgid "default"
 msgstr "par défaut"
 
-#: src/settings/ai/llm/select.tsx
 #: src/settings/appearance/app-icon.tsx
 #: src/templates/template-sidebar.tsx
 msgid "Default"
@@ -1297,10 +1109,6 @@ msgstr "Supprimer la sélection ({sessionCount})"
 msgid "Delete This Event"
 msgstr "Supprimer cet événement"
 
-#: src/settings/ai/shared/model-combobox.tsx
-msgid "Deprecated"
-msgstr "Obsolète"
-
 #: src/templates/sections-editor.tsx
 msgid "Describe in one line what Syntheo should write here."
 msgstr "Décrivez en une ligne ce que Syntheo doit y écrire."
@@ -1320,6 +1128,10 @@ msgstr "Description"
 #: src/settings/general/notification.tsx
 msgid "Detect meetings from microphone activity."
 msgstr "Détecter les réunions à partir de l'activité du microphone."
+
+#: src/settings/ai/stt/server-card.tsx
+msgid "detected automatically"
+msgstr "détecté automatiquement"
 
 #: src/settings/general/notification.tsx
 msgid "Detection delay"
@@ -1341,13 +1153,16 @@ msgstr "Dictée"
 
 #: src/settings/dictation-shortcut.tsx
 msgid "Dictation shortcut"
-msgstr "Raccourci de dictée"
+msgstr "Raccourci"
 
 #: src/settings/dictation.tsx
 msgid "Dictation uses your microphone, transcription provider, languages, and dictionary. Audio is never written to disk; it only passes through memory. Your last transcript stays in memory until dictation is disabled or Syntheo closes."
 msgstr "La dictée utilise votre microphone, le fournisseur de transcription, les langues et le dictionnaire. L'audio n'est jamais enregistré sur le disque : il ne transite qu'en mémoire. Votre dernier transcript reste en mémoire jusqu'à ce que la dictée soit désactivée ou que Syntheo se ferme."
 
 #: src/settings/dictation.tsx
+msgid "dictionary"
+msgstr "dictionnaire"
+
 #: src/settings/dictionary/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Dictionary"
@@ -1471,6 +1286,10 @@ msgstr "Activer la dictée"
 msgid "Enabled"
 msgstr "Activé"
 
+#: src/settings/ai/stt/server-card.tsx
+msgid "English"
+msgstr "Anglais"
+
 #: src/session/components/outer-header/metadata/participants/chip.tsx
 msgid "Enhance contact"
 msgstr "Améliorer le contact"
@@ -1479,9 +1298,9 @@ msgstr "Améliorer le contact"
 msgid "Enhance contact {label}"
 msgstr "Améliorer le contact {label}"
 
-#: src/settings/ai/stt/select.tsx
-msgid "Enter a model identifier"
-msgstr "Saisissez un identifiant de modèle"
+#: src/settings/ai/shared/server-address.tsx
+msgid "Enter a full address, for example {placeholder}."
+msgstr "Saisissez une adresse complète, par exemple {placeholder}."
 
 #: src/session/components/outer-header/metadata/date.tsx
 msgid "Enter a valid date and time"
@@ -1492,13 +1311,9 @@ msgstr "Saisissez une date et une heure valides"
 msgid "Enter a valid folder name."
 msgstr "Saisissez un nom de dossier valide."
 
-#: src/settings/ai/shared/index.tsx
-msgid "Enter your API key"
-msgstr "Saisissez votre clé API"
-
-#: src/settings/ai/shared/index.tsx
-msgid "Enter your API key (optional)"
-msgstr "Saisissez votre clé API (facultative)"
+#: src/settings/ai/shared/server-card.tsx
+msgid "Enter another name"
+msgstr "Saisir un autre nom"
 
 #: src/composer/index.tsx
 msgid "Esc to dismiss"
@@ -1507,10 +1322,6 @@ msgstr "Échap pour fermer"
 #: src/settings/general/notification.tsx
 msgid "Event notifications"
 msgstr "Notifications d'événements"
-
-#: src/settings/stats/index.tsx
-msgid "Every conversation adds to your story."
-msgstr "Chaque conversation enrichit votre histoire."
 
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Example summary"
@@ -1582,10 +1393,6 @@ msgstr "Échec du chargement du problème"
 msgid "Failed to load pull request"
 msgstr "Échec du chargement de la demande de fusion"
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Familiar Face"
-msgstr "Visage familier"
-
 #: src/settings/appearance/app-icon.tsx
 msgid "Field Journal"
 msgstr "Journal de terrain"
@@ -1606,10 +1413,6 @@ msgstr "Nom de fichier"
 msgid "Find key decisions."
 msgstr "Trouvez les décisions clés."
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Finding Your Rhythm"
-msgstr "Trouver votre rythme"
-
 #: src/session/components/capsule/index.tsx
 msgid "Finish"
 msgstr "Terminer"
@@ -1617,10 +1420,6 @@ msgstr "Terminer"
 #: src/session/components/capsule/index.tsx
 msgid "Finishing…"
 msgstr "Finalisation…"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "First Words"
-msgstr "Premiers mots"
 
 #: src/templates/template-icon-picker.tsx
 msgid "Flags"
@@ -1668,6 +1467,10 @@ msgstr "Restauration et boissons"
 msgid "For enabled notifications"
 msgstr "Pour les notifications activées"
 
+#: src/settings/ai/shared/server-address.tsx
+msgid "Forget this server's address and key?"
+msgstr "Oublier l'adresse et la clé de ce serveur ?"
+
 #: src/templates/template-icon-picker.tsx
 msgid "Frequently used"
 msgstr "Fréquemment utilisés"
@@ -1679,11 +1482,6 @@ msgstr "Plein écran"
 #: src/calendar/components/event-chip.tsx
 msgid "Future meetings"
 msgstr "Réunions à venir"
-
-#: src/settings/general/index.tsx
-#: src/sidebar/settings-nav-groups.ts
-msgid "General"
-msgstr "Général"
 
 #: src/session/components/note-input/enhanced/index.tsx
 msgid "Generate summary"
@@ -1735,11 +1533,7 @@ msgstr "Aller à la section précédente"
 msgid "Go to recent"
 msgstr "Aller aux récents"
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Good Listener"
-msgstr "Bon auditeur"
-
-#: src/settings/ai/stt/select.tsx
+#: src/settings/ai/stt/language-warning.tsx
 msgid "Got it"
 msgstr "Compris"
 
@@ -1757,7 +1551,7 @@ msgstr "Guide"
 
 #: src/settings/dictation.tsx
 msgid "Hands-free dictation"
-msgstr "Dictée mains libres"
+msgstr "Mode mains libres"
 
 #: src/settings/general/app-settings.tsx
 msgid "Have Syntheo ready when you sign in."
@@ -1767,11 +1561,8 @@ msgstr "Ayez Syntheo prêt lorsque vous vous connectez."
 msgid "Having trouble?"
 msgstr "Vous rencontrez des difficultés ?"
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Hello, Syntheo"
-msgstr "Bonjour, Syntheo"
-
 #: src/main/windows-title-bar.tsx
+#: src/settings/ai/shared/server-card.tsx
 msgid "Help"
 msgstr "Aide"
 
@@ -1815,7 +1606,7 @@ msgstr "Masquer la barre latérale"
 msgid "Hide transcript"
 msgstr "Masquer la transcription"
 
-#: src/settings/ai/llm/select.tsx
+#: src/settings/ai/llm/server-card.tsx
 msgid "High"
 msgstr "Élevé"
 
@@ -1833,14 +1624,6 @@ msgstr "Historique {0}/{1}"
 msgid "Hold your shortcut while speaking, then release it to finish."
 msgstr "Maintenez votre raccourci pendant que vous parlez, puis relâchez-le pour terminer."
 
-#: src/settings/stats/index.tsx
-msgid "Hours transcribed"
-msgstr "Heures transcrites"
-
-#: src/settings/ai/llm/select.tsx
-msgid "How much the model thinks before answering. Default leaves it to the provider."
-msgstr "Niveau de réflexion du modèle avant de répondre. Par défaut, le fournisseur décide."
-
 #: src/contacts/humans.tsx
 msgid "Human"
 msgstr "Humain"
@@ -1848,6 +1631,10 @@ msgstr "Humain"
 #: src/templates/template-icon-picker.tsx
 msgid "Icons"
 msgstr "Icônes"
+
+#: src/settings/general/account-profile.tsx
+msgid "Identity"
+msgstr "Identité"
 
 #: src/onboarding/index.tsx
 msgid "Import notes and transcripts from the meeting apps you already use."
@@ -1916,14 +1703,6 @@ msgstr "Inclure"
 msgid "Include meeting ID"
 msgstr "Inclure l'ID de réunion"
 
-#: src/settings/stats/index.tsx
-msgid "Includes imported transcripts. Deleted conversations are excluded."
-msgstr "Inclut les transcripts importés. Les conversations supprimées sont exclues."
-
-#: src/sidebar/settings-nav-groups.ts
-msgid "Insights"
-msgstr "Analyses"
-
 #: src/settings/developers/cli.tsx
 msgid "Install"
 msgstr "Installer"
@@ -1936,10 +1715,9 @@ msgstr "Installer pour tous les agents"
 msgid "Installed"
 msgstr "Installé"
 
-#: src/settings/ai/llm/index.tsx
-#: src/sidebar/settings-nav-groups.ts
-msgid "Intelligence"
-msgstr "Intelligence"
+#: src/settings/ai/shared/server-card.tsx
+msgid "Invalid address"
+msgstr "Adresse invalide"
 
 #: src/contacts/details.tsx
 #: src/settings/general/account-profile.tsx
@@ -1971,13 +1749,17 @@ msgstr "Laissez Syntheo en cours d'exécution pour utiliser votre raccourci dans
 msgid "Keep this version"
 msgstr "Conserver cette version"
 
+#: src/settings/ai/shared/server-card.tsx
+msgid "Key refused"
+msgstr "Clé refusée"
+
 #: src/settings/general/index.tsx
 msgid "Language & Region"
 msgstr "Langue et région"
 
 #: src/settings/dictation.tsx
-msgid "Language & transcription"
-msgstr "Langue & transcription"
+msgid "Language and vocabulary"
+msgstr "Langue et vocabulaire"
 
 #: src/sidebar/toast/registry.tsx
 msgid "Language model needed"
@@ -2023,9 +1805,9 @@ msgstr "Découvrez comment corriger ce problème."
 msgid "Leave blank to use the meeting date and title."
 msgstr "Laissez le champ vide pour utiliser la date et le titre de la réunion."
 
-#: src/settings/stats/index.tsx
-msgid "Less"
-msgstr "Moins"
+#: src/settings/ai/shared/server-address.tsx
+msgid "Leave empty if the server has no authentication"
+msgstr "Laisser vide si le serveur n'a pas d'authentification"
 
 #: src/settings/appearance/theme.tsx
 msgid "Light"
@@ -2060,17 +1842,9 @@ msgstr "Durée d'écoute"
 msgid "Listening…"
 msgstr "Écoute…"
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Little steps worth keeping. Collect them at your own pace."
-msgstr "Petites étapes à conserver. Collectez-les à votre rythme."
-
 #: src/settings/dictation.tsx
 msgid "Live transcript preview"
-msgstr "Aperçu du transcript en direct"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Living Library"
-msgstr "Bibliothèque vivante"
+msgstr "Voir le texte en direct"
 
 #: src/templates/auto-form.tsx
 msgid "Loading Auto format..."
@@ -2084,22 +1858,10 @@ msgstr "Chargement des calendriers..."
 msgid "Loading edit…"
 msgstr "Chargement de la modification…"
 
-#: src/settings/ai/shared/model-combobox.tsx
-msgid "Loading models..."
-msgstr "Chargement des modèles..."
-
 #: src/settings/general/index.tsx
 #: src/settings/hydration-boundary.tsx
 msgid "Loading settings"
 msgstr "Chargement des paramètres"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Loading your badges…"
-msgstr "Chargement de vos badges…"
-
-#: src/settings/stats/index.tsx
-msgid "Loading your insights…"
-msgstr "Chargement de vos analyses…"
 
 #: src/changelog/index.tsx
 #: src/contacts/details.tsx
@@ -2121,7 +1883,7 @@ msgstr "Verrouiller la note"
 msgid "Locked note"
 msgstr "Note verrouillée"
 
-#: src/settings/ai/llm/select.tsx
+#: src/settings/ai/llm/server-card.tsx
 msgid "Low"
 msgstr "Faible"
 
@@ -2129,7 +1891,7 @@ msgstr "Faible"
 msgid "Low-light canvas"
 msgstr "Canevas en faible luminosité"
 
-#: src/settings/ai/shared/index.tsx
+#: src/settings/ai/shared/server-address.tsx
 msgid "macOS cannot access your login Keychain. Repairing briefly locks it and asks for your Mac password before Syntheo retries this API key."
 msgstr "macOS ne peut pas accéder à votre trousseau de connexion. La réparation le verrouille brièvement et demande votre mot de passe Mac avant que Syntheo ne réessaie cette clé API."
 
@@ -2186,12 +1948,11 @@ msgstr "Configuration MCP copiée"
 msgid "MCP server"
 msgstr "Serveur MCP"
 
-#. placeholder {0}: number.format(stats.timedConversations)
-#: src/settings/stats/insights.tsx
-msgid "Median transcribed time. Conversations with timing: {0}."
-msgstr "Durée transcrite médiane. Conversations avec minutage : {0}."
+#: src/sidebar/settings-nav-groups.ts
+msgid "Me"
+msgstr "Moi"
 
-#: src/settings/ai/llm/select.tsx
+#: src/settings/ai/llm/server-card.tsx
 msgid "Medium"
 msgstr "Moyen"
 
@@ -2250,10 +2011,6 @@ msgstr "Mémo"
 msgid "Memo copied to clipboard"
 msgstr "Mémo copié dans le presse-papiers"
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Memory Keeper"
-msgstr "Gardien de mémoire"
-
 #: src/session/components/note-input/header-raw.tsx
 msgid "Memos"
 msgstr "Mémos"
@@ -2310,30 +2067,34 @@ msgstr "Statut de migration indisponible"
 msgid "Minimize"
 msgstr "Réduire"
 
-#: src/settings/ai/llm/select.tsx
-#: src/settings/ai/stt/select.tsx
-msgid "Model being used"
-msgstr "Modèle utilisé"
+#: src/settings/ai/llm/server-card.tsx
+#: src/settings/ai/stt/server-card.tsx
+msgid "Model"
+msgstr "Modèle"
 
 #: src/session/components/note-input/enhanced/streaming.tsx
 msgid "Model is thinking..."
 msgstr "Le modèle réfléchit..."
 
+#: src/settings/ai/shared/server-card.tsx
+msgid "Model name"
+msgstr "Nom du modèle"
+
+#: src/settings/ai/shared/server-card.tsx
+msgid "Model name served by your server"
+msgstr "Nom du modèle servi par votre serveur"
+
 #: src/settings/general/week-start.tsx
 msgid "Monday"
 msgstr "Lundi"
-
-#: src/settings/stats/index.tsx
-msgid "More"
-msgstr "Plus"
 
 #: src/templates/template-form.tsx
 msgid "More actions"
 msgstr "Plus d'actions"
 
-#: src/settings/stats/insights.tsx
-msgid "Most conversations: {busiestDay}"
-msgstr "Conversations les plus nombreuses : {busiestDay}"
+#: src/settings/ai/llm/index.tsx
+msgid "More effort gives finer summaries, but slower. Auto leaves it to the server."
+msgstr "Plus d'effort donne des synthèses plus fines, mais plus lentes. Auto laisse le serveur décider."
 
 #: src/templates/sections-editor.tsx
 msgid "Move section {position}"
@@ -2343,6 +2104,14 @@ msgstr "Déplacer la section {position}"
 msgid "Move this note"
 msgstr "Déplacer cette note"
 
+#: src/settings/ai/stt/server-card.tsx
+msgid "Multilingual"
+msgstr "Multilingue"
+
+#: src/settings/ai/stt/server-card.tsx
+msgid "Multilingual · speakers"
+msgstr "Multilingue · locuteurs"
+
 #: src/sidebar/automations.tsx
 msgid "My automations"
 msgstr "Mes automatisations"
@@ -2350,6 +2119,19 @@ msgstr "Mes automatisations"
 #: src/templates/template-sidebar.tsx
 msgid "My favorites"
 msgstr "Mes favoris"
+
+#: src/sidebar/settings-nav-groups.ts
+msgid "My meetings"
+msgstr "Mes réunions"
+
+#: src/settings/ai/llm/server-card.tsx
+#: src/settings/ai/stt/server-card.tsx
+msgid "My server"
+msgstr "Mon serveur"
+
+#: src/sidebar/settings-nav-groups.ts
+msgid "My servers"
+msgstr "Mes serveurs"
 
 #: src/contacts/details.tsx
 #: src/contacts/organization-details.tsx
@@ -2360,6 +2142,10 @@ msgstr "Nom"
 #: src/settings/automations/workflow-builder.tsx
 msgid "Needs setup"
 msgstr "Configuration requise"
+
+#: src/settings/ai/stt/server-card.tsx
+msgid "Nemotron, Parakeet"
+msgstr "Nemotron, Parakeet"
 
 #: src/sidebar/automations.tsx
 msgid "New automation"
@@ -2402,6 +2188,10 @@ msgstr "mois prochain"
 #: src/sidebar/timeline/utils/index.ts
 msgid "next week"
 msgstr "semaine prochaine"
+
+#: src/settings/ai/stt/server-card.tsx
+msgid "NIM does not publish its model list: these are the models known for this protocol."
+msgstr "NIM ne publie pas sa liste de modèles : ceux-ci sont les modèles connus pour ce protocole."
 
 #: src/calendar/components/event-chip.tsx
 msgid "No"
@@ -2505,14 +2295,6 @@ msgstr "Aucune langue correspondante trouvée"
 msgid "No matching people"
 msgstr "Aucune personne correspondante"
 
-#: src/settings/ai/shared/model-combobox.tsx
-msgid "No models available."
-msgstr "Aucun modèle disponible."
-
-#: src/settings/ai/shared/model-combobox.tsx
-msgid "No models ready to use."
-msgstr "Aucun modèle prêt à l'emploi."
-
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "No people"
 msgstr "Aucune personne"
@@ -2520,13 +2302,6 @@ msgstr "Aucune personne"
 #: src/contacts/organization-details.tsx
 msgid "No people in this organization"
 msgstr "Aucune personne dans cette organisation"
-
-#: src/settings/ai/llm/configure.tsx
-#: src/settings/ai/llm/select.tsx
-#: src/settings/ai/stt/configure.tsx
-#: src/settings/ai/stt/select.tsx
-msgid "No providers found."
-msgstr "Aucun fournisseur trouvé."
 
 #: src/chat/components/toolbar-controls.tsx
 msgid "No recent chats"
@@ -2537,16 +2312,15 @@ msgid "No related notes found"
 msgstr "Aucune note associée trouvée"
 
 #: src/contacts/related-notes.tsx
-#: src/settings/ai/shared/model-combobox.tsx
 #: src/settings/general/searchable-select.tsx
 #: src/shared/open-note-dialog.tsx
 #: src/sidebar/settings.tsx
 msgid "No results found."
 msgstr "Aucun résultat trouvé."
 
-#: src/settings/stats/insights.tsx
-msgid "No single busiest day"
-msgstr "Aucun jour particulièrement chargé"
+#: src/settings/ai/shared/server-card.tsx
+msgid "No server yet"
+msgstr "Aucun serveur"
 
 #: src/chat/components/input/use-dictation.ts
 msgid "No speech detected"
@@ -2565,14 +2339,6 @@ msgstr "Aucun modèle pour le moment"
 msgid "No transcript available"
 msgstr "Aucun transcript disponible"
 
-#: src/settings/stats/insights.tsx
-msgid "Not available"
-msgstr "Non disponible"
-
-#: src/settings/ai/shared/index.tsx
-msgid "Not connected"
-msgstr "Non connecté"
-
 #: src/settings/developers/cli.tsx
 msgid "Not installed"
 msgstr "Non installé"
@@ -2580,6 +2346,10 @@ msgstr "Non installé"
 #: src/settings/developers/webhooks.tsx
 msgid "not receiving events"
 msgstr "réception d'événements inactive"
+
+#: src/settings/ai/shared/server-card.tsx
+msgid "Not tested"
+msgstr "Non testé"
 
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "note"
@@ -2638,6 +2408,14 @@ msgstr "Notifications"
 msgid "Now"
 msgstr "Maintenant"
 
+#: src/settings/ai/stt/server-card.tsx
+msgid "NVIDIA NIM · WebSocket"
+msgstr "NVIDIA NIM · WebSocket"
+
+#: src/settings/ai/stt/server-card.tsx
+msgid "NVIDIA NIM: your deployed Speech NIM WebSocket server, for example http://localhost:9000/v1/realtime. NVIDIA's hosted gRPC endpoint is not supported."
+msgstr "NVIDIA NIM : votre serveur Speech NIM WebSocket déployé, par exemple http://localhost:9000/v1/realtime. Le point d'accès gRPC hébergé par NVIDIA n'est pas pris en charge."
+
 #: src/templates/template-icon-picker.tsx
 msgid "Objects"
 msgstr "Objets"
@@ -2653,12 +2431,20 @@ msgid "Oldest"
 msgstr "Plus anciens"
 
 #: src/settings/dictation.tsx
+msgid "On Linux (Wayland or X11)"
+msgstr "Sur Linux (Wayland ou X11)"
+
+#: src/settings/dictation.tsx
 msgid "On Wayland, approve the shortcuts in your desktop's prompt. Use Control + Alt + Escape to cancel. On X11, press Escape to cancel. The target app must expose an editable accessibility field."
 msgstr "Sur Wayland, approuvez les raccourcis dans l'invite de votre environnement de bureau. Utilisez Ctrl + Alt + Échap pour annuler. Sur X11, appuyez sur Échap pour annuler. L'application cible doit exposer un champ d'accessibilité modifiable."
 
 #: src/session/components/note-input/enhanced/streaming.tsx
 msgid "On-device models can take a few minutes to warm up before text appears."
 msgstr "Les modèles sur l'appareil peuvent mettre quelques minutes à s'initialiser avant l'affichage du texte."
+
+#: src/settings/ai/llm/server-card.tsx
+msgid "Only on-premise OpenAI-compatible servers are supported (vLLM, Ollama, llama.cpp server, LM Studio…). The address usually ends with /v1, for example http://localhost:8000/v1."
+msgstr "Seuls les serveurs compatibles OpenAI hébergés chez vous sont pris en charge (vLLM, Ollama, serveur llama.cpp, LM Studio…). L'adresse se termine en général par /v1, par exemple http://localhost:8000/v1."
 
 #: src/calendar/components/apple/permission.tsx
 #: src/task/resource-view.tsx
@@ -2729,6 +2515,14 @@ msgstr "Ouvrez Syntheo depuis la barre des menus."
 msgid "Open the meeting link when a scheduled meeting begins."
 msgstr "Ouvrez le lien de la réunion lorsqu'une réunion programmée commence."
 
+#: src/settings/ai/stt/server-card.tsx
+msgid "OpenAI · Realtime and batch"
+msgstr "OpenAI · temps réel et par lots"
+
+#: src/settings/ai/stt/server-card.tsx
+msgid "OpenAI: a server that speaks the OpenAI speech protocol (vLLM, speaches, faster-whisper-server), for example http://localhost:8000/v1. Live transcription uses /v1/realtime, imported files /v1/audio/transcriptions."
+msgstr "OpenAI : un serveur qui parle le protocole vocal d'OpenAI (vLLM, speaches, faster-whisper-server), par exemple http://localhost:8000/v1. La transcription en direct passe par /v1/realtime, les fichiers importés par /v1/audio/transcriptions."
+
 #. placeholder {0}: accessibilityGuidance.paneTitle ?? "Privacy"
 #: src/onboarding/permissions.tsx
 msgid "Opens System Settings and guides you to add Syntheo to the {0} list"
@@ -2740,7 +2534,6 @@ msgid "Opens System Settings and guides you to add Syntheo to the {0} list."
 msgstr "Ouvre les Réglages système et vous guide pour ajouter Syntheo à la liste {0}."
 
 #: src/calendar/components/apple/permission.tsx
-#: src/settings/ai/shared/index.tsx
 msgid "or"
 msgstr "ou"
 
@@ -2767,10 +2560,6 @@ msgstr "Version de l'autre appareil"
 #: src/settings/general/permissions.tsx
 msgid "Others"
 msgstr "Autres"
-
-#: src/settings/stats/index.tsx
-msgid "Overview"
-msgstr "Aperçu"
 
 #: src/shared/control.tsx
 msgid "Page not found"
@@ -2811,7 +2600,6 @@ msgstr "Personnes"
 msgid "permission panel."
 msgstr "panneau des autorisations."
 
-#: src/settings/dictation.tsx
 #: src/settings/general/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Permissions"
@@ -2888,13 +2676,18 @@ msgstr "Match précédent"
 msgid "Privacy"
 msgstr "Confidentialité"
 
-#: src/settings/ai/stt/select.tsx
-msgid "Pro"
-msgstr "Pro"
-
 #: src/settings/appearance/app-icon.tsx
 msgid "Production"
 msgstr "Production"
+
+#: src/settings/general/index.tsx
+#: src/sidebar/settings-nav-groups.ts
+msgid "Profile"
+msgstr "Profil"
+
+#: src/settings/ai/stt/server-card.tsx
+msgid "Protocol"
+msgstr "Protocole"
 
 #: src/onboarding/permissions.tsx
 msgid "Read meeting controls and visible chat"
@@ -2916,7 +2709,8 @@ msgstr "Prêt à dicter"
 msgid "Ready to go"
 msgstr "Prêt à démarrer"
 
-#: src/settings/ai/llm/select.tsx
+#: src/settings/ai/llm/index.tsx
+#: src/settings/ai/llm/server-card.tsx
 msgid "Reasoning effort"
 msgstr "Effort de raisonnement"
 
@@ -3046,7 +2840,7 @@ msgstr "Rendre le Markdown canonique"
 msgid "Reopen in browser"
 msgstr "Rouvrir dans le navigateur"
 
-#: src/settings/ai/shared/index.tsx
+#: src/settings/ai/shared/server-address.tsx
 msgid "Repair Keychain Access"
 msgstr "Réparer l'accès au trousseau"
 
@@ -3094,9 +2888,13 @@ msgid "Requires Syntheo Pro"
 msgstr "Nécessite Syntheo Pro"
 
 #: src/calendar/components/apple/permission.tsx
-#: src/settings/ai/shared/index.tsx
+#: src/settings/ai/shared/server-address.tsx
 msgid "Reset"
 msgstr "Réinitialiser"
+
+#: src/settings/ai/shared/server-address.tsx
+msgid "Reset this server…"
+msgstr "Réinitialiser ce serveur…"
 
 #: src/templates/auto-form.tsx
 msgid "Reset to default format"
@@ -3152,10 +2950,6 @@ msgstr "Révoquer"
 msgid "Right Command"
 msgstr "Commande droite"
 
-#: src/settings/ai/shared/index.tsx
-msgid "Runs after the recording finishes, not during the meeting."
-msgstr "S'exécute après la fin de l'enregistrement, et non pendant la réunion."
-
 #: src/settings/dictionary/index.tsx
 #: src/templates/auto-form.tsx
 msgid "Save"
@@ -3189,7 +2983,6 @@ msgstr "Enregistrer les diapositives et les écrans partagés par d'autres penda
 msgid "Save visible chat from supported meetings using Accessibility."
 msgstr "Enregistrer la discussion visible des réunions prises en charge à l'aide de l'accessibilité."
 
-#: src/settings/ai/shared/index.tsx
 #: src/settings/general/account-profile.tsx
 msgid "Saved"
 msgstr "Enregistré"
@@ -3251,18 +3044,6 @@ msgstr "Rechercher ou ajouter une entreprise"
 msgid "Search or create folder"
 msgstr "Rechercher ou créer un dossier"
 
-#: src/settings/ai/shared/model-combobox.tsx
-msgid "Search or create new"
-msgstr "Rechercher ou créer un nouvel élément"
-
-#: src/settings/ai/shared/provider-search.tsx
-msgid "Search providers"
-msgstr "Rechercher des fournisseurs"
-
-#: src/settings/ai/shared/provider-search.tsx
-msgid "Search providers..."
-msgstr "Rechercher des fournisseurs..."
-
 #: src/sidebar/settings.tsx
 msgid "Search settings..."
 msgstr "Rechercher des paramètres..."
@@ -3313,18 +3094,9 @@ msgstr "Voir tous les dossiers"
 msgid "See all templates"
 msgstr "Voir tous les modèles"
 
-#: src/settings/ai/shared/model-combobox.tsx
-msgid "Select a model"
-msgstr "Sélectionnez un modèle"
-
 #: src/contacts/details.tsx
 msgid "Select a person to view details"
 msgstr "Sélectionnez une personne pour afficher les détails"
-
-#: src/settings/ai/llm/select.tsx
-#: src/settings/ai/stt/select.tsx
-msgid "Select a provider"
-msgstr "Sélectionnez un fournisseur"
 
 #: src/main/windows-title-bar.tsx
 msgid "Select All"
@@ -3370,6 +3142,18 @@ msgstr "Envoyez un message"
 msgid "sent"
 msgstr "envoyé"
 
+#: src/settings/ai/stt/server-card.tsx
+msgid "Server address"
+msgstr "Adresse du serveur"
+
+#: src/settings/ai/llm/server-card.tsx
+msgid "Server address (OpenAI-compatible: vLLM, Ollama, llama.cpp, LM Studio)"
+msgstr "Adresse du serveur (compatible OpenAI : vLLM, Ollama, llama.cpp, LM Studio)"
+
+#: src/sidebar/settings-server-status.tsx
+msgid "Server status"
+msgstr "État des serveurs"
+
 #: src/session/components/note-input/header.tsx
 msgid "Session note views"
 msgstr "Vues des notes de session"
@@ -3378,14 +3162,6 @@ msgstr "Vues des notes de session"
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Session title"
 msgstr "Titre de la session"
-
-#: src/settings/ai/shared/provider-selection-prompt.ts
-msgid "Set {providerName} as the current provider?"
-msgstr "Définissez {providerName} comme fournisseur actuel ?"
-
-#: src/settings/ai/shared/provider-selection-prompt.ts
-msgid "Set as current"
-msgstr "Définissez comme actuel"
 
 #: src/session/components/note-input/enhanced/config-error.tsx
 msgid "Set up AI summaries"
@@ -3398,6 +3174,7 @@ msgstr "Configuration de la dictée…"
 #: src/main/empty.tsx
 #: src/main/windows-title-bar.tsx
 #: src/shared/open-note-dialog.tsx
+#: src/sidebar/settings.tsx
 #: src/sidebar/toast/registry.tsx
 msgid "Settings"
 msgstr "Paramètres"
@@ -3508,10 +3285,6 @@ msgstr "Afficher lorsqu'un résumé est prêt."
 msgid "Show when initial cloud sync finishes."
 msgstr "Afficher lorsque la synchronisation initiale dans le cloud se termine."
 
-#: src/settings/dictation.tsx
-msgid "Show words in the floating panel as you speak. Uses a live connection to your selected transcription provider when supported. Text is inserted when you finish."
-msgstr "Afficher les mots dans le panneau flottant au fur et à mesure que vous parlez. Utilise une connexion en direct à votre fournisseur de transcription sélectionné si pris en charge. Le texte est inséré lorsque vous avez terminé."
-
 #: src/settings/developers/webhooks.tsx
 msgid "Signing secret copied"
 msgstr "Secret de signature copié"
@@ -3587,8 +3360,8 @@ msgid "Sparkle"
 msgstr "Étincelle"
 
 #: src/settings/dictation.tsx
-msgid "Speak into the focused text field in your apps. Your transcript appears when you finish."
-msgstr "Parlez dans le champ de texte actif de vos applications. Votre transcript s'affiche lorsque vous avez terminé."
+msgid "Speak into any text field, in any app. The text is inserted when you finish."
+msgstr "Parlez dans n'importe quel champ de texte, dans n'importe quelle application. Le texte s'insère quand vous avez terminé."
 
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "SQLite migration verification is incomplete"
@@ -3710,10 +3483,6 @@ msgstr "Arrêter à la fin de la réunion"
 #: src/settings/general/storage/index.tsx
 msgid "Storage"
 msgstr "Stockage"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Story Collector"
-msgstr "Collecteur de récits"
 
 #: src/settings/general/notification.tsx
 msgid "Success"
@@ -3839,8 +3608,30 @@ msgid "Syntheo will retry automatically. This does not affect your notes."
 msgstr "Syntheo réessaiera automatiquement. Cela n'a aucune incidence sur vos notes."
 
 #: src/session/components/capsule/index.tsx
+#: src/settings/ai/llm/index.tsx
+#: src/sidebar/settings-nav-groups.ts
 msgid "Synthesis"
 msgstr "Synthèse"
+
+#: src/sidebar/settings-server-status.tsx
+msgid "Synthesis · connected"
+msgstr "Synthèse · connectée"
+
+#: src/sidebar/settings-server-status.tsx
+msgid "Synthesis · no server"
+msgstr "Synthèse · aucun serveur"
+
+#: src/sidebar/settings-server-status.tsx
+msgid "Synthesis · not tested"
+msgstr "Synthèse · non testée"
+
+#: src/sidebar/settings-server-status.tsx
+msgid "Synthesis · testing…"
+msgstr "Synthèse · test en cours…"
+
+#: src/sidebar/settings-server-status.tsx
+msgid "Synthesis · unreachable"
+msgstr "Synthèse · injoignable"
 
 #: src/settings/appearance/theme.tsx
 msgid "System"
@@ -3854,6 +3645,10 @@ msgstr "Audio système"
 #: src/onboarding/permissions.tsx
 msgid "System audio enabled"
 msgstr "Audio système activé"
+
+#: src/settings/dictation.tsx
+msgid "System permissions"
+msgstr "Autorisations du système"
 
 #: src/settings/appearance/sidebar-item-fields.tsx
 msgid "Tags"
@@ -3894,6 +3689,10 @@ msgstr "Modèles"
 msgid "Test"
 msgstr "Test"
 
+#: src/settings/ai/shared/server-address.tsx
+msgid "Test connection"
+msgstr "Tester la connexion"
+
 #. placeholder {0}: delivery.status
 #: src/settings/developers/webhooks.tsx
 msgid "Test delivered ({0})"
@@ -3908,9 +3707,22 @@ msgstr "Test échoué ({0})"
 msgid "Test runs are not available yet."
 msgstr "Les exécutions de test ne sont pas encore disponibles."
 
+#: src/settings/ai/llm/server-card.tsx
+#: src/settings/ai/stt/server-card.tsx
+msgid "Test the connection to list the models served."
+msgstr "Testez la connexion pour lister les modèles servis."
+
+#: src/settings/ai/shared/server-card.tsx
+msgid "Testing…"
+msgstr "Test en cours…"
+
 #: src/session/components/living-document/provenance.tsx
 msgid "Text provenance"
 msgstr "Provenance du texte"
+
+#: src/settings/ai/stt/server-card.tsx
+msgid "The API key is optional for servers without authentication. It is kept in your system keychain."
+msgstr "La clé d'API est facultative pour un serveur sans authentification. Elle est gardée dans le trousseau de votre système."
 
 #: src/templates/auto-form.tsx
 msgid "The Automatic format is unavailable."
@@ -3920,9 +3732,46 @@ msgstr "Le format Automatique est indisponible."
 msgid "The kinds of meeting this template is meant for (team, role, frequency…)."
 msgstr "Les réunions auxquelles ce modèle est destiné (équipe, rôle, fréquence…)."
 
+#: src/settings/ai/llm/index.tsx
+msgid "The language model that writes your meeting notes and answers when you ask a note a question."
+msgstr "Le modèle de langage qui rédige vos comptes-rendus et répond quand vous interrogez une note."
+
+#: src/settings/dictation.tsx
+msgid "The one that captures your voice."
+msgstr "Celui qui capte votre voix."
+
 #: src/shared/control.tsx
 msgid "The page you're looking for doesn't exist."
 msgstr "La page que vous recherchez n'existe pas."
+
+#. placeholder {0}: health.message ?? ""
+#: src/settings/ai/llm/server-card.tsx
+msgid "The selected model did not answer: {0}"
+msgstr "Le modèle choisi n'a pas répondu : {0}"
+
+#: src/settings/ai/shared/server-card.tsx
+msgid "The server answered with an error (HTTP {status}). It may still be starting: wait a minute, then test again."
+msgstr "Le serveur a répondu par une erreur (HTTP {status}). Il démarre peut-être encore : patientez une minute, puis relancez le test."
+
+#: src/settings/ai/shared/server-card.tsx
+msgid "The server answers, but neither as an OpenAI server nor as an NVIDIA NIM. Check the address, then test again."
+msgstr "Le serveur répond, mais ni comme un serveur OpenAI ni comme un NVIDIA NIM. Vérifiez l'adresse, puis relancez le test."
+
+#: src/settings/ai/shared/server-card.tsx
+msgid "The server answers, but not as an OpenAI-compatible API. Check that the address ends with /v1, then test again."
+msgstr "Le serveur répond, mais pas comme une API compatible OpenAI. Vérifiez que l'adresse se termine par /v1, puis relancez le test."
+
+#: src/settings/ai/shared/server-card.tsx
+msgid "The server did not answer at {host}. Check that it is running and that you are on the right network (VPN, Tailscale), then test again."
+msgstr "Le serveur n'a pas répondu à {host}. Vérifiez qu'il est démarré et que vous êtes sur le bon réseau (VPN, Tailscale), puis relancez le test."
+
+#: src/settings/ai/shared/server-card.tsx
+msgid "The server refused the API key. Check it under “Advanced”, then test again."
+msgstr "Le serveur a refusé la clé d'API. Vérifiez-la dans « Avancé », puis relancez le test."
+
+#: src/settings/ai/stt/index.tsx
+msgid "The server that turns speech into text during your meetings. Audio is never written to disk."
+msgstr "Le serveur qui transforme la voix en texte, pendant la réunion. L'audio n'est jamais écrit sur le disque."
 
 #: src/templates/template-generator-bar.tsx
 msgid "The summary server did not respond. Check that it is running, then try again."
@@ -3948,6 +3797,10 @@ msgstr "Cet appareil"
 msgid "This edit is no longer pending."
 msgstr "Cette modification n'est plus en attente."
 
+#: src/settings/general/index.tsx
+msgid "This information stays on your computer. It is used to recognize you in transcripts and to sign your meeting notes."
+msgstr "Ces informations restent sur votre poste. Elles servent à vous reconnaître dans les transcriptions et à signer vos comptes-rendus."
+
 #: src/calendar/components/event-chip.tsx
 msgid "This note"
 msgstr "Cette note"
@@ -3967,6 +3820,10 @@ msgstr "Cela nécessite Syntheo Enterprise"
 #: src/settings/plan-gate.tsx
 msgid "This requires Syntheo Pro"
 msgstr "Cela nécessite Syntheo Pro"
+
+#: src/settings/ai/stt/server-card.tsx
+msgid "This server answers as {detectedLabel}."
+msgstr "Ce serveur répond comme {detectedLabel}."
 
 #. placeholder {0}: status.fileCount
 #. placeholder {1}: formatBytes(status.totalBytes)
@@ -4028,6 +3885,26 @@ msgstr "Transcript copié dans le presse-papiers"
 msgid "Transcription"
 msgstr "Transcription"
 
+#: src/sidebar/settings-server-status.tsx
+msgid "Transcription · connected"
+msgstr "Transcription · connectée"
+
+#: src/sidebar/settings-server-status.tsx
+msgid "Transcription · no server"
+msgstr "Transcription · aucun serveur"
+
+#: src/sidebar/settings-server-status.tsx
+msgid "Transcription · not tested"
+msgstr "Transcription · non testée"
+
+#: src/sidebar/settings-server-status.tsx
+msgid "Transcription · testing…"
+msgstr "Transcription · test en cours…"
+
+#: src/sidebar/settings-server-status.tsx
+msgid "Transcription · unreachable"
+msgstr "Transcription · injoignable"
+
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "Transcription failed"
 msgstr "Échec de la transcription"
@@ -4035,6 +3912,10 @@ msgstr "Échec de la transcription"
 #: src/sidebar/toast/registry.tsx
 msgid "Transcription provider needed"
 msgstr "Fournisseur de transcription requis"
+
+#: src/settings/dictation.tsx
+msgid "Transcription server ›"
+msgstr "Serveur de transcription ›"
 
 #: src/sidebar/toast/registry.tsx
 msgid "Transcription unavailable"
@@ -4052,13 +3933,16 @@ msgstr "Déclencheur"
 #: src/contacts/details.tsx
 #: src/onboarding/permissions.tsx
 #: src/settings/general/permissions.tsx
-#: src/settings/stats/badge-collection.tsx
 msgid "Try again"
 msgstr "Réessayer"
 
 #: src/settings/dictation.tsx
 msgid "Try dictation"
 msgstr "Essayer la dictée"
+
+#: src/settings/dictation.tsx
+msgid "Try it"
+msgstr "Essayer"
 
 #: src/chat/components/input/use-dictation.ts
 msgid "Try speaking a little closer to the microphone."
@@ -4075,10 +3959,6 @@ msgstr "Type"
 #: src/settings/appearance/app-icon.tsx
 msgid "Typewriter Key"
 msgstr "Touche machine à écrire"
-
-#: src/settings/stats/insights.tsx
-msgid "Typical conversation length"
-msgstr "Durée typique de la conversation"
 
 #: src/settings/developers/cli.tsx
 msgid "Unavailable"
@@ -4110,10 +3990,6 @@ msgstr "Déverrouiller"
 msgid "Unlock Note"
 msgstr "Déverrouiller la note"
 
-#: src/settings/ai/shared/index.tsx
-msgid "Unlock your login Keychain in the macOS prompt. Syntheo will retry saving this API key automatically."
-msgstr "Déverrouillez votre trousseau de connexion dans l'invite macOS. Syntheo réessaiera d'enregistrer cette clé API automatiquement."
-
 #: src/contacts/details.tsx
 #: src/contacts/organization-details.tsx
 msgid "Unnamed"
@@ -4126,6 +4002,10 @@ msgstr "Contact sans nom"
 #: src/contacts/contact-page-header.tsx
 msgid "Unpin"
 msgstr "Détacher"
+
+#: src/settings/ai/shared/server-card.tsx
+msgid "Unreachable"
+msgstr "Injoignable"
 
 #: src/session/components/living-document/fiche.tsx
 #: src/session/components/note-input/raw.tsx
@@ -4162,17 +4042,9 @@ msgstr "Session sans titre"
 msgid "Upcoming Event"
 msgstr "Événement à venir"
 
-#: src/settings/general/account-profile.tsx
-msgid "Update your personal contact card. Your sign-in email is managed separately."
-msgstr "Mettez à jour votre fiche de contact personnelle. Votre adresse e-mail de connexion est gérée séparément."
-
 #: src/settings/plan-gate.tsx
 msgid "Upgrade"
 msgstr "Mettre à niveau"
-
-#: src/settings/ai/stt/select.tsx
-msgid "Upgrade to Pro to use this provider."
-msgstr "Passez à Pro pour utiliser ce fournisseur."
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
 #: src/session/components/outer-header/overflow/index.tsx
@@ -4213,6 +4085,10 @@ msgstr "Utilisez l'audio système pour capter les autres intervenants"
 #: src/session/components/note-conflict-banner.tsx
 msgid "Use the other version"
 msgstr "Utilisez l'autre version"
+
+#: src/settings/ai/stt/server-card.tsx
+msgid "Use this protocol"
+msgstr "Utiliser ce protocole"
 
 #: src/lock/screen.tsx
 msgid "Use Touch ID or enter your password to view."
@@ -4259,6 +4135,10 @@ msgstr "Afficher la note"
 msgid "View Syntheo"
 msgstr "Afficher Syntheo"
 
+#: src/settings/ai/stt/server-card.tsx
+msgid "vLLM, speaches, faster-whisper-server"
+msgstr "vLLM, speaches, faster-whisper-server"
+
 #: src/chat/components/input/use-dictation.ts
 msgid "Voice input is unavailable while Syntheo is recording a meeting."
 msgstr "La saisie vocale est indisponible pendant que Syntheo enregistre une réunion."
@@ -4282,11 +4162,6 @@ msgstr "Webhooks"
 #: src/settings/general/week-start.tsx
 msgid "Week starts on"
 msgstr "La semaine commence le"
-
-#. placeholder {0}: stats.streak
-#: src/settings/stats/index.tsx
-msgid "Weekly streak: {0}"
-msgstr "Série hebdomadaire : {0}"
 
 #: src/onboarding/index.tsx
 msgid "Welcome to Syntheo"
@@ -4332,6 +4207,14 @@ msgstr "Lorsque l'option est désactivée, les résumés suivent la langue déte
 msgid "When this happens"
 msgstr "Lorsque cela se produit"
 
+#: src/settings/dictation.tsx
+msgid "Words appear in a small bubble while you speak. Text is inserted when you finish."
+msgstr "Les mots s'affichent dans une petite bulle pendant que vous parlez. Le texte s'insère quand vous avez terminé."
+
+#: src/settings/dictation.tsx
+msgid "Words specific to you go in your"
+msgstr "Vos mots à vous vont dans votre"
+
 #: src/task/tab-content.tsx
 msgid "Work on this task"
 msgstr "Travailler sur cette tâche"
@@ -4340,10 +4223,6 @@ msgstr "Travailler sur cette tâche"
 msgid "Workflow"
 msgstr "Flux de travail"
 
-#: src/sidebar/settings-nav-groups.ts
-msgid "Workspace"
-msgstr "Espace de travail"
-
 #: src/session/components/living-document/index.tsx
 msgid "Write freely, Syntheo will complete it."
 msgstr "Écrivez librement, Syntheo complétera."
@@ -4351,6 +4230,10 @@ msgstr "Écrivez librement, Syntheo complétera."
 #: src/automations/starters.tsx
 msgid "Write to a folder"
 msgstr "Écrire dans un dossier"
+
+#: src/sidebar/settings-nav-groups.ts
+msgid "Writing"
+msgstr "Écrire"
 
 #: src/templates/template-preview.tsx
 msgid "Written by Syntheo"
@@ -4376,29 +4259,9 @@ msgstr "Vous pouvez annuler cette action pendant une courte durée."
 msgid "You can use up to three example summaries."
 msgstr "Vous pouvez utiliser jusqu'à trois exemples de résumés."
 
-#: src/settings/stats/badge-collection.tsx
-msgid "Your badges"
-msgstr "Vos badges"
-
-#: src/settings/stats/insights.tsx
-msgid "Your busiest weekdays are tied at {peakCount} conversations each in the selected period."
-msgstr "Vos jours de semaine les plus chargés sont à égalité avec {peakCount} conversations chacun sur la période sélectionnée."
-
-#: src/settings/stats/insights.tsx
-msgid "Your conversation patterns"
-msgstr "Vos habitudes de conversation"
-
 #: src/settings/dictionary/index.tsx
 msgid "Your dictionary is empty"
 msgstr "Votre dictionnaire est vide"
-
-#: src/settings/general/account-profile.tsx
-msgid "Your info"
-msgstr "Vos informations"
-
-#: src/settings/stats/index.tsx
-msgid "Your insights"
-msgstr "Vos analyses"
 
 #: src/session/components/living-document/index.tsx
 #: src/session/components/living-document/provenance.tsx
@@ -4408,7 +4271,3 @@ msgstr "Vos notes"
 #: src/services/enhancer/summary-notification.ts
 msgid "Your summary is ready."
 msgstr "Votre résumé est prêt."
-
-#: src/settings/stats/insights.tsx
-msgid "Your week at a glance"
-msgstr "Votre semaine en un coup d'œil"

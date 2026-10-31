@@ -4,12 +4,10 @@ import {
   Bell,
   BookOpen,
   CalendarDots,
-  ChartLineUp,
   Code,
   DownloadSimple,
   FileText,
   FolderSimple,
-  Gear,
   Lightning,
   type Icon,
   Lock,
@@ -17,6 +15,7 @@ import {
   ShieldCheck,
   Sparkle,
   Sun,
+  User,
   Users,
   VideoCamera,
   Waveform,
@@ -31,6 +30,8 @@ type SettingsNavItem =
       label: string;
       icon: Icon;
       requiresPro?: boolean;
+      // Serveur dont l'état s'affiche en pastille à droite de l'entrée.
+      server?: "stt" | "llm";
     }
   | {
       id: "automations" | "calendar" | "contacts" | "folders" | "templates";
@@ -38,34 +39,55 @@ type SettingsNavItem =
       icon: Icon;
       destination: TabInput;
       requiresPro?: boolean;
+      server?: undefined;
     };
 
-export type SettingsNavGroup = { label: string; items: SettingsNavItem[] };
+export type SettingsNavGroup = {
+  label: string;
+  items: SettingsNavItem[];
+  // Replié par défaut : réglages rares, gardés accessibles hors des quatre
+  // groupes de la maquette.
+  collapsed?: boolean;
+};
 
 export function useSettingsNavGroups(): SettingsNavGroup[] {
   const { i18n, t } = useLingui();
 
   return [
     {
-      label: t`App`,
+      label: t`Me`,
       items: [
-        { id: "app", label: t`General`, icon: Gear },
-        { id: "insights", label: t`Insights`, icon: ChartLineUp },
+        { id: "app", label: t`Profile`, icon: User },
         { id: "appearance", label: t`Appearance`, icon: Sun },
         { id: "notifications", label: t`Notifications`, icon: Bell },
       ],
     },
     {
-      label: "AI",
+      label: t`My servers`,
       items: [
-        { id: "transcription", label: t`Transcription`, icon: Waveform },
+        {
+          id: "transcription",
+          label: t`Transcription`,
+          icon: Waveform,
+          server: "stt",
+        },
+        {
+          id: "intelligence",
+          label: t`Synthesis`,
+          icon: Sparkle,
+          server: "llm",
+        },
+      ],
+    },
+    {
+      label: t`Writing`,
+      items: [
         {
           id: "dictation",
           label: t`Dictation`,
           icon: Microphone,
           requiresPro: true,
         },
-        { id: "intelligence", label: t`Intelligence`, icon: Sparkle },
         {
           id: "dictionary",
           label: t`Dictionary`,
@@ -75,15 +97,15 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
       ],
     },
     {
-      label: t`Workspace`,
+      label: t`My meetings`,
       items: [
-        { id: "meetings", label: t`Meetings`, icon: VideoCamera },
         {
-          id: "folders",
-          label: t`Folders`,
-          icon: FolderSimple,
-          destination: { type: "folders" },
+          id: "templates",
+          label: t`Templates`,
+          icon: FileText,
+          destination: { type: "templates" },
         },
+        { id: "meetings", label: t`Meetings`, icon: VideoCamera },
         {
           id: "calendar",
           label: t`Calendar`,
@@ -91,32 +113,22 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           destination: { type: "calendar" },
         },
         {
+          id: "folders",
+          label: t`Folders`,
+          icon: FolderSimple,
+          destination: { type: "folders" },
+        },
+        {
           id: "contacts",
           label: t`Contacts`,
           icon: Users,
           destination: { type: "contacts" },
         },
-        {
-          id: "templates",
-          label: t`Templates`,
-          icon: FileText,
-          destination: { type: "templates" },
-        },
-        {
-          id: "automations",
-          label: t`Automations`,
-          icon: Lightning,
-          destination: { type: "automations" },
-          requiresPro: true,
-        },
       ],
     },
     {
-      label: t`Data`,
-      items: [{ id: "imports", label: t`Imports`, icon: DownloadSimple }],
-    },
-    {
       label: t`Advanced`,
+      collapsed: true,
       items: [
         {
           id: "privacy",
@@ -124,6 +136,14 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           icon: ShieldCheck,
         },
         { id: "permissions", label: t`Permissions`, icon: Lock },
+        { id: "imports", label: t`Imports`, icon: DownloadSimple },
+        {
+          id: "automations",
+          label: t`Automations`,
+          icon: Lightning,
+          destination: { type: "automations" },
+          requiresPro: true,
+        },
         { id: "developers", label: t`Developers`, icon: Code },
       ],
     },

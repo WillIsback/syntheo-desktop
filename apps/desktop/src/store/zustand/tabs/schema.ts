@@ -45,8 +45,6 @@ export const isTabInputSupported = (
 };
 
 export type SettingsTab =
-  | "stats"
-  | "insights"
   | "app"
   | "meetings"
   | "audio"
@@ -64,8 +62,6 @@ export type SettingsTab =
 
 const normalizeSettingsTab = (tab: string | null | undefined): SettingsTab => {
   switch (tab) {
-    case "stats":
-    case "insights":
     case "app":
     case "meetings":
     case "appearance":
@@ -86,8 +82,8 @@ const normalizeSettingsTab = (tab: string | null | undefined): SettingsTab => {
       return "dictionary";
     case "data":
       return "imports";
-    // Écrans retirés (compte, abonnement, parrainage, équipe, sync, CRM) et
-    // valeurs inconnues : Général.
+    // Écrans retirés (compte, abonnement, parrainage, équipe, sync, CRM,
+    // « Analyses » ex-`insights`/`stats`) et valeurs inconnues : Profil.
     default:
       return "app";
   }
