@@ -7,6 +7,7 @@ const globals = readFileSync(
   resolve(process.cwd(), "src/styles/globals.css"),
   "utf8",
 );
+const main = readFileSync(resolve(process.cwd(), "src/main.tsx"), "utf8");
 
 describe("polices Syntheo « Thé vert »", () => {
   it("déclare Geist embarquée en tête de --font-sans", () => {
@@ -21,10 +22,14 @@ describe("polices Syntheo « Thé vert »", () => {
     expect(globals).toMatch(/--font-kanji:\s*\n?\s*"Syntheo Kanji",/);
   });
 
-  it("importe Geist et Newsreader via les paquets fontsource", () => {
-    expect(globals).toMatch(/@import "@fontsource-variable\/geist";/);
-    expect(globals).toMatch(/@import "@fontsource-variable\/newsreader";/);
-    expect(globals).not.toMatch(/@fontsource-variable\/inter/);
+  // Importées depuis le JS pour que Vite réécrive les url(./files/…) de
+  // fontsource ; via @import dans globals.css, Tailwind les recopie telles
+  // quelles et les .woff2 manquent dans dist.
+  it("importe Geist et Newsreader via fontsource depuis main.tsx", () => {
+    expect(main).toMatch(/import "@fontsource-variable\/geist";/);
+    expect(main).toMatch(/import "@fontsource-variable\/newsreader";/);
+    expect(globals).not.toMatch(/@import "@fontsource/);
+    expect(main).not.toMatch(/@fontsource-variable\/inter/);
   });
 
   it("limite le sous-ensemble kanji aux idéogrammes 茶備聴結記", () => {
