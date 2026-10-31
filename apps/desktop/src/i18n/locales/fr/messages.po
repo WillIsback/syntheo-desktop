@@ -1220,7 +1220,6 @@ msgid "Edit date"
 msgstr "Modifier la date"
 
 #: src/contacts/details.tsx
-#: src/settings/general/account-profile.tsx
 msgid "Email"
 msgstr "E-mail"
 
@@ -1763,7 +1762,6 @@ msgid "Light"
 msgstr "Clair"
 
 #: src/contacts/details.tsx
-#: src/settings/general/account-profile.tsx
 msgid "LinkedIn"
 msgstr "LinkedIn"
 
@@ -2524,7 +2522,6 @@ msgid "Permissions granted"
 msgstr "Autorisations accordées"
 
 #: src/contacts/details.tsx
-#: src/settings/general/account-profile.tsx
 msgid "Phone"
 msgstr "Téléphone"
 
