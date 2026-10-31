@@ -29,8 +29,11 @@ fn json_of(message: &Message) -> serde_json::Value {
 
 #[test]
 fn nvidia_final_segment_keeps_word_alignment() {
+    // NIM reports word offsets in milliseconds (NVIDIA's reference realtime
+    // client prints them as "Start (ms)" / "End (ms)").
     let adapter = NvidiaAdapter::default();
-    let result = adapter.parse_response(r#"{"type":"conversation.item.input_audio_transcription.completed","transcript":"Hello","words_info":{"words":[{"word":"Hello","start_time":1.0,"end_time":1.5,"speaker_tag":3,"confidence":0.9}]}}"#);
+    let _ = adapter.audio_to_message(bytes::Bytes::from(vec![0; 2 * 16_000 * 2]));
+    let result = adapter.parse_response(r#"{"type":"conversation.item.input_audio_transcription.completed","transcript":"Hello","words_info":{"words":[{"word":"Hello","start_time":1000,"end_time":1500,"speaker_tag":3,"confidence":0.9}]}}"#);
     assert_eq!(result.len(), 1);
     assert_eq!(transcript(&result[0]), ("Hello", true, 1.0, 0.5));
     match &result[0] {
@@ -39,6 +42,33 @@ fn nvidia_final_segment_keeps_word_alignment() {
         }
         _ => unreachable!(),
     }
+}
+
+#[test]
+fn nvidia_word_offsets_in_seconds_are_kept() {
+    // A deployment already reporting seconds stays within the audio sent.
+    let adapter = NvidiaAdapter::default();
+    let _ = adapter.audio_to_message(bytes::Bytes::from(vec![0; 2 * 16_000 * 2]));
+    let result = adapter.parse_response(r#"{"type":"conversation.item.input_audio_transcription.completed","transcript":"Hello","words_info":{"words":[{"word":"Hello","start_time":1.0,"end_time":1.5}]}}"#);
+    assert_eq!(transcript(&result[0]), ("Hello", true, 1.0, 0.5));
+}
+
+#[test]
+fn nvidia_partial_after_a_final_follows_it_on_the_audio_timeline() {
+    // Read as seconds, a word ending at "4800" pushed the cursor 80 min ahead:
+    // every later partial collapsed onto that instant and was discarded as
+    // already transcribed (issue #268).
+    let adapter = NvidiaAdapter::default();
+    let _ = adapter.audio_to_message(bytes::Bytes::from(vec![0; 5 * 16_000 * 2]));
+    adapter.parse_response(r#"{"type":"conversation.item.input_audio_transcription.completed","transcript":"Bonjour à tous.","words_info":{"words":[{"word":"Bonjour","start_time":300,"end_time":900},{"word":"tous.","start_time":4200,"end_time":4800}]}}"#);
+    let _ = adapter.audio_to_message(bytes::Bytes::from(vec![0; 16_000 * 2]));
+    let partial = adapter.parse_response(
+        r#"{"type":"conversation.item.input_audio_transcription.delta","delta":"Et ensuite"}"#,
+    );
+    let (text, is_final, start, duration) = transcript(&partial[0]);
+    assert_eq!((text, is_final), ("Et ensuite", false));
+    assert!((start - 4.8).abs() < 1e-9, "start = {start}");
+    assert!((duration - 1.2).abs() < 1e-9, "duration = {duration}");
 }
 
 #[test]

@@ -1,4 +1,6 @@
 mod adapters;
+#[cfg(test)]
+mod progress_tests;
 mod stream;
 
 use std::sync::Arc;
@@ -485,7 +487,7 @@ fn process_stream_response(
     mut response: StreamResponse,
 ) -> Option<DegradedError> {
     if let Some(progress) = &mut state.progress {
-        progress.observe_response(Instant::now());
+        progress.observe_response(&response, Instant::now());
     }
     if let StreamResponse::ErrorResponse {
         error_code,
