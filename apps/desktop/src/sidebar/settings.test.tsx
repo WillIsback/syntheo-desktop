@@ -29,6 +29,10 @@ const mocks = vi.hoisted(() => ({
   updateTemplatesTabState: vi.fn(),
   workspaces: [] as Array<{ workspaceId: string }> | undefined,
   workspacesLoading: false,
+  serverStates: {
+    stt: { status: "failed", failure: { ok: false, reason: "unreachable" } },
+    llm: { status: "connected", latencyMs: 84, protocol: "openai", models: [] },
+  } as Record<string, unknown>,
 }));
 
 const lingui = vi.hoisted(() => {
@@ -76,6 +80,10 @@ vi.mock("@lingui/react/macro", () => ({
 
 vi.mock("./custom-sidebar-header", () => ({
   CustomSidebarHeader: () => <div />,
+}));
+
+vi.mock("~/settings/ai/shared/server-connection", () => ({
+  useServerConnection: (kind: string) => ({ state: mocks.serverStates[kind] }),
 }));
 
 vi.mock("~/billing/billing-context", () => ({
@@ -138,13 +146,83 @@ describe("SettingsNav", () => {
     mocks.updateSettingsTabState.mock.lastCall?.[1] as
       | { tab: string }
       | undefined;
+  it("shows the four groups of the redesign, then a folded Advanced group", () => {
+    render(<SettingsNav />);
+
+    const headings = screen
+      .getAllByText(/^(Me|My servers|Writing|My meetings|Advanced)$/)
+      .map((element) => element.textContent);
+    expect(headings).toEqual([
+      "Me",
+      "My servers",
+      "Writing",
+      "My meetings",
+      "Advanced",
+    ]);
+    for (const label of [
+      "Profile",
+      "Appearance",
+      "Notifications",
+      "Dictation",
+      "Dictionary",
+      "Templates",
+      "Meetings",
+      "Calendar",
+      "Folders",
+      "Contacts",
+    ]) {
+      expect(screen.getByRole("button", { name: label })).toBeTruthy();
+    }
+    expect(screen.getByRole("button", { name: /^Transcription/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Synthesis/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Permissions" })).toBeNull();
+    expect(
+      screen
+        .getByRole("button", { name: "Advanced" })
+        .getAttribute("aria-expanded"),
+    ).toBe("false");
+  });
+
+  it("no longer offers Insights, even via search", () => {
+    render(<SettingsNav />);
+
+    fireEvent.change(screen.getByPlaceholderText("Search settings..."), {
+      target: { value: "insights" },
+    });
+
+    expect(screen.queryByRole("button", { name: "Insights" })).toBeNull();
+    expect(screen.getByText("No results found.")).toBeTruthy();
+  });
+
+  it("marks the current page and the servers' status", () => {
+    mocks.currentTab = { type: "settings", state: { tab: "transcription" } };
+    render(<SettingsNav />);
+
+    const transcription = screen.getByRole("button", {
+      name: /^Transcription/,
+    });
+    expect(transcription.getAttribute("aria-current")).toBe("page");
+    expect(transcription.textContent).toContain("Transcription · unreachable");
+    expect(
+      screen.getByRole("button", { name: /^Synthesis/ }).textContent,
+    ).toContain("Synthesis · connected");
+
+    const footer = screen.getByRole("status", { name: "Server status" });
+    expect(footer.textContent).toContain("Transcription · unreachable");
+    expect(footer.textContent).toContain("Synthesis · connected");
+  });
+
   it.each([
-    ["Permissions", "permissions"],
+    ["Profile", "app"],
+    ["Synthesis", "intelligence"],
     ["Dictionary", "dictionary"],
+    ["Meetings", "meetings"],
   ])("opens %s inside settings", (label, tab) => {
     render(<SettingsNav />);
 
-    fireEvent.click(screen.getByRole("button", { name: label }));
+    fireEvent.click(
+      screen.getByRole("button", { name: new RegExp(`^${label}`) }),
+    );
 
     expect(mocks.updateSettingsTabState).toHaveBeenCalledWith(
       mocks.currentTab,
@@ -152,9 +230,31 @@ describe("SettingsNav", () => {
     );
   });
 
+  it("unfolds Advanced to reach the remaining settings", () => {
+    render(<SettingsNav />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Advanced" }));
+    fireEvent.click(screen.getByRole("button", { name: "Permissions" }));
+    expect(openedSettingsTab()).toEqual({ tab: "permissions" });
+
+    fireEvent.click(screen.getByRole("button", { name: /Automations/ }));
+    expect(mocks.openNew).toHaveBeenCalledWith({ type: "automations" });
+  });
+
+  it("keeps Advanced open when one of its pages is shown", () => {
+    mocks.currentTab = { type: "settings", state: { tab: "developers" } };
+    render(<SettingsNav />);
+
+    expect(
+      screen
+        .getByRole("button", { name: "Developers" })
+        .getAttribute("aria-current"),
+    ).toBe("page");
+  });
+
   it.each([
     ["Calendar", "calendar"],
-    ["Automations", "automations"],
+    ["Templates", "templates"],
   ])("opens the %s workspace in a new tab", (label, type) => {
     render(<SettingsNav />);
 
@@ -163,28 +263,13 @@ describe("SettingsNav", () => {
     expect(mocks.openNew).toHaveBeenCalledWith({ type });
   });
 
-  it("offers Insights instead of Stats to free users, including via search", () => {
-    mocks.isPro = false;
-    render(<SettingsNav />);
-    expect(screen.queryByRole("button", { name: "Stats" })).toBeNull();
-
-    fireEvent.change(screen.getByPlaceholderText("Search settings..."), {
-      target: { value: "insights" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Insights" }));
-
-    expect(openedSettingsTab()).toEqual({ tab: "insights" });
-    expect(screen.queryByRole("button", { name: "Stats" })).toBeNull();
-  });
-
   it("keeps locked Pro features visible and navigable without forcing an upgrade", () => {
     mocks.isPro = false;
     render(<SettingsNav />);
 
-    for (const [label, tab] of [["Dictionary", "dictionary"]]) {
-      fireEvent.click(screen.getByRole("button", { name: new RegExp(label) }));
-      expect(openedSettingsTab()).toEqual({ tab });
-    }
+    fireEvent.click(screen.getByRole("button", { name: /Dictionary/ }));
+    expect(openedSettingsTab()).toEqual({ tab: "dictionary" });
+    fireEvent.click(screen.getByRole("button", { name: "Advanced" }));
     fireEvent.click(screen.getByRole("button", { name: /Automations/ }));
 
     expect(mocks.openNew).toHaveBeenCalledWith({ type: "automations" });
@@ -199,10 +284,13 @@ describe("SettingsNav", () => {
     expect(screen.getByText("Appearance")).toBeTruthy();
     expect(screen.queryByText("Meetings")).toBeNull();
 
-    fireEvent.change(input, { target: { value: "workspace" } });
+    fireEvent.change(input, { target: { value: "my meetings" } });
     expect(screen.getByText("Meetings")).toBeTruthy();
     expect(screen.getByText("Templates")).toBeTruthy();
     expect(screen.queryByText("Appearance")).toBeNull();
+
+    fireEvent.change(input, { target: { value: "develop" } });
+    expect(screen.getByRole("button", { name: "Developers" })).toBeTruthy();
   });
 
   it("shows an empty state when no settings match", () => {

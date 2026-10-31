@@ -30,41 +30,6 @@ export async function getLanguageSupportIssue(
   };
 }
 
-export function getDefaultSttSelection(
-  providerIds: readonly string[],
-  statuses: Record<
-    string,
-    {
-      configured: boolean;
-      models: { id: string; isDownloaded?: boolean }[];
-    }
-  >,
-  currentProvider?: string,
-  currentModel?: string,
-) {
-  for (const provider of providerIds) {
-    const status = statuses[provider];
-    if (!status?.configured) {
-      continue;
-    }
-
-    const model = getPreferredProviderModel(
-      provider === currentProvider ? currentModel : undefined,
-      status.models,
-      {
-        allowSavedModelWithoutChoices:
-          provider === "openai" || provider === "nvidia",
-      },
-    );
-
-    if (model) {
-      return { provider, model };
-    }
-  }
-
-  return null;
-}
-
 export function resolveLiveLanguageSupportMode({
   isOnDeviceModel,
   useLiveOnDeviceModel,

@@ -402,6 +402,9 @@ describe("Basic Tab Actions", () => {
     ["team", "app"],
     ["sync", "app"],
     ["crm", "app"],
+    // « Analyses » retiré (refonte Thé vert, lot 4) : onglets persistés
+    ["insights", "app"],
+    ["stats", "app"],
   ] as const)(
     "openNew normalizes settings tab %s to %s",
     (requested, expected) => {

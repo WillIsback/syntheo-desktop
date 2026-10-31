@@ -95,15 +95,9 @@ function ProfileForm({
         void form.handleSubmit();
       }}
     >
-      <h3 className="text-sm font-medium">
-        <Trans>Your info</Trans>
+      <h3 className="text-faint text-[11px] font-semibold tracking-[0.08em] uppercase">
+        <Trans>Identity</Trans>
       </h3>
-      <p className="text-muted-foreground text-sm">
-        <Trans>
-          Update your personal contact card. Your sign-in email is managed
-          separately.
-        </Trans>
-      </p>
       <fieldset className="flex min-w-0 flex-col gap-4">
         <ProfilePhoto
           userId={humanId}
