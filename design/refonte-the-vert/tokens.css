@@ -1,0 +1,94 @@
+/*
+ * Syntheo · 緑茶 Thé vert : remplaçant proposé pour packages/design-system/src/tokens.css.
+ * Même format HSL et mêmes noms que l'existant ; nouveaux : primary-hover, faint, recording, seal, ai-ink, shadow-capsule.
+ * --radius passe de 0.5rem à 0.625rem (10px, radius-md des champs).
+ */
+@layer base {
+  :root {
+    --background: 50 43% 97%; /* #fbfaf5 生成り kinari / 墨 sumi */
+    --foreground: 100 8% 15%; /* #262a24 encre de VOS notes */
+    --card: 48 100% 99%; /* #fffefa */
+    --card-foreground: 100 8% 15%; /* #262a24 */
+    --popover: 48 100% 99%; /* #fffefa */
+    --popover-foreground: 100 8% 15%; /* #262a24 */
+    --primary: 142 36% 30%; /* #316745 千歳緑 chitose-midori */
+    --primary-hover: 146 39% 24%; /* #25553a nouveau */
+    --primary-foreground: 50 43% 97%; /* #fbfaf5 */
+    --secondary: 53 22% 92%; /* #efeee6 */
+    --secondary-foreground: 100 8% 15%; /* #262a24 */
+    --muted: 53 22% 92%; /* #efeee6 */
+    --muted-foreground: 95 6% 36%; /* #5c6357 利休鼠 */
+    --faint: 95 5% 56%; /* #8f968a nouveau, jamais pour du texte à lire */
+    --accent: 105 25% 91%; /* #e4ede1 */
+    --accent-foreground: 146 39% 24%; /* #25553a */
+    --destructive: 358 51% 46%; /* #b23a3f */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    --alert: 7 68% 95%; /* #fbecea */
+    --alert-foreground: 357 53% 42%; /* #a33237 */
+    --alert-border: 4 58% 86%; /* #f0c9c6 */
+    --border: 55 18% 87%; /* #e4e3d8 */
+    --input: 55 14% 82%; /* #d8d7cb */
+    --ring: 142 36% 30%; /* #316745 = primary */
+    --recording: 357 54% 51%; /* #c53d43 nouveau, 紅 beni : écoute en cours uniquement */
+    --seal: 357 54% 51%; /* #c53d43 nouveau, sceau 記 */
+    --ai-ink: 142 36% 30%; /* #316745 nouveau, texte ajouté par Syntheo */
+    --app-floating-chrome: 53 22% 92%; /* #efeee6 */
+    --app-floating-panel: 50 43% 97%; /* #fbfaf5 */
+    --app-floating-border: 55 18% 87%; /* #e4e3d8 */
+    --chart-1: 142 36% 30%; /* #316745 千歳緑 */
+    --chart-2: 200 71% 30%; /* #165e83 藍 */
+    --chart-3: 39 70% 36%; /* #9c6f1c 山吹 */
+    --chart-4: 266 31% 42%; /* #674a8c 江戸紫 */
+    --chart-5: 357 54% 51%; /* #c53d43 紅 */
+    --sidebar-accent: 105 25% 91%; /* #e4ede1 */
+    --radius: 0.625rem;
+    --kbd-shadow-outer: rgba(38, 42, 36, 0.1);
+    --kbd-shadow-inset: rgba(255, 255, 255, 0.8);
+    --kbd-shadow-outer-hover: rgba(38, 42, 36, 0.15);
+    --shadow-capsule: 0 8px 28px rgba(38, 42, 36, 0.18);
+  }
+
+  .dark {
+    --background: 105 7% 11%; /* #1b1e1a 生成り kinari / 墨 sumi */
+    --foreground: 46 25% 90%; /* #ece9df encre de VOS notes */
+    --card: 103 10% 14%; /* #232821 */
+    --card-foreground: 46 25% 90%; /* #ece9df */
+    --popover: 103 10% 14%; /* #232821 */
+    --popover-foreground: 46 25% 90%; /* #ece9df */
+    --primary: 142 34% 62%; /* #7dbf95 千歳緑 chitose-midori */
+    --primary-hover: 141 36% 70%; /* #97ceaa nouveau */
+    --primary-foreground: 143 32% 11%; /* #13251a */
+    --secondary: 105 9% 18%; /* #2c322a */
+    --secondary-foreground: 46 25% 90%; /* #ece9df */
+    --muted: 105 9% 18%; /* #2c322a */
+    --muted-foreground: 86 8% 65%; /* #a7ad9f 利休鼠 */
+    --faint: 90 6% 48%; /* #7b8274 nouveau, jamais pour du texte à lire */
+    --accent: 141 22% 18%; /* #24382b */
+    --accent-foreground: 140 36% 72%; /* #9fd2b0 */
+    --destructive: 358 51% 37%; /* #8f2f33 */
+    --destructive-foreground: 4 67% 95%; /* #fbeceb */
+    --alert: 358 35% 17%; /* #3a1c1d */
+    --alert-foreground: 4 77% 75%; /* #f0938d */
+    --alert-border: 359 36% 26%; /* #5a2a2b */
+    --border: 105 7% 21%; /* #343a32 */
+    --input: 102 8% 25%; /* #3d443a */
+    --ring: 142 34% 62%; /* #7dbf95 = primary */
+    --recording: 4 72% 64%; /* #e5675f nouveau, 紅 beni : écoute en cours uniquement */
+    --seal: 4 72% 64%; /* #e5675f nouveau, sceau 記 */
+    --ai-ink: 142 34% 62%; /* #7dbf95 nouveau, texte ajouté par Syntheo */
+    --app-floating-chrome: 105 9% 18%; /* #2c322a */
+    --app-floating-panel: 103 10% 14%; /* #232821 */
+    --app-floating-border: 102 8% 25%; /* #3d443a */
+    --chart-1: 142 34% 62%; /* #7dbf95 千歳緑 */
+    --chart-2: 203 51% 61%; /* #6aa9cf 藍 */
+    --chart-3: 39 62% 60%; /* #d9ad5b 山吹 */
+    --chart-4: 266 41% 68%; /* #a98bcf 江戸紫 */
+    --chart-5: 4 72% 64%; /* #e5675f 紅 */
+    --sidebar-accent: 141 22% 18%; /* #24382b */
+    --radius: 0.625rem;
+    --kbd-shadow-outer: rgba(0, 0, 0, 0.35);
+    --kbd-shadow-inset: rgba(255, 255, 255, 0.08);
+    --kbd-shadow-outer-hover: rgba(0, 0, 0, 0.5);
+    --shadow-capsule: 0 8px 28px rgba(0, 0, 0, 0.5);
+  }
+}
