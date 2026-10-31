@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FloatingActionButton } from "./index";
@@ -7,15 +7,23 @@ import type { Tab } from "~/store/zustand/tabs";
 import type { EditorView } from "~/store/zustand/tabs/schema";
 
 const hoisted = vi.hoisted(() => ({
-  sendEvent: vi.fn(),
+  chatMode: "FloatingClosed" as string,
+  capsuleProps: [] as Array<Record<string, unknown>>,
 }));
 
-vi.mock("~/shared/chat-cta", () => ({
-  ChatCTA: () => (
-    <button type="button" onClick={() => hoisted.sendEvent({ type: "OPEN" })}>
-      Ask Syntheo anything
-    </button>
-  ),
+vi.mock("../capsule/session-capsule", () => ({
+  SessionCapsule: (props: Record<string, unknown>) => {
+    hoisted.capsuleProps.push(props);
+    return (
+      <div role="group" aria-label="Note capsule">
+        {String(props.stage)}
+      </div>
+    );
+  },
+}));
+
+vi.mock("~/contexts/shell", () => ({
+  useShell: () => ({ chat: { mode: hoisted.chatMode } }),
 }));
 
 describe("FloatingActionButton", () => {
@@ -34,73 +42,54 @@ describe("FloatingActionButton", () => {
     render(
       <FloatingActionButton
         currentView={{ type: "raw" } as EditorView}
+        stage="prepare"
         tab={tab}
         {...props}
       />,
     );
 
   beforeEach(() => {
-    hoisted.sendEvent.mockClear();
+    hoisted.chatMode = "FloatingClosed";
+    hoisted.capsuleProps = [];
   });
 
   afterEach(() => {
     cleanup();
   });
 
-  it("always renders the chat FAB", () => {
-    renderFloatingActionButton();
+  it("renders the capsule instead of the « Ask anything » bar", () => {
+    renderFloatingActionButton({ stage: "listen" });
 
+    expect(screen.getByRole("group", { name: "Note capsule" })).not.toBeNull();
     expect(
-      screen.getByRole("button", { name: "Ask Syntheo anything" }),
-    ).not.toBeNull();
+      screen.queryByRole("button", { name: "Ask Syntheo anything" }),
+    ).toBeNull();
+    expect(hoisted.capsuleProps[hoisted.capsuleProps.length - 1]).toMatchObject(
+      {
+        stage: "listen",
+        tab,
+        standaloneWindow: false,
+      },
+    );
   });
 
-  it("keeps chat for states that used to show other FAB actions", () => {
-    const cases: Array<
-      Partial<React.ComponentProps<typeof FloatingActionButton>>
-    > = [
-      { allowListening: false },
-      { audioExists: true, currentView: { type: "transcript" } },
-      { currentView: { type: "enhanced", id: "note-1" } },
-      { skipReason: "Not enough words recorded (3/5 minimum)" },
-    ];
-
-    for (const props of cases) {
-      const view = renderFloatingActionButton(props);
-
-      expect(
-        screen.getByRole("button", { name: "Ask Syntheo anything" }),
-      ).not.toBeNull();
-      expect(
-        screen.queryByRole("button", { name: "Start listening" }),
-      ).toBeNull();
-      expect(
-        screen.queryByRole("button", { name: "Generate summary" }),
-      ).toBeNull();
-      expect(screen.queryByRole("status")).toBeNull();
-
-      view.unmount();
-    }
-  });
-
-  it("keeps a selection slot stacked above the chat FAB", () => {
+  it("keeps a selection slot stacked above the capsule", () => {
     renderFloatingActionButton();
 
     const slot = document.querySelector("[data-session-fab-selection]");
     const stack = slot?.parentElement;
 
     expect(stack?.className).toContain("flex-col-reverse");
-    expect(stack?.className).toContain("bottom-3");
+    expect(stack?.className).toContain("bottom-[22px]");
     expect(slot?.className).toContain("mb-2");
   });
 
-  it("opens chat from the FAB", () => {
-    renderFloatingActionButton();
+  it("hides the capsule while the floating chat covers it", () => {
+    hoisted.chatMode = "FloatingOpen";
+    renderFloatingActionButton({ stage: "synthesis" });
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Ask Syntheo anything" }),
-    );
-
-    expect(hoisted.sendEvent).toHaveBeenCalledWith({ type: "OPEN" });
+    const capsuleHost = document.querySelector(".peer\\/session-fab");
+    expect(capsuleHost?.className).toContain("invisible");
+    expect(capsuleHost?.getAttribute("aria-hidden")).toBe("true");
   });
 });

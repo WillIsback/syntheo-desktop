@@ -2,13 +2,12 @@ import { useLingui } from "@lingui/react/macro";
 import { useCallback, useRef, useState } from "react";
 
 import { commands as openerCommands } from "@syntheo/plugin-opener2";
-import { Headset, Square, VideoCamera } from "@syntheo/ui/components/icons";
+import { Headset, VideoCamera } from "@syntheo/ui/components/icons";
 import { Button } from "@syntheo/ui/components/ui/button";
 import { cn, parseEventInstant, safeParseDate } from "@syntheo/utils";
 
 import { FolderPicker } from "../folder-picker";
-import { RecordingIcon, useHasTranscript } from "../shared";
-import { TitleInput } from "../title-input";
+import { useHasTranscript } from "../shared";
 import { OverflowButton } from "./overflow";
 
 import { useNow } from "~/calendar/hooks";
@@ -34,18 +33,18 @@ import {
   requestMainListenerControl,
 } from "~/stt/window-control";
 
+// Le titre vit désormais dans le document et les actions d'écoute dans la
+// capsule : l'en-tête ne garde que le dossier, « Rejoindre et enregistrer »
+// pour une réunion en ligne, et le menu « Plus ».
 export function OuterHeader({
   sessionId,
   currentView,
-  tab,
   standaloneWindow = false,
-  viewSwitcher,
 }: {
   sessionId: string;
   currentView: EditorView;
   tab?: Extract<Tab, { type: "sessions" }>;
   standaloneWindow?: boolean;
-  viewSwitcher?: React.ReactNode;
 }) {
   const { leftsidebar } = useShell();
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
@@ -63,10 +62,7 @@ export function OuterHeader({
   const ended = !!endedAt && endedAt.getTime() <= now.getTime();
   const isRecording =
     sessionMode === "active" || sessionMode === "running_batch";
-  const isLiveMeeting = isRecording || sessionMode === "finalizing";
   const meetingOver = !isRecording && (ended || hasTranscript || audioExists);
-  const showTitleInput =
-    Boolean(tab) && !viewSwitcher && !isLiveMeeting && !meetingOver;
 
   return (
     <div
@@ -85,18 +81,6 @@ export function OuterHeader({
             : "pl-[32px]"),
       ])}
     >
-      {viewSwitcher}
-      {showTitleInput && tab ? (
-        <div className="flex min-w-0 shrink items-center gap-1">
-          <FolderPicker sessionId={sessionId} />
-          <span aria-hidden="true" className="text-muted-foreground shrink-0">
-            /
-          </span>
-          <div className="max-w-56 min-w-0 shrink">
-            <TitleInput key={tab.id} tab={tab} variant="breadcrumb" />
-          </div>
-        </div>
-      ) : null}
       <div
         data-tauri-drag-region
         data-session-header-spacer
@@ -106,7 +90,7 @@ export function OuterHeader({
         data-tauri-drag-region
         className="relative z-10 flex shrink-0 items-center pr-1"
       >
-        {!showTitleInput && <FolderPicker sessionId={sessionId} align="end" />}
+        <FolderPicker sessionId={sessionId} align="end" />
         <HeaderMeetingControl
           sessionId={sessionId}
           sessionMode={sessionMode}
@@ -185,7 +169,6 @@ function HeaderMeetingAction({
   audioExists: boolean;
 }) {
   const startListening = useStartListening(sessionId);
-  const stop = useListener((state) => state.stop);
   const remote = getRemoteMeeting(event?.meeting_link);
   const meetingLink = event?.meeting_link || null;
   const canJoinFromHeader = Boolean(
@@ -233,42 +216,21 @@ function HeaderMeetingAction({
     }
   }, [openMeeting, start]);
   const countdown = useEventCountdown(sessionId);
-  const stopListening = useCallback(() => {
-    if (!isMainWebviewWindow()) {
-      void requestMainListenerControl("stop", sessionId);
-      return;
-    }
-
-    stop();
-  }, [sessionId, stop]);
-  const action = (() => {
-    if (sessionMode === "active") {
-      return {
-        label: t`Stop`,
-        title: t`Stop listening`,
-        icon: <Square className="size-3 text-red-500" />,
-        onClick: stopListening,
-      };
-    }
-
-    if (canJoinFromHeader && (!meetingStarted || !meetingMicInUse)) {
-      return {
-        label: t`Join & record`,
-        title: t`Join meeting and record`,
-        icon: remote ? getMeetingDisplay(remote.type).icon : undefined,
-        onClick: () => {
-          void joinMeeting();
-        },
-      };
-    }
-
-    return {
-      label: t`Record`,
-      title: t`Record`,
-      icon: <RecordingIcon />,
-      onClick: start,
-    };
-  })();
+  // Commencer et terminer l'écoute passent par la capsule ; l'en-tête ne
+  // garde que « Rejoindre et enregistrer » pour une réunion en ligne.
+  const action =
+    sessionMode !== "active" &&
+    canJoinFromHeader &&
+    (!meetingStarted || !meetingMicInUse)
+      ? {
+          label: t`Join & record`,
+          title: t`Join meeting and record`,
+          icon: remote ? getMeetingDisplay(remote.type).icon : undefined,
+          onClick: () => {
+            void joinMeeting();
+          },
+        }
+      : null;
   const disabled = sessionMode === "finalizing" || joiningMeeting;
   const isPrimaryCta = sessionMode === "inactive";
   const showCountdown =
@@ -276,28 +238,35 @@ function HeaderMeetingAction({
     sessionMode !== "active" &&
     sessionMode !== "running_batch" &&
     sessionMode !== "finalizing";
+
+  if (!action && !showCountdown) {
+    return null;
+  }
+
   return (
     <div className="relative mr-1 ml-1 flex min-w-0 shrink-0 items-center">
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        data-tauri-drag-region="false"
-        aria-label={action.label}
-        title={action.title}
-        disabled={disabled}
-        onClick={action.onClick}
-        className={cn([
-          "max-w-56 shrink-0 gap-1.5 overflow-hidden border pr-2.5 pl-1.5 text-sm",
-          isPrimaryCta
-            ? "border-border text-foreground bg-transparent shadow-none"
-            : "border-border bg-card text-foreground",
-          disabled && "cursor-default opacity-60",
-        ])}
-      >
-        {action.icon}
-        <span className="truncate">{action.label}</span>
-      </Button>
+      {action ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          data-tauri-drag-region="false"
+          aria-label={action.label}
+          title={action.title}
+          disabled={disabled}
+          onClick={action.onClick}
+          className={cn([
+            "max-w-56 shrink-0 gap-1.5 overflow-hidden border pr-2.5 pl-1.5 text-sm",
+            isPrimaryCta
+              ? "border-border text-foreground bg-transparent shadow-none"
+              : "border-border bg-card text-foreground",
+            disabled && "cursor-default opacity-60",
+          ])}
+        >
+          {action.icon}
+          <span className="truncate">{action.label}</span>
+        </Button>
+      ) : null}
       {showCountdown ? (
         <div
           data-header-meeting-countdown

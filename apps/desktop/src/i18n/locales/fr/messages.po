@@ -1,17 +1,18 @@
+#
 msgid ""
 msgstr ""
-"POT-Creation-Date: 2026-05-19 13:42+0900\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"X-Generator: @lingui/cli\n"
-"Language: fr\n"
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-19 13:42+0900\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: \n"
+"X-Generator: @lingui/cli\n"
 
 #: src/templates/template-preview.tsx
 msgid "— Sample line written from this instruction."
@@ -436,6 +437,10 @@ msgstr "Posez toutes vos questions à Syntheo AI"
 msgid "Ask Syntheo anything"
 msgstr "Posez toutes vos questions à Syntheo"
 
+#: src/session/components/capsule/index.tsx
+msgid "Ask the note"
+msgstr "Demander à la note"
+
 #: src/task/resource-view.tsx
 msgid "Assignees:"
 msgstr "Personnes assignées :"
@@ -477,6 +482,7 @@ msgstr "Ajouter automatiquement les réunions futures ?"
 msgid "Automate what happens before, during, or after meetings based on the conditions you choose."
 msgstr "Automatisez ce qui se passe avant, pendant ou après les réunions en fonction des conditions que vous choisissez."
 
+#: src/session/components/living-document/fiche.tsx
 #: src/templates/auto-form.tsx
 #: src/templates/template-sidebar.tsx
 msgid "Automatic"
@@ -542,6 +548,10 @@ msgstr "Basé sur les conversations capturées, y compris les transcripts import
 msgid "Based on the conversation so far, suggest a few questions I could ask next."
 msgstr "Sur la base de la conversation jusqu'à présent, suggérez quelques questions que je pourrais poser ensuite."
 
+#: src/session/components/capsule/index.tsx
+msgid "Begin listening"
+msgstr "Commencer l'écoute"
+
 #: src/chat/components/body/empty.tsx
 msgid "Beta"
 msgstr "Bêta"
@@ -588,6 +598,7 @@ msgid "Calendar connected"
 msgstr "Calendrier connecté"
 
 #: src/calendar/components/apple/permission.tsx
+#: src/session/components/capsule/index.tsx
 #: src/settings/dictionary/index.tsx
 #: src/settings/general/storage/legacy-cleanup.tsx
 #: src/shared/ui/destructive-confirmation-dialog.tsx
@@ -891,6 +902,10 @@ msgstr "Terminer l'intégration"
 msgid "Complete onboarding. You're ready for your next conversation."
 msgstr "Terminez l'intégration. Vous êtes prêt pour votre prochaine conversation."
 
+#: src/session/components/living-document/provenance.tsx
+msgid "Completed by Syntheo"
+msgstr "Complété par Syntheo"
+
 #: src/settings/general/notification.tsx
 msgid "Completion sound"
 msgstr "Son de fin"
@@ -898,6 +913,10 @@ msgstr "Son de fin"
 #: src/composer/index.tsx
 msgid "Composer"
 msgstr "Rédacteur"
+
+#: src/session/components/living-document/fiche.tsx
+msgid "Computer audio"
+msgstr "Son de l'ordinateur"
 
 #: src/composer/index.tsx
 msgid "Configure a chat model in Settings"
@@ -1000,6 +1019,7 @@ msgid "Copied to clipboard: {viewTitle}"
 msgstr "Copié dans le presse-papiers : {viewTitle}"
 
 #: src/main/windows-title-bar.tsx
+#: src/session/components/capsule/index.tsx
 #: src/session/components/note-input/header-enhanced.tsx
 #: src/session/components/note-input/header-raw.tsx
 #: src/session/components/note-input/header-transcript.tsx
@@ -1354,6 +1374,10 @@ msgstr "Mode d'affichage"
 msgid "Documentation"
 msgstr "Documentation"
 
+#: src/session/components/living-document/transcript-margin.tsx
+msgid "Done"
+msgstr "Terminé"
+
 #: src/settings/automations/index.tsx
 #: src/settings/automations/workflow-builder.tsx
 #: src/sidebar/automations.tsx
@@ -1403,6 +1427,7 @@ msgid "Earlier versions of this note, newest first."
 msgstr "Versions antérieures de cette note, les plus récentes en premier."
 
 #: src/main/windows-title-bar.tsx
+#: src/session/components/living-document/transcript-margin.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/dictionary/index.tsx
 #: src/sidebar/automations.tsx
@@ -1507,6 +1532,7 @@ msgstr "Exclure les applications de la détection"
 msgid "Expected output"
 msgstr "Sortie attendue"
 
+#: src/session/components/capsule/index.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/session/components/outer-header/overflow/index.tsx
 msgid "Export"
@@ -1535,6 +1561,10 @@ msgstr "Export en cours..."
 #: src/session/components/note-input/header-raw.tsx
 msgid "Failed to copy memo"
 msgstr "Impossible de copier le mémo"
+
+#: src/session/components/capsule/session-capsule.tsx
+msgid "Failed to copy the note"
+msgstr "Impossible de copier la note"
 
 #: src/session/components/note-input/header-transcript.tsx
 msgid "Failed to copy transcript"
@@ -1579,6 +1609,14 @@ msgstr "Trouvez les décisions clés."
 #: src/settings/stats/badge-collection.tsx
 msgid "Finding Your Rhythm"
 msgstr "Trouver votre rythme"
+
+#: src/session/components/capsule/index.tsx
+msgid "Finish"
+msgstr "Terminer"
+
+#: src/session/components/capsule/index.tsx
+msgid "Finishing…"
+msgstr "Finalisation…"
 
 #: src/settings/stats/badge-collection.tsx
 msgid "First Words"
@@ -1772,6 +1810,10 @@ msgstr "Masquer la barre latérale"
 #: src/main/windows-title-bar.tsx
 msgid "Hide Sidebar"
 msgstr "Masquer la barre latérale"
+
+#: src/session/components/living-document/index.tsx
+msgid "Hide transcript"
+msgstr "Masquer la transcription"
 
 #: src/settings/ai/llm/select.tsx
 msgid "High"
@@ -2002,6 +2044,18 @@ msgstr "Listez les éléments d'action jusqu'à présent."
 msgid "List action items."
 msgstr "Listez les éléments d'action."
 
+#: src/session/components/capsule/index.tsx
+msgid "Listen"
+msgstr "Écouter"
+
+#: src/session/components/living-document/fiche.tsx
+msgid "Listening"
+msgstr "Écoute"
+
+#: src/session/components/capsule/index.tsx
+msgid "Listening time"
+msgstr "Durée d'écoute"
+
 #: src/settings/dictation.tsx
 msgid "Listening…"
 msgstr "Écoute…"
@@ -2169,6 +2223,10 @@ msgstr "Historique de réunion importé"
 msgid "Meeting info"
 msgstr "Informations sur la réunion"
 
+#: src/session/components/living-document/fiche.tsx
+msgid "Meeting type"
+msgstr "Type de réunion"
+
 #: src/settings/general/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Meetings"
@@ -2216,6 +2274,10 @@ msgstr "Message Syntheo AI"
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Metadata"
 msgstr "Métadonnées"
+
+#: src/session/components/living-document/fiche.tsx
+msgid "Mic"
+msgstr "Micro"
 
 #: src/onboarding/permissions.tsx
 #: src/settings/dictation.tsx
@@ -2523,9 +2585,25 @@ msgstr "réception d'événements inactive"
 msgid "note"
 msgstr "note"
 
+#: src/session/components/capsule/index.tsx
+msgid "Note capsule"
+msgstr "Capsule de la note"
+
+#: src/session/components/capsule/session-capsule.tsx
+msgid "Note copied to clipboard"
+msgstr "Note copiée dans le presse-papiers"
+
+#: src/session/components/living-document/index.tsx
+msgid "Note here what you want to remember. During the meeting, write freely: Syntheo will complete it."
+msgstr "Notez ici ce que vous voulez retenir. Pendant la réunion, écrivez librement : Syntheo complétera."
+
 #: src/lock/screen.tsx
 msgid "Note is Locked"
 msgstr "Note verrouillée"
+
+#: src/session/components/capsule/index.tsx
+msgid "Note steps"
+msgstr "Étapes de la note"
 
 #: src/settings/appearance/app-icon.tsx
 msgid "Notepad"
@@ -2698,6 +2776,7 @@ msgstr "Aperçu"
 msgid "Page not found"
 msgstr "Page introuvable"
 
+#: src/session/components/living-document/fiche.tsx
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Participants"
@@ -2762,6 +2841,10 @@ msgstr "Lire à partir d'ici"
 #: src/settings/general/meeting-settings.tsx
 msgid "Post recording disclosure in meeting chat"
 msgstr "Publier la mention d'enregistrement dans le chat de la réunion"
+
+#: src/session/components/capsule/index.tsx
+msgid "Prepare"
+msgstr "Préparer"
 
 #: src/settings/general/notification.tsx
 msgid "Prepare for events with a 5-minute reminder."
@@ -2860,10 +2943,6 @@ msgstr "Récent"
 #: src/calendar/components/sidebar.tsx
 msgid "Reconnect"
 msgstr "Reconnecter"
-
-#: src/session/components/outer-header/index.tsx
-msgid "Record"
-msgstr "Enregistrer"
 
 #: src/settings/general/permissions.tsx
 msgid "Record other participants in meetings."
@@ -3413,6 +3492,10 @@ msgstr "Afficher la chronologie dans votre fuseau horaire préféré."
 msgid "Show This Event"
 msgstr "Afficher cet événement"
 
+#: src/session/components/living-document/index.tsx
+msgid "Show transcript"
+msgstr "Afficher la transcription"
+
 #: src/settings/general/app-settings.tsx
 msgid "Show tray icon"
 msgstr "Afficher l'icône de la zone de notification"
@@ -3588,7 +3671,6 @@ msgid "Stone"
 msgstr "Pierre"
 
 #: src/composer/index.tsx
-#: src/session/components/outer-header/index.tsx
 msgid "Stop"
 msgstr "Arrêter"
 
@@ -3596,7 +3678,6 @@ msgstr "Arrêter"
 msgid "Stop auto-add"
 msgstr "Arrêter l'ajout automatique"
 
-#: src/session/components/outer-header/index.tsx
 #: src/session/components/outer-header/overflow/listening.tsx
 #: src/sidebar/timeline/item.tsx
 msgid "Stop listening"
@@ -3691,6 +3772,10 @@ msgstr "Aperçu de la synthèse"
 msgid "Summary ready"
 msgstr "Résumé prêt"
 
+#: src/session/components/living-document/summary-switcher.tsx
+msgid "Summary templates"
+msgstr "Modèles du compte-rendu"
+
 #: src/settings/general/week-start.tsx
 msgid "Sunday"
 msgstr "Dimanche"
@@ -3752,6 +3837,10 @@ msgstr "Syntheo structure lui-même la synthèse, sans modèle fixe. Utilisé qu
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "Syntheo will retry automatically. This does not affect your notes."
 msgstr "Syntheo réessaiera automatiquement. Cela n'a aucune incidence sur vos notes."
+
+#: src/session/components/capsule/index.tsx
+msgid "Synthesis"
+msgstr "Synthèse"
 
 #: src/settings/appearance/theme.tsx
 msgid "System"
@@ -3818,6 +3907,10 @@ msgstr "Test échoué ({0})"
 #: src/settings/automations/index.tsx
 msgid "Test runs are not available yet."
 msgstr "Les exécutions de test ne sont pas encore disponibles."
+
+#: src/session/components/living-document/provenance.tsx
+msgid "Text provenance"
+msgstr "Provenance du texte"
 
 #: src/templates/auto-form.tsx
 msgid "The Automatic format is unavailable."
@@ -3928,6 +4021,8 @@ msgstr "Transcript"
 msgid "Transcript copied to clipboard"
 msgstr "Transcript copié dans le presse-papiers"
 
+#: src/session/components/living-document/index.tsx
+#: src/session/components/living-document/transcript-margin.tsx
 #: src/settings/ai/stt/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Transcription"
@@ -3972,6 +4067,10 @@ msgstr "Essayez de parler un peu plus près du microphone."
 #: src/calendar/components/apple/permission.tsx
 msgid "Turn on Syntheo in System Settings → Privacy & Security → Calendars, then return here."
 msgstr "Activez Syntheo dans Réglages système → Confidentialité et sécurité → Calendriers, puis revenez ici."
+
+#: src/session/components/living-document/fiche.tsx
+msgid "Type"
+msgstr "Type"
 
 #: src/settings/appearance/app-icon.tsx
 msgid "Typewriter Key"
@@ -4028,6 +4127,7 @@ msgstr "Contact sans nom"
 msgid "Unpin"
 msgstr "Détacher"
 
+#: src/session/components/living-document/fiche.tsx
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/session/components/title-input.tsx
@@ -4244,6 +4344,10 @@ msgstr "Flux de travail"
 msgid "Workspace"
 msgstr "Espace de travail"
 
+#: src/session/components/living-document/index.tsx
+msgid "Write freely, Syntheo will complete it."
+msgstr "Écrivez librement, Syntheo complétera."
+
 #: src/automations/starters.tsx
 msgid "Write to a folder"
 msgstr "Écrire dans un dossier"
@@ -4295,6 +4399,11 @@ msgstr "Vos informations"
 #: src/settings/stats/index.tsx
 msgid "Your insights"
 msgstr "Vos analyses"
+
+#: src/session/components/living-document/index.tsx
+#: src/session/components/living-document/provenance.tsx
+msgid "Your notes"
+msgstr "Vos notes"
 
 #: src/services/enhancer/summary-notification.ts
 msgid "Your summary is ready."

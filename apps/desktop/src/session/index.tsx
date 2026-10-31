@@ -1,24 +1,19 @@
 import React, { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { computeCurrentNoteTab } from "@syntheo/utils/session";
-
+import {
+  getLivingDocumentView,
+  getLivingDocumentViews,
+  getNoteStage,
+} from "./components/capsule/stage";
 import { FloatingActionButton } from "./components/floating";
 import { NoteConflictBanner } from "./components/note-conflict-banner";
-import {
-  NoteInput,
-  shouldShowTranscriptTabSpinner,
-  type NoteInputHandle,
-} from "./components/note-input";
-import {
-  createEditorTabs,
-  SessionViewSwitcher,
-} from "./components/note-input/header";
+import { NoteInput, type NoteInputHandle } from "./components/note-input";
 import { SearchProvider } from "./components/note-input/search/context";
 import { OuterHeader } from "./components/outer-header";
 import { PendingProposalsBanner } from "./components/pending-proposals-banner";
 import { SessionSurface } from "./components/session-surface";
-import { getCanShowTranscript, useHasTranscript } from "./components/shared";
+import { useHasTranscript } from "./components/shared";
 import { useAutoEnhance } from "./hooks/useAutoEnhance";
 import { useEnhancedNotes } from "./hooks/useEnhancedNotes";
 import { getSessionEvent } from "./utils";
@@ -35,9 +30,6 @@ import { useSession } from "~/session/queries";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 import { useListener } from "~/stt/contexts";
 import { ScheduledSessionAutoStart } from "~/stt/scheduled-session-auto-start";
-
-// Notes partagées retirées (cloud) : liste toujours vide, référence stable.
-const NO_SHARED_NOTE_IDS: string[] = [];
 
 export function TabContentNote({
   standaloneWindow = false,
@@ -100,8 +92,6 @@ function UnlockedTabContentNote({
   lockOverlay: React.ReactNode;
 }) {
   // Syntheo ne conserve jamais l'audio : ni lecteur ni fichier à relire.
-  const audioExists = false;
-
   return (
     <>
       {tab.state.autoStart && !standaloneWindow ? (
@@ -116,7 +106,6 @@ function UnlockedTabContentNote({
         <TabContentNoteInner
           tab={tab}
           standaloneWindow={standaloneWindow}
-          audioExists={audioExists}
           lockOverlay={lockOverlay}
         />
       </SearchProvider>
@@ -127,12 +116,10 @@ function UnlockedTabContentNote({
 function TabContentNoteInner({
   tab,
   standaloneWindow,
-  audioExists,
   lockOverlay,
 }: {
   tab: Extract<Tab, { type: "sessions" }>;
   standaloneWindow: boolean;
-  audioExists: boolean;
   lockOverlay: React.ReactNode;
 }) {
   const noteInputRef = React.useRef<NoteInputHandle>(null);
@@ -144,18 +131,6 @@ function TabContentNoteInner({
 
   const hasTranscript = useHasTranscript(sessionId);
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const batchError = useListener((state) => state.batch[sessionId]?.error);
-  const hasLiveSegments = useListener(
-    (state) =>
-      state.live.sessionId === sessionId && state.liveSegments.length > 0,
-  );
-  const canShowTranscript = getCanShowTranscript({
-    audioExists,
-    batchError: Boolean(batchError),
-    hasLiveSegments,
-    hasTranscript,
-    sessionMode,
-  });
   const enhancedNoteIds = useEnhancedNotes(
     sessionId,
     hasTranscript && sessionMode === "inactive",
@@ -164,34 +139,22 @@ function TabContentNoteInner({
   const sessionEvent = session ? getSessionEvent(session) : null;
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
 
-  const { skipReason } = useAutoEnhance(tab);
-  const isTranscribing = shouldShowTranscriptTabSpinner(sessionMode);
-  const isLiveSessionActive = sessionMode === "active";
-  const sharedNoteIds = NO_SHARED_NOTE_IDS;
+  // Garde l'auto-génération du compte-rendu active pour cette note.
+  useAutoEnhance(tab);
+  // Préparer → Écouter → Synthèse, dans le même écran (document vivant).
+  const stage = getNoteStage({
+    sessionMode,
+    hasTranscript,
+    hasEnhancedNotes: enhancedNoteIds.length > 0,
+  });
   const editorTabs = React.useMemo(
-    () =>
-      createEditorTabs({
-        enhancedNoteIds,
-        canShowTranscript,
-        sharedNoteIds,
-      }),
-    [enhancedNoteIds, canShowTranscript, sharedNoteIds],
+    () => getLivingDocumentViews(enhancedNoteIds),
+    [enhancedNoteIds],
   );
-  const currentView = React.useMemo(() => {
-    return computeCurrentNoteTab(
-      tab.state.view ?? null,
-      isLiveSessionActive,
-      enhancedNoteIds,
-      canShowTranscript,
-      sharedNoteIds,
-    );
-  }, [
-    tab.state.view,
-    isLiveSessionActive,
-    enhancedNoteIds,
-    canShowTranscript,
-    sharedNoteIds,
-  ]);
+  const currentView = React.useMemo(
+    () => getLivingDocumentView(stage, tab.state.view, enhancedNoteIds),
+    [stage, tab.state.view, enhancedNoteIds],
+  );
   useAutoFocusEditor({
     sessionId,
     noteInputRef,
@@ -223,11 +186,7 @@ function TabContentNoteInner({
     "mod+s, escape",
     () => handleTranscriptEditModeChange(false),
     {
-      enabled:
-        tab.active &&
-        !lockOverlay &&
-        currentView.type === "transcript" &&
-        transcriptEditMode,
+      enabled: tab.active && !lockOverlay && transcriptEditMode,
       enableOnContentEditable: true,
       enableOnFormTags: true,
       preventDefault: true,
@@ -245,29 +204,15 @@ function TabContentNoteInner({
               currentView={currentView}
               tab={tab}
               standaloneWindow={standaloneWindow}
-              viewSwitcher={
-                editorTabs.length > 1 ? (
-                  <SessionViewSwitcher
-                    sessionId={sessionId}
-                    editorTabs={editorTabs}
-                    currentTab={currentView}
-                    handleTabChange={handleTabChange}
-                    isTranscribing={isTranscribing}
-                    transcriptEditMode={transcriptEditMode}
-                    onTranscriptEditModeChange={handleTranscriptEditModeChange}
-                  />
-                ) : null
-              }
             />
           )
         }
         floatingButton={
           lockOverlay ? undefined : (
             <FloatingActionButton
-              allowListening={!standaloneWindow}
-              audioExists={audioExists}
               currentView={currentView}
-              skipReason={skipReason}
+              stage={stage}
+              standaloneWindow={standaloneWindow}
               tab={tab}
             />
           )
@@ -296,6 +241,7 @@ function TabContentNoteInner({
                 transcriptEditMode={transcriptEditMode}
                 onTranscriptEditModeChange={handleTranscriptEditModeChange}
                 hideHeader
+                stage={stage}
               />
             ) : (
               <SessionContentLoading />

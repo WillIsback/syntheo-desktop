@@ -88,6 +88,10 @@ export const RawEditor = forwardRef<
     onNavigateToTitle?: (pixelWidth?: number) => void;
     syncTasks?: boolean;
     showFormatToolbar?: boolean;
+    // Document vivant : la fiche choisit le modèle, et la zone de notes
+    // affiche sa propre consigne.
+    placeholder?: string;
+    showTemplateSuggestions?: boolean;
     onViewReady?: (view: EditorView) => void;
     onViewDisposed?: (view: EditorView) => void;
   }
@@ -103,6 +107,8 @@ export const RawEditor = forwardRef<
       onNavigateToTitle,
       syncTasks = true,
       showFormatToolbar = true,
+      placeholder,
+      showTemplateSuggestions = true,
       onViewReady,
       onViewDisposed,
     },
@@ -292,8 +298,11 @@ export const RawEditor = forwardRef<
       [syncTasks, sessionId],
     );
     const placeholderComponent = useMemo(
-      () => () => (isGenerating ? t`Creating brief...` : t`Start writing...`),
-      [isGenerating, t],
+      () => () =>
+        isGenerating
+          ? t`Creating brief...`
+          : (placeholder ?? t`Start writing...`),
+      [isGenerating, placeholder, t],
     );
     return (
       <AudioDropTarget
@@ -330,7 +339,9 @@ export const RawEditor = forwardRef<
                 {briefVisible && audioExistsResolved && !canShowTranscript ? (
                   <CreateBriefSuggestion onCreate={createBrief} />
                 ) : null}
-                {audioExistsResolved && !canShowTranscript ? (
+                {showTemplateSuggestions &&
+                audioExistsResolved &&
+                !canShowTranscript ? (
                   <TemplateEmptyState
                     sessionId={sessionId}
                     eventTitle={eventTitle ?? sessionTitle}
