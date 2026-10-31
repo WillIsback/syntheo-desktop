@@ -334,10 +334,6 @@ msgstr "Toujours au premier plan"
 msgid "An unexpected error occurred."
 msgstr "Une erreur inattendue s'est produite."
 
-#: src/settings/appearance/app-icon.tsx
-msgid "Anagram"
-msgstr "Anagramme"
-
 #: src/session/components/note-input/enhanced/streaming.tsx
 msgid "Analyzing structure..."
 msgstr "Analyse de la structure..."
@@ -353,10 +349,6 @@ msgstr "Un autre contact partage le même nom ou la même adresse e-mail. Fusion
 #: src/settings/ai/shared/server-address.tsx
 msgid "API key (optional)"
 msgstr "Clé d'API (facultative)"
-
-#: src/settings/appearance/app-icon.tsx
-msgid "App icon"
-msgstr "Icône de l'application"
 
 #: src/settings/appearance/index.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -518,10 +510,6 @@ msgstr "Bêta"
 msgid "Bloom"
 msgstr "Bloom"
 
-#: src/settings/appearance/app-icon.tsx
-msgid "Blueprint"
-msgstr "Plan"
-
 #: src/settings/general/notification.tsx
 msgid "Bounce app icon"
 msgstr "Icône d'application avec rebond"
@@ -674,10 +662,6 @@ msgstr "Choisissez parmi cinq sons de fin."
 #: src/templates/auto-form.tsx
 msgid "Choose how Auto structures and styles your summaries."
 msgstr "Choisissez comment le mode Automatique structure et met en forme vos synthèses."
-
-#: src/settings/appearance/app-icon.tsx
-msgid "Choose how Syntheo appears in the Dock."
-msgstr "Choisissez l'apparence de Syntheo dans le Dock."
 
 #: src/settings/appearance/theme.tsx
 msgid "Choose how Syntheo looks on this device."
@@ -1077,7 +1061,6 @@ msgid "default"
 msgstr "par défaut"
 
 #: src/session/components/living-document/meeting-type-picker.tsx
-#: src/settings/appearance/app-icon.tsx
 #: src/templates/template-sidebar.tsx
 msgid "Default"
 msgstr "Par défaut"
@@ -1420,10 +1403,6 @@ msgstr "Échec du chargement du problème"
 #: src/task/resource-view.tsx
 msgid "Failed to load pull request"
 msgstr "Échec du chargement de la demande de fusion"
-
-#: src/settings/appearance/app-icon.tsx
-msgid "Field Journal"
-msgstr "Journal de terrain"
 
 #: src/main/windows-title-bar.tsx
 msgid "File"
@@ -2429,10 +2408,6 @@ msgstr "Note verrouillée"
 msgid "Note steps"
 msgstr "Étapes de la note"
 
-#: src/settings/appearance/app-icon.tsx
-msgid "Notepad"
-msgstr "Bloc-notes"
-
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "notes"
 msgstr "notes"
@@ -2721,10 +2696,6 @@ msgstr "Match précédent"
 #: src/settings/general/app-settings.tsx
 msgid "Privacy"
 msgstr "Confidentialité"
-
-#: src/settings/appearance/app-icon.tsx
-msgid "Production"
-msgstr "Production"
 
 #: src/settings/general/index.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -3319,10 +3290,6 @@ msgstr "Afficher lorsque la synchronisation initiale dans le cloud se termine."
 msgid "Signing secret copied"
 msgstr "Secret de signature copié"
 
-#: src/settings/appearance/app-icon.tsx
-msgid "Sketch"
-msgstr "Croquis"
-
 #: src/settings/developers/skills.tsx
 msgid "Skill installed"
 msgstr "Compétence installée"
@@ -3464,10 +3431,6 @@ msgstr "Restez à jour grâce aux mises à jour installées lors de la prochaine
 #: src/settings/automations/index.tsx
 msgid "Steps run from top to bottom."
 msgstr "Les étapes s'exécutent de haut en bas."
-
-#: src/settings/appearance/app-icon.tsx
-msgid "Stone"
-msgstr "Pierre"
 
 #: src/composer/index.tsx
 msgid "Stop"
@@ -4046,10 +4009,6 @@ msgstr "Activez Syntheo dans Réglages système → Confidentialité et sécurit
 msgid "Type"
 msgstr "Type"
 
-#: src/settings/appearance/app-icon.tsx
-msgid "Typewriter Key"
-msgstr "Touche machine à écrire"
-
 #: src/settings/developers/cli.tsx
 msgid "Unavailable"
 msgstr "Indisponible"
@@ -4247,10 +4206,6 @@ msgstr "Attendez avant de considérer l'activité du microphone comme une réuni
 #: src/automations/starters.tsx
 msgid "Wait until the transcript and note are complete."
 msgstr "Attendez que le transcript et la note soient terminés."
-
-#: src/settings/appearance/app-icon.tsx
-msgid "Walnut"
-msgstr "Noix"
 
 #: src/settings/developers/webhooks.tsx
 msgid "Webhooks"
