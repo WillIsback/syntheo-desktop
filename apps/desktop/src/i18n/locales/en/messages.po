@@ -2944,9 +2944,6 @@ msgstr "Recent"
 msgid "Reconnect"
 msgstr "Reconnect"
 
-#~ msgid "Record"
-#~ msgstr "Record"
-
 #: src/settings/general/permissions.tsx
 msgid "Record other participants in meetings."
 msgstr "Record other participants in meetings."
