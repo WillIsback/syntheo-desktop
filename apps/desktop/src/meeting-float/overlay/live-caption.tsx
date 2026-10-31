@@ -9,9 +9,7 @@ import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { tokensFor, withAlpha } from "./palette";
 
-// Sous-titres : toujours sur fond sumi (jetons sombres), comme des sous-titres
-// de télévision, quel que soit le thème de l'app.
-const CAPTION = tokensFor("dark");
+import { useDocumentPalette } from "~/shared/theme/palette";
 
 const LIVE_CAPTION_MIN_WIDTH = 260;
 const LIVE_CAPTION_MAX_WIDTH = 640;
@@ -117,6 +115,9 @@ export function LiveCaptionOverlay({
     Math.max(state.opacity, LIVE_CAPTION_MIN_OPACITY),
     LIVE_CAPTION_MAX_OPACITY,
   );
+  // Sous-titres : toujours sur le fond sombre de la palette active (jetons
+  // sombres), comme des sous-titres de télévision, quel que soit le thème.
+  const caption = tokensFor("dark", useDocumentPalette());
 
   return (
     <div
@@ -128,14 +129,14 @@ export function LiveCaptionOverlay({
         style={{
           width,
           borderRadius: LIVE_CAPTION_CORNER_RADIUS,
-          background: withAlpha(CAPTION.background, opacity * 100),
+          background: withAlpha(caption.background, opacity * 100),
         }}
       >
         <p
           data-tauri-drag-region
           className="m-0 text-center text-[16px] leading-[22px] font-medium"
           style={{
-            color: CAPTION.foreground,
+            color: caption.foreground,
             padding: `${LIVE_CAPTION_VERTICAL_PADDING}px ${LIVE_CAPTION_HORIZONTAL_PADDING}px`,
             minHeight:
               LIVE_CAPTION_LINE_HEIGHT * lineCount +
@@ -155,7 +156,7 @@ export function LiveCaptionOverlay({
           className="shrink-0"
           style={{
             height: LIVE_CAPTION_FOOTER_SEPARATOR_HEIGHT,
-            background: withAlpha(CAPTION.foreground, 16),
+            background: withAlpha(caption.foreground, 16),
           }}
         />
         <div
@@ -179,7 +180,7 @@ export function LiveCaptionOverlay({
               onOpacityChange(Number(event.currentTarget.value));
             }}
             className="h-1 w-[120px] cursor-pointer appearance-none rounded-full"
-            style={{ background: withAlpha(CAPTION.foreground, 25) }}
+            style={{ background: withAlpha(caption.foreground, 25) }}
           />
           <span className="flex-1" />
           <button
@@ -189,9 +190,9 @@ export function LiveCaptionOverlay({
             onClick={onHide}
             className="h-5 rounded-full px-2 text-[11px] font-semibold"
             style={{
-              color: CAPTION.foreground,
-              background: withAlpha(CAPTION.card, 70),
-              boxShadow: `inset 0 0 0 0.5px ${withAlpha(CAPTION.foreground, 18)}`,
+              color: caption.foreground,
+              background: withAlpha(caption.card, 70),
+              boxShadow: `inset 0 0 0 0.5px ${withAlpha(caption.foreground, 18)}`,
             }}
           >
             Hide
