@@ -48,7 +48,7 @@ function ProfileLoader({ humanId }: { humanId: string }) {
 
 type ProfileValues = Pick<
   HumanRecord,
-  "name" | "jobTitle" | "memo" | "organizationId"
+  "name" | "jobTitle" | "email" | "memo" | "organizationId"
 >;
 
 function ProfileForm({
@@ -60,12 +60,10 @@ function ProfileForm({
 }) {
   const { t } = useLingui();
   const organizations = useOrganizations();
-  // L'adresse e-mail, le téléphone et LinkedIn ne se saisissent plus ici,
-  // mais l'enregistrement réécrit toute la fiche : on renvoie les valeurs
-  // déjà connues pour ne rien effacer. L'e-mail sert encore à reconnaître
-  // le propriétaire parmi les participants d'un événement.
+  // Le téléphone et LinkedIn ne se saisissent plus ici, mais l'enregistrement
+  // réécrit toute la fiche : on renvoie les valeurs déjà connues pour ne rien
+  // effacer.
   const kept = {
-    email: human?.email ?? "",
     phone: human?.phone ?? "",
     linkedinUsername: human?.linkedinUsername ?? "",
   };
@@ -77,6 +75,7 @@ function ProfileForm({
     defaultValues: {
       name: human?.name ?? "",
       jobTitle: human?.jobTitle ?? "",
+      email: human?.email ?? "",
       memo: human?.memo ?? "",
       organizationId: human?.organizationId ?? "",
     },
@@ -129,6 +128,36 @@ function ProfileForm({
             )}
           </form.Field>
         ))}
+        {/* L'e-mail sert à reconnaître le propriétaire parmi les participants
+            d'un événement du calendrier, pour ne pas le compter parmi eux. */}
+        <form.Field name="email">
+          {(field) => (
+            <div className="flex flex-col gap-2 text-sm">
+              <label htmlFor="profile-email">
+                <Trans>Email</Trans>
+              </label>
+              <Input
+                id="profile-email"
+                type="email"
+                autoComplete="email"
+                aria-describedby="profile-email-help"
+                value={field.state.value}
+                onChange={(event) => field.handleChange(event.target.value)}
+                onBlur={field.handleBlur}
+              />
+              <p
+                id="profile-email-help"
+                className="text-muted-foreground text-[13px] leading-[1.4]"
+              >
+                <Trans>
+                  Syntheo uses it to recognize you among the attendees of your
+                  calendar meetings, so you are not counted as a participant. It
+                  stays on this device.
+                </Trans>
+              </p>
+            </div>
+          )}
+        </form.Field>
         <form.Field name="organizationId">
           {(field) => (
             <div className="flex flex-col gap-2 text-sm">
