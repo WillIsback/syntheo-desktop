@@ -11,6 +11,18 @@ const mocks = vi.hoisted(() => ({
   enhancedContent: "## Décisions" as string | undefined,
   enhanceStatus: "success" as string,
   updateSession: vi.fn(() => Promise.resolve()),
+  proposal: null as null | {
+    id: string;
+    currentMarkdown: string;
+    proposedMarkdown: string;
+  },
+}));
+
+vi.mock("./summary-review", () => ({
+  useSummaryProposal: () => mocks.proposal,
+  SummaryProposalReview: (props: { proposal: { id: string } }) => (
+    <div data-testid="summary-review">{props.proposal.id}</div>
+  ),
 }));
 
 vi.mock("./living-document.css", () => ({}));
@@ -110,6 +122,7 @@ describe("LivingDocument", () => {
     mocks.enhancedContent = "## Décisions";
     mocks.enhanceStatus = "success";
     mocks.updateSession.mockClear();
+    mocks.proposal = null;
   });
 
   afterEach(() => {
@@ -222,6 +235,32 @@ describe("LivingDocument", () => {
       />,
     );
 
+    expect(document.querySelector("[data-note-seal]")).toBeNull();
+  });
+
+  it("reviews a pending summary edit in place of the summary", () => {
+    mocks.proposal = {
+      id: "request-1",
+      currentMarkdown: "Avant",
+      proposedMarkdown: "Après",
+    };
+    render(
+      <LivingDocument
+        {...makeProps({
+          stage: "synthesis",
+          editorTabs: [{ type: "enhanced", id: "note-1" }],
+          currentTab: { type: "enhanced", id: "note-1" },
+        })}
+      />,
+    );
+
+    const review = screen.getByTestId("summary-review");
+    expect(review.textContent).toBe("request-1");
+    expect(review.closest("[data-provenance='ai']")).not.toBeNull();
+    expect(screen.queryByTestId("enhanced-editor")).toBeNull();
+    // Les notes de l'utilisateur restent visibles sous la revue ; pas de sceau
+    // tant que la proposition attend.
+    expect(screen.getAllByTestId("raw-editor")).toHaveLength(1);
     expect(document.querySelector("[data-note-seal]")).toBeNull();
   });
 

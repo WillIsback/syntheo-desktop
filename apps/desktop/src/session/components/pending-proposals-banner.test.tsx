@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   usePendingSessionProposals: vi.fn(),
-  openProposalReview: vi.fn(),
+  reviewPendingProposal: vi.fn(),
 }));
 
 vi.mock("~/session/queries", () => ({
@@ -16,7 +16,7 @@ vi.mock("~/session/proposal-review", async () => {
   >("~/session/proposal-review");
   return {
     ...actual,
-    openProposalReview: mocks.openProposalReview,
+    reviewPendingProposal: mocks.reviewPendingProposal,
   };
 });
 
@@ -38,11 +38,13 @@ describe("PendingProposalsBanner", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 
-  it("opens the review tab for a pending summary proposal", () => {
+  it("reviews a pending summary proposal (in the note when it is open)", () => {
     mocks.usePendingSessionProposals.mockReturnValue([
       {
         id: "proposal-1",
+        sessionId: "session-1",
         kind: "summary_replace",
+        targetId: "summary-1",
       },
     ]);
 
@@ -50,6 +52,8 @@ describe("PendingProposalsBanner", () => {
 
     expect(screen.getByText("1 pending edit")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Review summary" }));
-    expect(mocks.openProposalReview).toHaveBeenCalledWith("proposal-1");
+    expect(mocks.reviewPendingProposal).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "proposal-1", targetId: "summary-1" }),
+    );
   });
 });

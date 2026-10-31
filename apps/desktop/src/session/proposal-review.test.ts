@@ -6,6 +6,9 @@ const mocks = vi.hoisted(() => ({
   close: vi.fn(),
   openNew: vi.fn(),
   tabs: [] as Array<Record<string, unknown>>,
+  currentTab: null as Record<string, unknown> | null,
+  updateSessionTabState: vi.fn(),
+  sessionMode: "inactive" as string,
   invalidateQueries: vi.fn(),
 }));
 
@@ -18,9 +21,17 @@ vi.mock("~/store/zustand/tabs", () => ({
   useTabs: {
     getState: () => ({
       tabs: mocks.tabs,
+      currentTab: mocks.currentTab,
       close: mocks.close,
       openNew: mocks.openNew,
+      updateSessionTabState: mocks.updateSessionTabState,
     }),
+  },
+}));
+
+vi.mock("~/store/zustand/listener/instance", () => ({
+  listenerStore: {
+    getState: () => ({ getSessionMode: () => mocks.sessionMode }),
   },
 }));
 
@@ -28,8 +39,11 @@ import {
   applyProposalReview,
   closeProposalReviewTab,
   declineProposalReview,
+  diffMarkdownLines,
   openProposalReview,
   proposalKindLabel,
+  revealSummaryReviewInNote,
+  reviewPendingProposal,
   shouldAutoDeclineProposal,
 } from "./proposal-review";
 
@@ -115,5 +129,87 @@ describe("proposal review helpers", () => {
     expect(mocks.declineSessionProposal).toHaveBeenCalledWith("proposal-1");
     expect(resolve).toHaveBeenCalledWith(false);
     expect(mocks.applySessionProposal).not.toHaveBeenCalled();
+  });
+});
+
+describe("summary review in the living document", () => {
+  const sessionTab = {
+    type: "sessions",
+    id: "session-1",
+    slotId: "slot-1",
+    active: true,
+    state: { view: null, autoStart: null },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.currentTab = sessionTab;
+    mocks.sessionMode = "inactive";
+  });
+
+  it("shows the reviewed summary in the open note", () => {
+    expect(revealSummaryReviewInNote("session-1", "summary-2")).toBe(true);
+    expect(mocks.updateSessionTabState).toHaveBeenCalledWith(sessionTab, {
+      view: { type: "enhanced", id: "summary-2" },
+      autoStart: null,
+    });
+  });
+
+  it("keeps the review tab when the note is not on screen", () => {
+    mocks.currentTab = { ...sessionTab, id: "session-other" };
+    expect(revealSummaryReviewInNote("session-1", "summary-2")).toBe(false);
+
+    mocks.currentTab = { type: "edit", requestId: "r", slotId: "s" };
+    expect(revealSummaryReviewInNote("session-1", "summary-2")).toBe(false);
+    expect(mocks.updateSessionTabState).not.toHaveBeenCalled();
+  });
+
+  it("keeps the review tab while the note is listening", () => {
+    mocks.sessionMode = "active";
+    expect(revealSummaryReviewInNote("session-1", "summary-2")).toBe(false);
+  });
+
+  it("reviews a summary proposal in place from the banner", () => {
+    reviewPendingProposal({
+      id: "proposal-1",
+      sessionId: "session-1",
+      kind: "summary_replace",
+      targetId: "summary-2",
+    });
+    expect(mocks.updateSessionTabState).toHaveBeenCalled();
+    expect(mocks.openNew).not.toHaveBeenCalled();
+
+    reviewPendingProposal({
+      id: "proposal-2",
+      sessionId: "session-1",
+      kind: "memo_replace",
+      targetId: "session-1",
+    });
+    expect(mocks.openNew).toHaveBeenCalledWith({
+      type: "edit",
+      requestId: "proposal-2",
+    });
+  });
+});
+
+describe("diffMarkdownLines", () => {
+  it("groups unchanged, removed and added lines in reading order", () => {
+    expect(
+      diffMarkdownLines(
+        "## Décisions\n\n- A\n- B\n- C\n\n## Actions",
+        "## Décisions\n\n- A\n- C bis\n\n## Actions",
+      ),
+    ).toEqual([
+      { type: "same", text: "## Décisions\n\n- A" },
+      { type: "removed", text: "- B\n- C" },
+      { type: "added", text: "- C bis" },
+      { type: "same", text: "\n## Actions" },
+    ]);
+  });
+
+  it("handles an empty current summary", () => {
+    expect(diffMarkdownLines("", "Nouveau")).toEqual([
+      { type: "added", text: "Nouveau" },
+    ]);
   });
 });

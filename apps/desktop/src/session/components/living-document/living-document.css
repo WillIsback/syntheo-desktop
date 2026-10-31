@@ -28,6 +28,13 @@
   color: hsl(var(--foreground));
 }
 
+/* Revue d'une proposition (summary-review.tsx) : le texte retiré reste
+ * lisible mais s'efface (muted-foreground, barré), le texte ajouté garde
+ * l'encre du compte-rendu. */
+[data-proposal-review] del .note-typography {
+  color: hsl(var(--muted-foreground));
+}
+
 [data-provenance="user"] .note-typography {
   color: hsl(var(--user-ink));
 }

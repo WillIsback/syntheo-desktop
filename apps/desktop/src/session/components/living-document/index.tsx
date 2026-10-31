@@ -25,6 +25,7 @@ import { TitleInput } from "../title-input";
 import { PrepareFiche } from "./fiche";
 import { NoteMeta } from "./meta";
 import { NoteSeal, ProvenanceLegend } from "./provenance";
+import { SummaryProposalReview, useSummaryProposal } from "./summary-review";
 import { SummarySwitcher } from "./summary-switcher";
 import { TranscriptMargin } from "./transcript-margin";
 
@@ -298,18 +299,7 @@ function UserNotes({
 function SynthesisStage(
   props: LivingDocumentProps & { metaActions: ReactNode },
 ) {
-  const {
-    tab,
-    editorTabs,
-    currentTab,
-    onSelectView,
-    editorRef,
-    sessionTitle,
-    onNavigateToTitle,
-    onViewReady,
-    onViewDisposed,
-    metaActions,
-  } = props;
+  const { tab, editorTabs, currentTab, onSelectView, metaActions } = props;
   const sessionId = tab.id;
   const enhancedNoteIds = editorTabs.flatMap((view) =>
     view.type === "enhanced" ? [view.id] : [],
@@ -333,24 +323,53 @@ function SynthesisStage(
       </NoteMeta>
       <ProvenanceLegend />
       {currentNoteId ? (
-        <>
-          <div data-provenance="ai">
-            <Enhanced
-              ref={editorRef}
-              sessionId={sessionId}
-              sessionTitle={sessionTitle}
-              enhancedNoteId={currentNoteId}
-              onNavigateToTitle={onNavigateToTitle}
-              onViewReady={onViewReady}
-              onViewDisposed={onViewDisposed}
-            />
-          </div>
-          <UserNotesSection {...props} />
-          <SummarySeal enhancedNoteId={currentNoteId} />
-        </>
+        <SummaryWithReview
+          {...props}
+          sessionId={sessionId}
+          enhancedNoteId={currentNoteId}
+        />
       ) : (
         <UserNotes {...props} registerAsPrimary />
       )}
+    </>
+  );
+}
+
+// Le compte-rendu, ou sa revue tant qu'une réécriture (« Demander à la
+// note ») attend d'être appliquée ou refusée.
+function SummaryWithReview(
+  props: LivingDocumentProps & { sessionId: string; enhancedNoteId: string },
+) {
+  const {
+    sessionId,
+    enhancedNoteId,
+    editorRef,
+    sessionTitle,
+    onNavigateToTitle,
+    onViewReady,
+    onViewDisposed,
+  } = props;
+  const proposal = useSummaryProposal(sessionId, enhancedNoteId);
+
+  return (
+    <>
+      <div data-provenance="ai">
+        {proposal ? (
+          <SummaryProposalReview proposal={proposal} />
+        ) : (
+          <Enhanced
+            ref={editorRef}
+            sessionId={sessionId}
+            sessionTitle={sessionTitle}
+            enhancedNoteId={enhancedNoteId}
+            onNavigateToTitle={onNavigateToTitle}
+            onViewReady={onViewReady}
+            onViewDisposed={onViewDisposed}
+          />
+        )}
+      </div>
+      <UserNotesSection {...props} />
+      {proposal ? null : <SummarySeal enhancedNoteId={enhancedNoteId} />}
     </>
   );
 }
