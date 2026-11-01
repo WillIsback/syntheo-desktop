@@ -176,14 +176,19 @@ export function useVirtualSegments({
 
     return Array.from(indexes)
       .sort((left, right) => left - right)
-      .map((index) => ({
-        index,
-        key: segmentKeys[index]!,
-        top: offsets[index]!,
-      }));
+      .map((index) => {
+        const key = segmentKeys[index]!;
+        return {
+          index,
+          key,
+          top: offsets[index]!,
+          measuredHeight: measuredHeights.get(key),
+        };
+      });
   }, [
     activeMatchIndex,
     focusedIndex,
+    measuredHeights,
     offsets,
     playbackIndex,
     scrollElement,
@@ -368,6 +373,7 @@ export function VirtualSegmentRow({
   rowKey,
   top,
   index,
+  measuredHeight,
   onMeasure,
   onFocus,
   onBlur,
@@ -376,6 +382,7 @@ export function VirtualSegmentRow({
   rowKey: string;
   top: number;
   index: number;
+  measuredHeight?: number;
   onMeasure: (key: string, height: number) => void;
   onFocus: (index: number) => void;
   onBlur: (event: FocusEvent<HTMLDivElement>) => void;
@@ -407,8 +414,21 @@ export function VirtualSegmentRow({
       position: "absolute",
       top,
       width: "100%",
+      // Les blocs du débord (overscan), hors de l'écran, ne sont ni mis en
+      // page ni peints. Seulement une fois mesurés : la taille réservée est
+      // alors exactement la hauteur mesurée, donc ni la position des blocs,
+      // ni le défilement vers la fin, ni le centrage d'un résultat de
+      // recherche ne bougent. Un bloc jamais mesuré est rendu normalement,
+      // sinon sa première mesure renverrait la taille réservée au lieu de
+      // sa vraie hauteur.
+      ...(measuredHeight === undefined
+        ? null
+        : {
+            contentVisibility: "auto",
+            containIntrinsicSize: `auto ${measuredHeight}px`,
+          }),
     }),
-    [top],
+    [measuredHeight, top],
   );
 
   return (

@@ -229,6 +229,20 @@ function nearestHostNodes(fiber: Fiber): Element[] {
   return nodes;
 }
 
+/**
+ * Nomme un composant `memo(…)` dans les mesures de rendu. Le minifieur
+ * (terser) retire le nom d'une fonction passée à `memo`, même nommée : sans
+ * `displayName`, la build de production la compte comme « Anonymous ».
+ */
+export function nameMemoComponent(component: object, name: string): void {
+  const memoized = component as {
+    displayName?: string;
+    type?: { displayName?: string };
+  };
+  memoized.displayName = name;
+  if (memoized.type) memoized.type.displayName = name;
+}
+
 export function getDisplayName(type: unknown): string {
   if (typeof type === "function") {
     const component = type as { displayName?: string; name?: string };
