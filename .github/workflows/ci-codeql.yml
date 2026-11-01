@@ -3,12 +3,13 @@
 # - PR : TypeScript seulement, et seulement si la PR en modifie (≈ 3 min).
 # - Rust (extraction du workspace + ~1 000 dépendances, > 25 min) : hors PR,
 #   comme gate de la release (workflow_call), chaque semaine et à la demande.
+#   Sur une PR, seulement avec l'étiquette `ci:rust` et si du Rust est modifié.
 name: ci-codeql
 
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
   schedule:
     - cron: "0 4 * * 1"
   workflow_dispatch:
@@ -41,15 +42,19 @@ jobs:
         shell: bash
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          RUST_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci:rust') }}
         run: |
           set -euo pipefail
           if [ -z "${BASE_SHA:-}" ]; then
             # Hors PR (release, planifié, manuel) : analyse complète.
             echo "rust=true" >> "$GITHUB_OUTPUT"; echo "ts=true" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          # PR : jamais de Rust (trop long pour une PR) ; TypeScript si modifié.
+          # PR : Rust seulement avec l'étiquette `ci:rust` (trop long sinon) et
+          # si du Rust est modifié ; TypeScript si modifié.
           FILES=$(git diff --name-only "$BASE_SHA" HEAD)
           RUST=false
+          if [ "${RUST_LABEL:-false}" = "true" ] \
+            && grep -qE '\.rs$|(^|/)Cargo\.(toml|lock)$' <<<"$FILES"; then RUST=true; fi
           if grep -qE '\.(ts|tsx|js|jsx|mjs|cjs)$|(^|/)package\.json$|^pnpm-lock\.yaml$|^\.github/workflows/ci-codeql\.yml$' <<<"$FILES"; then TS=true; else TS=false; fi
           echo "rust=$RUST" >> "$GITHUB_OUTPUT"; echo "ts=$TS" >> "$GITHUB_OUTPUT"
           echo "Rust : $RUST — TypeScript : $TS"

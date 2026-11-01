@@ -67,7 +67,10 @@ function productionFiles(dir: string): string[] {
         ? []
         : productionFiles(path);
     }
-    return /\.(ts|tsx)$/.test(name) && !/\.test\.|\.gen\.|\.d\.ts$/.test(name)
+    return /\.(ts|tsx)$/.test(name) &&
+      !name.includes(".test.") &&
+      !name.includes(".gen.") &&
+      !name.endsWith(".d.ts")
       ? [path]
       : [];
   });
