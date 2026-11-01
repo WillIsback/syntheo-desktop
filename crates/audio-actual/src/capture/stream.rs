@@ -23,6 +23,7 @@ use syntheo_audio::{
 use crate::mic::MicInput;
 use crate::speaker::SpeakerInput;
 
+use super::echo_gate::{EchoCanceller, GatedEchoCanceller};
 use super::joiner::Joiner;
 
 pub(crate) type ChunkStream =
@@ -213,7 +214,11 @@ async fn run_dual_loop(
 ) {
     let mut joiner = Joiner::new();
     let mut enable_aec = aec_enabled.load(Ordering::Acquire);
-    let mut aec = if enable_aec { build_aec() } else { None };
+    let mut aec = if enable_aec {
+        build_aec(sample_rate)
+    } else {
+        None
+    };
     let mut linear_echo_gain = None;
     let mut aec_reference = if aec.is_some() {
         Some(AecReferenceAligner::new(sample_rate))
@@ -246,7 +251,11 @@ async fn run_dual_loop(
         let updated_aec = aec_enabled.load(Ordering::Acquire);
         if updated_aec != enable_aec {
             enable_aec = updated_aec;
-            aec = if enable_aec { build_aec() } else { None };
+            aec = if enable_aec {
+                build_aec(sample_rate)
+            } else {
+                None
+            };
             linear_echo_gain = None;
             aec_reference = aec.as_ref().map(|_| AecReferenceAligner::new(sample_rate));
         }
@@ -658,25 +667,30 @@ async fn run_single_loop(
     }
 }
 
-fn build_aec() -> Option<AEC> {
+fn build_aec(sample_rate: u32) -> Option<GatedEchoCanceller<AEC>> {
     AEC::new()
         .map_err(|error| tracing::warn!(error.message = ?error, "aec_init_failed"))
         .ok()
+        .map(|aec| GatedEchoCanceller::new(aec, sample_rate))
 }
 
-fn process_aec(
-    aec: &mut Option<AEC>,
+/// Annule l'écho d'une trame alignée. Quand la référence est silencieuse (traîne comprise), le
+/// modèle n'est pas appelé et le micro aligné passe tel quel (#291) ; `None` reste réservé à
+/// l'AEC désactivée ou en échec, l'aval retombant alors sur le micro brut.
+///
+/// `linear_echo_gain` n'est pas remis à zéro pendant la veille : il estime le couplage
+/// haut-parleur → micro, qu'un silence ne change pas, et il ne sert qu'aux trames du modèle.
+fn process_aec<P: EchoCanceller>(
+    aec: &mut Option<GatedEchoCanceller<P>>,
     linear_echo_gain: &mut Option<f32>,
     mic: &[f32],
     speaker: &[f32],
 ) -> Option<Arc<[f32]>> {
     let processor = aec.as_mut()?;
-    match processor.process_streaming(mic, speaker) {
-        Ok(processed) => Some(Arc::<[f32]>::from(cancel_linear_echo(
-            speaker,
-            processed,
-            linear_echo_gain,
-        ))),
+    match processor.process(mic, speaker, |processed| {
+        cancel_linear_echo(speaker, processed, linear_echo_gain)
+    }) {
+        Ok(processed) => Some(Arc::<[f32]>::from(processed)),
         Err(error) => {
             tracing::warn!(error.message = ?error, "aec_failed");
             None
@@ -801,6 +815,7 @@ fn segmented_trimmed_gain(
 
 #[cfg(test)]
 mod tests {
+    use super::super::echo_gate::tests::CountingCanceller;
     use super::*;
 
     #[tokio::test]
@@ -956,13 +971,63 @@ mod tests {
 
     #[test]
     fn process_aec_returns_output_when_enabled() {
-        let mut aec = build_aec();
+        let mut aec = build_aec(16_000);
         let mut linear_echo_gain = None;
         let mic = Arc::<[f32]>::from(vec![0.1_f32; 160]);
         let speaker = Arc::<[f32]>::from(vec![0.2_f32; 160]);
 
         let processed = process_aec(&mut aec, &mut linear_echo_gain, &mic, &speaker);
         assert_eq!(processed.as_ref().map(|data| data.len()), Some(160));
+    }
+
+    #[test]
+    fn process_aec_skips_the_model_when_the_reference_is_silent() {
+        let fake = CountingCanceller::new(0.2, 0);
+        let calls = Arc::clone(&fake.calls);
+        let mut aec = Some(GatedEchoCanceller::new(fake, 16_000));
+        let mut linear_echo_gain = Some(0.5);
+        let mic = test_signal(1_920);
+        let speaker = vec![0.0_f32; 1_920];
+
+        let processed = process_aec(&mut aec, &mut linear_echo_gain, &mic, &speaker);
+
+        assert_eq!(processed.as_deref(), Some(&mic[..]));
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
+        assert_eq!(linear_echo_gain, Some(0.5));
+    }
+
+    #[test]
+    fn process_aec_runs_the_model_when_the_reference_plays() {
+        let fake = CountingCanceller::new(0.2, 0);
+        let calls = Arc::clone(&fake.calls);
+        let mut aec = Some(GatedEchoCanceller::new(fake, 16_000));
+        let mut linear_echo_gain = None;
+        let mic = test_signal(1_920);
+        let speaker = test_signal(1_920);
+
+        let processed = process_aec(&mut aec, &mut linear_echo_gain, &mic, &speaker);
+
+        assert_eq!(processed.map(|data| data.len()), Some(1_920));
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[test]
+    fn process_aec_with_dtln_passes_the_mic_through_on_silence() {
+        let mut aec = build_aec(16_000);
+        let Some(latency) = aec
+            .as_ref()
+            .map(|_| syntheo_aec::BLOCK_SIZE - syntheo_aec::BLOCK_SHIFT)
+        else {
+            return;
+        };
+        let mut linear_echo_gain = None;
+        let mic = test_signal(1_920);
+        let speaker = vec![0.0_f32; 1_920];
+
+        let processed = process_aec(&mut aec, &mut linear_echo_gain, &mic, &speaker).unwrap();
+
+        assert!(processed[..latency].iter().all(|sample| *sample == 0.0));
+        assert_eq!(&processed[latency..], &mic[..1_920 - latency]);
     }
 
     #[test]
