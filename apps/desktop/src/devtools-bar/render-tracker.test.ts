@@ -16,12 +16,15 @@ vi.mock("./render-hook", () => ({
   },
 }));
 
+import { memo } from "react";
+
 import type { Fiber, FiberRoot } from "./render-hook";
 import { flashRenderOutlines } from "./render-outlines";
 import {
   getDisplayName,
   getTopRenderedComponents,
   ignoreRenderTracking,
+  nameMemoComponent,
   setRenderOutlinesEnabled,
   startRenderTracker,
   tickRenderTracker,
@@ -186,5 +189,21 @@ describe("render tracker counters", () => {
       renders: tickRenderTracker(),
       components: getTopRenderedComponents(),
     }).toEqual({ renders: 0, components: [] });
+  });
+});
+
+describe("nameMemoComponent", () => {
+  it("nomme la fonction rendue d'un memo, comme la verrait la build minifiée", () => {
+    // Le minifieur retire le nom des fonctions passées à memo.
+    const Row = memo(
+      Object.defineProperty(() => null, "name", { value: "" }),
+      () => true,
+    );
+    expect(getDisplayName(Row.type)).toBe("Anonymous");
+
+    nameMemoComponent(Row, "SegmentRow");
+
+    expect(getDisplayName(Row.type)).toBe("SegmentRow");
+    expect(getDisplayName(Row)).toBe("SegmentRow");
   });
 });

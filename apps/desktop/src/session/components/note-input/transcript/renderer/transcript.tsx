@@ -1,4 +1,5 @@
 import {
+  type FocusEvent,
   memo,
   useCallback,
   useEffect,
@@ -18,6 +19,8 @@ import {
 import {
   EMPTY_TRANSCRIPT_SEARCH,
   SegmentRenderer,
+  type SegmentRendererProps,
+  segmentRendererPropsEqual,
   type TranscriptSearchRenderState,
 } from "./segment";
 import {
@@ -34,6 +37,7 @@ import {
 import { useRegisterTranscriptSelectionSource } from "./selection-context";
 import { useVirtualSegments, VirtualSegmentRow } from "./virtual-segments";
 
+import { nameMemoComponent } from "~/devtools-bar/render-tracker";
 import {
   applyRenderRequestIdentitiesToSegments,
   getMaxSpeakerNumberForParticipants,
@@ -232,7 +236,7 @@ function TranscriptSegments({
 }
 
 const SegmentsList = memo(
-  ({
+  function SegmentsList({
     segments,
     scrollElement,
     transcriptId,
@@ -260,7 +264,7 @@ const SegmentsList = memo(
     audioExists: boolean;
     maxSpeakerNumber?: number;
     editMode: boolean;
-  }) => {
+  }) {
     const search = useSearch();
     const inferredMaxSpeakerNumber = labelContext
       ? getMaxSpeakerNumberForParticipants(
@@ -358,36 +362,32 @@ const SegmentsList = memo(
         className="relative w-full min-w-0 overflow-x-clip"
         style={{ height: virtual.totalHeight }}
       >
-        {virtual.virtualItems.map(({ index, key, top }) => {
+        {virtual.virtualItems.map(({ index, key, top, measuredHeight }) => {
           const segment = segments[index]!;
           return (
-            <VirtualSegmentRow
+            <SegmentRow
               key={key}
               rowKey={key}
               index={index}
               top={top}
+              measuredHeight={measuredHeight}
               onMeasure={virtual.measureRow}
               onFocus={virtual.handleRowFocus}
               onBlur={virtual.handleRowBlur}
-            >
-              <div className={cn([index > 0 && "pt-4"])}>
-                <SegmentRenderer
-                  segment={segment}
-                  offsetMs={offsetMs}
-                  transcriptId={transcriptId}
-                  sessionId={sessionId}
-                  speakerLabel={
-                    speakerLabels.get(segment) ??
-                    SegmentKeyUtils.renderLabel(segment.key)
-                  }
-                  currentMs={currentMs}
-                  seekAndPlay={seekAndPlay}
-                  audioExists={audioExists}
-                  search={transcriptSearch}
-                  editMode={editMode}
-                />
-              </div>
-            </VirtualSegmentRow>
+              segment={segment}
+              offsetMs={offsetMs}
+              transcriptId={transcriptId}
+              sessionId={sessionId}
+              speakerLabel={
+                speakerLabels.get(segment) ??
+                SegmentKeyUtils.renderLabel(segment.key)
+              }
+              currentMs={currentMs}
+              seekAndPlay={seekAndPlay}
+              audioExists={audioExists}
+              search={transcriptSearch}
+              editMode={editMode}
+            />
           );
         })}
       </div>
@@ -411,6 +411,61 @@ const SegmentsList = memo(
     );
   },
 );
+nameMemoComponent(SegmentsList, "SegmentsList");
+
+type SegmentRowProps = SegmentRendererProps & {
+  rowKey: string;
+  index: number;
+  top: number;
+  measuredHeight?: number;
+  onMeasure: (key: string, height: number) => void;
+  onFocus: (index: number) => void;
+  onBlur: (event: FocusEvent<HTMLDivElement>) => void;
+};
+
+// Un bloc de la liste virtuelle. Mémoïsé avec le comparateur du bloc : à
+// chaque partiel, les blocs finaux ne sont pas refaits, seul le bloc vivant
+// l'est.
+const SegmentRow = memo(function SegmentRow({
+  rowKey,
+  index,
+  top,
+  measuredHeight,
+  onMeasure,
+  onFocus,
+  onBlur,
+  ...segmentProps
+}: SegmentRowProps) {
+  return (
+    <VirtualSegmentRow
+      rowKey={rowKey}
+      index={index}
+      top={top}
+      measuredHeight={measuredHeight}
+      onMeasure={onMeasure}
+      onFocus={onFocus}
+      onBlur={onBlur}
+    >
+      <div className={cn([index > 0 && "pt-4"])}>
+        <SegmentRenderer {...segmentProps} />
+      </div>
+    </VirtualSegmentRow>
+  );
+}, segmentRowPropsEqual);
+nameMemoComponent(SegmentRow, "SegmentRow");
+
+function segmentRowPropsEqual(prev: SegmentRowProps, next: SegmentRowProps) {
+  return (
+    prev.rowKey === next.rowKey &&
+    prev.index === next.index &&
+    prev.top === next.top &&
+    prev.measuredHeight === next.measuredHeight &&
+    prev.onMeasure === next.onMeasure &&
+    prev.onFocus === next.onFocus &&
+    prev.onBlur === next.onBlur &&
+    segmentRendererPropsEqual(prev, next)
+  );
+}
 
 function useRegisterTranscriptSegments(
   transcriptId: string,

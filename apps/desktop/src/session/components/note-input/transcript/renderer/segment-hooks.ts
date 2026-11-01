@@ -1,27 +1,62 @@
 import { useMemo, useRef } from "react";
 
-import type { Segment } from "~/stt/live-segment";
+import type { Segment, SegmentWord } from "~/stt/live-segment";
 import { getTranscriptTimingSource } from "~/stt/timing";
 
+// Le natif (IPC) renvoie à chaque partiel des objets neufs : sans diarisation,
+// toute la réunion tient en un seul segment, renvoyé entier, mots compris.
+// Les segments et les mots inchangés reprennent ici leur identité précédente,
+// pour que les phrases et les mots déjà affichés (mémoïsés par référence) ne
+// soient pas refaits : seul ce qui a changé est redessiné, quelle que soit la
+// longueur de la réunion.
 export function useStableSegments(segments: Segment[]): Segment[] {
   const cacheRef = useRef<Map<string, Segment>>(new Map());
+  const wordCacheRef = useRef<Map<string, SegmentWord>>(new Map());
 
   return useMemo(() => {
     const nextCache = new Map<string, Segment>();
+    const nextWordCache = new Map<string, SegmentWord>();
     const stable = segments.map((segment) => {
       const cached = cacheRef.current.get(segment.id);
-      if (cached && segmentsEqual(cached, segment)) {
-        nextCache.set(segment.id, cached);
-        return cached;
+      const reused =
+        cached && segmentsEqual(cached, segment)
+          ? cached
+          : withStableWords(segment, wordCacheRef.current);
+      nextCache.set(segment.id, reused);
+      for (const word of reused.words) {
+        nextWordCache.set(wordCacheKey(word), word);
       }
-
-      nextCache.set(segment.id, segment);
-      return segment;
+      return reused;
     });
 
     cacheRef.current = nextCache;
+    wordCacheRef.current = nextWordCache;
     return stable;
   }, [segments]);
+}
+
+// Les mots provisoires n'ont pas d'identifiant : leur position et leur canal
+// en tiennent lieu, l'égalité complète est vérifiée ensuite.
+function wordCacheKey(word: SegmentWord): string {
+  return word.id
+    ? `id:${word.id}`
+    : `at:${word.channel}:${word.start_ms}:${word.end_ms}`;
+}
+
+function withStableWords(
+  segment: Segment,
+  wordCache: ReadonlyMap<string, SegmentWord>,
+): Segment {
+  let changed = false;
+  const words = segment.words.map((word) => {
+    const cached = wordCache.get(wordCacheKey(word));
+    if (cached && cached !== word && wordsEqual(cached, word)) {
+      changed = true;
+      return cached;
+    }
+    return word;
+  });
+  return changed ? { ...segment, words } : segment;
 }
 
 // Clé React (et clé du cache de hauteurs) d'une ligne de transcription.
@@ -76,22 +111,24 @@ function segmentsEqual(a: Segment, b: Segment) {
   }
 
   for (let index = 0; index < a.words.length; index += 1) {
-    const aw = a.words[index]!;
-    const bw = b.words[index]!;
-    if (
-      aw.id !== bw.id ||
-      aw.text !== bw.text ||
-      aw.start_ms !== bw.start_ms ||
-      aw.end_ms !== bw.end_ms ||
-      aw.channel !== bw.channel ||
-      aw.is_final !== bw.is_final ||
-      getTranscriptTimingSource(aw) !== getTranscriptTimingSource(bw)
-    ) {
+    if (!wordsEqual(a.words[index]!, b.words[index]!)) {
       return false;
     }
   }
 
   return true;
+}
+
+function wordsEqual(a: SegmentWord, b: SegmentWord) {
+  return (
+    a.id === b.id &&
+    a.text === b.text &&
+    a.start_ms === b.start_ms &&
+    a.end_ms === b.end_ms &&
+    a.channel === b.channel &&
+    a.is_final === b.is_final &&
+    getTranscriptTimingSource(a) === getTranscriptTimingSource(b)
+  );
 }
 
 export function segmentsShallowEqual(a: Segment[], b: Segment[]) {

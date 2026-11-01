@@ -4,6 +4,7 @@ import { cn } from "@syntheo/utils";
 
 import type { HighlightSegment } from "./utils";
 
+import { nameMemoComponent } from "~/devtools-bar/render-tracker";
 import type { SegmentWord } from "~/stt/live-segment";
 import { isTranscriptWordSeekable } from "~/stt/timing";
 
@@ -52,6 +53,7 @@ export const WordSpan = memo(function WordSpan(props: WordSpanProps) {
     </span>
   );
 });
+nameMemoComponent(WordSpan, "WordSpan");
 
 function useHighlightedContent(
   word: SegmentWord,
