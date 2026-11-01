@@ -10,6 +10,8 @@
 <p>
   <b>Le bloc-notes de réunion qui reste chez vous.</b>
   <br />
+  Syn·thé·o : ce qu'on rassemble autour du thé.
+  <br />
   Transcription en temps réel et comptes rendus structurés, avec les modèles
   open-weight de <i>votre</i> infrastructure. Aucun cloud, aucun audio conservé.
 </p>
@@ -122,6 +124,13 @@ construit depuis les sources :
   [docs/architecture.mdx](docs/architecture.mdx).
 - Contribution, conventions de commit et gates de CI :
   [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Pourquoi le thé ?
+
+Syn·thé·o : ce qu'on rassemble autour du thé. Comme le _kaiki_, le carnet
+qu'un invité garde d'une réunion de thé, votre compte rendu part de vos notes.
+La réunion ne se rejoue pas : l'audio n'est jamais conservé, seule la note
+reste. Voir [L'esprit Syntheo](docs/philosophy.mdx).
 
 ## Origine
 
