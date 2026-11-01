@@ -350,6 +350,7 @@ msgstr "Un autre contact partage le même nom ou la même adresse e-mail. Fusion
 msgid "API key (optional)"
 msgstr "Clé d'API (facultative)"
 
+#: src/session/components/living-document/welcome-card.tsx
 #: src/settings/appearance/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Appearance"
@@ -1515,7 +1516,6 @@ msgstr "Commencer"
 msgid "Get your attention when a summary is ready in the background."
 msgstr "Soyez averti lorsqu'un résumé est prêt en arrière-plan."
 
-#: src/main/windows-title-bar.tsx
 #: src/sidebar/custom-sidebar-header.tsx
 msgid "Go home"
 msgstr "Aller à l'accueil"
@@ -1622,6 +1622,14 @@ msgstr "Historique {0}/{1}"
 #: src/settings/dictation.tsx
 msgid "Hold your shortcut while speaking, then release it to finish."
 msgstr "Maintenez votre raccourci pendant que vous parlez, puis relâchez-le pour terminer."
+
+#: src/main/windows-title-bar.tsx
+msgid "Home"
+msgstr "Accueil"
+
+#: src/main/windows-title-bar.tsx
+msgid "Home · Esc"
+msgstr "Accueil · Échap"
 
 #: src/home/home-capsule.tsx
 msgid "Home capsule"
@@ -3194,6 +3202,14 @@ msgstr "Adresse du serveur (compatible OpenAI : vLLM, Ollama, llama.cpp, LM Stud
 msgid "Server status"
 msgstr "État des serveurs"
 
+#: src/session/components/living-document/welcome-card.tsx
+msgid "Server that turns speech into text"
+msgstr "Serveur qui transcrit la parole en texte"
+
+#: src/session/components/living-document/welcome-card.tsx
+msgid "Server that writes the summary"
+msgstr "Serveur qui rédige le compte-rendu"
+
 #: src/session/components/note-input/header.tsx
 msgid "Session note views"
 msgstr "Vues des notes de session"
@@ -3621,6 +3637,7 @@ msgstr "Syntheo réessaiera automatiquement. Cela n'a aucune incidence sur vos n
 
 #: src/home/start-button.tsx
 #: src/session/components/capsule/index.tsx
+#: src/session/components/living-document/welcome-card.tsx
 #: src/settings/ai/llm/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Synthesis"
@@ -3818,6 +3835,10 @@ msgstr "La transcription apparaîtra ici dès les premiers mots."
 msgid "Theme"
 msgstr "Thème"
 
+#: src/session/components/living-document/welcome-card.tsx
+msgid "Theme and palette"
+msgstr "Thème et palette"
+
 #: src/settings/automations/workflow-builder.tsx
 msgid "Then"
 msgstr "Ensuite"
@@ -3880,6 +3901,10 @@ msgstr "Cette transcription est incomplète."
 msgid "This will remove {0} legacy files and free {1}. Your app data will not be affected because the migration to SQLite is complete."
 msgstr "Cela supprimera {0} fichiers hérités et libérera {1}. Vos données d'application ne seront pas affectées car la migration vers SQLite est terminée."
 
+#: src/session/components/living-document/welcome-card.tsx
+msgid "Three settings to get started"
+msgstr "Trois réglages pour bien démarrer"
+
 #: src/settings/todo/index.tsx
 msgid "Ticket"
 msgstr "Ticket"
@@ -3933,6 +3958,7 @@ msgstr "Transcript copié dans le presse-papiers"
 
 #: src/session/components/living-document/index.tsx
 #: src/session/components/living-document/transcript-margin.tsx
+#: src/session/components/living-document/welcome-card.tsx
 #: src/settings/ai/stt/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Transcription"

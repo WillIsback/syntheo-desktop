@@ -7,6 +7,7 @@ Default permissions for the plugin
 - `allow-play`
 - `allow-stop`
 - `allow-set-volume`
+- `allow-play-completion-sound`
 
 ## Permission Table
 
@@ -39,6 +40,32 @@ Enables the play command without any pre-configured scope.
 <td>
 
 Denies the play command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`sfx:allow-play-completion-sound`
+
+</td>
+<td>
+
+Enables the play_completion_sound command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`sfx:deny-play-completion-sound`
+
+</td>
+<td>
+
+Denies the play_completion_sound command without any pre-configured scope.
 
 </td>
 </tr>

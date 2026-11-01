@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getStoredSettingValues: vi.fn(),
-  play: vi.fn(),
+  playCompletionSound: vi.fn(),
 }));
 
-vi.mock("cuelume", () => ({
-  play: mocks.play,
+vi.mock("@syntheo/plugin-sfx", () => ({
+  commands: { playCompletionSound: mocks.playCompletionSound },
 }));
 
 vi.mock("~/settings/queries", () => ({
@@ -30,17 +30,19 @@ describe("completion sounds", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getStoredSettingValues.mockResolvedValue(stored());
+    mocks.playCompletionSound.mockResolvedValue(undefined);
   });
 
   it.each([
     [{}, "ready"],
-    [{ notification_completion_sound_name: "sparkle" }, "success"],
+    [{ notification_completion_sound_name: "sparkle" }, "sparkle"],
+    [{ notification_completion_sound_name: "unknown" }, "ready"],
   ])("plays the configured completion sound", async (values, expected) => {
     mocks.getStoredSettingValues.mockResolvedValue(stored(values));
 
     await playCompletionSound();
 
-    expect(mocks.play).toHaveBeenCalledWith(expected, { volume: 0.7 });
+    expect(mocks.playCompletionSound).toHaveBeenCalledWith(expected, 0.7);
   });
 
   it("falls back to Ready for an unknown stored sound", () => {
@@ -57,13 +59,23 @@ describe("completion sounds", () => {
 
     await playCompletionSound();
 
-    expect(mocks.play).not.toHaveBeenCalled();
+    expect(mocks.playCompletionSound).not.toHaveBeenCalled();
   });
 
   it("previews a sound without reading preferences", () => {
     previewCompletionSound("bloom");
 
-    expect(mocks.play).toHaveBeenCalledWith("open", { volume: 0.7 });
+    expect(mocks.playCompletionSound).toHaveBeenCalledWith("bloom", 0.7);
     expect(mocks.getStoredSettingValues).not.toHaveBeenCalled();
+  });
+
+  it("swallows a playback failure", async () => {
+    const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
+    mocks.playCompletionSound.mockRejectedValue(new Error("no output"));
+
+    await expect(playCompletionSound()).resolves.toBeUndefined();
+    expect(debug).toHaveBeenCalled();
+
+    debug.mockRestore();
   });
 });

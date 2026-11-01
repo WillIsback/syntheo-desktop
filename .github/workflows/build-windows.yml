@@ -63,6 +63,32 @@ jobs:
           $json | Add-Member -NotePropertyName version -NotePropertyValue $version -Force
           $json | ConvertTo-Json -Depth 100 | Set-Content -Encoding utf8 $conf
 
+      # Runtime Visual C++ embarqué à côté de syntheo.exe (déploiement local à
+      # l'application) : l'exe est lié au CRT dynamique (`-crt-static`, imposé
+      # par les binaires statiques d'ONNX Runtime compilés en /MD) et importe
+      # MSVCP140*.dll / VCRUNTIME140*.dll, absents d'un Windows neuf (#313).
+      - name: Copier le runtime Visual C++ (Microsoft.VC143.CRT)
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+          $vs = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vs) { throw "Visual Studio (outils VC x64) introuvable" }
+          $redist = Get-ChildItem (Join-Path $vs "VC\Redist\MSVC") -Directory |
+            Where-Object { $_.Name -match '^\d+\.\d+\.\d+$' -and (Test-Path (Join-Path $_.FullName "x64\Microsoft.VC143.CRT")) } |
+            Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1
+          if (-not $redist) { throw "Dossier VC\Redist\MSVC\<version>\x64\Microsoft.VC143.CRT introuvable" }
+          $crt = Join-Path $redist.FullName "x64\Microsoft.VC143.CRT"
+          $dest = "apps/desktop/src-tauri/vcrt"
+          New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          foreach ($dll in "vcruntime140.dll", "vcruntime140_1.dll", "msvcp140.dll", "msvcp140_1.dll") {
+            Copy-Item (Join-Path $crt $dll) $dest -ErrorAction Stop
+            $v = (Get-Item (Join-Path $dest $dll)).VersionInfo.FileVersion
+            Write-Host "$dll $v (depuis $crt)"
+          }
+          $dumpbin = Get-ChildItem (Join-Path $vs "VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe") |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          "DUMPBIN=$($dumpbin.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Vérifier l'authentification Azure
         shell: pwsh
         env:
@@ -113,7 +139,24 @@ jobs:
           fi
           pnpm -F ui build
           pnpm -F desktop tauri build --ci --bundles nsis,msi \
-            --config ./src-tauri/tauri.conf.syntheo.json "${extra[@]}"
+            --config ./src-tauri/tauri.conf.syntheo.json \
+            --config ./src-tauri/tauri.windows-vcrt.conf.json "${extra[@]}"
+
+      - name: Vérifier que le runtime Visual C++ importé est embarqué
+        shell: pwsh
+        run: |
+          # Toute DLL du runtime Visual C++ importée par syntheo.exe doit faire
+          # partie de celles embarquées (tauri.windows-vcrt.conf.json).
+          $exe = Get-ChildItem -Path apps/desktop/src-tauri/target/release/syntheo.exe, target/release/syntheo.exe -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+          if (-not $exe) { throw "syntheo.exe introuvable" }
+          $imports = & $env:DUMPBIN /nologo /dependents $exe.FullName |
+            ForEach-Object { $_.Trim() } | Where-Object { $_ -match '\.dll$' }
+          Write-Host "Imports de $($exe.FullName) :"
+          $imports | ForEach-Object { Write-Host "  $_" }
+          $embedded = Get-ChildItem apps/desktop/src-tauri/vcrt -Filter *.dll | ForEach-Object { $_.Name.ToLower() }
+          $missing = $imports | Where-Object { $_ -match '^(msvcp|vcruntime|concrt|vccorlib|vcomp)' -and $_.ToLower() -notin $embedded }
+          if ($missing) { throw "DLL du runtime Visual C++ importées mais non embarquées : $($missing -join ', ')" }
 
       - name: Vérifier la signature des installeurs
         if: steps.build.outputs.signing == 'true'

@@ -28,6 +28,7 @@ import { NoteSeal, ProvenanceLegend } from "./provenance";
 import { SummaryProposalReview, useSummaryProposal } from "./summary-review";
 import { SummarySwitcher } from "./summary-switcher";
 import { TranscriptMargin } from "./transcript-margin";
+import { WelcomeCard } from "./welcome-card";
 
 import { useAITaskTask } from "~/ai/hooks";
 import { hasStoredNoteContent } from "~/session/components/shared";
@@ -117,6 +118,7 @@ export function LivingDocument(props: LivingDocumentProps) {
           editorRef.current?.commands.focusAtPixelWidth(px)
         }
       />
+      <WelcomeCard sessionId={sessionId} />
       {/* Positions stables : l'éditeur de notes n'est pas remonté entre
           Préparer et Écouter, le texte en cours de saisie n'est pas perdu. */}
       {stage === "prepare" ? (

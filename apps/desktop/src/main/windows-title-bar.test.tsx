@@ -137,35 +137,87 @@ describe("WindowsTitleBar", () => {
     ).toBe(true);
   });
 
-  it("affiche un retour sur les vues qui portent leur propre navigation", () => {
-    mocks.currentTab = { type: "settings" };
+  describe("bouton Accueil (issue 315)", () => {
+    it("apparaît dans les réglages et ramène à l'accueil", () => {
+      mocks.currentTab = { type: "settings" };
 
-    render(<WindowsTitleBar />);
+      render(<WindowsTitleBar />);
 
-    expect(document.getElementById("title-bar-sidebar-actions")).toBeTruthy();
+      expect(document.getElementById("title-bar-sidebar-actions")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+      const home = screen.getByRole("button", { name: "Home" });
+      expect(home.hasAttribute("disabled")).toBe(false);
+      fireEvent.click(home);
 
-    expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "empty" });
-  });
+      expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "empty" });
+    });
 
-  it("n'affiche pas de retour sur une note", () => {
-    mocks.currentTab = { type: "sessions", id: "s1" };
+    it("apparaît sur une note et ramène à l'accueil", () => {
+      mocks.currentTab = { type: "sessions", id: "s1" };
 
-    render(<WindowsTitleBar />);
+      render(<WindowsTitleBar />);
 
-    expect(screen.queryByRole("button", { name: "Go home" })).toBeNull();
-  });
+      fireEvent.click(screen.getByRole("button", { name: "Home" }));
 
-  it("closes an open chat from the title bar back button first", () => {
-    mocks.currentTab = { type: "calendar" };
-    mocks.chatMode = "Floating";
+      expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "empty" });
+      expect(document.getElementById("title-bar-sidebar-actions")).toBeNull();
+    });
 
-    render(<WindowsTitleBar />);
+    it("est placé avant les menus, en haut à gauche", () => {
+      mocks.currentTab = { type: "sessions", id: "s1" };
 
-    fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+      render(<WindowsTitleBar />);
 
-    expect(mocks.sendEvent).toHaveBeenCalledWith({ type: "CLOSE" });
-    expect(mocks.openCurrent).not.toHaveBeenCalled();
+      const home = screen.getByRole("button", { name: "Home" });
+      const menubar = screen.getByRole("menubar");
+      expect(
+        home.compareDocumentPosition(menubar) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it("reste en place mais désactivé sur l'accueil", () => {
+      mocks.currentTab = { type: "empty" };
+
+      render(<WindowsTitleBar />);
+
+      const home = screen.getByRole("button", { name: "Home" });
+      expect(home.hasAttribute("disabled")).toBe(true);
+      expect(home.getAttribute("aria-current")).toBe("page");
+      fireEvent.click(home);
+
+      expect(mocks.openCurrent).not.toHaveBeenCalled();
+    });
+
+    it("rappelle le raccourci dans l'infobulle", () => {
+      mocks.currentTab = { type: "settings" };
+
+      render(<WindowsTitleBar />);
+
+      const home = screen.getByRole("button", { name: "Home" });
+      expect(home.getAttribute("title")).toBe("Home · Esc");
+      expect(home.getAttribute("aria-keyshortcuts")).toBe(
+        "Escape Alt+ArrowLeft",
+      );
+    });
+
+    it("va à l'accueil même si l'assistant est ouvert", () => {
+      mocks.currentTab = { type: "calendar" };
+      mocks.chatMode = "Floating";
+
+      render(<WindowsTitleBar />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Home" }));
+
+      expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "empty" });
+    });
+
+    it("est absent pendant la prise en main", () => {
+      mocks.currentTab = { type: "onboarding" };
+
+      render(<WindowsTitleBar />);
+
+      expect(screen.queryByRole("button", { name: "Home" })).toBeNull();
+    });
   });
 });

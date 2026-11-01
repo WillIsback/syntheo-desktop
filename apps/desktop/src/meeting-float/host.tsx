@@ -329,7 +329,7 @@ function FloatingMeetingWindowSync({
         refreshCurrentRouteState(true);
       },
       (error) => {
-        console.error("Failed to read floating meeting data:", error);
+        console.error("[meeting-float] failed to read meeting data", error);
       },
     )
       .then((unsubscribe) => {
@@ -340,7 +340,10 @@ function FloatingMeetingWindowSync({
         }
       })
       .catch((error) => {
-        console.error("Failed to subscribe to floating meeting data:", error);
+        console.error(
+          "[meeting-float] failed to subscribe to meeting data",
+          error,
+        );
       });
 
     const unsubscribeAppliedTheme = subscribeToAppliedTheme(() => {

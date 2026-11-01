@@ -10,13 +10,15 @@ const PENDING_WELCOME_SESSION_KEY = "syntheo.pending-welcome-session";
 
 const WELCOME_NOTE = `Bienvenue sur Syntheo 👋
 
-Cette note explique en quelques lignes comment Syntheo fonctionne.
+Une réunion tient sur une seule page, en trois temps : **Préparer**, **Écouter**, **Synthèse**.
 
-Cliquez sur **Enregistrer** en haut à droite pour démarrer l'écoute. Syntheo capture votre microphone et l'audio système ; l'audio n'est jamais écrit sur disque.
+- **Préparer** : choisissez le **type de réunion**. Il détermine le modèle du compte-rendu.
+- **Écouter** : lancez l'écoute depuis la capsule en bas de la page. La transcription s'affiche en marge pendant que vous prenez vos notes ici.
+- **Synthèse** : à l'arrêt, Syntheo fusionne vos notes et la transcription dans le compte-rendu. Vos notes restent en vert, le texte rédigé par Syntheo à l'encre : vous voyez d'un coup d'œil qui a écrit quoi.
 
-Pour obtenir une transcription et un compte rendu, configurez un fournisseur de transcription dans les réglages. S'il n'est pas encore prêt, Syntheo affichera un raccourci de configuration.
+Avant votre première réunion, réglez la transcription et la synthèse avec les boutons ci-dessus.
 
-Quand vous avez terminé, arrêtez l'écoute : si la transcription et l'intelligence sont configurées, Syntheo génère automatiquement votre résumé.`;
+Astuce : **Ctrl K** ouvre la palette pour retrouver une note, un dossier ou un réglage.`;
 
 const WELCOME_NOTE_TITLE = "Bienvenue sur Syntheo";
 

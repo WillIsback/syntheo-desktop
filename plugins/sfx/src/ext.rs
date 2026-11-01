@@ -16,24 +16,12 @@ static PLAYING_SOUNDS: LazyLock<Mutex<std::collections::HashMap<AppSounds, Sound
 pub enum AppSounds {
     StartRecording,
     StopRecording,
-    BGM,
-}
-
-const BGM_VOLUME: f32 = 0.2;
-
-fn initial_volume(sound: &AppSounds) -> f32 {
-    match sound {
-        AppSounds::BGM => BGM_VOLUME,
-        AppSounds::StartRecording | AppSounds::StopRecording => 1.0,
-    }
 }
 
 pub(crate) fn to_speaker(
     bytes: &'static [u8],
-    looping: bool,
     volume: f32,
 ) -> std::sync::mpsc::Sender<SoundControl> {
-    use rodio::source::Source;
     use rodio::{Decoder, Player};
     use syntheo_audio_utils::open_default_playback_sink;
     let (tx, rx) = std::sync::mpsc::channel();
@@ -51,11 +39,7 @@ pub(crate) fn to_speaker(
         let player = Player::connect_new(stream.mixer());
         player.set_volume(volume);
 
-        if looping {
-            player.append(source.repeat_infinite());
-        } else {
-            player.append(source);
-        }
+        player.append(source);
 
         loop {
             match rx.recv_timeout(std::time::Duration::from_millis(100)) {
@@ -67,7 +51,7 @@ pub(crate) fn to_speaker(
                     player.set_volume(volume);
                 }
                 Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
-                    if !looping && player.empty() {
+                    if player.empty() {
                         break;
                     }
                 }
@@ -83,16 +67,11 @@ pub(crate) fn to_speaker(
 }
 
 impl AppSounds {
-    pub(crate) fn initial_volume(&self) -> f32 {
-        initial_volume(self)
-    }
-
     pub fn play(&self) {
         self.stop();
 
         let bytes = self.get_sound_bytes();
-        let looping = matches!(self, AppSounds::BGM);
-        let control_tx = to_speaker(bytes, looping, initial_volume(self));
+        let control_tx = to_speaker(bytes, 1.0);
 
         {
             let mut sounds = PLAYING_SOUNDS.lock().unwrap();
@@ -118,7 +97,6 @@ impl AppSounds {
         match self {
             AppSounds::StartRecording => include_bytes!("../sounds/start_recording.ogg"),
             AppSounds::StopRecording => include_bytes!("../sounds/stop_recording.ogg"),
-            AppSounds::BGM => include_bytes!("../sounds/bgm.mp3"),
         }
     }
 }

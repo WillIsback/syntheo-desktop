@@ -4,6 +4,7 @@ import { useCallback, useRef } from "react";
 
 import { commands as openerCommands } from "@syntheo/plugin-opener2";
 import { ArrowLeft } from "@syntheo/ui/components/icons";
+import { Button } from "@syntheo/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,12 +19,10 @@ import { hasViewNavigation } from "./view-navigation";
 import { WindowsWindowControls } from "./windows-window-controls";
 
 import { documentationUrl } from "~/shared/documentation";
+import { goHome } from "~/shared/leave-overlay-tab";
 import { openNoteDialog } from "~/shared/open-note-dialog";
 import { useNewNote } from "~/shared/useNewNote";
-import {
-  TITLE_BAR_SIDEBAR_ACTIONS_SLOT_ID,
-  useCustomSidebarBack,
-} from "~/sidebar/custom-sidebar-header";
+import { TITLE_BAR_SIDEBAR_ACTIONS_SLOT_ID } from "~/sidebar/custom-sidebar-header";
 import { useTabs } from "~/store/zustand/tabs";
 
 const appWindow = getCurrentWindow();
@@ -35,8 +34,9 @@ export function WindowsTitleBar() {
   const currentTab = useTabs((state) => state.currentTab);
   const openNew = useTabs((state) => state.openNew);
   const createNewNote = useNewNote();
-  const goBack = useCustomSidebarBack();
-  const showBackButton = hasViewNavigation(currentTab);
+  const showViewActionsSlot = hasViewNavigation(currentTab);
+  const showHomeButton = currentTab?.type !== "onboarding";
+  const isHome = currentTab === null || currentTab.type === "empty";
   const editTargetRef = useRef<HTMLElement | null>(null);
 
   const rememberEditTarget = useCallback(() => {
@@ -67,17 +67,13 @@ export function WindowsTitleBar() {
         data-tauri-drag-region
         className="flex min-w-0 flex-1 items-center pl-2"
       >
-        {showBackButton ? (
-          <>
-            <TitleBarIconButton ariaLabel={t`Go home`} onClick={goBack}>
-              <ArrowLeft size={16} />
-            </TitleBarIconButton>
-            <div
-              id={TITLE_BAR_SIDEBAR_ACTIONS_SLOT_ID}
-              data-tauri-drag-region="false"
-              className="flex items-center"
-            />
-          </>
+        {showHomeButton ? <TitleBarHomeButton isHome={isHome} /> : null}
+        {showViewActionsSlot ? (
+          <div
+            id={TITLE_BAR_SIDEBAR_ACTIONS_SLOT_ID}
+            data-tauri-drag-region="false"
+            className="flex items-center"
+          />
         ) : null}
         <nav
           aria-label={t`Application menu`}
@@ -215,29 +211,29 @@ function TitleBarMenu({
   );
 }
 
-function TitleBarIconButton({
-  ariaLabel,
-  children,
-  onClick,
-}: {
-  ariaLabel: string;
-  children: React.ReactNode;
-  onClick: () => void;
-}) {
+// Bouton « Accueil » toujours au même endroit, en haut à gauche, comme le
+// retour des apps Windows (issue 315). Discret (ghost) : le seul bouton
+// primary de l'écran reste celui de l'accueil ou la capsule. Sur l'accueil,
+// il reste en place mais désactivé, pour que les menus ne bougent pas.
+function TitleBarHomeButton({ isHome }: { isHome: boolean }) {
   return (
-    <button
+    <Button
       type="button"
-      aria-label={ariaLabel}
-      title={ariaLabel}
+      variant="ghost"
+      size="sm"
+      title={t`Home · Esc`}
+      aria-keyshortcuts="Escape Alt+ArrowLeft"
+      aria-current={isHome ? "page" : undefined}
+      disabled={isHome}
       data-tauri-drag-region="false"
       className={cn([
-        "relative flex size-7 items-center justify-center rounded-full",
-        "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
+        "text-muted-foreground hover:text-foreground h-7 gap-1.5 px-2.5 text-sm",
         "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
       ])}
-      onClick={onClick}
+      onClick={goHome}
     >
-      {children}
-    </button>
+      <ArrowLeft size={16} aria-hidden />
+      {t`Home`}
+    </Button>
   );
 }

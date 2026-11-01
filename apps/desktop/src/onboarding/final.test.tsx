@@ -14,15 +14,10 @@ const mocks = vi.hoisted(() => ({
   getOrCreateWelcomeSession: vi.fn(),
   setOnboardingNeeded: vi.fn(),
   setPendingWelcomeSession: vi.fn(),
-  stopSfx: vi.fn(),
 }));
 
 vi.mock("@syntheo/plugin-opener2", () => ({
   commands: { openUrl: vi.fn() },
-}));
-
-vi.mock("@syntheo/plugin-sfx", () => ({
-  commands: { stop: mocks.stopSfx },
 }));
 
 vi.mock("./welcome-note", () => ({
@@ -50,7 +45,6 @@ beforeEach(() => {
   mocks.flushAutomaticRelaunch.mockResolvedValue(false);
   mocks.getOrCreateWelcomeSession.mockResolvedValue("welcome-session");
   mocks.setOnboardingNeeded.mockResolvedValue({ status: "ok", data: null });
-  mocks.stopSfx.mockResolvedValue(null);
 });
 
 afterEach(cleanup);

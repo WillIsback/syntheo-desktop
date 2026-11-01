@@ -569,6 +569,49 @@ describe("useClassicMainShortcuts", () => {
     expect(hoisted.sendEvent).toHaveBeenCalledWith({ type: "CLOSE" });
     expect(hoisted.openCurrent).not.toHaveBeenCalled();
   });
+
+  it("Alt+← revient en arrière quand l'historique le permet (issue 315)", () => {
+    hoisted.canGoBack = true;
+    hoisted.currentTab = {
+      active: true,
+      id: "session-2",
+      slotId: "slot-session",
+      type: "sessions",
+    };
+
+    renderHook(() => useClassicMainShortcuts());
+    hoisted.handlers.get("alt+left")?.();
+
+    expect(hoisted.goBack).toHaveBeenCalledOnce();
+    expect(hoisted.openCurrent).not.toHaveBeenCalled();
+  });
+
+  it("Alt+← ramène à l'accueil sans historique (issue 315)", () => {
+    hoisted.currentTab = {
+      active: true,
+      id: "session-1",
+      slotId: "slot-session",
+      type: "sessions",
+    };
+
+    renderHook(() => useClassicMainShortcuts());
+    hoisted.handlers.get("alt+left")?.();
+
+    expect(hoisted.goBack).not.toHaveBeenCalled();
+    expect(hoisted.openCurrent).toHaveBeenCalledWith({ type: "empty" });
+  });
+
+  it("Alt+← ne fait rien sur l'accueil sans historique (issue 315)", () => {
+    hoisted.currentTab = { active: true, slotId: "slot-home", type: "empty" };
+
+    renderHook(() => useClassicMainShortcuts());
+    expect(hoisted.handlers.has("alt+left")).toBe(true);
+    hoisted.handlers.get("alt+left")?.();
+
+    expect(hoisted.goBack).not.toHaveBeenCalled();
+    expect(hoisted.openCurrent).not.toHaveBeenCalled();
+    expect(hoisted.select).not.toHaveBeenCalled();
+  });
 });
 
 function dispatchEscape(target: EventTarget = window) {

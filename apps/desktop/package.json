@@ -86,7 +86,6 @@
     "ai": "^6.0.320",
     "chroma-js": "^3.2.0",
     "cmdk": "1.1.1",
-    "cuelume": "^0.2.8",
     "date-fns": "^4.4.0",
     "effect": "^4.0.6",
     "js-levenshtein-esm": "^2.0.0",

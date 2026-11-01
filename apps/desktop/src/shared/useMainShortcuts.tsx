@@ -5,7 +5,8 @@ import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { useShell } from "~/contexts/shell";
 import { startPreparedNoteFromShortcut } from "~/session/components/capsule/start-shortcut";
-import { leaveOverlayTab } from "~/shared/leave-overlay-tab";
+import { usesWindowsStyleTitleBar } from "~/shared/hooks/useWindowControlsGutter";
+import { goBackOrHome, leaveOverlayTab } from "~/shared/leave-overlay-tab";
 import { useNewNote, useNewNoteAndListen } from "~/shared/useNewNote";
 import { useTabs } from "~/store/zustand/tabs";
 
@@ -71,6 +72,23 @@ export function useMainShortcuts() {
       enableOnContentEditable: true,
     },
     [chat, currentTab, newNote, newNoteCurrent],
+  );
+
+  // Alt+← : retour en arrière, convention Windows et navigateur (issue 315).
+  // Sur macOS, Option+← déplace le curseur d'un mot : on laisse alors la main
+  // aux champs de saisie et à l'éditeur.
+  const altLeftInTextFields = usesWindowsStyleTitleBar();
+  useHotkeys(
+    "alt+left",
+    () => {
+      goBackOrHome();
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: altLeftInTextFields,
+      enableOnContentEditable: altLeftInTextFields,
+    },
+    [],
   );
 
   const newNoteAndListen = useNewNoteAndListen();

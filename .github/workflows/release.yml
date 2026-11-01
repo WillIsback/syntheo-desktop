@@ -294,18 +294,25 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Jeton à grain fin (Contents et Workflows en écriture, ce seul dépôt),
+          # utilisé uniquement pour créer le tag : GITHUB_TOKEN ne peut pas
+          # avoir la permission Workflows, et GitHub refuse (403) un tag sur un
+          # commit qui modifie .github/workflows depuis la release précédente.
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           VERSION: ${{ needs.detect.outputs.version }}
           TARGET: ${{ github.sha }}
         run: |
           set -euo pipefail
           # Le tag est créé explicitement sur le commit de release via l'API git
           # refs. On crée ensuite la release SANS `--target` : `target_commitish`
-          # déclenche un contrôle de scope « workflows » (403 dès que
-          # .github/workflows a changé entre la cible et HEAD).
+          # déclenche le même contrôle de scope « workflows ».
           if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${VERSION}" >/dev/null 2>&1; then
             echo "Tag ${VERSION} déjà présent."
           else
-            gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
+            if [ -z "${RELEASE_TOKEN}" ]; then
+              echo "::warning::Secret RELEASE_TOKEN absent : création du tag avec GITHUB_TOKEN (échoue si des workflows ont changé)."
+            fi
+            GH_TOKEN="${RELEASE_TOKEN:-$GH_TOKEN}" gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
               -f ref="refs/tags/${VERSION}" -f sha="${TARGET}" >/dev/null
           fi
           if gh release view "$VERSION" >/dev/null 2>&1; then
