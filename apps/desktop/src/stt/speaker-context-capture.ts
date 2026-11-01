@@ -9,6 +9,7 @@ import {
 import { executeTransaction, liveQueryClient } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";
 import { inspectionShowsActiveMeeting } from "~/stt/meeting-accessibility";
+import { isMeetingCapableMicApp } from "~/stt/meeting-apps";
 import { getSessionParticipantHumanIds } from "~/stt/queries";
 import {
   appendSpeakerObservation,
@@ -29,6 +30,29 @@ const EVIDENCE_RENEWAL_MARGIN_MS = 2 * POLL_MS;
 // Apps a scheduled meeting link can be joined from; browsers cover Meet and web clients.
 const MEETING_CAPABLE_MIC_APP =
   /zoom|teams|slack|webex|chrome|chromium|safari|thebrowser|aside|firefox|brave|edge|vivaldi|opera/i;
+// L'inspection d'accessibilité parcourt l'arbre des applications de réunion
+// (AT-SPI sous Linux) : c'est la sonde la plus coûteuse de l'écoute (issue 273).
+// Sans réunion visible, elle est espacée jusqu'à 20 s ; les constats restent
+// écrits à chaque sondage de 5 s avec le dernier résultat connu.
+const INSPECTION_MAX_INTERVAL_MS = 20_000;
+const INSPECTION_TOLERATED_MISSES = 1;
+
+export function speakerInspectionDelayMs(consecutiveMisses: number) {
+  const backoffSteps = consecutiveMisses - INSPECTION_TOLERATED_MISSES;
+  if (backoffSteps <= 0) return 0;
+  return Math.min(POLL_MS * 2 ** backoffSteps, INSPECTION_MAX_INTERVAL_MS);
+}
+
+// Une inspection ne peut établir un appel que pour une application qui tient le
+// micro : si aucune ne ressemble à une application de réunion, inutile d'inspecter.
+function micAppMayHostMeeting(app: { id: string; name: string }) {
+  return (
+    isMeetingCapableMicApp(app) ||
+    MEETING_CAPABLE_MIC_APP.test(app.id) ||
+    MEETING_CAPABLE_MIC_APP.test(app.name) ||
+    /discord/i.test(`${app.id} ${app.name}`)
+  );
+}
 
 export function startSpeakerContextCapture(sessionId: string) {
   if (getCurrentWebviewWindow().label !== "main") return;
@@ -62,6 +86,47 @@ function createCapture(sessionId: string) {
   let generation = 0;
   let pending: Promise<void> | null = null;
   let repoll = false;
+  // Ralentissement de l'inspection d'accessibilité quand aucune réunion n'est vue.
+  let inspectionMisses = 0;
+  let nextInspectionAt = 0;
+  let lastInspections: Awaited<
+    ReturnType<typeof detectCommands.inspectMeetingAccessibility>
+  > | null = null;
+  const inspectIfUseful = async (
+    micResult: Awaited<
+      ReturnType<typeof detectCommands.listMicUsingApplications>
+    > | null,
+    at: number,
+  ) => {
+    const mayHostMeeting =
+      callAppId !== null ||
+      micResult?.status !== "ok" ||
+      micResult.data.some(micAppMayHostMeeting);
+    if (!mayHostMeeting) {
+      // Filtre bon marché : aucun parcours, et reprise immédiate dès qu'une
+      // application de réunion prend le micro.
+      inspectionMisses = 0;
+      nextInspectionAt = 0;
+      lastInspections = null;
+      return { status: "ok" as const, data: [] };
+    }
+    if (callAppId === null && at < nextInspectionAt && lastInspections) {
+      return lastInspections;
+    }
+    const result = await detectCommands
+      .inspectMeetingAccessibility()
+      .catch(() => null);
+    const sawMeeting =
+      result?.status === "ok" &&
+      result.data.some(
+        (inspection) =>
+          inspection.activeCall && inspectionShowsActiveMeeting(inspection),
+      );
+    inspectionMisses = sawMeeting ? 0 : inspectionMisses + 1;
+    nextInspectionAt = at + speakerInspectionDelayMs(inspectionMisses);
+    lastInspections = result;
+    return result;
+  };
   const report = (error: unknown) =>
     console.error("[speaker-context] observation failed", error);
   const persist = (
@@ -96,25 +161,31 @@ function createCapture(sessionId: string) {
   const poll = async () => {
     const observedGeneration = generation;
     const at = Date.now();
-    const [micResult, inspectionsResult, rows, participantIds, currentDevice] =
-      await Promise.all([
-        detectCommands.listMicUsingApplications().catch(() => null),
-        detectCommands.inspectMeetingAccessibility().catch(() => null),
-        liveQueryClient.execute<{
-          title: string;
-          event_json: string;
-          owner_user_id: string;
-          name: string;
-          aliases: string | null;
-        }>(
-          "SELECT s.title, s.event_json, s.owner_user_id, COALESCE(h.name, '') AS name, json_extract(h.metadata_json, '$.aliases') AS aliases FROM sessions s LEFT JOIN humans h ON h.id = s.owner_user_id AND h.deleted_at IS NULL WHERE s.id = ? AND s.deleted_at IS NULL",
-          [sessionId],
-        ),
-        getSessionParticipantHumanIds(sessionId),
-        available && device === null
-          ? transcriptionCommands.getCurrentMicrophoneDevice().catch(() => null)
-          : Promise.resolve(null),
-      ]);
+    const [
+      [micResult, inspectionsResult],
+      rows,
+      participantIds,
+      currentDevice,
+    ] = await Promise.all([
+      detectCommands
+        .listMicUsingApplications()
+        .catch(() => null)
+        .then(async (mic) => [mic, await inspectIfUseful(mic, at)] as const),
+      liveQueryClient.execute<{
+        title: string;
+        event_json: string;
+        owner_user_id: string;
+        name: string;
+        aliases: string | null;
+      }>(
+        "SELECT s.title, s.event_json, s.owner_user_id, COALESCE(h.name, '') AS name, json_extract(h.metadata_json, '$.aliases') AS aliases FROM sessions s LEFT JOIN humans h ON h.id = s.owner_user_id AND h.deleted_at IS NULL WHERE s.id = ? AND s.deleted_at IS NULL",
+        [sessionId],
+      ),
+      getSessionParticipantHumanIds(sessionId),
+      available && device === null
+        ? transcriptionCommands.getCurrentMicrophoneDevice().catch(() => null)
+        : Promise.resolve(null),
+    ]);
     if (stopped || observedGeneration !== generation || !rows[0]) return;
     const row = rows[0];
     const micApps = micResult?.status === "ok" ? micResult.data : [];

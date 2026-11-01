@@ -1544,10 +1544,39 @@ fn collect_browser_meeting_windows(
     (roots, has_unscoped_meeting_window)
 }
 
-#[cfg(any(test, target_os = "macos", target_os = "linux"))]
+#[cfg(any(test, target_os = "macos", target_os = "linux", target_os = "windows"))]
 fn browser_window_has_provider_signal(url: Option<&str>, title: Option<&str>) -> bool {
     browser_platform_from_url(url).is_some()
         || title.is_some_and(|title| !browser_title_platform_signals(title).is_empty())
+}
+
+/// Raison renvoyée dans `warnings` quand aucune fenêtre de navigateur ne porte
+/// de signal de réunion : aucun arbre d'accessibilité n'a alors été parcouru.
+#[cfg(any(test, target_os = "linux", target_os = "windows"))]
+const BROWSER_WITHOUT_MEETING_SIGNAL_WARNING: &str =
+    "no browser window title carries a meeting provider signal; accessibility tree walk skipped";
+
+/// Filtre bon marché appliqué avant tout parcours profond d'une fenêtre de
+/// navigateur (issue 273). Seul le titre de la fenêtre, qui reprend celui de
+/// l'onglet actif, est lu : sans signal de fournisseur (Meet, Teams, Zoom web,
+/// huddle Slack, Webex, Discord), la classification ne peut de toute façon pas
+/// aboutir et le parcours d'une page lourde (YouTube…) coûterait des secondes
+/// de CPU pour rien.
+#[cfg(any(test, target_os = "linux", target_os = "windows"))]
+fn browser_window_may_host_meeting(title: Option<&str>) -> bool {
+    browser_window_has_provider_signal(None, title)
+}
+
+/// Ne garde que les fenêtres de navigateur dont le titre porte un signal de
+/// réunion ; ce sont les seules dont l'arbre d'accessibilité sera parcouru.
+#[cfg(any(test, target_os = "linux"))]
+fn retain_meeting_browser_windows<W>(
+    windows: impl IntoIterator<Item = (Option<String>, W)>,
+) -> Vec<(Option<String>, W)> {
+    windows
+        .into_iter()
+        .filter(|(title, _)| browser_window_may_host_meeting(title.as_deref()))
+        .collect()
 }
 
 #[cfg(target_os = "macos")]
