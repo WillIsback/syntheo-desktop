@@ -62,4 +62,35 @@ describe("useTranscriptScreen subscriptions", () => {
 
     expect(renderCount).toBe(initialRenderCount + 1);
   });
+
+  it("keeps the same transcriptIds array while the ids do not change", () => {
+    const store = createListenerStore();
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <ListenerProvider store={store}>{children}</ListenerProvider>
+    );
+    const { result, rerender } = renderHook(
+      () => useTranscriptScreen({ sessionId: "session-1" }),
+      { wrapper },
+    );
+    const screenIds = () =>
+      result.current.kind === "ready" ? result.current.transcriptIds : null;
+    const initialIds = screenIds();
+
+    // La requête SQLite renvoie un nouveau tableau à chaque écriture.
+    mocks.metadata = mocks.metadata.map((entry) => ({ ...entry }));
+    rerender();
+    expect(screenIds()).toBe(initialIds);
+
+    mocks.metadata = [
+      ...mocks.metadata,
+      {
+        id: "transcript-2",
+        sessionId: "session-1",
+        startedAt: 1,
+        hasWords: true,
+      },
+    ];
+    rerender();
+    expect(screenIds()).toEqual(["transcript-1", "transcript-2"]);
+  });
 });

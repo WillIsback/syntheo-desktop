@@ -3,6 +3,7 @@ import { useRef } from "react";
 
 import { cn } from "@syntheo/utils";
 
+import { PerfZone } from "~/devtools-bar/perf-zone";
 import { Transcript } from "~/session/components/note-input/transcript";
 
 // Marge droite (280px) : la transcription défile pendant l'écoute et reste
@@ -47,12 +48,14 @@ export function TranscriptMargin({
         ) : null}
       </div>
       <div className="min-h-0 flex-1">
-        <Transcript
-          sessionId={sessionId}
-          scrollRef={scrollRef}
-          editMode={editMode}
-          onEditModeChange={onEditModeChange}
-        />
+        <PerfZone id="transcript-margin">
+          <Transcript
+            sessionId={sessionId}
+            scrollRef={scrollRef}
+            editMode={editMode}
+            onEditModeChange={onEditModeChange}
+          />
+        </PerfZone>
       </div>
     </aside>
   );

@@ -6,6 +6,7 @@ const ClassComponent = 1;
 const HostComponent = 5;
 const HostText = 6;
 const ForwardRef = 11;
+const Profiler = 12;
 const MemoComponent = 14;
 const SimpleMemoComponent = 15;
 const HostHoistable = 26;
@@ -105,9 +106,13 @@ function isCompositeFiber(fiber: Fiber): boolean {
     case FunctionComponent:
     case ClassComponent:
     case ForwardRef:
-    case MemoComponent:
     case SimpleMemoComponent:
       return true;
+    // `memo(Component, compare)` (ou `memo(forwardRef(…))`) : l'enveloppe
+    // et le composant enveloppé ont chacun leur fibre. Seule la seconde est
+    // comptée, sinon chaque rendu le serait deux fois.
+    case MemoComponent:
+      return false;
     default:
       return false;
   }
@@ -124,14 +129,27 @@ function isTrackedRender(fiber: Fiber): boolean {
   return (flags & PerformedWork) !== 0;
 }
 
+type RenderVisitor = (fiber: Fiber, zone: string | null) => void;
+
+/**
+ * The `id` of a `<Profiler>` fiber names the zone of everything beneath it,
+ * until a nested `<Profiler>` takes over.
+ */
+function zoneOf(fiber: Fiber, zone: string | null): string | null {
+  if (fiber.tag !== Profiler) return zone;
+  const id = (fiber.memoizedProps as { id?: unknown } | null)?.id;
+  return typeof id === "string" ? id : zone;
+}
+
 /**
  * Walks only the part of the tree React actually worked on: a fiber whose
  * `child` is the same object as its alternate's was bailed out wholesale, so
  * its subtree can be skipped. Mirrors how React DevTools diffs commits.
+ * `onRender` also receives the nearest enclosing `<Profiler>` id, if any.
  */
 export function traverseRenderedFibers(
   root: FiberRoot,
-  onRender: (fiber: Fiber) => void,
+  onRender: RenderVisitor,
 ): void {
   const current = root.current;
   if (!current) return;
@@ -142,42 +160,50 @@ export function traverseRenderedFibers(
     Boolean((previous.memoizedState as { element?: unknown } | null)?.element);
 
   if (!previous || !wasMounted) {
-    mountFiberRecursively(current.child, onRender);
+    mountFiberRecursively(current.child, onRender, null);
     return;
   }
-  updateFiberRecursively(current, previous, onRender);
+  updateFiberRecursively(current, previous, onRender, null);
 }
 
 /** A freshly mounted fiber: every composite fiber beneath it rendered. */
-function mountFiber(fiber: Fiber, onRender: (fiber: Fiber) => void) {
+function mountFiber(
+  fiber: Fiber,
+  onRender: RenderVisitor,
+  parentZone: string | null,
+) {
   if (isIgnoredFiber(fiber)) return;
-  if (isTrackedRender(fiber)) onRender(fiber);
-  mountFiberRecursively(fiber.child, onRender);
+  const zone = zoneOf(fiber, parentZone);
+  if (isTrackedRender(fiber)) onRender(fiber, zone);
+  mountFiberRecursively(fiber.child, onRender, zone);
 }
 
 function mountFiberRecursively(
   firstChild: Fiber | null,
-  onRender: (fiber: Fiber) => void,
+  onRender: RenderVisitor,
+  zone: string | null,
 ) {
   for (let fiber = firstChild; fiber; fiber = fiber.sibling) {
-    mountFiber(fiber, onRender);
+    mountFiber(fiber, onRender, zone);
   }
 }
 
 function updateFiberRecursively(
   next: Fiber,
   previous: Fiber,
-  onRender: (fiber: Fiber) => void,
+  onRender: RenderVisitor,
+  parentZone: string | null,
 ) {
   if (isIgnoredFiber(next)) return;
-  if (isTrackedRender(next)) onRender(next);
+  const zone = zoneOf(next, parentZone);
+  if (isTrackedRender(next)) onRender(next, zone);
   if (next.child === previous.child) return;
 
   for (let child = next.child; child; child = child.sibling) {
     if (child.alternate) {
-      updateFiberRecursively(child, child.alternate, onRender);
+      updateFiberRecursively(child, child.alternate, onRender, zone);
     } else {
-      mountFiber(child, onRender);
+      mountFiber(child, onRender, zone);
     }
   }
 }

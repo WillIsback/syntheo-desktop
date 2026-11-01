@@ -16,10 +16,14 @@ const STAGE_KANJI: Record<NoteStage, string> = {
 };
 
 export type CapsuleListening = {
-  seconds: number;
-  amplitude: number;
+  seconds?: number;
+  amplitude?: number;
   muted: boolean;
   finalizing: boolean;
+  // Chrono et vumètre branchés directement sur l'écoute : ils changent
+  // chaque seconde et dix fois par seconde, la capsule n'a pas à suivre.
+  elapsed?: ReactNode;
+  meter?: ReactNode;
 };
 
 export type CapsuleActions = {
@@ -88,12 +92,14 @@ export function NoteCapsule({
               aria-label={t`Listening time`}
               className="font-mono text-[13px] tabular-nums"
             >
-              {formatElapsed(listening?.seconds ?? 0)}
+              {listening?.elapsed ?? formatElapsed(listening?.seconds ?? 0)}
             </span>
-            <LevelMeter
-              amplitude={listening?.amplitude ?? 0}
-              muted={listening?.muted}
-            />
+            {listening?.meter ?? (
+              <LevelMeter
+                amplitude={listening?.amplitude ?? 0}
+                muted={listening?.muted}
+              />
+            )}
           </span>
           <CapsuleButton
             tone="primary"

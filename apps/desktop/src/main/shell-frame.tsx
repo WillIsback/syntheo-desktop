@@ -5,6 +5,7 @@ import { hasViewNavigation } from "./view-navigation";
 import { WindowsTitleBar } from "./windows-title-bar";
 
 import { DevtoolsStatusBar } from "~/devtools-bar";
+import { PerfZone } from "~/devtools-bar/perf-zone";
 import { usesWindowsStyleTitleBar } from "~/shared/hooks/useWindowControlsGutter";
 import {
   MainShellBodyFrame,
@@ -47,7 +48,9 @@ export function ClassicMainShellFrame() {
   return (
     <div className="bg-background flex h-full min-h-0 flex-col">
       {usesWindowsStyleTitleBar() ? <WindowsTitleBar /> : null}
-      <div className="min-h-0 flex-1">{shell}</div>
+      <div className="min-h-0 flex-1">
+        <PerfZone id="app-shell">{shell}</PerfZone>
+      </div>
       <DevtoolsStatusBar />
     </div>
   );

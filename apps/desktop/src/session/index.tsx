@@ -18,6 +18,7 @@ import { useAutoEnhance } from "./hooks/useAutoEnhance";
 import { useEnhancedNotes } from "./hooks/useEnhancedNotes";
 import { getSessionEvent } from "./utils";
 
+import { PerfZone } from "~/devtools-bar/perf-zone";
 import { isLockedFlag } from "~/lock/flag";
 import { revealLockedNote } from "~/lock/notes";
 import { NoteLockScreen } from "~/lock/screen";
@@ -199,12 +200,14 @@ function TabContentNoteInner({
         overlay={lockOverlay}
         header={
           lockOverlay ? undefined : (
-            <OuterHeader
-              sessionId={sessionId}
-              currentView={currentView}
-              tab={tab}
-              standaloneWindow={standaloneWindow}
-            />
+            <PerfZone id="session-header">
+              <OuterHeader
+                sessionId={sessionId}
+                currentView={currentView}
+                tab={tab}
+                standaloneWindow={standaloneWindow}
+              />
+            </PerfZone>
           )
         }
         floatingButton={

@@ -156,33 +156,16 @@ export const SegmentRenderer = memo(
                 currentMs <= lineEndMs;
 
               return (
-                <span
+                <TranscriptLine
                   key={line.words[0]?.id ?? `line-${lineIdx}`}
-                  data-line-current={isCurrentLine ? "true" : undefined}
-                  className={cn([
-                    "-mx-0.5 rounded-xs px-0.5",
-                    isCurrentLine && "bg-chart-3/15",
-                  ])}
-                >
-                  {lineIdx > 0 ? " " : null}
-                  {line.words.map((word, idx) => (
-                    <Fragment key={word.id ?? `${word.start_ms}-${idx}`}>
-                      {idx > 0 ? " " : null}
-                      <WordSpan
-                        word={word}
-                        displayText={getWordDisplayText(word)}
-                        audioExists={audioExists}
-                        onClickWord={seekAndPlay}
-                        highlightSegments={
-                          highlightSegmentsByWord?.get(word) ?? undefined
-                        }
-                        isActiveMatch={
-                          Boolean(word.id) && word.id === search.activeMatchId
-                        }
-                      />
-                    </Fragment>
-                  ))}
-                </span>
+                  words={line.words}
+                  leadingSpace={lineIdx > 0}
+                  isCurrentLine={isCurrentLine}
+                  audioExists={audioExists}
+                  seekAndPlay={seekAndPlay}
+                  highlightSegmentsByWord={highlightSegmentsByWord}
+                  activeMatchId={search.activeMatchId}
+                />
               );
             })}
           </div>
@@ -230,6 +213,73 @@ export const SegmentRenderer = memo(
     );
   },
 );
+
+// Une phrase de la transcription. Pendant l'écoute, seul le bloc vivant change
+// à chaque partiel : les phrases déjà finales gardent les mêmes mots (même
+// identité) et ne sont pas refaites, seule la phrase provisoire bouge.
+const TranscriptLine = memo(
+  function TranscriptLine({
+    words,
+    leadingSpace,
+    isCurrentLine,
+    audioExists,
+    seekAndPlay,
+    highlightSegmentsByWord,
+    activeMatchId,
+  }: {
+    words: SegmentWord[];
+    leadingSpace: boolean;
+    isCurrentLine: boolean;
+    audioExists: boolean;
+    seekAndPlay: (word: SegmentWord) => void;
+    highlightSegmentsByWord: Map<SegmentWord, HighlightSegment[]> | null;
+    activeMatchId: string | null;
+  }) {
+    return (
+      <span
+        data-line-current={isCurrentLine ? "true" : undefined}
+        className={cn([
+          "-mx-0.5 rounded-xs px-0.5",
+          isCurrentLine && "bg-chart-3/15",
+        ])}
+      >
+        {leadingSpace ? " " : null}
+        {words.map((word, idx) => (
+          <Fragment key={word.id ?? `${word.start_ms}-${idx}`}>
+            {idx > 0 ? " " : null}
+            <WordSpan
+              word={word}
+              displayText={getWordDisplayText(word)}
+              audioExists={audioExists}
+              onClickWord={seekAndPlay}
+              highlightSegments={
+                highlightSegmentsByWord?.get(word) ?? undefined
+              }
+              isActiveMatch={Boolean(word.id) && word.id === activeMatchId}
+            />
+          </Fragment>
+        ))}
+      </span>
+    );
+  },
+  (prev, next) =>
+    prev.leadingSpace === next.leadingSpace &&
+    prev.isCurrentLine === next.isCurrentLine &&
+    prev.audioExists === next.audioExists &&
+    prev.seekAndPlay === next.seekAndPlay &&
+    prev.highlightSegmentsByWord === next.highlightSegmentsByWord &&
+    prev.activeMatchId === next.activeMatchId &&
+    wordsShallowEqual(prev.words, next.words),
+);
+
+function wordsShallowEqual(a: SegmentWord[], b: SegmentWord[]) {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] !== b[index]) return false;
+  }
+  return true;
+}
 
 const EditableSegmentText = memo(function EditableSegmentText({
   segment,

@@ -417,13 +417,28 @@ function shouldMergeAdjacentSegmentKeys(
   );
 }
 
+// Pendant l'écoute, la fusion est refaite à chaque partiel : un mot dont le
+// texte est normalisé garde la même identité d'un rendu à l'autre, pour que
+// les mots déjà affichés (mémoïsés par référence) ne soient pas refaits.
+const normalizedMergedWords = new WeakMap<SegmentWord, SegmentWord>();
+
+function getNormalizedMergedWord(word: SegmentWord, text: string): SegmentWord {
+  const cached = normalizedMergedWords.get(word);
+  if (cached?.text === text) {
+    return cached;
+  }
+  const normalized = { ...word, text };
+  normalizedMergedWords.set(word, normalized);
+  return normalized;
+}
+
 function mergeSegmentRun(run: Segment[]): Segment {
   const first = run[0]!;
   const words = run
     .flatMap((segment) => segment.words)
     .map((word, index) => {
       const text = normalizeMergedWordText(word.text, index === 0);
-      return text === word.text ? word : { ...word, text };
+      return text === word.text ? word : getNormalizedMergedWord(word, text);
     });
   const head = words[0]!;
   const tail = words[words.length - 1]!;

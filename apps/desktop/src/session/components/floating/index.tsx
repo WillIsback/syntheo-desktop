@@ -5,6 +5,7 @@ import type { NoteStage } from "../capsule/stage";
 import { setSessionFabSelectionHost } from "./selection-slot";
 
 import { useShell } from "~/contexts/shell";
+import { PerfZone } from "~/devtools-bar/perf-zone";
 import type { EditorView, Tab } from "~/store/zustand/tabs/schema";
 
 // La capsule remplace la barre « Posez toutes vos questions » : une seule par
@@ -39,12 +40,14 @@ export function FloatingActionButton({
         aria-hidden={chatCoversCapsule || undefined}
         inert={chatCoversCapsule || undefined}
       >
-        <SessionCapsule
-          tab={tab}
-          stage={stage}
-          currentView={currentView}
-          standaloneWindow={standaloneWindow}
-        />
+        <PerfZone id="capsule">
+          <SessionCapsule
+            tab={tab}
+            stage={stage}
+            currentView={currentView}
+            standaloneWindow={standaloneWindow}
+          />
+        </PerfZone>
       </div>
       <div
         ref={setSessionFabSelectionHost}

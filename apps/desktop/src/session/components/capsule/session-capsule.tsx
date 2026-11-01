@@ -3,7 +3,8 @@ import { platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { NoteCapsule, type NoteStage } from "./index";
+import { formatElapsed, NoteCapsule, type NoteStage } from "./index";
+import { LevelMeter } from "./level-meter";
 import { registerPreparedNoteStart } from "./start-shortcut";
 
 import { useShell } from "~/contexts/shell";
@@ -16,11 +17,26 @@ import { useEnhancedNote, useSession } from "~/session/queries";
 import { leaveOverlayTab } from "~/shared/leave-overlay-tab";
 import type { EditorView, Tab } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
+import { useLiveAmplitude, useLiveSeconds } from "~/stt/live-meters";
 import { useStartListening } from "~/stt/useStartListening";
 import {
   isMainWebviewWindow,
   requestMainListenerControl,
 } from "~/stt/window-control";
+
+function SessionElapsed({ sessionId }: { sessionId: string }) {
+  return formatElapsed(useLiveSeconds(sessionId));
+}
+
+function SessionLevelMeter({
+  sessionId,
+  muted,
+}: {
+  sessionId: string;
+  muted: boolean;
+}) {
+  return <LevelMeter amplitude={useLiveAmplitude(sessionId)} muted={muted} />;
+}
 
 function getPrimaryModifierLabel() {
   try {
@@ -49,20 +65,8 @@ export function SessionCapsule({
   const startListening = useStartListening(sessionId);
   const stopListening = useListener((state) => state.stop);
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const isLiveSession = useListener(
-    (state) => state.live.sessionId === sessionId,
-  );
-  const seconds = useListener((state) =>
-    state.live.sessionId === sessionId ? state.live.seconds : 0,
-  );
-  const amplitude = useListener((state) =>
-    state.live.sessionId === sessionId
-      ? Math.min(
-          Math.hypot(state.live.amplitude.mic, state.live.amplitude.speaker),
-          1,
-        )
-      : 0,
-  );
+  // Le chrono et le vumètre s'abonnent eux-mêmes (voir plus bas) : la
+  // capsule ne se redessine pas à chaque seconde ni à chaque niveau sonore.
   const muted = useListener((state) =>
     state.live.sessionId === sessionId ? state.live.muted : false,
   );
@@ -142,8 +146,8 @@ export function SessionCapsule({
         stage={stage}
         modifierLabel={modifierLabel}
         listening={{
-          seconds: isLiveSession ? seconds : 0,
-          amplitude,
+          elapsed: <SessionElapsed sessionId={sessionId} />,
+          meter: <SessionLevelMeter sessionId={sessionId} muted={muted} />,
           muted,
           finalizing: sessionMode === "finalizing",
         }}

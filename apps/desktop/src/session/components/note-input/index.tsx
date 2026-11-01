@@ -21,6 +21,7 @@ import { SearchBar } from "./search/bar";
 import { useSearch } from "./search/context";
 import { Transcript } from "./transcript";
 
+import { PerfZone } from "~/devtools-bar/perf-zone";
 import type { NoteStage } from "~/session/components/capsule/stage";
 import { LivingDocument } from "~/session/components/living-document";
 import { useCurrentNoteTab } from "~/session/components/shared";
@@ -350,27 +351,29 @@ const NoteInputContent = forwardRef<
             </div>
           )}
           <div className="relative min-h-0 flex-1 overflow-hidden">
-            <LivingDocument
-              tab={tab}
-              stage={stage}
-              sessionMode={sessionMode}
-              rawMd={rawMd}
-              sessionTitle={sessionTitle}
-              eventTitle={eventTitle}
-              eventDescription={eventDescription}
-              editorTabs={editorTabs}
-              currentTab={renderedCurrentTab}
-              onSelectView={handleTabChange}
-              editorRef={internalEditorRef}
-              scrollRef={scrollRef}
-              onContainerMouseDown={handleContainerMouseDown}
-              onScroll={onScroll}
-              onNavigateToTitle={onNavigateToTitle}
-              onViewReady={handleSessionViewReady}
-              onViewDisposed={handleSessionViewDisposed}
-              transcriptEditMode={transcriptEditMode}
-              onTranscriptEditModeChange={onTranscriptEditModeChange}
-            />
+            <PerfZone id="living-document">
+              <LivingDocument
+                tab={tab}
+                stage={stage}
+                sessionMode={sessionMode}
+                rawMd={rawMd}
+                sessionTitle={sessionTitle}
+                eventTitle={eventTitle}
+                eventDescription={eventDescription}
+                editorTabs={editorTabs}
+                currentTab={renderedCurrentTab}
+                onSelectView={handleTabChange}
+                editorRef={internalEditorRef}
+                scrollRef={scrollRef}
+                onContainerMouseDown={handleContainerMouseDown}
+                onScroll={onScroll}
+                onNavigateToTitle={onNavigateToTitle}
+                onViewReady={handleSessionViewReady}
+                onViewDisposed={handleSessionViewDisposed}
+                transcriptEditMode={transcriptEditMode}
+                onTranscriptEditModeChange={onTranscriptEditModeChange}
+              />
+            </PerfZone>
           </div>
         </div>
       );

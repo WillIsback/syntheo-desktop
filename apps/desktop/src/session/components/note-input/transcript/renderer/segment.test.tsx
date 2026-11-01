@@ -28,7 +28,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("./segment-header", () => ({
-  SegmentHeader: () => null,
+  SegmentHeader: ({ label }: { label: string }) => (
+    <header data-testid="segment-header" data-label={label} />
+  ),
 }));
 
 vi.mock("./speaker-assign", () => ({
@@ -244,7 +246,13 @@ describe("SegmentRenderer", () => {
       />,
     );
 
-    expect(mocks.wordSpan).toHaveBeenCalledTimes(8);
+    expect(
+      view.container
+        .querySelector("[data-testid='segment-header']")
+        ?.getAttribute("data-label"),
+    ).toBe("Alice");
+    // Les phrases ne dépendent pas du locuteur : elles ne sont pas refaites.
+    expect(mocks.wordSpan).toHaveBeenCalledTimes(4);
   });
 
   it("persists text corrections when leaving write mode content", async () => {
