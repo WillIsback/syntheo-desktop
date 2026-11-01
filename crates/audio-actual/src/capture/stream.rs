@@ -30,6 +30,13 @@ pub(crate) type ChunkStream =
     Pin<Box<dyn Stream<Item = Result<Vec<f32>, syntheo_resampler::Error>> + Send>>;
 
 const AUDIO_SYNC_PROBE_ENV: &str = "AUDIO_SYNC_PROBE";
+/// Écart d'alignement en deçà duquel un réalignement n'est journalisé qu'en DEBUG.
+///
+/// La sonde recalcule la médiane des derniers retards toutes les quelques secondes : elle
+/// oscille de quelques échantillons (bruit de mesure, dérive des horloges) sous sa tolérance de
+/// regroupement (24 échantillons, 1,5 ms à 16 kHz). Une milliseconde (16 échantillons à
+/// 16 kHz) sépare ce bruit d'un vrai déplacement du chemin d'écho.
+const AEC_ALIGNMENT_SIGNIFICANT_SHIFT_MS: u32 = 1;
 const AEC_MAX_REFERENCE_LAG_MS: u32 = 600;
 const AEC_MIN_REFERENCE_OVERLAP_MS: u32 = 400;
 const AEC_MIN_REFERENCE_RMS: f32 = 1e-4;
@@ -428,6 +435,26 @@ impl AecAlignment {
     }
 }
 
+/// Dit si un changement d'alignement mérite une ligne INFO : verrouillage, perte, changement
+/// de sens (haut-parleur ↔ micro) ou déplacement d'au moins
+/// [`AEC_ALIGNMENT_SIGNIFICANT_SHIFT_MS`]. Ne décide que de la journalisation : la
+/// réinitialisation de l'annulation d'écho suit `alignment_changed`, inchangé.
+fn is_significant_alignment_change(
+    previous: AecAlignment,
+    next: AecAlignment,
+    sample_rate: u32,
+) -> bool {
+    let threshold_samples =
+        (sample_rate as usize * AEC_ALIGNMENT_SIGNIFICANT_SHIFT_MS as usize) / 1000;
+    match (previous, next) {
+        (AecAlignment::DelaySpeaker(before), AecAlignment::DelaySpeaker(after))
+        | (AecAlignment::DelayMic(before), AecAlignment::DelayMic(after)) => {
+            before.abs_diff(after) >= threshold_samples
+        }
+        _ => previous != next,
+    }
+}
+
 impl AecReferenceAligner {
     fn new(sample_rate: u32) -> Self {
         let max_lag_samples = ((sample_rate as usize) * (AEC_MAX_REFERENCE_LAG_MS as usize)) / 1000;
@@ -500,21 +527,31 @@ impl AecReferenceAligner {
         };
 
         if next_alignment != self.last_alignment {
-            tracing::info!(
-                previous_alignment = ?self.last_alignment,
-                alignment = ?next_alignment,
-                mic_delay_samples = next_alignment.mic_delay_samples(),
-                speaker_delay_samples = next_alignment.speaker_delay_samples(),
-                mic_delay_ms = next_alignment.mic_delay_samples() as f32
-                    / self.probe.config().sample_rate as f32
-                    * 1000.0,
-                speaker_delay_ms = next_alignment.speaker_delay_samples() as f32
-                    / self.probe.config().sample_rate as f32
-                    * 1000.0,
-                stable_lag_samples = snapshot.stable_lag_samples,
-                state = ?snapshot.state,
-                "aec_reference_alignment_changed"
-            );
+            let sample_rate = self.probe.config().sample_rate;
+            macro_rules! log_alignment_change {
+                ($level:expr) => {
+                    tracing::event!(
+                        $level,
+                        previous_alignment = ?self.last_alignment,
+                        alignment = ?next_alignment,
+                        mic_delay_samples = next_alignment.mic_delay_samples(),
+                        speaker_delay_samples = next_alignment.speaker_delay_samples(),
+                        mic_delay_ms =
+                            next_alignment.mic_delay_samples() as f32 / sample_rate as f32 * 1000.0,
+                        speaker_delay_ms = next_alignment.speaker_delay_samples() as f32
+                            / sample_rate as f32
+                            * 1000.0,
+                        stable_lag_samples = snapshot.stable_lag_samples,
+                        state = ?snapshot.state,
+                        "aec_reference_alignment_changed"
+                    )
+                };
+            }
+            if is_significant_alignment_change(self.last_alignment, next_alignment, sample_rate) {
+                log_alignment_change!(tracing::Level::INFO);
+            } else {
+                log_alignment_change!(tracing::Level::DEBUG);
+            }
             self.last_alignment = next_alignment;
             return true;
         }
@@ -1058,6 +1095,84 @@ mod tests {
         assert_eq!(mic_alignment, AecAlignment::DelayMic(320));
         assert_eq!(mic_alignment.mic_delay_samples(), 320);
         assert_eq!(mic_alignment.speaker_delay_samples(), 0);
+    }
+
+    #[test]
+    fn alignment_log_keeps_info_for_lock_loss_and_direction_change() {
+        use AecAlignment::{DelayMic, DelaySpeaker, None};
+
+        assert!(is_significant_alignment_change(
+            None,
+            DelaySpeaker(904),
+            16_000
+        ));
+        assert!(is_significant_alignment_change(
+            None,
+            DelayMic(1_056),
+            16_000
+        ));
+        assert!(is_significant_alignment_change(
+            DelaySpeaker(904),
+            None,
+            16_000
+        ));
+        assert!(is_significant_alignment_change(
+            DelayMic(1_056),
+            None,
+            16_000
+        ));
+        assert!(is_significant_alignment_change(
+            DelaySpeaker(2),
+            DelayMic(2),
+            16_000
+        ));
+        assert!(is_significant_alignment_change(
+            DelayMic(2),
+            DelaySpeaker(2),
+            16_000
+        ));
+    }
+
+    #[test]
+    fn alignment_log_demotes_small_shifts_below_one_millisecond() {
+        use AecAlignment::{DelayMic, DelaySpeaker};
+
+        assert!(!is_significant_alignment_change(
+            DelaySpeaker(904),
+            DelaySpeaker(906),
+            16_000
+        ));
+        assert!(!is_significant_alignment_change(
+            DelaySpeaker(906),
+            DelaySpeaker(902),
+            16_000
+        ));
+        assert!(!is_significant_alignment_change(
+            DelayMic(1_056),
+            DelayMic(1_071),
+            16_000
+        ));
+        assert!(is_significant_alignment_change(
+            DelaySpeaker(904),
+            DelaySpeaker(920),
+            16_000
+        ));
+        assert!(is_significant_alignment_change(
+            DelayMic(1_056),
+            DelayMic(1_040),
+            16_000
+        ));
+        // Le seuil suit la fréquence : 48 échantillons à 48 kHz.
+        assert!(!is_significant_alignment_change(
+            DelaySpeaker(904),
+            DelaySpeaker(951),
+            48_000
+        ));
+        assert!(is_significant_alignment_change(
+            DelaySpeaker(904),
+            DelaySpeaker(952),
+            48_000
+        ));
     }
 
     fn test_signal(len: usize) -> Vec<f32> {
