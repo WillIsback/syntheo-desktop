@@ -124,6 +124,11 @@ jobs:
     needs: [detect, gate-version-consistency]
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    # Compilation Rust réutilisée d'une release à l'autre (backend cache
+    # Actions, portée main) : seul le code modifié est recompilé.
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - name: Checkout du code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -135,6 +140,9 @@ jobs:
 
       - name: Toolchain Rust
         uses: ./.github/actions/rust_install
+
+      - name: Cache du compilateur (sccache)
+        uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
 
       - name: Installer Node, pnpm et les dépendances (lockfile figé)
         uses: ./.github/actions/pnpm_install
