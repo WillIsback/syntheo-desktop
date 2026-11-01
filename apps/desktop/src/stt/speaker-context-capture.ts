@@ -20,7 +20,12 @@ import {
 
 const captures = new Map<string, ReturnType<typeof createCapture>>();
 const POLL_MS = 5_000;
-const EVIDENCE_LEASE_MS = 10_000;
+// Unchanged evidence is persisted with a lease covering several polls and only
+// renewed once it gets close to expiring, so a steady meeting rewrites the
+// session row every ~25 s instead of on every poll (issue 271). Changed
+// evidence is written immediately and closes the previous interval.
+const EVIDENCE_LEASE_MS = 30_000;
+const EVIDENCE_RENEWAL_MARGIN_MS = 2 * POLL_MS;
 // Apps a scheduled meeting link can be joined from; browsers cover Meet and web clients.
 const MEETING_CAPABLE_MIC_APP =
   /zoom|teams|slack|webex|chrome|chromium|safari|thebrowser|aside|firefox|brave|edge|vivaldi|opera/i;
@@ -75,9 +80,11 @@ function createCapture(sessionId: string) {
       )
         return;
       const previous = parseSpeakerContext(rows[0].context);
+      if (observation && leaseStillCovers(previous, observation, at)) return;
       const next = observation
         ? appendSpeakerObservation(previous, observation)
         : closeSpeakerContext(previous, at);
+      if (JSON.stringify(next) === JSON.stringify(previous)) return;
       await executeTransaction([
         {
           sql: "UPDATE sessions SET metadata_json = json_set(metadata_json, '$.speaker_context', json(?)), updated_at = ? WHERE id = ? AND deleted_at IS NULL",
@@ -226,4 +233,27 @@ function createCapture(sessionId: string) {
       return persist(null, at).catch(report);
     },
   };
+}
+
+function evidenceFacts({
+  start_ms: _start,
+  end_ms: _end,
+  ...facts
+}: SpeakerContextInterval) {
+  return JSON.stringify(facts);
+}
+
+// The stored interval already states this evidence beyond the next poll.
+function leaseStillCovers(
+  context: ReturnType<typeof parseSpeakerContext>,
+  observation: SpeakerContextInterval,
+  at: number,
+) {
+  const last = context.intervals[context.intervals.length - 1];
+  return Boolean(
+    last &&
+    last.start_ms <= observation.start_ms &&
+    last.end_ms - at >= EVIDENCE_RENEWAL_MARGIN_MS &&
+    evidenceFacts(last) === evidenceFacts(observation),
+  );
 }

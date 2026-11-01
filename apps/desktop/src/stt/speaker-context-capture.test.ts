@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   currentDevice: vi.fn(),
   participants: vi.fn(),
   eventJson: "{}",
+  writes: 0,
 }));
 
 vi.mock("@syntheo/plugin-detect", () => ({
@@ -40,6 +41,7 @@ vi.mock("~/db", () => ({
           ],
   },
   executeTransaction: async (writes: Array<{ params: unknown[] }>) => {
+    mocks.writes += 1;
     mocks.context = JSON.parse(writes[0]!.params[0] as string);
   },
 }));
@@ -68,6 +70,7 @@ describe("capturing speaker context", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
     mocks.context = { intervals: [] };
+    mocks.writes = 0;
     mocks.inspect.mockResolvedValue({ status: "ok", data: [inspection] });
     mocks.mic.mockResolvedValue({ status: "ok", data: [inspection.app] });
     mocks.currentDevice.mockResolvedValue({
@@ -265,6 +268,20 @@ describe("capturing speaker context", () => {
     finish({ status: "ok", data: [inspection] });
     await vi.advanceTimersByTimeAsync(0);
     expect(mocks.context.intervals).toHaveLength(1);
+  });
+
+  // Issue #271 : une écoute de 8 min réécrivait la ligne de la session toutes
+  // les 5 s alors que les constats ne changeaient pas.
+  it("does not rewrite unchanged evidence on every poll", async () => {
+    startSpeakerContextCapture("session");
+    await vi.advanceTimersByTimeAsync(0);
+    const initialWrites = mocks.writes;
+    await vi.advanceTimersByTimeAsync(60_000);
+    const writesPerMinute = mocks.writes - initialWrites;
+    expect(writesPerMinute).toBeLessThanOrEqual(3);
+    expect(mocks.context.intervals).toHaveLength(1);
+    // The lease still covers the time the capture has been observed.
+    expect(Number(latestInterval()?.end_ms)).toBeGreaterThan(Date.now());
   });
 
   it("does not write stale inspection results after capture stops", async () => {

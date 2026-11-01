@@ -13,6 +13,10 @@ import { useSettingsReady } from "~/settings/queries";
 import { useRunBatch } from "~/stt/useRunBatch";
 
 const workerId = crypto.randomUUID();
+// The agent CLI treats the desktop as available while this heartbeat is fresher
+// than 90 s (`crates/agent-access`). Each beat is a SQLite write, so it stays
+// sparse: every 5 s kept the WAL busy even when the app was idle (issue 271).
+const RECORDING_IMPORT_HEARTBEAT_MS = 30_000;
 type ImportJob = { id: string; meeting_id: string; file_path: string };
 
 async function heartbeat() {
@@ -56,7 +60,7 @@ export function RecordingImportWorker() {
   useMountEffect(() => {
     const tick = () => void heartbeat().catch(console.error);
     tick();
-    const timer = setInterval(tick, 5000);
+    const timer = setInterval(tick, RECORDING_IMPORT_HEARTBEAT_MS);
     return () => {
       clearInterval(timer);
     };

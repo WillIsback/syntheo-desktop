@@ -7,7 +7,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use ractor::{ActorRef, rpc::CallResult};
+use ractor::{ActorRef, MessagingErr, rpc::CallResult};
 
 use crate::{
     ListenerRuntime, SessionDataEvent,
@@ -19,8 +19,16 @@ use syntheo_vad_masking::VadMask;
 use super::{ListenerRefreshReplay, ListenerRouting, SourceFrame};
 
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
-const MAX_BUFFER_CHUNKS: usize = 150;
-const REPLAY_HISTORY_SECS: usize = 5;
+// In-memory only (never written to disk): 300 chunks of 120 ms hold 36 s of
+// audio, enough for a full replay plus the time a reconnection takes.
+const MAX_BUFFER_CHUNKS: usize = 300;
+// Audio the previous stream accepted but may not have transcribed yet.
+const REPLAY_CONTEXT_SECS: usize = 5;
+// Upper bound of a replay: the context plus everything the previous listener
+// never accepted (sent while it was stopping, or while the session waited to
+// reconnect). A stream that stops on the unfinalized cap spends up to 7 s
+// finalizing, then the first retry comes ~1 s later.
+const MAX_REPLAY_SECS: usize = 15;
 const LISTENER_DISPATCH_CAPACITY: usize = 32;
 const LISTENER_AUDIO_ACK_TIMEOUT: Duration = Duration::from_secs(1);
 const LISTENER_BACKPRESSURE_TIMEOUT: Duration = Duration::from_secs(1);
@@ -34,11 +42,18 @@ struct BufferedAudio {
     mic: Arc<[f32]>,
     spk: Arc<[f32]>,
     mode: ChannelMode,
+    /// Captured samples up to the end of this item, counted from the start of capture.
+    end_position: u64,
 }
 
 impl BufferedAudio {
-    fn new(mic: Arc<[f32]>, spk: Arc<[f32]>, mode: ChannelMode) -> Self {
-        Self { mic, spk, mode }
+    fn new(mic: Arc<[f32]>, spk: Arc<[f32]>, mode: ChannelMode, end_position: u64) -> Self {
+        Self {
+            mic,
+            spk,
+            mode,
+            end_position,
+        }
     }
 
     fn sample_count(&self) -> usize {
@@ -58,6 +73,7 @@ pub(in crate::actors) struct Pipeline {
     audio_buffer: AudioBuffer,
     replay_history: ReplayHistory,
     listener_dispatcher: ListenerDispatcher,
+    captured_samples: u64,
 }
 
 impl Pipeline {
@@ -66,9 +82,10 @@ impl Pipeline {
             amplitude: AmplitudeEmitter::new(runtime.clone(), session_id.clone()),
             dropouts: DropoutMonitor::new(runtime, session_id),
             audio_buffer: AudioBuffer::new(MAX_BUFFER_CHUNKS),
-            replay_history: ReplayHistory::new(SAMPLE_RATE as usize * REPLAY_HISTORY_SECS),
+            replay_history: ReplayHistory::new(SAMPLE_RATE as usize * MAX_REPLAY_SECS),
             listener_dispatcher: ListenerDispatcher::new(),
             vad_mask: VadMask::default(),
+            captured_samples: 0,
         }
     }
 
@@ -78,7 +95,9 @@ impl Pipeline {
         self.audio_buffer.clear();
         self.replay_history.clear();
         self.listener_dispatcher.reset();
+        self.listener_dispatcher.reset_delivery();
         self.vad_mask = VadMask::default();
+        self.captured_samples = 0;
     }
 
     pub(super) async fn dispatch_frame(
@@ -103,16 +122,28 @@ impl Pipeline {
         }
     }
 
+    /// Queues the audio the next listener must hear before live audio: what the
+    /// previous listener never accepted, plus a few seconds it accepted but may
+    /// not have transcribed. Everything stays in memory and is bounded.
     pub(super) fn prepare_listener_refresh(&mut self) -> ListenerRefreshReplay {
         self.listener_dispatcher.reset();
         self.audio_buffer.clear();
 
-        for item in self.replay_history.items() {
+        let undelivered = self
+            .captured_samples
+            .saturating_sub(self.listener_dispatcher.delivered_through());
+        let wanted = usize::try_from(undelivered)
+            .unwrap_or(usize::MAX)
+            .saturating_add(SAMPLE_RATE as usize * REPLAY_CONTEXT_SECS)
+            .min(SAMPLE_RATE as usize * MAX_REPLAY_SECS);
+        let mut replayed = 0;
+        for item in self.replay_history.tail(wanted) {
+            replayed += item.sample_count();
             self.audio_buffer.push_item(item);
         }
 
         ListenerRefreshReplay {
-            duration_secs: self.replay_history.duration_secs(),
+            duration_secs: replayed as f64 / SAMPLE_RATE as f64,
         }
     }
 
@@ -129,7 +160,9 @@ impl Pipeline {
         let (mut processed_mic, processed_spk) = Self::select_tracks(frame, mode);
         self.vad_mask.process(&mut processed_mic);
         let processed_mic = Arc::<[f32]>::from(processed_mic);
-        let item = BufferedAudio::new(processed_mic, processed_spk, mode);
+        let samples = processed_mic.len().max(processed_spk.len()) as u64;
+        self.captured_samples = self.captured_samples.saturating_add(samples);
+        let item = BufferedAudio::new(processed_mic, processed_spk, mode, self.captured_samples);
 
         self.complete_item(item, listener_routing);
         Ok(DispatchFrameResult::Complete)
@@ -150,7 +183,7 @@ impl Pipeline {
             }
             ListenerRouting::Attached(actor) => {
                 if self.audio_buffer.is_empty() {
-                    if !self.send_to_listener(actor, &item.mic, &item.spk, item.mode) {
+                    if !self.send_to_listener(actor, &item) {
                         self.audio_buffer.push_item(item);
                     }
                 } else {
@@ -168,22 +201,15 @@ impl Pipeline {
                 break;
             };
 
-            if !self.send_to_listener(actor, &item.mic, &item.spk, item.mode) {
+            if !self.send_to_listener(actor, &item) {
                 self.audio_buffer.push_front(item);
                 break;
             }
         }
     }
 
-    fn send_to_listener(
-        &self,
-        actor: &ActorRef<ListenerMsg>,
-        mic: &Arc<[f32]>,
-        spk: &Arc<[f32]>,
-        mode: ChannelMode,
-    ) -> bool {
-        self.listener_dispatcher
-            .try_send(actor.clone(), mic, spk, mode)
+    fn send_to_listener(&self, actor: &ActorRef<ListenerMsg>, item: &BufferedAudio) -> bool {
+        self.listener_dispatcher.try_send(actor.clone(), item)
     }
 
     fn select_tracks(frame: SourceFrame, mode: ChannelMode) -> (Vec<f32>, Arc<[f32]>) {
@@ -208,12 +234,15 @@ struct ListenerDispatcher {
     tx: tokio::sync::mpsc::Sender<ListenerDispatch>,
     task: tokio::task::JoinHandle<()>,
     generation: Arc<AtomicU64>,
+    /// Capture position up to which a listener accepted the audio.
+    delivered: Arc<AtomicU64>,
 }
 
 struct ListenerDispatch {
     actor: ActorRef<ListenerMsg>,
     audio: ListenerAudio,
     generation: u64,
+    end_position: u64,
 }
 
 #[derive(Clone)]
@@ -228,8 +257,15 @@ impl ListenerDispatcher {
             tokio::sync::mpsc::channel::<ListenerDispatch>(LISTENER_DISPATCH_CAPACITY);
         let generation = Arc::new(AtomicU64::new(0));
         let task_generation = generation.clone();
+        let delivered = Arc::new(AtomicU64::new(0));
+        let task_delivered = delivered.clone();
         let task = tokio::spawn(async move {
+            // A stopping listener rejects messages while it finalizes its stream.
+            let mut stopping_listener = None;
             while let Some(dispatch) = rx.recv().await {
+                if stopping_listener == Some(dispatch.actor.get_id()) {
+                    continue;
+                }
                 let started_at = Instant::now();
                 loop {
                     if dispatch.generation != task_generation.load(Ordering::Acquire) {
@@ -260,7 +296,10 @@ impl ListenerDispatcher {
                     };
 
                     match result {
-                        Ok(CallResult::Success(ListenerAudioResult::Accepted)) => break,
+                        Ok(CallResult::Success(ListenerAudioResult::Accepted)) => {
+                            task_delivered.fetch_max(dispatch.end_position, Ordering::AcqRel);
+                            break;
+                        }
                         Ok(CallResult::Success(ListenerAudioResult::Backpressured)) => {
                             if started_at.elapsed() >= LISTENER_BACKPRESSURE_TIMEOUT {
                                 stop_listener(&actor, "listener_audio_backpressure_timed_out");
@@ -284,6 +323,14 @@ impl ListenerDispatcher {
                             kill_listener(&actor, "listener_audio_ack_timed_out");
                             break;
                         }
+                        // The listener is stopping or stopped. Killing it would abort the
+                        // `post_stop` that commits its provisional transcript; the audio it
+                        // never accepted is replayed to the next listener instead.
+                        Err(MessagingErr::SendErr(_) | MessagingErr::ChannelClosed) => {
+                            tracing::info!("listener_stopping_audio_kept_for_replay");
+                            stopping_listener = Some(actor.get_id());
+                            break;
+                        }
                         Err(error) => {
                             tracing::warn!(error.message = ?error, "listener_audio_send_failed");
                             actor.kill();
@@ -298,6 +345,7 @@ impl ListenerDispatcher {
             tx,
             task,
             generation,
+            delivered,
         }
     }
 
@@ -305,18 +353,21 @@ impl ListenerDispatcher {
         self.generation.fetch_add(1, Ordering::AcqRel);
     }
 
-    fn try_send(
-        &self,
-        actor: ActorRef<ListenerMsg>,
-        mic: &Arc<[f32]>,
-        spk: &Arc<[f32]>,
-        mode: ChannelMode,
-    ) -> bool {
+    fn reset_delivery(&self) {
+        self.delivered.store(0, Ordering::Release);
+    }
+
+    fn delivered_through(&self) -> u64 {
+        self.delivered.load(Ordering::Acquire)
+    }
+
+    fn try_send(&self, actor: ActorRef<ListenerMsg>, item: &BufferedAudio) -> bool {
         let Ok(permit) = self.tx.try_reserve() else {
             return false;
         };
+        let (mic, spk) = (&item.mic, &item.spk);
 
-        let audio = match mode {
+        let audio = match item.mode {
             ChannelMode::MicOnly => ListenerAudio::Single(f32_to_i16_bytes(mic.iter().copied())),
             ChannelMode::SpeakerOnly => {
                 ListenerAudio::Single(f32_to_i16_bytes(spk.iter().copied()))
@@ -331,6 +382,7 @@ impl ListenerDispatcher {
             actor,
             audio,
             generation: self.generation.load(Ordering::Acquire),
+            end_position: item.end_position,
         });
         true
     }
@@ -432,10 +484,21 @@ impl ReplayHistory {
         }
     }
 
-    fn items(&self) -> impl Iterator<Item = BufferedAudio> + '_ {
-        self.buffer.iter().cloned()
+    /// The most recent items covering at least `samples` (or all of them), oldest first.
+    fn tail(&self, samples: usize) -> impl Iterator<Item = BufferedAudio> + '_ {
+        let mut covered = 0;
+        let start = self
+            .buffer
+            .iter()
+            .rposition(|item| {
+                covered += item.sample_count();
+                covered >= samples
+            })
+            .unwrap_or(0);
+        self.buffer.iter().skip(start).cloned()
     }
 
+    #[cfg(test)]
     fn duration_secs(&self) -> f64 {
         self.samples as f64 / SAMPLE_RATE as f64
     }
@@ -1068,6 +1131,222 @@ mod tests {
         );
 
         handle.abort();
+    }
+
+    /// A listener whose `post_stop` takes a while, like one finalizing its stream.
+    struct SlowStoppingListenerProbe(tokio::sync::mpsc::UnboundedSender<ProbeEvent>);
+
+    #[ractor::async_trait]
+    impl Actor for SlowStoppingListenerProbe {
+        type Msg = ListenerMsg;
+        type State = ();
+        type Arguments = ();
+
+        async fn pre_start(
+            &self,
+            _myself: ActorRef<Self::Msg>,
+            _args: Self::Arguments,
+        ) -> Result<Self::State, ActorProcessingErr> {
+            Ok(())
+        }
+
+        async fn handle(
+            &self,
+            _myself: ActorRef<Self::Msg>,
+            message: Self::Msg,
+            _state: &mut Self::State,
+        ) -> Result<(), ActorProcessingErr> {
+            if let ListenerMsg::AudioSingle(_, reply) | ListenerMsg::AudioDual(_, _, reply) =
+                message
+            {
+                let _ = reply.send(ListenerAudioResult::Accepted);
+            }
+            Ok(())
+        }
+
+        async fn post_stop(
+            &self,
+            _myself: ActorRef<Self::Msg>,
+            _state: &mut Self::State,
+        ) -> Result<(), ActorProcessingErr> {
+            tokio::time::sleep(Duration::from_millis(300)).await;
+            let _ = self.0.send(ProbeEvent::ListenerStopped);
+            Ok(())
+        }
+    }
+
+    /// 120 ms of speaker audio whose samples all carry `value`.
+    fn speech_frame(value: f32) -> SourceFrame {
+        SourceFrame {
+            captured: true,
+            capture: CaptureFrame {
+                raw_mic: Arc::from(vec![0.0_f32; 1920]),
+                raw_speaker: Arc::from(vec![value; 1920]),
+                aec_mic: None,
+            },
+            mic_muted: false,
+        }
+    }
+
+    fn frame_value(index: usize) -> f32 {
+        index as f32 / 1_000.0
+    }
+
+    fn frame_sample(index: usize) -> i16 {
+        let bytes = f32_to_i16_bytes([frame_value(index)].into_iter());
+        i16::from_le_bytes([bytes[0], bytes[1]])
+    }
+
+    // Issue #271 : une écoute qui s'arrête (plafond de 90 s sans finalisation)
+    // valide son texte provisoire dans `post_stop`. L'audio envoyé pendant cet
+    // arrêt échouait en `SendErr` et l'acteur était alors tué, ce qui
+    // interrompait `post_stop` et perdait ce texte.
+    #[tokio::test]
+    async fn audio_sent_to_a_stopping_listener_does_not_interrupt_its_shutdown() {
+        let mut pipeline = test_pipeline();
+        let (probe_tx, mut probe_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (listener, handle) = Actor::spawn(None, SlowStoppingListenerProbe(probe_tx), ())
+            .await
+            .unwrap();
+        let routing = ListenerRouting::Attached(listener.clone());
+        pipeline
+            .dispatch_frame(speech_frame(0.1), ChannelMode::SpeakerOnly, &routing)
+            .await
+            .unwrap();
+        tokio::time::sleep(Duration::from_millis(20)).await;
+
+        listener.stop(Some("unfinalized_cap".to_string()));
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        for index in 0..10 {
+            pipeline
+                .dispatch_frame(
+                    speech_frame(frame_value(index)),
+                    ChannelMode::SpeakerOnly,
+                    &routing,
+                )
+                .await
+                .unwrap();
+        }
+
+        let event = tokio::time::timeout(Duration::from_secs(2), probe_rx.recv())
+            .await
+            .expect("the stopping listener must finish its post_stop");
+        assert!(matches!(event, Some(ProbeEvent::ListenerStopped)));
+        handle.await.unwrap();
+    }
+
+    // Issue #271 : l'audio capturé entre l'arrêt d'une écoute et sa reconnexion
+    // est conservé en mémoire (borné) et rejoué au nouveau flux, au lieu de ne
+    // rejouer que les 5 dernières secondes.
+    #[tokio::test]
+    async fn listener_reconnect_replays_all_audio_the_old_listener_never_accepted() {
+        let mut pipeline = test_pipeline();
+        let (old_tx, mut old_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (old_listener, old_handle) = Actor::spawn(None, OrderingListenerProbe(old_tx), ())
+            .await
+            .unwrap();
+        let old_routing = ListenerRouting::Attached(old_listener.clone());
+        for index in 1..=10 {
+            pipeline
+                .dispatch_frame(
+                    speech_frame(frame_value(index)),
+                    ChannelMode::SpeakerOnly,
+                    &old_routing,
+                )
+                .await
+                .unwrap();
+        }
+        for _ in 1..=10 {
+            tokio::time::timeout(Duration::from_secs(1), old_rx.recv())
+                .await
+                .unwrap()
+                .unwrap();
+        }
+
+        // The listener stops; audio keeps arriving while it shuts down, then
+        // while the session waits to reconnect (batch fallback drops routing).
+        old_listener.stop(None);
+        old_handle.await.unwrap();
+        for index in 11..=30 {
+            pipeline
+                .dispatch_frame(
+                    speech_frame(frame_value(index)),
+                    ChannelMode::SpeakerOnly,
+                    &old_routing,
+                )
+                .await
+                .unwrap();
+        }
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        pipeline.on_listener_routing_changed(&ListenerRouting::Dropped);
+        for index in 31..=80 {
+            pipeline
+                .dispatch_frame(
+                    speech_frame(frame_value(index)),
+                    ChannelMode::SpeakerOnly,
+                    &ListenerRouting::Dropped,
+                )
+                .await
+                .unwrap();
+        }
+
+        // 70 undelivered frames (8.4 s) plus the 1.2 s already delivered.
+        let replay = pipeline.prepare_listener_refresh();
+        assert!(
+            (replay.duration_secs - 9.6).abs() < 1e-6,
+            "replayed {:.2} s instead of every undelivered frame",
+            replay.duration_secs
+        );
+
+        let (new_tx, mut new_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (new_listener, new_handle) = Actor::spawn(None, OrderingListenerProbe(new_tx), ())
+            .await
+            .unwrap();
+        let new_routing = ListenerRouting::Attached(new_listener);
+        pipeline.on_listener_routing_changed(&new_routing);
+        // Live frames keep coming; each one also drains part of the backlog.
+        let mut received = Vec::new();
+        for index in 81..=160 {
+            pipeline
+                .dispatch_frame(
+                    speech_frame(frame_value(index)),
+                    ChannelMode::SpeakerOnly,
+                    &new_routing,
+                )
+                .await
+                .unwrap();
+            while let Ok(Some(sample)) =
+                tokio::time::timeout(Duration::from_millis(5), new_rx.recv()).await
+            {
+                received.push(sample);
+            }
+        }
+        assert!(
+            received.len() >= 81,
+            "only {} frames delivered",
+            received.len()
+        );
+        assert_eq!(
+            received[..81],
+            (1..=81).map(frame_sample).collect::<Vec<_>>(),
+            "every frame is replayed once, in order, before live audio"
+        );
+        new_handle.abort();
+    }
+
+    #[test]
+    fn replay_stays_bounded_in_memory_and_within_the_buffer() {
+        assert!(MAX_REPLAY_SECS * SAMPLE_RATE as usize <= MAX_BUFFER_CHUNKS * 1920 / 2);
+        let mut history = ReplayHistory::new(SAMPLE_RATE as usize * MAX_REPLAY_SECS);
+        for _ in 0..1_000 {
+            history.push(BufferedAudio::new(
+                Arc::from(vec![0.0_f32; 1920]),
+                Arc::from(vec![0.0_f32; 1920]),
+                ChannelMode::MicAndSpeaker,
+                0,
+            ));
+        }
+        assert!(history.duration_secs() <= MAX_REPLAY_SECS as f64);
     }
 
     #[test]
