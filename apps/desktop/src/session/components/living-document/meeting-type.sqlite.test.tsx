@@ -9,7 +9,7 @@ import {
 import { readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
-import { createRef, forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import {
   afterEach,
   beforeAll,
@@ -20,7 +20,7 @@ import {
   vi,
 } from "vitest";
 
-import { LivingDocument, type LivingDocumentProps } from "./index";
+import { NoteInput } from "../note-input";
 
 import type { NoteStage } from "~/session/components/capsule/stage";
 import { updateSession } from "~/session/queries";
@@ -30,6 +30,12 @@ import type { Tab } from "~/store/zustand/tabs";
 // « Automatique ». Ce test rejoue le choix sur une vraie base SQLite construite
 // à partir des migrations, avec les vraies requêtes de session (lecture
 // `useSession`, écriture `updateSession`), la vraie fiche et le vrai sélecteur.
+//
+// Issue #275 : le document est rendu par le vrai `NoteInput`, dont le
+// `onMouseDown` du conteneur place le curseur dans l'éditeur quand on clique
+// dans le vide. Les clics sont rejoués comme dans un navigateur (pointerdown,
+// mousedown, puis mouseup et click sur ce qui est encore sous le pointeur) :
+// `fireEvent.click` seul saute le mousedown, là où se jouait le bug.
 
 const { DatabaseSync } = createRequire(import.meta.url)(
   "node:sqlite",
@@ -116,14 +122,28 @@ vi.mock("../note-input/raw", async () => {
             ]
           : [],
       });
+      const dom = useRef<HTMLDivElement>(null);
+      // Like ProseMirror, focusing the editor moves the DOM focus into it.
+      const focus = () => dom.current?.focus();
       useImperativeHandle(ref, () => ({
         view: { state: { doc: { toJSON: doc } } },
         flushPendingChanges: () => {
           void persist(props.sessionId, { raw_md: JSON.stringify(doc()) });
         },
-        commands: {},
+        commands: { focus, focusAtTrailingEmptyLine: focus },
       }));
-      return <div data-testid="raw-editor">{props.rawMd}</div>;
+      return (
+        <div
+          ref={dom}
+          className="ProseMirror"
+          contentEditable
+          suppressContentEditableWarning
+          tabIndex={-1}
+          data-testid="raw-editor"
+        >
+          {props.rawMd}
+        </div>
+      );
     }),
   };
 });
@@ -139,6 +159,16 @@ vi.mock("./summary-review", () => ({
 }));
 vi.mock("./summary-switcher", () => ({ SummarySwitcher: () => null }));
 vi.mock("./transcript-margin", () => ({ TranscriptMargin: () => null }));
+// Note input chrome that the living document does not show.
+vi.mock("../note-input/enhanced", () => ({ Enhanced: () => null }));
+vi.mock("../note-input/header", () => ({
+  Header: () => null,
+  SessionViewSwitcher: () => null,
+  useEditorTabs: () => [{ type: "raw" }],
+}));
+vi.mock("../note-input/transcript", () => ({ Transcript: () => null }));
+vi.mock("../note-input/search/bar", () => ({ SearchBar: () => null }));
+vi.mock("~/stt/contexts", () => ({ useListener: () => "inactive" }));
 vi.mock("~/ai/hooks", () => ({ useAITaskTask: () => ({ status: "idle" }) }));
 vi.mock("~/session/editor-activity", () => ({
   registerCanonicalSessionEditor: vi.fn(),
@@ -178,25 +208,30 @@ const tab = {
 } as Extract<Tab, { type: "sessions" }>;
 
 function Harness({ stage }: { stage: NoteStage }) {
-  const props: LivingDocumentProps = {
-    tab,
-    stage,
-    sessionMode: stage === "listen" ? "active" : "inactive",
-    rawMd: "",
-    sessionTitle: "Point d'équipe",
-    editorTabs: [{ type: "raw" }],
-    currentTab: { type: "raw" },
-    onSelectView: vi.fn(),
-    editorRef: harnessEditorRef,
-    scrollRef: createRef(),
-    onContainerMouseDown: vi.fn(),
-    onViewReady: vi.fn(),
-    onViewDisposed: vi.fn(),
-    transcriptEditMode: false,
-  };
-  return <LivingDocument {...props} />;
+  return (
+    <NoteInput
+      tab={tab}
+      stage={stage}
+      sessionMode={stage === "listen" ? "active" : "inactive"}
+      rawMd=""
+      sessionTitle="Point d'équipe"
+      editorTabs={[{ type: "raw" }]}
+      currentTab={{ type: "raw" }}
+      handleTabChange={vi.fn()}
+    />
+  );
 }
-const harnessEditorRef = createRef<never>() as LivingDocumentProps["editorRef"];
+
+// A mouse click as the browser delivers it: the click lands on whatever is
+// still under the pointer when the button is released.
+function clickLikeBrowser(element: Element) {
+  fireEvent.pointerDown(element, { button: 0 });
+  fireEvent.mouseDown(element, { button: 0 });
+  const target = element.isConnected ? element : document.body;
+  fireEvent.pointerUp(target, { button: 0 });
+  fireEvent.mouseUp(target, { button: 0 });
+  fireEvent.click(target, { button: 0 });
+}
 
 function storedTemplateId() {
   const [row] = query(
@@ -206,8 +241,8 @@ function storedTemplateId() {
 }
 
 async function chooseMeetingType(name: string) {
-  fireEvent.click(screen.getByRole("button", { name: /Meeting type/ }));
-  fireEvent.click(
+  clickLikeBrowser(screen.getByRole("button", { name: /Meeting type/ }));
+  clickLikeBrowser(
     await screen.findByRole("option", { name: new RegExp(name) }),
   );
   await waitFor(() => expect(storedTemplateId()).toBeDefined());
