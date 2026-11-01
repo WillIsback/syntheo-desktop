@@ -60,10 +60,11 @@ chmod +x ./Syntheo-linux-x86_64.AppImage
 
 ### Fenêtre noire sous Wayland
 
-Syntheo désactive déjà le rendu DMA-BUF de WebKitGTK au démarrage, ce qui corrige la plupart des fenêtres vides (notamment NVIDIA sous Wayland). Si la fenêtre reste noire, désactivez aussi la composition :
+Syntheo utilise l'accélération graphique de WebKitGTK. Si la fenêtre reste noire (cela peut arriver avec certains pilotes, par exemple NVIDIA sous Wayland), désactivez le rendu DMA-BUF, puis, si besoin, la composition :
 
 ```bash
-WEBKIT_DISABLE_COMPOSITING_MODE=1 syntheo
+WEBKIT_DISABLE_DMABUF_RENDERER=1 syntheo
+WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 syntheo
 ```
 
 ## Windows

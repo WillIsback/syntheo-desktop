@@ -64,8 +64,6 @@ fn create_audio_provider(
 }
 
 pub fn main() {
-    startup::apply_linux_webkit_workarounds();
-
     // Keep a process-wide Tokio runtime for Tauri plugins, but leave it before
     // Builder::build(). tauri-plugin-single-instance's Linux setup uses zbus's
     // blocking Connection::build, which starts a nested runtime and panics if
