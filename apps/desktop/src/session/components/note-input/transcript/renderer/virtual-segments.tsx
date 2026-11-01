@@ -18,7 +18,7 @@ import {
   registerTranscriptSearchSource,
   type TranscriptSearchSource,
 } from "../../search/matching";
-import { scrollBehavior } from "./viewport-hooks";
+import { observeScrollContent, scrollBehavior } from "./viewport-hooks";
 
 import type { Segment } from "~/stt/live-segment";
 
@@ -26,6 +26,10 @@ const ESTIMATED_LINE_HEIGHT = 22;
 const ESTIMATED_ROW_CHARS = 90;
 const ESTIMATED_ROW_CHROME = 36;
 const SEGMENT_GAP = 16;
+// Paragraphe suivant d'une même prise de parole (issue 281) : ni en-tête, ni
+// marge sous l'en-tête, et un espacement de paragraphe plus serré.
+const ESTIMATED_CONTINUATION_CHROME = 0;
+const PARAGRAPH_GAP = 8;
 const OVERSCAN_PX = 800;
 const FALLBACK_VIEWPORT_HEIGHT = 800;
 
@@ -47,6 +51,7 @@ export function estimateTranscriptRowHeight(
   segment: Segment,
   index: number,
   rowWidthPx?: number,
+  continuation = false,
 ) {
   const characterCount = segment.words.reduce(
     (total, word) => total + word.text.length + 1,
@@ -59,6 +64,13 @@ export function estimateTranscriptRowHeight(
           1,
           Math.ceil(characterCount / estimatedCharsPerRow(rowWidthPx)),
         );
+  if (continuation) {
+    return (
+      ESTIMATED_CONTINUATION_CHROME +
+      lineCount * ESTIMATED_LINE_HEIGHT +
+      (index > 0 ? PARAGRAPH_GAP : 0)
+    );
+  }
   return (
     ESTIMATED_ROW_CHROME +
     lineCount * ESTIMATED_LINE_HEIGHT +
@@ -69,6 +81,7 @@ export function estimateTranscriptRowHeight(
 export function useVirtualSegments({
   segments,
   segmentKeys,
+  continuations,
   scrollElement,
   activeMatchId,
   searchEnabled,
@@ -77,6 +90,8 @@ export function useVirtualSegments({
 }: {
   segments: Segment[];
   segmentKeys: string[];
+  // Lignes qui poursuivent la prise de parole précédente (sans en-tête).
+  continuations?: readonly boolean[];
   scrollElement: HTMLDivElement | null;
   activeMatchId: string | null;
   searchEnabled: boolean;
@@ -113,9 +128,14 @@ export function useVirtualSegments({
   const estimatedHeights = useMemo(
     () =>
       segments.map((segment, index) =>
-        estimateTranscriptRowHeight(segment, index, listWidth),
+        estimateTranscriptRowHeight(
+          segment,
+          index,
+          listWidth,
+          continuations?.[index] ?? false,
+        ),
       ),
-    [listWidth, segments],
+    [continuations, listWidth, segments],
   );
   const offsets = useMemo(() => {
     const values = [0];
@@ -414,6 +434,9 @@ export function VirtualSegmentRow({
       position: "absolute",
       top,
       width: "100%",
+      // Chaque ligne est isolée : un partiel qui fait grandir la dernière ne
+      // remet en page ni ne repeint les autres (issue 281).
+      contain: "content",
       // Les blocs du débord (overscan), hors de l'écran, ne sont ni mis en
       // page ni peints. Seulement une fois mesurés : la taille réservée est
       // alors exactement la hauteur mesurée, donc ni la position des blocs,
@@ -533,20 +556,17 @@ function createVirtualViewportStore(
     const handleLayout = () => scheduleRefresh(true);
     scrollElement.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleLayout);
+    // La position de la liste ne change que si un bloc au-dessus d'elle
+    // change de hauteur : pas à chaque partiel (issue 281).
+    const stopObservingContent = observeScrollContent(
+      scrollElement,
+      handleLayout,
+    );
     const resizeObserver =
       typeof ResizeObserver === "undefined"
         ? null
         : new ResizeObserver(handleLayout);
-    resizeObserver?.observe(scrollElement);
     if (listElement) resizeObserver?.observe(listElement);
-    const mutationObserver =
-      typeof MutationObserver === "undefined"
-        ? null
-        : new MutationObserver(handleLayout);
-    mutationObserver?.observe(scrollElement, {
-      childList: true,
-      subtree: true,
-    });
     scheduleRefresh(true);
 
     return () => {
@@ -554,7 +574,7 @@ function createVirtualViewportStore(
       scrollElement.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleLayout);
       resizeObserver?.disconnect();
-      mutationObserver?.disconnect();
+      stopObservingContent();
       if (animationFrame !== null) {
         cancelAnimationFrame(animationFrame);
         animationFrame = null;

@@ -66,6 +66,12 @@ export type SegmentRendererProps = {
   audioExists: boolean;
   search: TranscriptSearchRenderState;
   editMode?: boolean;
+  // Paragraphe d'un segment (issue 281) : identité de section du segment entier,
+  // stable pendant l'écoute ; en-tête seulement sur le premier paragraphe ;
+  // segment entier (attribution du locuteur) retrouvé au moment du clic.
+  sectionId?: string;
+  showHeader?: boolean;
+  resolveSegment?: (segment: Segment) => Segment;
 };
 
 export const SegmentRenderer = memo(function SegmentRenderer({
@@ -79,13 +85,17 @@ export const SegmentRenderer = memo(function SegmentRenderer({
   audioExists,
   search,
   editMode = false,
+  sectionId,
+  showHeader = true,
+  resolveSegment,
 }: SegmentRendererProps) {
   const lines = useMemo(
     () => groupWordsIntoLines(segment.words),
     [segment.words],
   );
   const { selectMode, isSelected } = useTranscriptSelectionState();
-  const segmentId = getTranscriptSegmentDomId(transcriptId, segment);
+  const segmentId =
+    sectionId ?? getTranscriptSegmentDomId(transcriptId, segment);
   const selected = isSelected(getTranscriptSectionKey(transcriptId, segmentId));
   const highlightSegmentsByWord = useMemo(() => {
     if (!search.query) {
@@ -124,13 +134,16 @@ export const SegmentRenderer = memo(function SegmentRenderer({
         "data-[transcript-selected=true]:bg-primary/10 data-[transcript-selected=true]:ring-primary/30 data-[transcript-selected=true]:ring-1 data-[transcript-selected=true]:ring-inset",
       ])}
     >
-      <SegmentHeader
-        segment={segment}
-        transcriptId={transcriptId}
-        sessionId={sessionId}
-        label={speakerLabel}
-        selected={selected}
-      />
+      {showHeader ? (
+        <SegmentHeader
+          segment={segment}
+          transcriptId={transcriptId}
+          sessionId={sessionId}
+          label={speakerLabel}
+          selected={selected}
+          resolveSegment={resolveSegment}
+        />
+      ) : null}
 
       {editMode ? (
         <EditableSegmentText
@@ -142,7 +155,8 @@ export const SegmentRenderer = memo(function SegmentRenderer({
         <div
           data-transcript-segment-content
           className={cn([
-            "overflow-wrap-anywhere mt-1.5 text-sm leading-relaxed wrap-break-word",
+            "overflow-wrap-anywhere text-sm leading-relaxed wrap-break-word",
+            showHeader && "mt-1.5",
             selectMode ? "select-none" : "select-text-deep",
           ])}
         >
@@ -159,7 +173,10 @@ export const SegmentRenderer = memo(function SegmentRenderer({
               <TranscriptLine
                 key={line.words[0]?.id ?? `line-${lineIdx}`}
                 words={line.words}
-                leadingSpace={lineIdx > 0}
+                // Paragraphe suivant : une espace en tête, invisible en
+                // début de ligne, sépare son texte du paragraphe précédent
+                // dans une sélection ou une copie.
+                leadingSpace={lineIdx > 0 || !showHeader}
                 isCurrentLine={isCurrentLine}
                 audioExists={audioExists}
                 seekAndPlay={seekAndPlay}
@@ -189,7 +206,10 @@ export function segmentRendererPropsEqual(
     prev.speakerLabel !== next.speakerLabel ||
     prev.audioExists !== next.audioExists ||
     prev.seekAndPlay !== next.seekAndPlay ||
-    prev.editMode !== next.editMode
+    prev.editMode !== next.editMode ||
+    prev.sectionId !== next.sectionId ||
+    prev.showHeader !== next.showHeader ||
+    prev.resolveSegment !== next.resolveSegment
   ) {
     return false;
   }

@@ -16,6 +16,12 @@ type SegmentColorVars = CSSProperties & {
   "--segment-color-dark": string;
 };
 
+// Fin de phrase : la notion de « ligne » de la transcription.
+export function endsSentence(word: SegmentWord): boolean {
+  const text = word.text.trim();
+  return text.endsWith(".") || text.endsWith("?") || text.endsWith("!");
+}
+
 export function groupWordsIntoLines(words: SegmentWord[]): SentenceLine[] {
   if (words.length === 0) return [];
 
@@ -24,8 +30,7 @@ export function groupWordsIntoLines(words: SegmentWord[]): SentenceLine[] {
 
   for (const word of words) {
     currentLine.push(word);
-    const text = word.text.trim();
-    if (text.endsWith(".") || text.endsWith("?") || text.endsWith("!")) {
+    if (endsSentence(word)) {
       lines.push({
         words: currentLine,
         startMs: currentLine[0]!.start_ms,
@@ -58,12 +63,7 @@ export function getActiveLineIndex(
 
   for (let index = 0; index < words.length; index += 1) {
     const word = words[index]!;
-    const text = word.text.trim();
-    const closesLine =
-      text.endsWith(".") ||
-      text.endsWith("?") ||
-      text.endsWith("!") ||
-      index === words.length - 1;
+    const closesLine = endsSentence(word) || index === words.length - 1;
 
     if (!closesLine) {
       continue;
