@@ -71,6 +71,9 @@ export interface TaskConfig<T extends TaskType = TaskType> {
     signal: AbortSignal;
   }) => AsyncIterable<TextStreamPart<any>>;
   transforms?: StreamTransform[];
+  // Durée maximale de la tâche entière (préparation, flux, onSuccess) : passé
+  // ce délai, elle échoue au lieu de rester « en cours ».
+  maxDurationMs?: number;
   onSuccess?: (params: {
     taskId: TaskId<T>;
     text: string;

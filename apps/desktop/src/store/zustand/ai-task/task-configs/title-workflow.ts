@@ -6,14 +6,21 @@ import type { TaskArgsMapTransformed, TaskConfig } from ".";
 import { appendPreferredNamesGuidance } from "./preferred-names";
 
 const AI_GENERATION_MAX_RETRIES = 4;
-const TITLE_MAX_OUTPUT_TOKENS = 128;
+// Le budget couvre aussi le raisonnement des modèles qui pensent avant de
+// répondre (`<think>`, retiré du texte par le middleware) : à 128 jetons, ils
+// l'épuisaient avant d'écrire le titre, qui revenait vide.
+const TITLE_MAX_OUTPUT_TOKENS = 1024;
+// Durée maximale d'une génération de titre, préparation comprise : au-delà,
+// la tâche échoue et l'indicateur « Génération du titre... » disparaît.
+export const TITLE_GENERATION_TIMEOUT_MS = 90_000;
 
 export const titleWorkflow: Pick<
   TaskConfig<"title">,
-  "executeWorkflow" | "transforms"
+  "executeWorkflow" | "transforms" | "maxDurationMs"
 > = {
   executeWorkflow,
   transforms: [],
+  maxDurationMs: TITLE_GENERATION_TIMEOUT_MS,
 };
 
 async function* executeWorkflow(params: {

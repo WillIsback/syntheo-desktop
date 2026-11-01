@@ -3,11 +3,12 @@ import { beginCloudsyncActivity } from "@syntheo/plugin-db";
 import { commands as localApiCommands } from "@syntheo/plugin-local-api";
 import { commands as templateCommands } from "@syntheo/plugin-template";
 
-import { createTaskId, type TaskConfig } from ".";
+import { createTaskId, type TaskConfig, type TaskId } from ".";
 import {
   getPersistableGeneratedTitle,
   persistGeneratedTitle,
 } from "./title-success";
+import { TITLE_GENERATION_TIMEOUT_MS } from "./title-workflow";
 
 import { runNoteEnhancedAutomations } from "~/automations/engine";
 import { releaseCloudsyncActivityEventually } from "~/db/cloudsync-activity";
@@ -18,6 +19,7 @@ import { loadSessionContentSnapshot } from "~/session/content-queries";
 import { requestAppAttention } from "~/shared/app-attention";
 import { playCompletionSound } from "~/shared/completion-sound";
 import { id } from "~/shared/utils";
+import type { TaskState } from "~/store/zustand/ai-task/tasks";
 import { hasLiveSessionTitleDraft } from "~/store/zustand/live-title";
 
 type EnhanceSuccessParams = Parameters<
@@ -71,13 +73,24 @@ export const runEnhanceSuccess = async ({
 
   if (!trimmedTitle && !hasLiveSessionTitleDraft(args.sessionId)) {
     const titleTaskId = createTaskId(args.sessionId, "title");
-    const titleTask = getTaskState(titleTaskId);
+
+    // A title already running comes from another run for this session (an
+    // aborted earlier summary, or a sibling summary): its partial text is not
+    // a title, so wait for it to end and reuse its result only if it is one.
+    if (getTaskState(titleTaskId)?.status === "generating") {
+      const titleTask = await waitForTitleTask(
+        titleTaskId,
+        getTaskState,
+        signal,
+      );
+      if (titleTask?.status === "success") {
+        generatedTitle = getPersistableGeneratedTitle(titleTask.streamedText);
+      }
+    }
 
     // A finished title task belongs to an earlier summary; regenerate so the
     // title reflects the new content.
-    if (titleTask?.status === "generating") {
-      generatedTitle = getPersistableGeneratedTitle(titleTask.streamedText);
-    } else {
+    if (!generatedTitle && !signal.aborted) {
       await startTask(titleTaskId, {
         model,
         taskType: "title",
@@ -94,6 +107,10 @@ export const runEnhanceSuccess = async ({
 
     if (signal.aborted) {
       return;
+    }
+
+    if (!generatedTitle) {
+      reportMissingTitle(getTaskState(titleTaskId));
     }
   }
 
@@ -176,6 +193,44 @@ export const runEnhanceSuccess = async ({
     await releaseCloudsyncActivityEventually("enhance", cloudsyncLeaseKey);
   }
 };
+
+const TITLE_WAIT_POLL_MS = 250;
+// The running title task fails at its own deadline; this margin only guards
+// against a task that never settles.
+const TITLE_WAIT_TIMEOUT_MS = TITLE_GENERATION_TIMEOUT_MS + 5_000;
+
+async function waitForTitleTask(
+  titleTaskId: TaskId<"title">,
+  getTaskState: EnhanceSuccessParams["getTaskState"],
+  signal: AbortSignal,
+): Promise<TaskState<"title"> | undefined> {
+  const deadline = Date.now() + TITLE_WAIT_TIMEOUT_MS;
+  let titleTask = getTaskState(titleTaskId);
+  while (
+    titleTask?.status === "generating" &&
+    !signal.aborted &&
+    Date.now() < deadline
+  ) {
+    await new Promise((resolve) => setTimeout(resolve, TITLE_WAIT_POLL_MS));
+    titleTask = getTaskState(titleTaskId);
+  }
+  return titleTask;
+}
+
+// app.log keeps only the code label (and an error's name and code), never the
+// note: the label alone tells why the session stayed untitled.
+function reportMissingTitle(titleTask: TaskState<"title"> | undefined) {
+  if (titleTask?.status === "error") {
+    console.warn(
+      "[enhancer:title-failed] title generation failed",
+      titleTask.error,
+    );
+  } else if (titleTask?.status === "success") {
+    console.warn("[enhancer:title-empty] title generation returned no title");
+  } else {
+    console.warn("[enhancer:title-skipped] title generation did not finish");
+  }
+}
 
 export const enhanceSuccess: Pick<TaskConfig<"enhance">, "onSuccess"> = {
   onSuccess: runEnhanceSuccess,
