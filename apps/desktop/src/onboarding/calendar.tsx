@@ -40,7 +40,7 @@ function AppleCalendarList() {
       onRefresh={handleRefresh}
       isLoading={isLoading}
       disableHoverTone
-      className="border-border/45 bg-card/28 rounded-xl border p-4 backdrop-blur-md backdrop-saturate-150"
+      className="border-border/45 bg-card/28 rounded-xl border p-4"
     />
   );
 }
