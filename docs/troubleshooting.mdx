@@ -123,11 +123,19 @@ Pour Debian ou Ubuntu, installez le paquet avec `sudo apt install ./syntheo-*.de
 
 Au premier lancement, l'écran d'accueil s'ouvre avec une musique de fond discrète. Une fenêtre noire, avec la musique qui joue, signifie en général que WebKitGTK n'a pas réussi à dessiner la fenêtre, le plus souvent sous Wayland avec une carte NVIDIA.
 
-Syntheo désactive déjà automatiquement le rendu DMA-BUF de WebKit. Si la fenêtre reste noire, lancez :
+Syntheo utilise l'accélération graphique de WebKit, bien plus fluide. Sur certaines combinaisons de carte graphique et de compositeur, le rendu DMA-BUF de WebKit peut laisser une fenêtre noire. Lancez alors :
 
 ```bash
-WEBKIT_DISABLE_COMPOSITING_MODE=1 ./syntheo-*.AppImage
+WEBKIT_DISABLE_DMABUF_RENDERER=1 ./syntheo-*.AppImage
 ```
+
+Si elle reste encore noire, désactivez aussi la composition :
+
+```bash
+WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 ./syntheo-*.AppImage
+```
+
+Signalez-nous le problème en indiquant votre carte graphique, la version de son pilote et votre environnement de bureau.
 
 La même variable fonctionne avec la commande `syntheo` installée par le paquet `.deb`.
 
