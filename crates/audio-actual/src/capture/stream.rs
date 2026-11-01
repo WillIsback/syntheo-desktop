@@ -30,7 +30,8 @@ pub(crate) type ChunkStream =
     Pin<Box<dyn Stream<Item = Result<Vec<f32>, syntheo_resampler::Error>> + Send>>;
 
 const AUDIO_SYNC_PROBE_ENV: &str = "AUDIO_SYNC_PROBE";
-/// Écart d'alignement en deçà duquel un réalignement n'est journalisé qu'en DEBUG.
+/// Écart d'alignement en deçà duquel un réalignement n'est journalisé qu'en DEBUG et n'est pas
+/// appliqué : l'annulation d'écho garde son alignement et son état (#322).
 ///
 /// La sonde recalcule la médiane des derniers retards toutes les quelques secondes : elle
 /// oscille de quelques échantillons (bruit de mesure, dérive des horloges) sous sa tolérance de
@@ -299,10 +300,7 @@ async fn run_dual_loop(
                 if !mic_ready && !speaker_ready && gap.is_none() {
                     gap = last_frame_at.map(|at| (at, 0));
                 }
-                if let Some(aec) = aec.as_mut() {
-                    aec.reset();
-                }
-                linear_echo_gain = None;
+                reset_echo_cancellation(&mut aec, &mut linear_echo_gain);
                 aec_reference = aec.as_ref().map(|_| AecReferenceAligner::new(sample_rate));
                 if tx
                     .send(Ok(CaptureEvent::ChannelFailed { channel, error }))
@@ -332,10 +330,7 @@ async fn run_dual_loop(
                         alignment_changed: false,
                     });
                 if aligned.alignment_changed {
-                    if let Some(processor) = aec.as_mut() {
-                        processor.reset();
-                    }
-                    linear_echo_gain = None;
+                    reset_echo_cancellation(&mut aec, &mut linear_echo_gain);
                 }
                 process_aec(
                     &mut aec,
@@ -359,6 +354,17 @@ async fn run_dual_loop(
             }
         }
     }
+}
+
+/// Oublie l'état de l'annulation d'écho : modèle et gain d'écho linéaire.
+fn reset_echo_cancellation<P: EchoCanceller>(
+    aec: &mut Option<GatedEchoCanceller<P>>,
+    linear_echo_gain: &mut Option<f32>,
+) {
+    if let Some(processor) = aec.as_mut() {
+        processor.reset();
+    }
+    *linear_echo_gain = None;
 }
 
 async fn emit_gap(
@@ -392,7 +398,11 @@ struct AecReferenceAligner {
     probe: SyncProbe,
     mic_delay_line: SampleDelayLine,
     speaker_delay_line: SampleDelayLine,
+    /// Dernier alignement mesuré par la sonde, pour le journal.
     last_alignment: AecAlignment,
+    /// Alignement appliqué aux lignes de retard : ne suit la mesure que sur un changement
+    /// significatif (hystérésis, #322).
+    applied_alignment: AecAlignment,
     last_logged_state: Option<SyncProbeState>,
     last_logged_stable_lag_samples: Option<isize>,
     log_probe_events: bool,
@@ -435,10 +445,10 @@ impl AecAlignment {
     }
 }
 
-/// Dit si un changement d'alignement mérite une ligne INFO : verrouillage, perte, changement
-/// de sens (haut-parleur ↔ micro) ou déplacement d'au moins
-/// [`AEC_ALIGNMENT_SIGNIFICANT_SHIFT_MS`]. Ne décide que de la journalisation : la
-/// réinitialisation de l'annulation d'écho suit `alignment_changed`, inchangé.
+/// Dit si un changement d'alignement est significatif : verrouillage, perte, changement de sens
+/// (haut-parleur ↔ micro) ou déplacement d'au moins [`AEC_ALIGNMENT_SIGNIFICANT_SHIFT_MS`].
+/// Décide du niveau du journal (INFO ou DEBUG, d'une mesure à la suivante) et, contre
+/// l'alignement appliqué, du réalignement avec réinitialisation de l'annulation d'écho (#322).
 fn is_significant_alignment_change(
     previous: AecAlignment,
     next: AecAlignment,
@@ -473,6 +483,7 @@ impl AecReferenceAligner {
             mic_delay_line: SampleDelayLine::new(max_delay_samples),
             speaker_delay_line: SampleDelayLine::new(max_delay_samples),
             last_alignment: AecAlignment::None,
+            applied_alignment: AecAlignment::None,
             last_logged_state: None,
             last_logged_stable_lag_samples: None,
             log_probe_events: std::env::var(AUDIO_SYNC_PROBE_ENV).ok().as_deref() == Some("1"),
@@ -503,10 +514,10 @@ impl AecReferenceAligner {
 
         let aligned_mic = self
             .mic_delay_line
-            .process(raw_mic, self.last_alignment.mic_delay_samples());
+            .process(raw_mic, self.applied_alignment.mic_delay_samples());
         let aligned_speaker = self
             .speaker_delay_line
-            .process(raw_speaker, self.last_alignment.speaker_delay_samples());
+            .process(raw_speaker, self.applied_alignment.speaker_delay_samples());
 
         AecAlignedPair {
             mic: Arc::from(aligned_mic),
@@ -553,10 +564,27 @@ impl AecReferenceAligner {
                 log_alignment_change!(tracing::Level::DEBUG);
             }
             self.last_alignment = next_alignment;
-            return true;
         }
 
-        false
+        self.commit_alignment(next_alignment)
+    }
+
+    /// Applique l'alignement mesuré s'il s'écarte significativement de l'alignement en place ;
+    /// renvoie `true` si l'annulation d'écho doit repartir de zéro.
+    ///
+    /// Hystérésis (#322) : la sonde oscille de quelques échantillons toutes les quelques
+    /// secondes. Suivre ce bruit ferait sauter ou répéter des échantillons dans la référence et
+    /// reconverger le modèle à chaque fois. Sous 1 ms, même sens, l'alignement appliqué ne bouge
+    /// pas : le flux de référence reste continu et le modèle garde son état. L'écart est mesuré
+    /// contre l'alignement appliqué, non contre la mesure précédente : une dérive lente finit
+    /// donc par réaligner dès qu'elle cumule 1 ms.
+    fn commit_alignment(&mut self, next_alignment: AecAlignment) -> bool {
+        let sample_rate = self.probe.config().sample_rate;
+        if !is_significant_alignment_change(self.applied_alignment, next_alignment, sample_rate) {
+            return false;
+        }
+        self.applied_alignment = next_alignment;
+        true
     }
 
     fn log_probe_event(&mut self, event: SyncProbeEvent) {
@@ -1175,6 +1203,59 @@ mod tests {
         ));
     }
 
+    #[test]
+    fn small_alignment_jitter_keeps_the_echo_canceller_converged() {
+        let fake = CountingCanceller::new(0.2, 0);
+        let resets = Arc::clone(&fake.resets);
+        let mut aec = Some(GatedEchoCanceller::new(fake, 16_000));
+        let mut linear_echo_gain = None;
+        let mut aligner = AecReferenceAligner::new(16_000);
+        let mut observe = |alignment, linear_echo_gain: &mut Option<f32>| {
+            if aligner.commit_alignment(alignment) {
+                reset_echo_cancellation(&mut aec, linear_echo_gain);
+            }
+            aligner.applied_alignment
+        };
+
+        // Verrouillage : None → 904, réinitialisation.
+        let applied = observe(AecAlignment::DelaySpeaker(904), &mut linear_echo_gain);
+        assert_eq!(applied, AecAlignment::DelaySpeaker(904));
+        assert_eq!(resets.load(Ordering::SeqCst), 1);
+
+        // Bruit de mesure sous 1 ms (16 échantillons) : ni remise à zéro, ni réalignement.
+        linear_echo_gain = Some(0.5);
+        for jitter in [906, 905, 907] {
+            let applied = observe(AecAlignment::DelaySpeaker(jitter), &mut linear_echo_gain);
+            assert_eq!(applied, AecAlignment::DelaySpeaker(904));
+        }
+        assert_eq!(resets.load(Ordering::SeqCst), 1);
+        assert_eq!(linear_echo_gain, Some(0.5));
+
+        // Vrai déplacement du chemin d'écho : 904 → 950, réinitialisation.
+        let applied = observe(AecAlignment::DelaySpeaker(950), &mut linear_echo_gain);
+        assert_eq!(applied, AecAlignment::DelaySpeaker(950));
+        assert_eq!(resets.load(Ordering::SeqCst), 2);
+        assert_eq!(linear_echo_gain, None);
+
+        // Changement de sens et perte du verrouillage, même petits : réinitialisation.
+        observe(AecAlignment::DelayMic(4), &mut linear_echo_gain);
+        observe(AecAlignment::None, &mut linear_echo_gain);
+        assert_eq!(resets.load(Ordering::SeqCst), 4);
+    }
+
+    #[test]
+    fn slow_drift_realigns_once_it_reaches_one_millisecond() {
+        let mut aligner = AecReferenceAligner::new(16_000);
+        assert!(aligner.commit_alignment(AecAlignment::DelaySpeaker(904)));
+        // Chaque pas reste sous 1 ms, mais l'écart cumulé à l'alignement appliqué l'atteint.
+        let changes: Vec<bool> = (905..=920)
+            .map(|lag| aligner.commit_alignment(AecAlignment::DelaySpeaker(lag)))
+            .collect();
+        assert_eq!(changes.iter().filter(|changed| **changed).count(), 1);
+        assert!(changes[changes.len() - 1]);
+        assert_eq!(aligner.applied_alignment, AecAlignment::DelaySpeaker(920));
+    }
+
     fn test_signal(len: usize) -> Vec<f32> {
         let mut state = 0x1234_5678u32;
         (0..len)
@@ -1239,3 +1320,7 @@ mod tests {
         assert_eq!(&*aligned.speaker, &speaker[71_200..72_800]);
     }
 }
+
+#[cfg(test)]
+#[path = "aec_jitter_tests.rs"]
+mod aec_jitter_tests;

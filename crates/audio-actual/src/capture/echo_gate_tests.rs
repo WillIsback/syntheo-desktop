@@ -8,9 +8,11 @@ use super::*;
 const RATE: u32 = 16_000;
 const FRAME: usize = 1_920;
 
-/// Faux modèle : sortie = micro retardé de `latency` et multiplié par `gain`, appels comptés.
+/// Faux modèle : sortie = micro retardé de `latency` et multiplié par `gain`, appels et remises
+/// à zéro comptés.
 pub(crate) struct CountingCanceller {
     pub(crate) calls: Arc<AtomicUsize>,
+    pub(crate) resets: Arc<AtomicUsize>,
     gain: f32,
     latency: usize,
     line: VecDeque<f32>,
@@ -20,6 +22,7 @@ impl CountingCanceller {
     pub(crate) fn new(gain: f32, latency: usize) -> Self {
         Self {
             calls: Arc::new(AtomicUsize::new(0)),
+            resets: Arc::new(AtomicUsize::new(0)),
             gain,
             latency,
             line: std::iter::repeat_n(0.0, latency).collect(),
@@ -46,6 +49,7 @@ impl EchoCanceller for CountingCanceller {
     }
 
     fn reset(&mut self) {
+        self.resets.fetch_add(1, Ordering::SeqCst);
         self.line = std::iter::repeat_n(0.0, self.latency).collect();
     }
 
