@@ -1,6 +1,8 @@
 mod commands;
+mod completion;
 mod ext;
 
+pub use completion::*;
 pub use ext::*;
 
 const PLUGIN_NAME: &str = "sfx";
@@ -12,6 +14,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::play::<tauri::Wry>,
             commands::stop::<tauri::Wry>,
             commands::set_volume::<tauri::Wry>,
+            commands::play_completion_sound,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

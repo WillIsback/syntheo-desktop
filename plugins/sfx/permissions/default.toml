@@ -1,3 +1,8 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-play", "allow-stop", "allow-set-volume"]
+permissions = [
+  "allow-play",
+  "allow-stop",
+  "allow-set-volume",
+  "allow-play-completion-sound",
+]

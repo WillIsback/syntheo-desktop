@@ -14,6 +14,9 @@ async stop(sfx: AppSounds) : Promise<void> {
 },
 async setVolume(sfx: AppSounds, volume: number) : Promise<void> {
     await TAURI_INVOKE("plugin:sfx|set_volume", { sfx, volume });
+},
+async playCompletionSound(sound: CompletionSound, volume: number) : Promise<void> {
+    await TAURI_INVOKE("plugin:sfx|play_completion_sound", { sound, volume });
 }
 }
 
@@ -28,6 +31,11 @@ async setVolume(sfx: AppSounds, volume: number) : Promise<void> {
 /** user-defined types **/
 
 export type AppSounds = "StartRecording" | "StopRecording" | "BGM"
+/**
+ * Son de fin choisi dans les réglages. Les noms sont ceux qui sont enregistrés
+ * dans `notification_completion_sound_name`.
+ */
+export type CompletionSound = "ready" | "success" | "chime" | "sparkle" | "bloom"
 
 /** tauri-specta globals **/
 

@@ -12773,11 +12773,13 @@ dependencies = [
  "audio-utils",
  "rodio",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",
  "tauri-plugin",
  "tauri-specta",
+ "tracing",
 ]
 
 [[package]]
