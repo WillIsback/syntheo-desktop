@@ -10,7 +10,6 @@ use tauri::menu::{HELP_SUBMENU_ID, Submenu, WINDOW_SUBMENU_ID};
 use tauri::tray::{MouseButtonState, TrayIconEvent};
 use tauri::{
     AppHandle, Result,
-    image::Image,
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::TrayIconBuilder,
 };
@@ -20,7 +19,7 @@ use crate::{
         TrayAgendaSection, TrayScheduleEvent, agenda_sections, menu_bar_title,
         next_schedule_refresh_ms,
     },
-    tray_icon::{RECORDING_FRAMES, TrayIconState},
+    tray_icon::{RECORDING_FRAMES, TrayIconState, show_recording_frame},
 };
 
 #[cfg(target_os = "macos")]
@@ -541,7 +540,7 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
                                 && crate::macos_position::wanted_visible()
                                 && let Some(tray) = app.tray_by_id(TRAY_ID)
                             {
-                                tray.set_icon(Some(Image::from_bytes(RECORDING_FRAMES[frame])?))?;
+                                show_recording_frame(&tray, frame)?;
                             }
                             Ok(())
                         });

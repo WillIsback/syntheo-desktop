@@ -1,5 +1,7 @@
 mod commands;
 mod ext;
+#[cfg(target_os = "linux")]
+mod linux_frames;
 mod macos_position;
 mod menu_items;
 mod schedule;
