@@ -276,7 +276,9 @@ jobs:
           VERSION: ${{ needs.detect.outputs.version }}
         run: |
           set -euo pipefail
-          LAST_TAG=$(git tag -l 'v[0-9]*' --sort=-version:refname 2>/dev/null | head -1 || echo "")
+          # Tag précédent, hors version publiée : une relance après création du
+          # tag (voir la création du tag plus bas) ne doit pas vider le changelog.
+          LAST_TAG=$(git tag -l 'v[0-9]*' --sort=-version:refname 2>/dev/null | grep -vxF "$VERSION" | head -1 || echo "")
           {
             echo "## [${VERSION}] - $(date +%Y-%m-%d)"
             echo ""
