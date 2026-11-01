@@ -12902,6 +12902,7 @@ version = "0.1.0"
 dependencies = [
  "brand",
  "intercept",
+ "libappindicator",
  "libloading 0.9.0",
  "objc2",
  "objc2-app-kit",

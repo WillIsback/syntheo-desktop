@@ -39,7 +39,9 @@ tracing = { workspace = true }
 unicode-width = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
+libappindicator = "0.9"
 libloading = { workspace = true }
+tray-icon = { version = "0.25.1", default-features = false, features = ["libappindicator"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = { workspace = true }
