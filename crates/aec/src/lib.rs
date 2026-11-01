@@ -8,6 +8,11 @@ pub use onnx::AEC;
 #[cfg(feature = "onnx")]
 pub use onnx::model::{BLOCK_SHIFT, BLOCK_SIZE};
 
+#[cfg(feature = "localvqe")]
+mod localvqe;
+#[cfg(feature = "localvqe")]
+pub use localvqe::{LocalVqe, LocalVqeVariant};
+
 pub(crate) struct CircularBuffer {
     buffer: Vec<f32>,
     block_len: usize,

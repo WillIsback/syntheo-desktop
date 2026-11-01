@@ -17,6 +17,10 @@ pub enum Error {
     #[error(transparent)]
     ShapeError(#[from] syntheo_onnx::ndarray::ShapeError),
 
+    #[cfg(feature = "localvqe")]
+    #[error("LocalVQE weights: {0}")]
+    LocalVqeWeights(String),
+
     #[error("Missing output tensor: {0}")]
     MissingOutput(String),
 }

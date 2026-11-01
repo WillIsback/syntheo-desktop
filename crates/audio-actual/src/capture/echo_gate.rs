@@ -46,6 +46,13 @@ pub(crate) trait EchoCanceller {
 
     fn reset(&mut self);
 
+    /// Remise en route après une veille (référence silencieuse au-delà de la traîne). Par défaut,
+    /// remise à zéro complète ; un modèle adaptatif peut garder ce qu'il a appris du trajet
+    /// d'écho, qu'une pause du son ne change pas.
+    fn resume(&mut self) {
+        self.reset();
+    }
+
     /// Retard de la sortie sur l'entrée, en échantillons.
     fn latency_samples(&self) -> usize;
 
@@ -75,6 +82,40 @@ impl EchoCanceller for syntheo_aec::AEC {
 
     fn hop_samples(&self) -> usize {
         syntheo_aec::BLOCK_SHIFT
+    }
+}
+
+/// LocalVQE v1.4-AEC (#293), derrière la fonctionnalité `localvqe` ; DTLN reste le défaut.
+#[cfg(feature = "localvqe")]
+impl EchoCanceller for syntheo_aec::LocalVqe {
+    type Error = syntheo_aec::Error;
+
+    fn process_streaming(
+        &mut self,
+        mic: &[f32],
+        reference: &[f32],
+    ) -> Result<Vec<f32>, Self::Error> {
+        syntheo_aec::LocalVqe::process_streaming(self, mic, reference)
+    }
+
+    fn reset(&mut self) {
+        syntheo_aec::LocalVqe::reset(self);
+    }
+
+    /// Garde le filtre adaptatif et le retard estimé : sans cela, chaque reprise coûterait 1 à 3 s
+    /// de reconvergence (mesuré par `localvqe_bench`, section « Reprise après veille »).
+    fn resume(&mut self) {
+        syntheo_aec::LocalVqe::resume(self);
+    }
+
+    /// File d'attente d'un pas plus recouvrement-addition : 512 échantillons en 200K.
+    fn latency_samples(&self) -> usize {
+        syntheo_aec::LocalVqe::latency_samples(self)
+    }
+
+    /// Accepte toute longueur (file interne) ; le pas sert à caler la reprise.
+    fn hop_samples(&self) -> usize {
+        syntheo_aec::LocalVqe::hop_samples(self)
     }
 }
 
@@ -266,7 +307,7 @@ impl<P: EchoCanceller> GatedEchoCanceller<P> {
     }
 
     fn resume(&mut self, mic: &[f32], reference: &[f32]) -> Result<Vec<f32>, P::Error> {
-        self.processor.reset();
+        self.processor.resume();
         let hop = self.processor.hop_samples().max(1);
         let usable = self.history_mic.len() / hop * hop;
         if usable > 0 {

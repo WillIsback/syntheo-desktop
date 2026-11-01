@@ -293,3 +293,103 @@ fn echo_gate_bench_half_silent_reference() {
         );
     }
 }
+
+/// Faux modèle adaptatif : compte remises à zéro et reprises douces.
+#[derive(Default)]
+struct RestartCounter {
+    resets: usize,
+    resumes: usize,
+}
+
+impl EchoCanceller for RestartCounter {
+    type Error = std::convert::Infallible;
+
+    fn process_streaming(
+        &mut self,
+        mic: &[f32],
+        _reference: &[f32],
+    ) -> Result<Vec<f32>, Self::Error> {
+        Ok(mic.to_vec())
+    }
+
+    fn reset(&mut self) {
+        self.resets += 1;
+    }
+
+    fn resume(&mut self) {
+        self.resumes += 1;
+    }
+
+    fn latency_samples(&self) -> usize {
+        0
+    }
+
+    fn hop_samples(&self) -> usize {
+        256
+    }
+}
+
+#[test]
+fn wake_up_resumes_while_explicit_reset_stays_full() {
+    let mut gate = GatedEchoCanceller::new(RestartCounter::default(), RATE);
+    let mic = sine(FRAME, 0, 0.3, 440.0);
+    let silence = vec![0.0; FRAME];
+    let reference = sine(FRAME, 0, 0.1, 300.0);
+    gate.process(&mic, &reference, |wet| wet).unwrap();
+    for _ in 0..8 {
+        gate.process(&mic, &silence, |wet| wet).unwrap();
+    }
+    gate.process(&mic, &reference, |wet| wet).unwrap();
+    assert_eq!((gate.processor.resets, gate.processor.resumes), (0, 2));
+    // Changement d'alignement ou panne d'un canal : le trajet d'écho appris ne vaut plus rien.
+    gate.reset();
+    assert_eq!((gate.processor.resets, gate.processor.resumes), (1, 2));
+}
+
+#[cfg(feature = "localvqe")]
+#[test]
+fn localvqe_latency_matches_the_declared_value() {
+    let mut aec = syntheo_aec::LocalVqe::new().unwrap();
+    // Impulsions sur un fond tonal, référence muette : le modèle laisse passer le micro.
+    let mic: Vec<f32> = (0..FRAME * 4)
+        .map(|idx| if idx % 1_000 < 40 { 0.4 } else { 0.0 } + 0.05 * (idx as f32 * 0.37).sin())
+        .collect();
+    let reference = vec![0.0; FRAME];
+    let mut output = Vec::new();
+    for chunk in mic.chunks(FRAME) {
+        output.extend(EchoCanceller::process_streaming(&mut aec, chunk, &reference).unwrap());
+    }
+    let correlation = |lag: usize| -> f32 {
+        mic.iter()
+            .zip(&output[lag..])
+            .map(|(left, right)| left * right)
+            .sum()
+    };
+    let best_lag = (0..1_000)
+        .max_by(|&left, &right| correlation(left).total_cmp(&correlation(right)))
+        .unwrap();
+    assert_eq!(best_lag, EchoCanceller::latency_samples(&aec));
+}
+
+#[cfg(feature = "localvqe")]
+#[test]
+fn localvqe_runs_behind_the_gate() {
+    let mic = load_wav("doubletalk_mic_sample.wav");
+    let reference = load_wav("doubletalk_lpb_sample.wav");
+    let mut gate = GatedEchoCanceller::new(syntheo_aec::LocalVqe::new().unwrap(), RATE);
+    let silence = vec![0.0; FRAME];
+    let mut total = 0;
+    for (idx, (m, r)) in mic.chunks(FRAME).zip(reference.chunks(FRAME)).enumerate() {
+        // Référence coupée par périodes de 720 ms en deuxième moitié : veilles et reprises.
+        let r = if idx > 40 && (idx / 6) % 2 == 1 {
+            &silence[..r.len()]
+        } else {
+            r
+        };
+        let out = gate.process(m, r, |wet| wet).unwrap();
+        assert_eq!(out.len(), m.len().min(r.len()));
+        assert!(out.iter().all(|v| v.is_finite()));
+        total += out.len();
+    }
+    assert_eq!(total, mic.len().min(reference.len()));
+}

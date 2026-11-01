@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2024"
 license = "MIT"
 
+[features]
+default = []
+# Branche LocalVQE v1.4-AEC sur la porte de veille (#293). Le modèle de l'application reste DTLN.
+localvqe = ["syntheo-aec/localvqe"]
+
 [dependencies]
 syntheo-aec = { workspace = true }
 syntheo-audio = { workspace = true }

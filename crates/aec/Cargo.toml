@@ -7,6 +7,9 @@ license = "MIT"
 [features]
 default = ["onnx", "128"]
 onnx = ["dep:syntheo-onnx"]
+# LocalVQE v1.4-AEC (#293) : frontal adaptatif + masque neuronal ONNX. Désactivé par défaut,
+# DTLN reste le modèle de l'application tant que le banc d'essai n'a pas tranché.
+localvqe = ["onnx", "dep:serde_json"]
 128 = []
 256 = []
 512 = []
@@ -17,6 +20,7 @@ syntheo-onnx = { workspace = true, optional = true }
 realfft = { workspace = true }
 
 serde = { workspace = true }
+serde_json = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
@@ -29,6 +33,10 @@ rodio = { workspace = true }
 syntheo-audacity = { workspace = true }
 syntheo-audio-snapshot = { workspace = true }
 syntheo-audio-utils = { workspace = true }
+
+[[example]]
+name = "localvqe_bench"
+required-features = ["localvqe"]
 
 [[bench]]
 name = "aec_bench"
