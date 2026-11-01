@@ -306,7 +306,7 @@ const NoteInputContent = forwardRef<
       // Les événements React remontent aussi depuis les portails (popovers,
       // menus) rendus dans la note. Un clic dans l'un d'eux n'est pas un clic
       // dans le vide : y placer le curseur dans l'éditeur fermerait le popover
-      // avant le clic, et le choix serait perdu (issue #275).
+      // avant le clic, et le choix serait perdu (issue 275).
       if (!event.currentTarget.contains(target)) {
         return;
       }
