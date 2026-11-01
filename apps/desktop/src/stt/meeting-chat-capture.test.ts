@@ -393,7 +393,8 @@ describe("startMeetingChatCapture", () => {
     await vi.advanceTimersByTimeAsync(0);
 
     let resolvePersistence:
-      ((persistedSignatures: string[]) => void) | undefined;
+      | ((persistedSignatures: string[]) => void)
+      | undefined;
     persistMeetingChatRecordsMock.mockReturnValueOnce(
       new Promise<string[]>((resolve) => {
         resolvePersistence = resolve;

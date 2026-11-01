@@ -4,13 +4,13 @@ Ce dossier décrit la refonte de l'UI de Syntheo Desktop : nouvelle identité vi
 
 ## Contenu du dossier
 
-| Fichier | Rôle |
-|---|---|
-| `README.md` | Ce brief : principes, périmètre, découpage en lots, critères d'acceptation. |
-| `identite.md` | Règles de l'identité : couleurs, typo, formes, composants, clins d'œil japonais. |
-| `tokens.css` | Copie de `packages/design-system/src/tokens.css` (format HSL, clair + sombre, palettes Thé vert, Glycine et Laque et encre). |
+| Fichier                        | Rôle                                                                                                                                                                                                             |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `README.md`                    | Ce brief : principes, périmètre, découpage en lots, critères d'acceptation.                                                                                                                                      |
+| `identite.md`                  | Règles de l'identité : couleurs, typo, formes, composants, clins d'œil japonais.                                                                                                                                 |
+| `tokens.css`                   | Copie de `packages/design-system/src/tokens.css` (format HSL, clair + sombre, palettes Thé vert, Glycine et Laque et encre).                                                                                     |
 | `maquettes/parcours-note.html` | Maquette cliquable de l'accueil et du parcours Préparer → Écouter → Synthèse. **Seule la piste C (« Document vivant ») est retenue**, avec la palette « Thé vert ». Les pistes A et B restent pour l'historique. |
-| `maquettes/parametres.html` | Maquette cliquable de la fenêtre des paramètres (clair et sombre). |
+| `maquettes/parametres.html`    | Maquette cliquable de la fenêtre des paramètres (clair et sombre).                                                                                                                                               |
 
 Ouvrir une maquette : `open design/refonte-the-vert/maquettes/parcours-note.html#piste-c` (ou double-clic). Elles chargent Geist et Newsreader depuis Google Fonts pour l'aperçu uniquement ; l'app, elle, doit embarquer ses polices (voir Lot 0).
 
@@ -49,6 +49,7 @@ Un lot = une issue = une PR. Les lots 1 à 5 dépendent du lot 0 ; ils sont ensu
 ### Lot 1 · Accueil
 
 Maquette : `parcours-note.html#piste-c`, écran « Accueil ».
+
 - Colonne centrée (`home-width` 640px) : « Bonjour {prénom}. » en serif 52px, ligne « Votre prochaine réunion : … » depuis le calendrier.
 - Bouton `StartButton` : « Démarrer une réunion », aide « Titre et participants repris depuis l'agenda », jetons des 3 étapes, `Ctrl N`.
 - Liste « Reprendre » (`NoteIndex`) : date, titre, durée, sans carte.
@@ -58,6 +59,7 @@ Maquette : `parcours-note.html#piste-c`, écran « Accueil ».
 ### Lot 2 · Note « document vivant » et capsule
 
 Maquette : écrans 1, 2 et 3 de la piste C.
+
 - **Préparer** : titre serif, fiche (type de réunion = modèle, participants, sources d'écoute, langue), zone de notes libre. Capsule : « Annuler » · « Commencer l'écoute » (`Ctrl ⇧ N`, couleur `recording`).
 - **Écouter** : notes de l'utilisateur dans la colonne principale ; transcription dans une marge droite (`margin-width` 280px) qui défile. Capsule : point `recording`, chrono, niveau sonore, « Terminer ».
 - **Synthèse** : compte-rendu fusionnant notes et texte généré, légende de provenance, actions en cases à cocher, sceau 記 en fin de note. Capsule : « Copier » · « Exporter » · « Demander à la note » (`Ctrl J`).
@@ -71,6 +73,7 @@ Maquette : écrans 1, 2 et 3 de la piste C.
 ### Lot 4 · Paramètres
 
 Maquette : `parametres.html`.
+
 - Menu en 4 groupes : **Moi** (Profil, Apparence, Notifications), **Mes serveurs** (Transcription, Synthèse), **Écrire** (Dictée, Dictionnaire), **Mes réunions** (Modèles, Réunions, Calendrier, Dossiers, Contacts). **Retirer « Analyses ».**
 - « Général » devient « Profil » ; « Intelligence » devient « Synthèse ».
 - Transcription et Synthèse : une carte serveur (adresse, « Tester la connexion », protocole détecté, choix du modèle d'un clic, clé d'API dans « Avancé »). États : non testé, test en cours, connecté (latence), injoignable avec un message qui dit quoi faire. Pastille d'état dans le menu et rappel en bas du menu. Protocoles limités à ceux d'`owhisper-client`.
@@ -80,6 +83,7 @@ Maquette : `parametres.html`.
 ### Lot 5 · Éditeur de modèles
 
 Maquette : `parametres.html`, section Modèles.
+
 - Liste groupée : Par défaut (Automatique), Mes favoris (★), Tous les modèles ; « + Nouveau modèle ».
 - Un modèle se lit comme le compte-rendu : nom en serif, description, « Utilisé pour » (indices du mode Automatique, remplace les tags), sections = titre + consigne d'une ligne, réordonnables.
 - « Proposer des sections » appelle le serveur de synthèse local.
