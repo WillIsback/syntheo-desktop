@@ -1,4 +1,9 @@
-import { type FiberRoot, onReactCommit } from "./render-hook";
+import { type AnimationSample, describeAnimation } from "./animation-describe";
+import {
+  type EncodeSample,
+  installImageEncodeProbe,
+} from "./image-encode-probe";
+import { type Fiber, type FiberRoot, onReactCommit } from "./render-hook";
 import { getDisplayName, traverseRenderedFibers } from "./render-tracker";
 
 /**
@@ -12,7 +17,12 @@ import { getDisplayName, traverseRenderedFibers } from "./render-tracker";
  * (composants, zones, propriétés CSS) et des nombres, jamais de contenu.
  *
  * Hors écoute, rien n'est observé : pas d'abonnement aux commits React, pas
- * d'observateur DOM, pas de boucle rAF.
+ * d'observateur DOM, pas de boucle rAF, pas de sonde d'encodage d'image.
+ *
+ * Les durées (`ms`, `self_ms`) ne sont réelles qu'avec un React qui
+ * chronomètre : build de développement, ou build de profilage
+ * (`SYNTHEO_REACT_PROFILING=1`, voir `plugins/react-profiling.ts`). Sinon
+ * elles valent `na`.
  */
 
 export const RENDER_PERF_PREFIX = "[render-perf]";
@@ -28,7 +38,10 @@ const FRAME_SAMPLE_MS = 2_000;
 const LONG_FRAME_MS = 34;
 const TOP_COMPONENTS = 12;
 const TOP_ANIMATIONS = 6;
+const TOP_ENCODES = 6;
 const MAX_FIELD_LENGTH = 48;
+const MAX_SITE_LENGTH = 64;
+const MAX_TYPE_LENGTH = 24;
 const NO_ZONE = "none";
 
 export type RenderPerfPhase =
@@ -37,9 +50,29 @@ export type RenderPerfPhase =
   | "finalizing"
   | "after_stop";
 
-export type AnimationSample = { kind: string; name: string; target: string };
+type ZoneStats = {
+  renders: number;
+  /** Somme des `actualDuration` du `<Profiler>` : zones imbriquées incluses. */
+  durationMs: number;
+  timed: boolean;
+  /** Somme des durées propres des composants attribués à la zone. */
+  selfMs: number;
+  selfTimed: boolean;
+};
 
-type ZoneStats = { renders: number; durationMs: number; timed: boolean };
+type ComponentStats = { renders: number; selfMs: number; timed: boolean };
+
+type EncodeStats = { count: number; durationMs: number };
+
+/**
+ * Durée propre du dernier rendu d'une fibre (hors enfants), que seuls les
+ * React qui chronomètrent renseignent.
+ */
+function selfDurationOf(fiber: Fiber): number | null {
+  const value = (fiber as Fiber & { selfBaseDuration?: unknown })
+    .selfBaseDuration;
+  return typeof value === "number" && value >= 0 ? value : null;
+}
 
 export type RenderPerfCollector = {
   recordCommit(root: FiberRoot): void;
@@ -47,6 +80,7 @@ export type RenderPerfCollector = {
   recordFrames(frames: number, longFrames: number, sampleMs: number): void;
   recordMutations(count: number): void;
   recordAnimations(samples: readonly AnimationSample[]): void;
+  recordEncode(sample: EncodeSample): void;
   /** Rendus comptés depuis le dernier `drain`, toutes zones confondues. */
   rendersOf(component: string): number;
   drain(context: {
@@ -59,7 +93,7 @@ export type RenderPerfCollector = {
 export function createRenderPerfCollector(): RenderPerfCollector {
   let commits = 0;
   let renders = 0;
-  let components = new Map<string, number>();
+  let components = new Map<string, ComponentStats>();
   let zones = new Map<string, ZoneStats>();
   let frames = 0;
   let longFrames = 0;
@@ -68,11 +102,19 @@ export function createRenderPerfCollector(): RenderPerfCollector {
   let animationSamples = 0;
   let runningAnimations = 0;
   let animations = new Map<string, number>();
+  let encodes = 0;
+  let encodeSites = new Map<string, EncodeStats>();
 
   const zoneStats = (zone: string) => {
     let stats = zones.get(zone);
     if (!stats) {
-      stats = { renders: 0, durationMs: 0, timed: false };
+      stats = {
+        renders: 0,
+        durationMs: 0,
+        timed: false,
+        selfMs: 0,
+        selfTimed: false,
+      };
       zones.set(zone, stats);
     }
     return stats;
@@ -85,9 +127,22 @@ export function createRenderPerfCollector(): RenderPerfCollector {
         const name = sanitize(getDisplayName(fiber.type));
         const zoneName = sanitize(zone ?? NO_ZONE);
         const key = `${name}\u0000${zoneName}`;
+        const selfMs = selfDurationOf(fiber);
         renders += 1;
-        components.set(key, (components.get(key) ?? 0) + 1);
-        zoneStats(zoneName).renders += 1;
+        let component = components.get(key);
+        if (!component) {
+          component = { renders: 0, selfMs: 0, timed: false };
+          components.set(key, component);
+        }
+        component.renders += 1;
+        const stats = zoneStats(zoneName);
+        stats.renders += 1;
+        if (selfMs !== null) {
+          component.selfMs += selfMs;
+          component.timed = true;
+          stats.selfMs += selfMs;
+          stats.selfTimed = true;
+        }
       });
     },
     recordZoneDuration(zone, durationMs) {
@@ -108,15 +163,30 @@ export function createRenderPerfCollector(): RenderPerfCollector {
       runningAnimations += samples.length;
       for (const sample of samples) {
         const key = [sample.kind, sample.name, sample.target]
-          .map(sanitize)
+          .map((value) => sanitize(value))
           .join("\u0000");
         animations.set(key, (animations.get(key) ?? 0) + 1);
       }
     },
+    recordEncode(sample) {
+      encodes += 1;
+      const key = [
+        sanitize(sample.kind),
+        sanitize(sample.type, MAX_TYPE_LENGTH),
+        sanitize(sample.size),
+        sanitize(sample.site, MAX_SITE_LENGTH),
+      ].join("\u0000");
+      const stats = encodeSites.get(key) ?? { count: 0, durationMs: 0 };
+      stats.count += 1;
+      stats.durationMs += sample.durationMs;
+      encodeSites.set(key, stats);
+    },
     rendersOf(component) {
       let total = 0;
-      for (const [key, count] of components) {
-        if (key.slice(0, key.indexOf("\u0000")) === component) total += count;
+      for (const [key, stats] of components) {
+        if (key.slice(0, key.indexOf("\u0000")) === component) {
+          total += stats.renders;
+        }
       }
       return total;
     },
@@ -138,6 +208,7 @@ export function createRenderPerfCollector(): RenderPerfCollector {
           long_frames: frameSampleMs > 0 ? longFrames : "na",
           mutations,
           animations: animationAverage,
+          encodes,
         }),
       ];
 
@@ -148,15 +219,25 @@ export function createRenderPerfCollector(): RenderPerfCollector {
             name,
             renders: stats.renders,
             ms: stats.timed ? stats.durationMs.toFixed(1) : "na",
+            self_ms: stats.selfTimed ? stats.selfMs.toFixed(1) : "na",
           }),
         );
       }
-      for (const [key, count] of sortByCount(components, (c) => c).slice(
-        0,
-        TOP_COMPONENTS,
-      )) {
+      // Avec des durées, les plus coûteux d'abord ; sinon les plus rendus.
+      const timed = [...components.values()].some((c) => c.timed);
+      for (const [key, stats] of sortByCount(components, (c) =>
+        timed ? c.selfMs : c.renders,
+      ).slice(0, TOP_COMPONENTS)) {
         const [name, zone] = key.split("\u0000");
-        lines.push(line("component", { seq, name, zone, renders: count }));
+        lines.push(
+          line("component", {
+            seq,
+            name,
+            zone,
+            renders: stats.renders,
+            ms: stats.timed ? stats.selfMs.toFixed(1) : "na",
+          }),
+        );
       }
       for (const [key, count] of sortByCount(animations, (c) => c).slice(
         0,
@@ -173,6 +254,23 @@ export function createRenderPerfCollector(): RenderPerfCollector {
           }),
         );
       }
+      for (const [key, stats] of sortByCount(encodeSites, (e) => e.count).slice(
+        0,
+        TOP_ENCODES,
+      )) {
+        const [kind, type, size, site] = key.split("\u0000");
+        lines.push(
+          line("encode", {
+            seq,
+            kind,
+            type,
+            size,
+            count: stats.count,
+            ms: stats.durationMs.toFixed(1),
+            site,
+          }),
+        );
+      }
 
       commits = 0;
       renders = 0;
@@ -185,6 +283,8 @@ export function createRenderPerfCollector(): RenderPerfCollector {
       animationSamples = 0;
       runningAnimations = 0;
       animations = new Map();
+      encodes = 0;
+      encodeSites = new Map();
       return lines;
     },
   };
@@ -205,56 +305,18 @@ function line(kind: string, fields: Record<string, string | number>) {
 }
 
 /** Garde une valeur lisible par un script : pas d'espace ni de `=`. */
-function sanitize(value: string): string {
-  const cleaned = value.replace(/[^\w.:/\-[\]>#()@$]/g, "_");
-  return cleaned.slice(0, MAX_FIELD_LENGTH) || "_";
+function sanitize(value: string, maxLength = MAX_FIELD_LENGTH): string {
+  const cleaned = value.replace(/[^\w.:/\-[\]>#()@$+]/g, "_");
+  return cleaned.slice(0, maxLength) || "_";
 }
 
-// Les durées par zone ne sont fournies que par un React de développement
-// (`<Profiler onRender>` est inerte en production).
+// Les durées par zone ne sont fournies que par un React qui chronomètre
+// (développement ou build de profilage) : `<Profiler onRender>` est inerte
+// dans le React de production ordinaire.
 let activeCollector: RenderPerfCollector | null = null;
 
 export function recordZoneDuration(zone: string, durationMs: number): void {
   activeCollector?.recordZoneDuration(zone, durationMs);
-}
-
-export function describeAnimation(animation: Animation): AnimationSample {
-  const named = animation as Animation & {
-    animationName?: string;
-    transitionProperty?: string;
-  };
-  const kind = animation.constructor?.name || "Animation";
-  const name = named.transitionProperty ?? named.animationName ?? "_";
-  const effect = animation.effect as KeyframeEffect | null;
-  const target = effect?.target ?? null;
-  return { kind, name, target: target ? describeElement(target) : "_" };
-}
-
-/**
- * `span[data-level-meter]>i` : balise de l'élément animé, précédée du plus
- * proche ancêtre marqué d'un attribut `data-*` (nom seulement, sans valeur).
- */
-export function describeElement(element: Element): string {
-  const self = `${element.tagName.toLowerCase()}${dataAttributeName(element)}`;
-  if (dataAttributeName(element)) return self;
-  for (
-    let parent = element.parentElement;
-    parent;
-    parent = parent.parentElement
-  ) {
-    const attribute = dataAttributeName(parent);
-    if (attribute) {
-      return `${parent.tagName.toLowerCase()}${attribute}>${self}`;
-    }
-  }
-  return self;
-}
-
-function dataAttributeName(element: Element): string {
-  for (const attribute of element.getAttributeNames()) {
-    if (attribute.startsWith("data-")) return `[${attribute}]`;
-  }
-  return "";
 }
 
 export function resolveRenderPerfPhase(
@@ -290,6 +352,7 @@ export function startRenderPerfMonitor({
   let lastActiveAt: number | null = null;
   let stopCommits: (() => void) | null = null;
   let mutationObserver: MutationObserver | null = null;
+  let stopEncodeProbe: (() => void) | null = null;
   let frameHandle: number | null = null;
 
   const alwaysOn = () => {
@@ -304,6 +367,9 @@ export function startRenderPerfMonitor({
     if (enabled && !stopCommits) {
       activeCollector = collector;
       stopCommits = onReactCommit(collector.recordCommit);
+      stopEncodeProbe = installImageEncodeProbe((sample) =>
+        collector.recordEncode(sample),
+      );
       if (typeof MutationObserver !== "undefined") {
         mutationObserver = new MutationObserver((records) =>
           collector.recordMutations(records.length),
@@ -318,6 +384,8 @@ export function startRenderPerfMonitor({
     } else if (!enabled && stopCommits) {
       stopCommits();
       stopCommits = null;
+      stopEncodeProbe?.();
+      stopEncodeProbe = null;
       mutationObserver?.disconnect();
       mutationObserver = null;
       activeCollector = null;

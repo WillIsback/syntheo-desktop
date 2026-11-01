@@ -9,6 +9,7 @@ import { defineConfig, type UserConfig } from "vite";
 import { relayShim } from "@syntheo/plugin-relay/vite";
 
 import { changelog } from "./plugins/changelog";
+import { reactProfilingAliases } from "./plugins/react-profiling";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -25,6 +26,8 @@ export default defineConfig(() => ({
     }),
   ],
   resolve: {
+    // Vide hors build de profilage (`SYNTHEO_REACT_PROFILING=1`).
+    alias: reactProfilingAliases(process.env),
     tsconfigPaths: true,
     dedupe: [
       "@codemirror/state",
