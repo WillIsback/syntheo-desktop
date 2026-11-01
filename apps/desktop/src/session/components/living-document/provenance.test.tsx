@@ -36,7 +36,9 @@ describe("living-document.css", () => {
   );
   const rule = (selector: string) =>
     css.match(
-      new RegExp(`${selector.replace(/[[\]"]/g, "\\$&")}\\s*\\{([^}]*)\\}`),
+      new RegExp(
+        `${selector.replace(/[.*+?^${}()|[\]\\"]/g, "\\$&")}\\s*\\{([^}]*)\\}`,
+      ),
     )?.[1] ?? "";
 
   it("writes Syntheo's text in foreground, never italic nor grey", () => {

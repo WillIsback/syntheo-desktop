@@ -8,12 +8,14 @@
 # EXCEPTION : les PR ouvertes par Dependabot exécutent le job Rust complet. Un
 # bump de dépendance cassant ne doit pas pouvoir atteindre main sans avoir été
 # compilé (cf. la régression qui a cassé le build desktop, corrigée en #178).
+# À LA DEMANDE : l'étiquette `ci:rust` sur une PR lance aussi le job Rust
+# complet (PR qui touche beaucoup de Rust, correctif avant une release).
 name: ci-code-quality
 
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
   push:
     branches: [main]
   schedule:
@@ -101,7 +103,10 @@ jobs:
     name: ci-code-quality (Rust)
     # Hors PR (voir l'en-tête), sauf les PR Dependabot : un bump de dépendance
     # doit être compilé/testé avant d'atteindre main.
-    if: github.event_name != 'pull_request' || github.event.pull_request.user.login == 'dependabot[bot]'
+    if: >-
+      github.event_name != 'pull_request'
+      || github.event.pull_request.user.login == 'dependabot[bot]'
+      || contains(github.event.pull_request.labels.*.name, 'ci:rust')
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
