@@ -3,14 +3,16 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 // Clins d'œil japonais (design/refonte-the-vert/identite.md) : décoratifs,
-// toujours aria-hidden, au plus un par zone, et seulement à quatre endroits :
+// toujours aria-hidden, au plus un par zone, et seulement à cinq endroits :
 // capsule (備 聴 結), filigrane de l'accueil (茶, 藤 ou 紅 selon la palette),
-// sceau de note terminée (記), noms des palettes dans Apparence (緑茶 藤 臙脂).
+// sceau de note terminée (記), noms des palettes dans Apparence (緑茶 藤 臙脂),
+// fin de l'accueil guidé (備 聴 結 de la capsule et sceau 記, récit du thé).
 const SRC = join(process.cwd(), "src");
 const KANJI = /[茶備聴結記藤紅緑臙脂]/;
 
 const ALLOWED: Record<string, string> = {
   "home/home-view.tsx": "filigrane 茶 / 藤 / 紅",
+  "onboarding/final.tsx": "récit du thé : 備 聴 結 et sceau 記",
   "session/components/capsule/index.tsx": "étapes 備 聴 結",
   "session/components/living-document/provenance.tsx": "sceau 記",
   "settings/appearance/palette.tsx": "noms des palettes 緑茶 藤 臙脂",
@@ -33,7 +35,7 @@ function withoutComments(source: string): string {
 }
 
 describe("clins d'œil japonais", () => {
-  it("n'apparaissent qu'à la capsule, à l'accueil, au sceau et aux palettes", () => {
+  it("n'apparaissent qu'à la capsule, à l'accueil, au sceau, aux palettes et à la fin de l'accueil guidé", () => {
     const offenders = productionFiles(SRC)
       .filter((path) => KANJI.test(withoutComments(readFileSync(path, "utf8"))))
       .map((path) => relative(SRC, path))

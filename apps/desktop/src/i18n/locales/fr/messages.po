@@ -148,6 +148,10 @@ msgstr "Un dossier portant ce nom existe déjà."
 msgid "A Markdown file with the note, summary, and transcript."
 msgstr "Un fichier Markdown contenant la note, le résumé et le transcript."
 
+#: src/onboarding/final.tsx
+msgid "A meeting can't be replayed: audio is never kept, only the note remains. Your notes belong to you."
+msgstr "La réunion ne se rejoue pas : l'audio n'est jamais conservé, seule la note reste. Vos notes vous appartiennent."
+
 #: src/sidebar/timeline/utils/index.ts
 msgid "a month ago"
 msgstr "il y a un mois"
@@ -498,6 +502,10 @@ msgstr "Retour"
 #: src/chat/components/body/empty.tsx
 msgid "Based on the conversation so far, suggest a few questions I could ask next."
 msgstr "Sur la base de la conversation jusqu'à présent, suggérez quelques questions que je pourrais poser ensuite."
+
+#: src/onboarding/final.tsx
+msgid "Before the meeting, choose its type and add the participants."
+msgstr "Avant la réunion, choisissez son type et ajoutez les participants."
 
 #: src/session/components/capsule/index.tsx
 msgid "Begin listening"
@@ -1736,10 +1744,6 @@ msgstr "Rejoindre & enregistrer"
 msgid "Join meeting and record"
 msgstr "Rejoindre la réunion et enregistrer"
 
-#: src/onboarding/final.tsx
-msgid "Join our community and stay updated:"
-msgstr "Rejoignez notre communauté et restez informé :"
-
 #: src/settings/general/meeting-settings.tsx
 msgid "Join scheduled meetings"
 msgstr "Rejoindre les réunions programmées"
@@ -1837,6 +1841,7 @@ msgid "List action items."
 msgstr "Listez les éléments d'action."
 
 #: src/home/start-button.tsx
+#: src/onboarding/final.tsx
 #: src/session/components/capsule/index.tsx
 msgid "Listen"
 msgstr "Écouter"
@@ -2659,6 +2664,7 @@ msgid "Post recording disclosure in meeting chat"
 msgstr "Publier la mention d'enregistrement dans le chat de la réunion"
 
 #: src/home/start-button.tsx
+#: src/onboarding/final.tsx
 #: src/session/components/capsule/index.tsx
 msgid "Prepare"
 msgstr "Préparer"
@@ -3569,6 +3575,10 @@ msgstr "Dimanche"
 msgid "Symbols"
 msgstr "Symboles"
 
+#: src/onboarding/final.tsx
+msgid "Syn·thé·o: what gathers around tea."
+msgstr "Syn·thé·o : ce qu'on rassemble autour du thé."
+
 #: src/session/components/version-history-dialog.tsx
 msgid "Synced"
 msgstr "Synchronisé"
@@ -3592,6 +3602,10 @@ msgstr "Syntheo ne parvient pas à joindre {providerName}"
 #: src/settings/developers/cli.tsx
 msgid "Syntheo CLI"
 msgstr "Syntheo CLI"
+
+#: src/onboarding/final.tsx
+msgid "Syntheo completes your notes into a meeting summary."
+msgstr "Syntheo complète vos notes en compte rendu."
 
 #: src/chat/components/message/tool/edit-summary.tsx
 msgid "Syntheo could not find this summary in the note. Ask again from the note."
@@ -3636,6 +3650,7 @@ msgid "Syntheo will retry automatically. This does not affect your notes."
 msgstr "Syntheo réessaiera automatiquement. Cela n'a aucune incidence sur vos notes."
 
 #: src/home/start-button.tsx
+#: src/onboarding/final.tsx
 #: src/session/components/capsule/index.tsx
 #: src/session/components/living-document/welcome-card.tsx
 #: src/settings/ai/llm/index.tsx
@@ -3679,6 +3694,10 @@ msgstr "Audio système activé"
 #: src/settings/dictation.tsx
 msgid "System permissions"
 msgstr "Autorisations du système"
+
+#: src/onboarding/final.tsx
+msgid "Take your notes while the transcript scrolls in the margin."
+msgstr "Prenez vos notes pendant que la transcription défile en marge."
 
 #: src/settings/developers/skills.tsx
 msgid "Teach coding agents when and how to use the Syntheo CLI and MCP"

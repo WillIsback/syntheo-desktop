@@ -16,6 +16,8 @@ Une réunion tient sur une seule page, en trois temps : **Préparer**, **Écoute
 - **Écouter** : lancez l'écoute depuis la capsule en bas de la page. La transcription s'affiche en marge pendant que vous prenez vos notes ici.
 - **Synthèse** : à l'arrêt, Syntheo fusionne vos notes et la transcription dans le compte-rendu. Vos notes restent en vert, le texte rédigé par Syntheo à l'encre : vous voyez d'un coup d'œil qui a écrit quoi.
 
+Pourquoi le thé ? Syn·thé·o : ce qu'on rassemble autour du thé. Comme le *kaiki*, le carnet qu'un invité garde d'une réunion de thé, votre compte rendu part de vos notes. La réunion ne se rejoue pas : l'audio n'est jamais conservé, seule la note reste.
+
 Avant votre première réunion, réglez la transcription et la synthèse avec les boutons ci-dessus.
 
 Astuce : **Ctrl K** ouvre la palette pour retrouver une note, un dossier ou un réglage.`;

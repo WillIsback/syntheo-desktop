@@ -143,11 +143,12 @@ Thé vert reste la palette par défaut. Deux palettes de la maquette (`maquettes
 
 Décoratifs, jamais porteurs d'information, toujours `aria-hidden`, au plus un par zone :
 
-| Où            | Quoi                                                               | Rendu                  |
-| ------------- | ------------------------------------------------------------------ | ---------------------- |
-| Capsule       | 備 · 聴 · 結 devant chaque étape                                   | 11px, opacité 0.6      |
-| Accueil       | 茶 en filigrane à droite (藤 pour Glycine, 紅 pour Laque et encre) | 300px, `primary` à 6 % |
-| Note terminée | sceau 記 (« consigné »)                                            | voir Seal              |
+| Où            | Quoi                                                                                | Rendu                    |
+| ------------- | ----------------------------------------------------------------------------------- | ------------------------ |
+| Capsule       | 備 · 聴 · 結 devant chaque étape                                                    | 11px, opacité 0.6        |
+| Accueil       | 茶 en filigrane à droite (藤 pour Glycine, 紅 pour Laque et encre)                  | 300px, `primary` à 6 %   |
+| Note terminée | sceau 記 (« consigné »)                                                             | voir Seal                |
+| Accueil guidé | fin : 備 · 聴 · 結 devant les trois temps, puis le sceau 記 (récit du thé, § Récit) | 15px, opacité 0.6 ; Seal |
 
 Pas de mascotte ni de personnage chibi dans le parcours principal.
 
@@ -172,6 +173,16 @@ Pourquoi le thé : ce récit est la source unique. La page `docs/philosophy.mdx`
 **Version courte (≈ 40 mots).**
 
 > Syn·thé·o : ce qu'on rassemble autour du thé. Comme le _kaiki_, le carnet qu'un invité garde d'une réunion de thé, votre compte rendu part de vos notes. La réunion ne se rejoue pas : l'audio n'est jamais conservé, seule la note reste.
+
+**Accueil guidé (fin) et note de bienvenue.** La note de bienvenue reprend la version courte telle quelle. L'écran final de l'accueil guidé la découpe en trois temps :
+
+> Syn·thé·o : ce qu'on rassemble autour du thé.
+>
+> 備 **Préparer** · Avant la réunion, choisissez son type et ajoutez les participants.
+> 聴 **Écouter** · Prenez vos notes pendant que la transcription défile en marge.
+> 結 **Synthèse** · Syntheo complète vos notes en compte rendu.
+>
+> La réunion ne se rejoue pas : l'audio n'est jamais conservé, seule la note reste. Vos notes vous appartiennent. 記
 
 **Ce que le rituel explique.**
 
