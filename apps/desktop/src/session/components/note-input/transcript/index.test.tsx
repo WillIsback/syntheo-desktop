@@ -29,6 +29,10 @@ vi.mock("~/stt/queries", () => ({
 
 vi.mock("~/stt/contexts", () => ({
   useListener: useListenerMock,
+  useListenerStore: () => ({
+    getState: () => useListenerMock((state: unknown) => state),
+    subscribe: () => () => {},
+  }),
 }));
 
 vi.mock("./screens/batch", () => ({

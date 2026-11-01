@@ -47,16 +47,30 @@ function estimatedCharsPerRow(rowWidthPx?: number) {
 // La marge d'écoute ne fait que 280px : estimer avec la largeur réelle évite
 // que les hauteurs mesurées, bien plus grandes que l'estimation, ne décalent
 // brutalement les blocs à chaque mesure.
+// Les hauteurs estimées sont recalculées à chaque battement pour toutes les
+// lignes : le compte de caractères d'une ligne inchangée n'est pas relu
+// (issue 287).
+const characterCounts = new WeakMap<Segment, number>();
+
+function getCharacterCount(segment: Segment): number {
+  let count = characterCounts.get(segment);
+  if (count === undefined) {
+    count = segment.words.reduce(
+      (total, word) => total + word.text.length + 1,
+      0,
+    );
+    characterCounts.set(segment, count);
+  }
+  return count;
+}
+
 export function estimateTranscriptRowHeight(
   segment: Segment,
   index: number,
   rowWidthPx?: number,
   continuation = false,
 ) {
-  const characterCount = segment.words.reduce(
-    (total, word) => total + word.text.length + 1,
-    0,
-  );
+  const characterCount = getCharacterCount(segment);
   const lineCount =
     characterCount === 0
       ? 0
@@ -151,13 +165,23 @@ export function useVirtualSegments({
   }, [estimatedHeights, measuredHeights, segmentKeys]);
   const totalHeight = offsets[offsets.length - 1] ?? 0;
   const viewport = useVirtualViewport(scrollElement, listElement);
-  const segmentIndex = useMemo(() => createSegmentIndex(segments), [segments]);
-
-  const activeMatchIndex = activeMatchId
-    ? (segmentIndex.wordIndexes.get(activeMatchId) ?? null)
-    : null;
+  // Index construits seulement quand ils servent (recherche, lecture) : à
+  // chaque battement de l'écoute, ils reliraient tous les mots (issue 287).
+  const activeMatchIndex = useMemo(
+    () =>
+      activeMatchId ? findWordSegmentIndex(segments, activeMatchId) : null,
+    [activeMatchId, segments],
+  );
+  const playing = currentMs > 0;
+  const segmentIndex = useMemo(
+    () => (playing ? createSegmentIndex(segments) : null),
+    [playing, segments],
+  );
   const playbackIndex = useMemo(
-    () => findPlaybackSegmentIndex(segmentIndex, currentMs, offsetMs),
+    () =>
+      segmentIndex
+        ? findPlaybackSegmentIndex(segmentIndex, currentMs, offsetMs)
+        : null,
     [currentMs, offsetMs, segmentIndex],
   );
   const selectedIndexes = useSelectedSegmentIndexes(listElement);
@@ -600,19 +624,24 @@ function findRowIndex(offsets: number[], target: number): number {
   return low;
 }
 
+// Première ligne qui contient le mot `wordId`.
+function findWordSegmentIndex(
+  segments: Segment[],
+  wordId: string,
+): number | null {
+  const index = segments.findIndex((segment) =>
+    segment.words.some((word) => word.id === wordId),
+  );
+  return index === -1 ? null : index;
+}
+
 function createSegmentIndex(segments: Segment[]) {
-  const wordIndexes = new Map<string, number>();
   const playbackStarts: number[] = [];
   const playbackEnds: number[] = [];
   const playbackSegmentIndexes: number[] = [];
   const playbackPrefixMaxEnds: number[] = [];
 
   segments.forEach((segment, segmentIndex) => {
-    for (const word of segment.words) {
-      if (word.id && !wordIndexes.has(word.id)) {
-        wordIndexes.set(word.id, segmentIndex);
-      }
-    }
     const first = segment.words[0];
     const last = segment.words[segment.words.length - 1];
     if (!first || !last) return;
@@ -631,7 +660,6 @@ function createSegmentIndex(segments: Segment[]) {
   });
 
   return {
-    wordIndexes,
     playbackStarts,
     playbackEnds,
     playbackSegmentIndexes,

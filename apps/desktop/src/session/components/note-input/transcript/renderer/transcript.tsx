@@ -39,15 +39,17 @@ import { useVirtualSegments, VirtualSegmentRow } from "./virtual-segments";
 
 import { nameMemoComponent } from "~/devtools-bar/render-tracker";
 import {
-  applyRenderRequestIdentitiesToSegments,
   getMaxSpeakerNumberForParticipants,
-  mergeAdjacentSpeakerSegments,
-  mergeRenderedAndLiveSegments,
   SegmentKeyUtils,
   type RenderLabelContext,
   type Segment,
   type SegmentWord,
 } from "~/stt/live-segment";
+import { mergeRenderedAndLiveSegments } from "~/stt/live-segment-merge";
+import {
+  applyRenderRequestIdentitiesToSegments,
+  mergeAdjacentSpeakerSegments,
+} from "~/stt/live-segment-runs";
 import { SpeakerLabelManager } from "~/stt/segment/shared";
 import { isTranscriptWordSeekable } from "~/stt/timing";
 import { useResolvedSpeakerSegments } from "~/stt/useResolvedSpeakerSegments";
