@@ -11,7 +11,8 @@
 @layer base {
   :root {
     --background: 50 43% 97%; /* #fbfaf5 生成り kinari / 墨 sumi */
-    --foreground: 100 8% 15%; /* #262a24 texte, encre du compte-rendu de Syntheo */
+    /* #262a24 texte, encre du compte-rendu de Syntheo */
+    --foreground: 100 8% 15%;
     --card: 48 100% 99%; /* #fffefa */
     --card-foreground: 100 8% 15%; /* #262a24 */
     --popover: 48 100% 99%; /* #fffefa */
@@ -36,7 +37,8 @@
     --ring: 142 36% 30%; /* #316745 = primary */
     --recording: 357 54% 51%; /* #c53d43 nouveau, 紅 beni : écoute seule */
     --seal: 357 54% 51%; /* #c53d43 nouveau, sceau 記 */
-    --user-ink: 142 36% 30%; /* #316745 nouveau, notes personnelles de l'utilisateur */
+    /* #316745 nouveau, notes personnelles de l'utilisateur */
+    --user-ink: 142 36% 30%;
     --app-floating-chrome: 53 22% 92%; /* #efeee6 */
     --app-floating-panel: 50 43% 97%; /* #fbfaf5 */
     --app-floating-border: 55 18% 87%; /* #e4e3d8 */
@@ -56,7 +58,8 @@
 
   .dark {
     --background: 105 7% 11%; /* #1b1e1a 生成り kinari / 墨 sumi */
-    --foreground: 46 25% 90%; /* #ece9df texte, encre du compte-rendu de Syntheo */
+    /* #ece9df texte, encre du compte-rendu de Syntheo */
+    --foreground: 46 25% 90%;
     --card: 103 10% 14%; /* #232821 */
     --card-foreground: 46 25% 90%; /* #ece9df */
     --popover: 103 10% 14%; /* #232821 */
@@ -81,7 +84,8 @@
     --ring: 142 34% 62%; /* #7dbf95 = primary */
     --recording: 4 72% 64%; /* #e5675f nouveau, 紅 beni : écoute seule */
     --seal: 4 72% 64%; /* #e5675f nouveau, sceau 記 */
-    --user-ink: 142 34% 62%; /* #7dbf95 nouveau, notes personnelles de l'utilisateur */
+    /* #7dbf95 nouveau, notes personnelles de l'utilisateur */
+    --user-ink: 142 34% 62%;
     --app-floating-chrome: 105 9% 18%; /* #2c322a */
     --app-floating-panel: 103 10% 14%; /* #232821 */
     --app-floating-border: 102 8% 25%; /* #3d443a */
@@ -101,7 +105,8 @@
 
   [data-palette="fuji"] {
     --background: 40 33% 98%; /* #fcfbf9 藤 fuji : papier / encre violine */
-    --foreground: 267 12% 17%; /* #2c2732 texte, encre du compte-rendu de Syntheo */
+    /* #2c2732 texte, encre du compte-rendu de Syntheo */
+    --foreground: 267 12% 17%;
     --card: 0 0% 100%; /* #ffffff */
     --card-foreground: 267 12% 17%; /* #2c2732 */
     --popover: 0 0% 100%; /* #ffffff */
@@ -147,7 +152,8 @@
   [data-palette="fuji"].dark,
   [data-palette="fuji"] .dark {
     --background: 260 10% 11%; /* #1c1a20 藤 fuji : papier / encre violine */
-    --foreground: 266 19% 93%; /* #ece9f0 texte, encre du compte-rendu de Syntheo */
+    /* #ece9f0 texte, encre du compte-rendu de Syntheo */
+    --foreground: 266 19% 93%;
     --card: 260 12% 15%; /* #24212a */
     --card-foreground: 266 19% 93%; /* #ece9f0 */
     --popover: 260 12% 15%; /* #24212a */
@@ -192,7 +198,8 @@
 
   [data-palette="enji"] {
     --background: 60 100% 99%; /* #fffffc 胡粉 gofun / 墨 sumi */
-    --foreground: 0 5% 12%; /* #1f1c1c texte, encre du compte-rendu de Syntheo */
+    /* #1f1c1c texte, encre du compte-rendu de Syntheo */
+    --foreground: 0 5% 12%;
     --card: 0 0% 100%; /* #ffffff */
     --card-foreground: 0 5% 12%; /* #1f1c1c */
     --popover: 0 0% 100%; /* #ffffff */
@@ -238,7 +245,8 @@
   [data-palette="enji"].dark,
   [data-palette="enji"] .dark {
     --background: 0 7% 11%; /* #1e1a1a 胡粉 gofun / 墨 sumi */
-    --foreground: 15 19% 92%; /* #eee8e6 texte, encre du compte-rendu de Syntheo */
+    /* #eee8e6 texte, encre du compte-rendu de Syntheo */
+    --foreground: 15 19% 92%;
     --card: 0 8% 14%; /* #272121 */
     --card-foreground: 15 19% 92%; /* #eee8e6 */
     --popover: 0 8% 14%; /* #272121 */

@@ -1,29 +1,29 @@
 # Identité « 緑茶 Thé vert »
 
-Inspirée des couleurs traditionnelles japonaises (*A Dictionary of Color Combinations*, Sanzo Wada) : une soie écrue, une encre, un vert de pin. L'app doit avoir le calme d'une cérémonie du thé : peu d'éléments, chacun à sa place.
+Inspirée des couleurs traditionnelles japonaises (_A Dictionary of Color Combinations_, Sanzo Wada) : une soie écrue, une encre, un vert de pin. L'app doit avoir le calme d'une cérémonie du thé : peu d'éléments, chacun à sa place.
 
 ## Couleurs
 
 Valeurs exactes dans `tokens.css` (HSL arrondi ; hex en commentaire). Les noms reprennent ceux du code actuel.
 
-| Jeton | Clair | Sombre | Usage |
-|---|---|---|---|
-| `background` | `#fbfaf5` 生成り kinari | `#1b1e1a` 墨 sumi | Fond de l'app et de la note |
-| `foreground` | `#262a24` | `#ece9df` | Texte, encre du compte-rendu complété par Syntheo |
-| `card` / `popover` | `#fffefa` | `#232821` | Surfaces surélevées, menus, palette Ctrl K |
-| `primary` | `#316745` 千歳緑 chitose-midori | `#7dbf95` | Action principale, capsule, sélection |
-| `primary-hover` | `#25553a` | `#97ceaa` | Survol de primary (nouveau) |
-| `primary-foreground` | `#fbfaf5` | `#13251a` | Texte sur primary |
-| `muted` / `secondary` | `#efeee6` | `#2c322a` | Remplissages calmes, jetons |
-| `muted-foreground` | `#5c6357` | `#a7ad9f` | Dates, durées, aides (≥ 5.9:1) |
-| `faint` | `#8f968a` | `#7b8274` | Libellés en capitales, placeholder. Jamais pour un texte à lire (nouveau) |
-| `accent` | `#e4ede1` | `#24382b` | Survol, ligne sélectionnée |
-| `accent-foreground` | `#25553a` | `#9fd2b0` | Texte sur accent |
-| `border` / `input` | `#e4e3d8` / `#d8d7cb` | `#343a32` / `#3d443a` | Filets, bordures de champs |
-| `recording` | `#c53d43` 紅 beni | `#e5675f` | Écoute en cours, et rien d'autre (nouveau) |
-| `seal` | = recording | = recording | Sceau 記 (nouveau) |
-| `user-ink` | = primary | = primary | Notes personnelles de l'utilisateur (nouveau, ≥ 4.5:1 sur background et card) ; le texte de Syntheo reste en `foreground` |
-| `destructive`, `alert*` | rouges | rouges | Suppression, bannières d'erreur |
+| Jeton                   | Clair                           | Sombre                | Usage                                                                                                                     |
+| ----------------------- | ------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `background`            | `#fbfaf5` 生成り kinari         | `#1b1e1a` 墨 sumi     | Fond de l'app et de la note                                                                                               |
+| `foreground`            | `#262a24`                       | `#ece9df`             | Texte, encre du compte-rendu complété par Syntheo                                                                         |
+| `card` / `popover`      | `#fffefa`                       | `#232821`             | Surfaces surélevées, menus, palette Ctrl K                                                                                |
+| `primary`               | `#316745` 千歳緑 chitose-midori | `#7dbf95`             | Action principale, capsule, sélection                                                                                     |
+| `primary-hover`         | `#25553a`                       | `#97ceaa`             | Survol de primary (nouveau)                                                                                               |
+| `primary-foreground`    | `#fbfaf5`                       | `#13251a`             | Texte sur primary                                                                                                         |
+| `muted` / `secondary`   | `#efeee6`                       | `#2c322a`             | Remplissages calmes, jetons                                                                                               |
+| `muted-foreground`      | `#5c6357`                       | `#a7ad9f`             | Dates, durées, aides (≥ 5.9:1)                                                                                            |
+| `faint`                 | `#8f968a`                       | `#7b8274`             | Libellés en capitales, placeholder. Jamais pour un texte à lire (nouveau)                                                 |
+| `accent`                | `#e4ede1`                       | `#24382b`             | Survol, ligne sélectionnée                                                                                                |
+| `accent-foreground`     | `#25553a`                       | `#9fd2b0`             | Texte sur accent                                                                                                          |
+| `border` / `input`      | `#e4e3d8` / `#d8d7cb`           | `#343a32` / `#3d443a` | Filets, bordures de champs                                                                                                |
+| `recording`             | `#c53d43` 紅 beni               | `#e5675f`             | Écoute en cours, et rien d'autre (nouveau)                                                                                |
+| `seal`                  | = recording                     | = recording           | Sceau 記 (nouveau)                                                                                                        |
+| `user-ink`              | = primary                       | = primary             | Notes personnelles de l'utilisateur (nouveau, ≥ 4.5:1 sur background et card) ; le texte de Syntheo reste en `foreground` |
+| `destructive`, `alert*` | rouges                          | rouges                | Suppression, bannières d'erreur                                                                                           |
 
 Un seul bouton `primary` par écran : le bouton Démarrer sur l'accueil, la capsule ensuite.
 
@@ -31,11 +31,11 @@ Un seul bouton `primary` par écran : le bouton Démarrer sur l'accueil, la caps
 
 Thé vert reste la palette par défaut. Deux palettes de la maquette (`maquettes/parcours-note.html`, objet `PAL`) s'y ajoutent, chacune en clair **et** en sombre, combinables avec le choix clair / sombre / système :
 
-| Palette | Kanji (sélecteur) | Filigrane de l'accueil | Fond | Primaire | Accent | Encre | Rouge d'écoute |
-|---|---|---|---|---|---|---|---|
-| 緑茶 Thé vert (défaut) | 緑茶 | 茶 | `#fbfaf5` | `#316745` 千歳緑 | `#e4ede1` | `#262a24` | `#c53d43` 紅 |
-| 藤 Glycine | 藤 | 藤 | `#fcfbf9` | `#674a8c` 江戸紫 | `#ece6f4` 白藤 | `#2c2732` | `#c53d43` 紅 |
-| 臙脂 Laque et encre | 臙脂 | 紅 | `#fffffc` | `#9f353a` 臙脂 | `#f9e8e6` 桜 | `#1f1c1c` | `#d3381c` 朱 |
+| Palette                | Kanji (sélecteur) | Filigrane de l'accueil | Fond      | Primaire         | Accent         | Encre     | Rouge d'écoute |
+| ---------------------- | ----------------- | ---------------------- | --------- | ---------------- | -------------- | --------- | -------------- |
+| 緑茶 Thé vert (défaut) | 緑茶              | 茶                     | `#fbfaf5` | `#316745` 千歳緑 | `#e4ede1`      | `#262a24` | `#c53d43` 紅   |
+| 藤 Glycine             | 藤                | 藤                     | `#fcfbf9` | `#674a8c` 江戸紫 | `#ece6f4` 白藤 | `#2c2732` | `#c53d43` 紅   |
+| 臙脂 Laque et encre    | 臙脂              | 紅                     | `#fffffc` | `#9f353a` 臙脂   | `#f9e8e6` 桜   | `#1f1c1c` | `#d3381c` 朱   |
 
 **Mécanisme.** L'attribut `data-palette="fuji|enji"` sur `<html>` (Thé vert : pas d'attribut) sélectionne dans `tokens.css` les blocs `[data-palette="…"]` (clair) et `[data-palette="…"].dark, [data-palette="…"] .dark` (sombre), qui redéfinissent le jeu **complet** de jetons. La valeur est un paramètre synchronisé (`general.palette`, défaut `cha` ; absente ou inconnue = Thé vert), recopiée dans `localStorage` (`syntheo-palette`) pour que `public/theme-boot.js` l'applique avant React, comme le thème. Les fenêtres flottantes et les aperçus lisent `DesignPalettes` (`packages/design-system/src/index.ts`) ; `DesignColors` reste l'alias de Thé vert.
 
@@ -45,83 +45,83 @@ Thé vert reste la palette par défaut. Deux palettes de la maquette (`maquettes
 
 ### 藤 Glycine
 
-| Jeton | Clair | Sombre |
-|---|---|---|
-| `background` | `#fcfbf9` | `#1c1a20` |
-| `foreground` | `#2c2732` | `#ece9f0` |
-| `card` / `popover` | `#ffffff` | `#24212a` |
-| `primary` | `#674a8c` | `#b39bd6` |
-| `primary-hover` | `#583d7b` | `#c6b3e2` |
-| `primary-foreground` | `#fcfbf9` | `#1b1326` |
-| `muted` / `secondary` | `#f0eef2` | `#2e2a35` |
-| `muted-foreground` | `#635c6b` | `#aca6b4` |
-| `faint` | `#958e9c` | `#7f7888` |
-| `accent` | `#ece6f4` | `#33294a` |
-| `accent-foreground` | `#583d7b` | `#cdbde6` |
-| `border` | `#e9e5ec` | `#36323e` |
-| `input` | `#dcd7e1` | `#403b49` |
-| `recording` / `seal` | `#c53d43` | `#e5675f` |
-| `user-ink` / `ring` / `chart-1` | `#674a8c` | `#b39bd6` |
-| `destructive` | `#b23a3f` | `#e0676b` |
-| `destructive-foreground` | `#ffffff` | `#2c1112` |
-| `alert` | `#fbecea` | `#3a1c1d` |
-| `alert-foreground` | `#a33237` | `#f0938d` |
-| `alert-border` | `#f0c9c6` | `#5a2a2b` |
-| `chart-2 … chart-5` | `#165e83` `#93691a` `#316745` `#c53d43` | `#6aa9cf` `#d9ad5b` `#7dbf95` `#e5675f` |
+| Jeton                           | Clair                                   | Sombre                                  |
+| ------------------------------- | --------------------------------------- | --------------------------------------- |
+| `background`                    | `#fcfbf9`                               | `#1c1a20`                               |
+| `foreground`                    | `#2c2732`                               | `#ece9f0`                               |
+| `card` / `popover`              | `#ffffff`                               | `#24212a`                               |
+| `primary`                       | `#674a8c`                               | `#b39bd6`                               |
+| `primary-hover`                 | `#583d7b`                               | `#c6b3e2`                               |
+| `primary-foreground`            | `#fcfbf9`                               | `#1b1326`                               |
+| `muted` / `secondary`           | `#f0eef2`                               | `#2e2a35`                               |
+| `muted-foreground`              | `#635c6b`                               | `#aca6b4`                               |
+| `faint`                         | `#958e9c`                               | `#7f7888`                               |
+| `accent`                        | `#ece6f4`                               | `#33294a`                               |
+| `accent-foreground`             | `#583d7b`                               | `#cdbde6`                               |
+| `border`                        | `#e9e5ec`                               | `#36323e`                               |
+| `input`                         | `#dcd7e1`                               | `#403b49`                               |
+| `recording` / `seal`            | `#c53d43`                               | `#e5675f`                               |
+| `user-ink` / `ring` / `chart-1` | `#674a8c`                               | `#b39bd6`                               |
+| `destructive`                   | `#b23a3f`                               | `#e0676b`                               |
+| `destructive-foreground`        | `#ffffff`                               | `#2c1112`                               |
+| `alert`                         | `#fbecea`                               | `#3a1c1d`                               |
+| `alert-foreground`              | `#a33237`                               | `#f0938d`                               |
+| `alert-border`                  | `#f0c9c6`                               | `#5a2a2b`                               |
+| `chart-2 … chart-5`             | `#165e83` `#93691a` `#316745` `#c53d43` | `#6aa9cf` `#d9ad5b` `#7dbf95` `#e5675f` |
 
 ### 臙脂 Laque et encre
 
-| Jeton | Clair | Sombre |
-|---|---|---|
-| `background` | `#fffffc` | `#1e1a1a` |
-| `foreground` | `#1f1c1c` | `#eee8e6` |
-| `card` / `popover` | `#ffffff` | `#272121` |
-| `primary` | `#9f353a` | `#e5939a` |
-| `primary-hover` | `#86272c` | `#edadb2` |
-| `primary-foreground` | `#fffffc` | `#2a1214` |
-| `muted` / `secondary` | `#f5f0ee` | `#322a2a` |
-| `muted-foreground` | `#66615f` | `#b2a8a6` |
-| `faint` | `#9a9591` | `#877d7b` |
-| `accent` | `#f9e8e6` | `#432629` |
-| `accent-foreground` | `#86272c` | `#f1bcc0` |
-| `border` | `#efe6e3` | `#3a3131` |
-| `input` | `#e3d9d6` | `#443a3a` |
-| `recording` / `seal` | `#d3381c` | `#f0704f` |
-| `user-ink` / `ring` / `chart-1` | `#9f353a` | `#e5939a` |
-| `destructive` | `#b5321b` | `#ec7356` |
-| `destructive-foreground` | `#ffffff` | `#2c120c` |
-| `alert` | `#fdece6` | `#3d1f18` |
-| `alert-foreground` | `#a62f1a` | `#f39a83` |
-| `alert-border` | `#f3cbbf` | `#5e2e23` |
-| `chart-2 … chart-5` | `#165e83` `#93691a` `#674a8c` `#316745` | `#6aa9cf` `#d9ad5b` `#a98bcf` `#7dbf95` |
+| Jeton                           | Clair                                   | Sombre                                  |
+| ------------------------------- | --------------------------------------- | --------------------------------------- |
+| `background`                    | `#fffffc`                               | `#1e1a1a`                               |
+| `foreground`                    | `#1f1c1c`                               | `#eee8e6`                               |
+| `card` / `popover`              | `#ffffff`                               | `#272121`                               |
+| `primary`                       | `#9f353a`                               | `#e5939a`                               |
+| `primary-hover`                 | `#86272c`                               | `#edadb2`                               |
+| `primary-foreground`            | `#fffffc`                               | `#2a1214`                               |
+| `muted` / `secondary`           | `#f5f0ee`                               | `#322a2a`                               |
+| `muted-foreground`              | `#66615f`                               | `#b2a8a6`                               |
+| `faint`                         | `#9a9591`                               | `#877d7b`                               |
+| `accent`                        | `#f9e8e6`                               | `#432629`                               |
+| `accent-foreground`             | `#86272c`                               | `#f1bcc0`                               |
+| `border`                        | `#efe6e3`                               | `#3a3131`                               |
+| `input`                         | `#e3d9d6`                               | `#443a3a`                               |
+| `recording` / `seal`            | `#d3381c`                               | `#f0704f`                               |
+| `user-ink` / `ring` / `chart-1` | `#9f353a`                               | `#e5939a`                               |
+| `destructive`                   | `#b5321b`                               | `#ec7356`                               |
+| `destructive-foreground`        | `#ffffff`                               | `#2c120c`                               |
+| `alert`                         | `#fdece6`                               | `#3d1f18`                               |
+| `alert-foreground`              | `#a62f1a`                               | `#f39a83`                               |
+| `alert-border`                  | `#f3cbbf`                               | `#5e2e23`                               |
+| `chart-2 … chart-5`             | `#165e83` `#93691a` `#674a8c` `#316745` | `#6aa9cf` `#d9ad5b` `#a98bcf` `#7dbf95` |
 
 ### Contrastes vérifiés
 
 `apps/desktop/src/styles/theme-contrast.test.ts` vérifie ≥ 4.5:1 pour les mêmes 33 paires texte / fond dans chaque palette et chaque mode (valeurs HSL arrondies de `tokens.css`) :
 
-| Palette | Mode | Paire la plus faible | Contraste | primary / background | foreground / background | ΔE76 primary ↔ recording |
-|---|---|---|---|---|---|---|
-| Thé vert | clair | `chart-3` sur `background` | 4.68:1 | 6.26:1 | 14.04:1 | 82 |
-| Thé vert | sombre | `destructive` sur `card` | 4.55:1 | 7.83:1 | 13.85:1 | 81 |
-| Glycine | clair | `chart-3` sur `background` | 4.72:1 | 6.90:1 | 14.19:1 | 67 |
-| Glycine | sombre | `destructive` sur `card` | 4.71:1 | 6.99:1 | 14.57:1 | 63 |
-| Laque et encre | clair | `recording` sur `background` | 4.79:1 | 6.77:1 | 16.67:1 | 35 |
-| Laque et encre | sombre | `destructive` sur `card` | 5.42:1 | 7.44:1 | 14.29:1 | 36 |
+| Palette        | Mode   | Paire la plus faible         | Contraste | primary / background | foreground / background | ΔE76 primary ↔ recording |
+| -------------- | ------ | ---------------------------- | --------- | -------------------- | ----------------------- | ------------------------ |
+| Thé vert       | clair  | `chart-3` sur `background`   | 4.68:1    | 6.26:1               | 14.04:1                 | 82                       |
+| Thé vert       | sombre | `destructive` sur `card`     | 4.55:1    | 7.83:1               | 13.85:1                 | 81                       |
+| Glycine        | clair  | `chart-3` sur `background`   | 4.72:1    | 6.90:1               | 14.19:1                 | 67                       |
+| Glycine        | sombre | `destructive` sur `card`     | 4.71:1    | 6.99:1               | 14.57:1                 | 63                       |
+| Laque et encre | clair  | `recording` sur `background` | 4.79:1    | 6.77:1               | 16.67:1                 | 35                       |
+| Laque et encre | sombre | `destructive` sur `card`     | 5.42:1    | 7.44:1               | 14.29:1                 | 36                       |
 
 ## Typographie
 
-| Rôle | Police | Taille / interligne | Poids |
-|---|---|---|---|
-| Salutation (accueil) | Newsreader | 52 / 1.05 | 500 |
-| Titre de note, titre de page de paramètres | Newsreader | 40 / 1.1 (paramètres : 36) | 500 |
-| Section de compte-rendu | Newsreader | 22 / 1.35 | 500 |
-| Corps de note | Geist | 16 / 1.65 | 400 |
-| Interface, listes, champs | Geist | 15 / 1.5 | 400 |
-| Boutons, capsule | Geist | 14 / 1.4 | 600 |
-| Dates, aides | Geist | 13 / 1.4 | 400 |
-| Libellé de section | Geist | 11, capitales, espacement 0.08em, `faint` | 600 |
-| Adresses, noms de modèles | Geist Mono | 13.5–14 | 400–500 |
-| Kanji d'ornement | Noto Serif JP (sous-ensemble 茶備聴結記藤紅緑臙脂) | 11 à 300 | 500–700 |
+| Rôle                                       | Police                                             | Taille / interligne                       | Poids   |
+| ------------------------------------------ | -------------------------------------------------- | ----------------------------------------- | ------- |
+| Salutation (accueil)                       | Newsreader                                         | 52 / 1.05                                 | 500     |
+| Titre de note, titre de page de paramètres | Newsreader                                         | 40 / 1.1 (paramètres : 36)                | 500     |
+| Section de compte-rendu                    | Newsreader                                         | 22 / 1.35                                 | 500     |
+| Corps de note                              | Geist                                              | 16 / 1.65                                 | 400     |
+| Interface, listes, champs                  | Geist                                              | 15 / 1.5                                  | 400     |
+| Boutons, capsule                           | Geist                                              | 14 / 1.4                                  | 600     |
+| Dates, aides                               | Geist                                              | 13 / 1.4                                  | 400     |
+| Libellé de section                         | Geist                                              | 11, capitales, espacement 0.08em, `faint` | 600     |
+| Adresses, noms de modèles                  | Geist Mono                                         | 13.5–14                                   | 400–500 |
+| Kanji d'ornement                           | Noto Serif JP (sous-ensemble 茶備聴結記藤紅緑臙脂) | 11 à 300                                  | 500–700 |
 
 ## Espacements, rayons, ombre
 
@@ -143,11 +143,11 @@ Thé vert reste la palette par défaut. Deux palettes de la maquette (`maquettes
 
 Décoratifs, jamais porteurs d'information, toujours `aria-hidden`, au plus un par zone :
 
-| Où | Quoi | Rendu |
-|---|---|---|
-| Capsule | 備 · 聴 · 結 devant chaque étape | 11px, opacité 0.6 |
-| Accueil | 茶 en filigrane à droite (藤 pour Glycine, 紅 pour Laque et encre) | 300px, `primary` à 6 % |
-| Note terminée | sceau 記 (« consigné ») | voir Seal |
+| Où            | Quoi                                                               | Rendu                  |
+| ------------- | ------------------------------------------------------------------ | ---------------------- |
+| Capsule       | 備 · 聴 · 結 devant chaque étape                                   | 11px, opacité 0.6      |
+| Accueil       | 茶 en filigrane à droite (藤 pour Glycine, 紅 pour Laque et encre) | 300px, `primary` à 6 % |
+| Note terminée | sceau 記 (« consigné »)                                            | voir Seal              |
 
 Pas de mascotte ni de personnage chibi dans le parcours principal.
 
