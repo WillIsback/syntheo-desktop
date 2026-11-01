@@ -9,7 +9,7 @@ import { NOTE_STAGES, type NoteStage } from "./stage";
 export { getNoteStage, type NoteStage } from "./stage";
 
 // Kanji d'ornement devant chaque étape (identite.md § Clins d'œil).
-const STAGE_KANJI: Record<NoteStage, string> = {
+export const STAGE_KANJI: Record<NoteStage, string> = {
   prepare: "備",
   listen: "聴",
   synthesis: "結",

@@ -143,14 +143,56 @@ Thé vert reste la palette par défaut. Deux palettes de la maquette (`maquettes
 
 Décoratifs, jamais porteurs d'information, toujours `aria-hidden`, au plus un par zone :
 
-| Où            | Quoi                                                               | Rendu                  |
-| ------------- | ------------------------------------------------------------------ | ---------------------- |
-| Capsule       | 備 · 聴 · 結 devant chaque étape                                   | 11px, opacité 0.6      |
-| Accueil       | 茶 en filigrane à droite (藤 pour Glycine, 紅 pour Laque et encre) | 300px, `primary` à 6 % |
-| Note terminée | sceau 記 (« consigné »)                                            | voir Seal              |
+| Où            | Quoi                                                                                | Rendu                    |
+| ------------- | ----------------------------------------------------------------------------------- | ------------------------ |
+| Capsule       | 備 · 聴 · 結 devant chaque étape                                                    | 11px, opacité 0.6        |
+| Accueil       | 茶 en filigrane à droite (藤 pour Glycine, 紅 pour Laque et encre)                  | 300px, `primary` à 6 %   |
+| Note terminée | sceau 記 (« consigné »)                                                             | voir Seal                |
+| Accueil guidé | fin : 備 · 聴 · 結 devant les trois temps, puis le sceau 記 (récit du thé, § Récit) | 15px, opacité 0.6 ; Seal |
 
 Pas de mascotte ni de personnage chibi dans le parcours principal.
 
 ## Ton
 
 Français, vouvoiement, phrases courtes. Les boutons disent ce qui se passe (« Commencer l'écoute », « Tester la connexion »). Les erreurs disent quoi faire : « Le serveur n'a pas répondu. Vérifiez qu'il est démarré et que vous êtes sur le bon réseau (VPN, Tailscale), puis relancez le test. »
+
+## Récit
+
+Pourquoi le thé : ce récit est la source unique. La page `docs/philosophy.mdx` reprend la version longue, le README et l'accueil guidé la version courte. On ne réécrit pas ailleurs : on recopie.
+
+**Règle.** Chaque référence au thé doit expliquer un choix du produit. Si la phrase dit autant de choses sur Syntheo une fois la référence retirée, la référence est décorative : on la coupe. Les libellés fonctionnels restent en français clair (« Synthèse », « Commencer l'écoute »).
+
+**Version longue (≈ 150 mots).**
+
+> Syntheo porte le thé dans son nom : Syn·thé·o, ce qu'on rassemble autour du thé. Au Japon, un _chakai_ (茶会) réunit un hôte et ses invités pour un moment préparé avec soin. Un participant en garde ensuite le _kaiki_ (会記) : son propre carnet de la rencontre.
+>
+> Une note Syntheo suit ce déroulé. **備 Préparer** : avant la réunion, vous choisissez son type et ajoutez les participants. **聴 Écouter** : vous prenez vos notes, la transcription défile en marge. **結 Synthèse** : Syntheo complète vos notes en compte rendu, et le sceau 記 marque la note terminée. Vos notes restent en vert, le texte de Syntheo à l'encre.
+>
+> Une réunion ne se rejoue pas (一期一会, _ichi-go ichi-e_, « une rencontre, une seule fois ») : Syntheo ne conserve jamais l'audio, seule la note reste. Et ce qui s'y dit ne sort pas de chez vous : transcription et synthèse passent uniquement par vos serveurs, sans compte ni télémétrie.
+
+**Version courte (≈ 40 mots).**
+
+> Syn·thé·o : ce qu'on rassemble autour du thé. Comme le _kaiki_, le carnet qu'un invité garde d'une réunion de thé, votre compte rendu part de vos notes. La réunion ne se rejoue pas : l'audio n'est jamais conservé, seule la note reste.
+
+**Accueil guidé (fin) et note de bienvenue.** La note de bienvenue reprend la version courte telle quelle. L'écran final de l'accueil guidé la découpe en trois temps :
+
+> Syn·thé·o : ce qu'on rassemble autour du thé.
+>
+> 備 **Préparer** · Avant la réunion, choisissez son type et ajoutez les participants.
+> 聴 **Écouter** · Prenez vos notes pendant que la transcription défile en marge.
+> 結 **Synthèse** · Syntheo complète vos notes en compte rendu.
+>
+> La réunion ne se rejoue pas : l'audio n'est jamais conservé, seule la note reste. Vos notes vous appartiennent. 記
+
+**Ce que le rituel explique.**
+
+| Choix du produit                  | Dans le rituel                                                                                                                             | Garantie                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Le compte rendu part de vos notes | le _kaiki_ est le carnet d'un participant, pas un procès-verbal                                                                            | vos notes en `user-ink`, le texte de Syntheo en `foreground` (`provenance.tsx`) |
+| L'audio n'est jamais conservé     | 一期一会 : le moment ne se rejoue pas, seul le _kaiki_ reste                                                                               | `docs/data-and-privacy.mdx`, `docs/conformite/rgpd.md`                          |
+| Rien n'est envoyé à l'éditeur     | le _chakai_ se tient dans une pièce fermée ; vos serveurs d'inférence apportent le thé depuis l'extérieur, mais c'est vous qui les invitez | pas de compte, pas de télémétrie (`no-telemetry.test.ts`)                       |
+| L'étape Préparer                  | la préparation de l'hôte fait déjà partie de l'attention portée aux invités                                                                | fiche : type de réunion, participants, écoute                                   |
+
+**Termes vérifiés.** _Chakai_ (茶会) : réunion de thé où un hôte reçoit ses invités. _Kaiki_ (会記, _chakaiki_ 茶会記) : le compte rendu d'un _chakai_ (invités, ustensiles, repas) ; les plus anciens, comme le _Matsuya kaiki_ (1533-1650) ou le _Tennōjiya kaiki_, sont tenus par des marchands qui notent les réunions auxquelles ils assistent. 一期一会 : l'idée remonte au _Yamanoue Sōji ki_ (recevoir chaque fois comme si c'était la seule) ; la formule est fixée par Ii Naosuke dans le _Chanoyu ichie shū_ (茶湯一会集, vers 1857).
+
+**Écartés.** L'ateji 心手緒 (« shin-te-o ») : ce n'est pas un mot japonais et il n'apprend rien sur le produit, les étapes 備 聴 結 portent déjà le sens. Pas de pinceau, de papier de riz, de cerisiers ni de « sagesse zen ».
