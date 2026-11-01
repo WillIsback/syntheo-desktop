@@ -68,10 +68,13 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # `curl … | bash` : stdin est le script, les questions lisent le terminal.
+# L'invite va sur /dev/tty et non sur stderr (`read -p`) : ask() tourne dans
+# $(…) et stderr est réduit au silence pour l'erreur d'ouverture du terminal,
+# l'invite y serait invisible.
 ask() {
   local prompt=$1 answer
   if [[ -r /dev/tty ]]; then
-    { read -r -p "$prompt" answer </dev/tty; } 2>/dev/null || answer=""
+    { printf '%s' "$prompt" >/dev/tty && read -r answer </dev/tty; } 2>/dev/null || answer=""
   else
     die "aucun terminal pour répondre : relancez avec --keep-data ou --purge et --yes"
   fi
