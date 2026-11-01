@@ -193,4 +193,33 @@ describe("floating meeting window synchronizer", () => {
       mocks.update.mock.invocationCallOrder[0]!,
     );
   });
+
+  // Issue #319 : app.log ne garde d'une erreur de console que l'étiquette
+  // `[module]` du premier argument (`diagnostic_message`, plugin tracing). Les
+  // erreurs du panneau flottant, dont le détail est une chaîne renvoyée par
+  // Tauri, doivent donc en porter une pour rester identifiables.
+  it.each([
+    ["update", () => mocks.update],
+    ["show", () => mocks.show],
+  ])(
+    "labels a failed floating panel %s for the app log",
+    async (_, failing) => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      failing().mockResolvedValueOnce({
+        status: "error",
+        error: "monitor not found",
+      });
+      const synchronizer = createFloatingMeetingWindowSynchronizer();
+
+      synchronizer.update(routeState(0.1));
+      await vi.waitFor(() => expect(error).toHaveBeenCalledOnce());
+      await synchronizer.dispose();
+
+      expect(error.mock.calls[0]).toEqual([
+        expect.stringMatching(/^\[meeting-float\] /),
+        "monitor not found",
+      ]);
+      error.mockRestore();
+    },
+  );
 });

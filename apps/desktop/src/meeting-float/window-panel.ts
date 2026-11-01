@@ -45,7 +45,10 @@ export function createFloatingMeetingWindowSynchronizer(
         () => revision === desiredRevision || desiredRouteState !== null,
       );
     } catch (error) {
-      console.error("Failed to synchronize floating meeting panel:", error);
+      console.error(
+        "[meeting-float] failed to synchronize the floating panel",
+        error,
+      );
       if (revision === desiredRevision) {
         appliedRevision = revision;
       }
@@ -205,7 +208,7 @@ export async function showFloatingMeetingWindow(
 
   if (updateResult.status === "error") {
     console.error(
-      "Failed to update floating meeting panel:",
+      "[meeting-float] failed to update the floating panel",
       updateResult.error,
     );
     return false;
@@ -218,7 +221,10 @@ export async function showFloatingMeetingWindow(
       return false;
     }
     if (shown.status === "error") {
-      console.error("Failed to show floating panel:", shown.error);
+      console.error(
+        "[meeting-float] failed to show the floating panel",
+        shown.error,
+      );
       return false;
     }
   }
@@ -261,13 +267,19 @@ export async function hideFloatingMeetingPanel() {
   sentTranscriptBubbles = null;
   const result = await windowsCommands.floatingBarHide();
   if (result.status === "error") {
-    console.error("Failed to hide floating meeting panel:", result.error);
+    console.error(
+      "[meeting-float] failed to hide the floating panel",
+      result.error,
+    );
   }
 }
 
 export async function hideLiveCaptionPanel() {
   const result = await windowsCommands.liveCaptionHide();
   if (result.status === "error") {
-    console.error("Failed to hide live caption panel:", result.error);
+    console.error(
+      "[meeting-float] failed to hide the live caption panel",
+      result.error,
+    );
   }
 }
