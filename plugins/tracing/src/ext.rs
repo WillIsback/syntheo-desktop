@@ -42,7 +42,10 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'a, R, M> {
     }
 }
 
-const DIAGNOSTIC_PREFIXES: &[&str] = &["[cloudsync]"];
+// `[render-perf]` : résumé des rendus pendant l'écoute, émis par les seuls
+// builds devtools (`devtools-bar/render-perf.ts`) et fait uniquement de noms
+// de code et de nombres.
+const DIAGNOSTIC_PREFIXES: &[&str] = &["[cloudsync]", "[render-perf]"];
 const DIAGNOSTIC_MAX_LEN: usize = 200;
 const CODE_LABEL_MAX_LEN: usize = 40;
 const ERROR_IDENTIFIER_MAX_LEN: usize = 64;
@@ -419,6 +422,16 @@ mod tests {
         ))];
         let truncated = super::diagnostic_message(&long).unwrap();
         assert_eq!(truncated.chars().count(), super::DIAGNOSTIC_MAX_LEN);
+    }
+
+    #[test]
+    fn diagnostic_message_keeps_render_perf_summaries() {
+        let summary =
+            "[render-perf] component seq=3 name=SessionLevelMeter zone=capsule renders=100";
+        assert_eq!(
+            super::diagnostic_message(&[serde_json::json!(summary)]).as_deref(),
+            Some(summary)
+        );
     }
 
     #[test]

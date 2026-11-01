@@ -21,6 +21,7 @@ import {
   useNativeContextMenu,
 } from "~/shared/hooks/useNativeContextMenu";
 import { useListener } from "~/stt/contexts";
+import { useLiveAmplitude } from "~/stt/live-meters";
 import { useSessionTranscriptMetadata } from "~/stt/queries";
 import { useStartListeningWithBatchOverride } from "~/stt/useStartListeningWithBatchOverride";
 import {
@@ -85,7 +86,7 @@ function HeaderViewTranscriptButton({
   suffixIcon?: React.ReactNode;
   pressed?: boolean;
   live?: {
-    amplitude: number;
+    sessionId: string;
     muted: boolean;
   };
 }) {
@@ -131,7 +132,7 @@ function HeaderViewTranscriptLiveIcon({
   live,
 }: {
   live: {
-    amplitude: number;
+    sessionId: string;
     muted: boolean;
   };
 }) {
@@ -140,37 +141,32 @@ function HeaderViewTranscriptLiveIcon({
       {live.muted ? (
         <TranscriptAudioIcon />
       ) : (
-        <DancingSticks
-          amplitude={live.amplitude}
-          color="hsl(var(--recording))"
-          height={16}
-          width={16}
-        />
+        <LiveDancingSticks sessionId={live.sessionId} />
       )}
     </span>
   );
 }
 
+// Seul consommateur du niveau sonore dans l'en-tête : il est le seul à se
+// redessiner dix fois par seconde.
+function LiveDancingSticks({ sessionId }: { sessionId: string }) {
+  return (
+    <DancingSticks
+      amplitude={useLiveAmplitude(sessionId)}
+      color="hsl(var(--recording))"
+      height={16}
+      width={16}
+    />
+  );
+}
+
 function useTranscriptLiveViewState(sessionId: string) {
-  const { amplitude, mode, muted } = useListener((state) => {
-    const mode = state.getSessionMode(sessionId);
-    return {
-      amplitude: state.live.amplitude,
-      mode,
-      muted: state.live.muted,
-    };
-  });
+  const { mode, muted } = useListener((state) => ({
+    mode: state.getSessionMode(sessionId),
+    muted: state.live.muted,
+  }));
   return {
-    live:
-      mode === "active"
-        ? {
-            amplitude: Math.min(
-              Math.hypot(amplitude.mic, amplitude.speaker),
-              1,
-            ),
-            muted,
-          }
-        : undefined,
+    live: mode === "active" ? { sessionId, muted } : undefined,
   };
 }
 
@@ -190,7 +186,7 @@ function HeaderViewTranscriptActive({
   onClick?: () => void;
   sessionId: string;
   live?: {
-    amplitude: number;
+    sessionId: string;
     muted: boolean;
   };
 }) {
