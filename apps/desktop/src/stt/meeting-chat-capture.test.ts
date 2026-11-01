@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import type { MeetingCapturedChatMessage } from "@syntheo/plugin-detect";
 
-import { startMeetingChatCapture } from "./meeting-chat-capture";
+import {
+  meetingChatCaptureDelayMs,
+  startMeetingChatCapture,
+} from "./meeting-chat-capture";
 
 const {
   captureMeetingChatMessagesMock,
@@ -390,8 +393,7 @@ describe("startMeetingChatCapture", () => {
     await vi.advanceTimersByTimeAsync(0);
 
     let resolvePersistence:
-      | ((persistedSignatures: string[]) => void)
-      | undefined;
+      ((persistedSignatures: string[]) => void) | undefined;
     persistMeetingChatRecordsMock.mockReturnValueOnce(
       new Promise<string[]>((resolve) => {
         resolvePersistence = resolve;
@@ -618,6 +620,160 @@ describe("startMeetingChatCapture", () => {
     expect(onParticipantDeclined).toHaveBeenCalledOnce();
   });
 });
+
+describe("meeting chat capture backoff (issue 273)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+    captureSettingState.value = true;
+    captureMeetingChatMessagesMock.mockResolvedValue(noMeetingResult());
+    persistMeetingChatRecordsMock.mockImplementation(
+      async ({ entries }: { entries: Array<{ sourceSignature: string }> }) =>
+        entries.map((entry) => entry.sourceSignature),
+    );
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test("doubles the delay after repeated misses up to one minute", () => {
+    expect(
+      [0, 1, 2, 3, 4, 5, 6, 20].map((misses) =>
+        meetingChatCaptureDelayMs(misses),
+      ),
+    ).toEqual([5_000, 5_000, 10_000, 20_000, 40_000, 60_000, 60_000, 60_000]);
+  });
+
+  test("spaces out captures while no meeting is found", async () => {
+    const stop = startMeetingChatCapture({
+      sessionId: "session-1",
+      isEnabled: () => true,
+    });
+    const callsAt = async (ms: number) => {
+      await vi.advanceTimersByTimeAsync(ms);
+      return captureMeetingChatMessagesMock.mock.calls.length;
+    };
+
+    expect(await callsAt(0)).toBe(1); // t = 0
+    expect(await callsAt(5_000)).toBe(2); // t = 5 s
+    expect(await callsAt(9_999)).toBe(2);
+    expect(await callsAt(1)).toBe(3); // t = 15 s
+    expect(await callsAt(20_000)).toBe(4); // t = 35 s
+    expect(await callsAt(40_000)).toBe(5); // t = 75 s
+    expect(await callsAt(59_999)).toBe(5);
+    expect(await callsAt(1)).toBe(6); // t = 135 s
+    expect(await callsAt(60_000)).toBe(7); // plafond à 60 s
+    await stop();
+  });
+
+  test("returns to five seconds as soon as a meeting context appears", async () => {
+    const stop = startMeetingChatCapture({
+      sessionId: "session-1",
+      isEnabled: () => true,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(10_000);
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(captureMeetingChatMessagesMock).toHaveBeenCalledTimes(4);
+
+    captureMeetingChatMessagesMock.mockResolvedValue(
+      captureResult([capturedMessage]),
+    );
+    await vi.advanceTimersByTimeAsync(40_000);
+    expect(captureMeetingChatMessagesMock).toHaveBeenCalledTimes(5);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(captureMeetingChatMessagesMock).toHaveBeenCalledTimes(6);
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(captureMeetingChatMessagesMock).toHaveBeenCalledTimes(7);
+    await stop();
+  });
+
+  test("treats capture errors as misses", async () => {
+    captureMeetingChatMessagesMock.mockResolvedValue({
+      status: "error",
+      error: "AT-SPI accessibility bus is not available",
+    });
+    const stop = startMeetingChatCapture({
+      sessionId: "session-1",
+      isEnabled: () => true,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(captureMeetingChatMessagesMock).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(captureMeetingChatMessagesMock).toHaveBeenCalledTimes(3);
+    await stop();
+  });
+
+  test("never runs two captures in parallel, even after backing off", async () => {
+    let release: (() => void) | undefined;
+    captureMeetingChatMessagesMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          release = () => resolve(noMeetingResult());
+        }),
+    );
+    const stop = startMeetingChatCapture({
+      sessionId: "session-1",
+      isEnabled: () => true,
+    });
+    await vi.advanceTimersByTimeAsync(10 * 60_000);
+    expect(captureMeetingChatMessagesMock).toHaveBeenCalledTimes(1);
+
+    release?.();
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(4_999);
+    expect(captureMeetingChatMessagesMock).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(captureMeetingChatMessagesMock).toHaveBeenCalledTimes(2);
+    await stop();
+  });
+
+  test("stays silent when the browser has no meeting window", async () => {
+    const stop = startMeetingChatCapture({
+      sessionId: "session-1",
+      isEnabled: () => true,
+    });
+    await vi.advanceTimersByTimeAsync(120_000);
+    await stop();
+
+    expect(toastWarningMock).not.toHaveBeenCalled();
+  });
+
+  test("bench: two minutes of listening without a meeting", async () => {
+    const stop = startMeetingChatCapture({
+      sessionId: "session-1",
+      isEnabled: () => true,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(120_000);
+    await stop();
+
+    // Avant : une capture toutes les 5 s, soit 25 sur [0 ; 120 s].
+    // Après : t = 0, 5, 15, 35, 75 s.
+    expect(captureMeetingChatMessagesMock).toHaveBeenCalledTimes(5);
+  });
+});
+
+function noMeetingResult() {
+  return {
+    status: "ok" as const,
+    data: {
+      app: null,
+      contextId: null,
+      platform: "unknown" as const,
+      surface: "web" as const,
+      messages: [],
+      warnings: [
+        "no browser window title carries a meeting provider signal; accessibility tree walk skipped",
+      ],
+    },
+  };
+}
 
 function captureResult(
   messages: MeetingCapturedChatMessage[],
