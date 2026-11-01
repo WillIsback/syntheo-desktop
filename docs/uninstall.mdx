@@ -1,0 +1,91 @@
+---
+title: "Désinstaller Syntheo"
+description: "Retirez l'application seule pour réinstaller ou changer de version, ou effacez tout : réunions, journaux, cache, configuration et clés d'API."
+---
+
+Syntheo se désinstalle de deux façons :
+
+| Mode | Ce qui est retiré | Ce qui reste |
+| --- | --- | --- |
+| **Application seulement** | le programme, son lancement au démarrage, ses raccourcis | vos réunions, notes, transcriptions, réglages et clés d'API |
+| **Désinstallation complète** | l'application, plus la base de données, les journaux, le cache, la configuration et les clés d'API | rien de Syntheo |
+
+Choisissez **Application seulement** pour réinstaller ou changer de version : la nouvelle installation retrouve vos réunions. La **désinstallation complète** est irréversible ; exportez d'abord les notes que vous voulez garder.
+
+Dans les deux cas, les scripts ne touchent jamais à vos exports, à la [CLI](/installation) installée avec `cargo`, ni à la configuration de vos agents (Claude, Codex, OpenCode). Si vous les aviez reliés à Syntheo, retirez l'intégration depuis l'application avant de la désinstaller.
+
+## Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/uninstall.sh | bash
+```
+
+Le script demande le mode, affiche la liste de ce qu'il va retirer, puis attend votre confirmation. Pour la désinstallation complète, tapez `EFFACER`.
+
+Options :
+
+- `--keep-data` : application seulement, sans question sur le mode.
+- `--purge` : désinstallation complète.
+- `--dry-run` : affiche ce qui serait retiré, sans rien supprimer.
+- `--yes` : ne demande pas de confirmation (scripts).
+- `--to <dossier>` : dossier de l'AppImage, si vous l'aviez changé à l'installation.
+
+Pour voir ce que retirerait une désinstallation complète :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/uninstall.sh | bash -s -- --purge --dry-run
+```
+
+Le script retire :
+
+- les AppImage `Syntheo-*.AppImage` de `~/.local/bin` et la commande `syntheo` qui pointe vers elles ;
+- le paquet `.deb`, ou le paquet AUR sous Arch (avec `sudo`) ;
+- le lancement au démarrage (`~/.config/autostart`) et les raccourcis du menu ;
+- en désinstallation complète : `~/.local/share/syntheo` (base de données et index de recherche), `~/.local/share/fr.willisback.syntheo` (journaux), la configuration et le cache `fr.willisback.syntheo`, et les clés d'API du trousseau (Secret Service, avec `secret-tool`).
+
+Les AppImage téléchargées ailleurs, par exemple dans `~/Téléchargements`, ne sont pas touchées : supprimez-les à la main.
+
+## Windows
+
+```powershell
+irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/uninstall.ps1 | iex
+```
+
+Avec options :
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/WillIsback/syntheo-desktop/main/scripts/uninstall.ps1))) -Purge -DryRun
+```
+
+- `-KeepData` : application seulement.
+- `-Purge` : désinstallation complète.
+- `-DryRun` : affiche ce qui serait retiré, sans rien supprimer.
+- `-Yes` : ne demande pas de confirmation.
+
+Le script lance le désinstalleur de l'installeur `.exe` ou du `.msi` (le `.msi` installé pour toute la machine peut demander l'élévation), retire le lancement au démarrage et, en désinstallation complète, les dossiers `%APPDATA%\syntheo`, `%APPDATA%\fr.willisback.syntheo` et `%LOCALAPPDATA%\fr.willisback.syntheo`, ainsi que les clés d'API du Gestionnaire d'identification.
+
+Vous pouvez aussi désinstaller l'application seule depuis **Paramètres → Applications → Applications installées → Syntheo**. Vos données sont alors conservées.
+
+## Désinstaller à la main
+
+Sans les scripts, quittez Syntheo, désinstallez le programme, puis supprimez les dossiers de données :
+
+<Tabs>
+  <Tab title="Linux">
+    ```bash
+    rm -rf ~/.local/share/syntheo ~/.local/share/fr.willisback.syntheo \
+           ~/.config/fr.willisback.syntheo ~/.cache/fr.willisback.syntheo
+    secret-tool clear service fr.willisback.syntheo.secure-store
+    ```
+  </Tab>
+  <Tab title="Windows">
+    ```powershell
+    Remove-Item -Recurse -Force "$env:APPDATA\syntheo", "$env:APPDATA\fr.willisback.syntheo", "$env:LOCALAPPDATA\fr.willisback.syntheo"
+    ```
+    Puis, dans le **Gestionnaire d'identification** (identifiants Windows), supprimez les entrées qui contiennent `fr.willisback.syntheo.secure-store`.
+  </Tab>
+</Tabs>
+
+## Réinstaller
+
+Suivez [Installer l'application](/desktop-installation). Après une désinstallation complète, l'accueil guidé vous fait reconfigurer vos serveurs de [transcription et de synthèse](/ai-setup).
