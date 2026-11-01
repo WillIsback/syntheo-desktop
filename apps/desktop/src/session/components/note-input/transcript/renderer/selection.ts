@@ -163,7 +163,12 @@ export function getTranscriptContextSelection({
   target: EventTarget | null;
   container: HTMLElement;
   activeRange?: Range;
-}): { range: Range; selection: TranscriptWordSelection } | null {
+}): {
+  range: Range;
+  selection: TranscriptWordSelection;
+  // Section du segment entier, quand la sélection le couvre sans plage.
+  sectionKey?: string;
+} | null {
   if (!(target instanceof Element)) {
     return null;
   }
@@ -193,10 +198,64 @@ export function getTranscriptContextSelection({
     return null;
   }
 
+  // Tout le segment, même affiché en plusieurs paragraphes (issue 281) : une
+  // section par paragraphe, toutes avec la même identité de segment.
+  const section = segmentContent.closest<HTMLElement>(
+    "section[data-transcript-segment-id]",
+  );
+  const contents = section
+    ? getSegmentContents(section, container)
+    : [segmentContent];
+  const first = contents[0] ?? segmentContent;
+  const last = contents[contents.length - 1] ?? segmentContent;
   const range = document.createRange();
-  range.selectNodeContents(segmentContent);
+  range.selectNodeContents(first);
+  range.setEnd(last, last.childNodes.length);
   const selection = getTranscriptSelectionFromRange(range, container);
-  return selection ? { range, selection } : null;
+  const sectionKey = section
+    ? (getTranscriptSectionKeyFromElement(section) ?? undefined)
+    : undefined;
+  return selection ? { range, selection, sectionKey } : null;
+}
+
+function getSegmentContents(section: HTMLElement, container: HTMLElement) {
+  const { transcriptId, transcriptSegmentId } = section.dataset;
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(
+      "section[data-transcript-segment-id]",
+    ),
+  ).flatMap((candidate) =>
+    candidate.dataset.transcriptId === transcriptId &&
+    candidate.dataset.transcriptSegmentId === transcriptSegmentId
+      ? Array.from(
+          candidate.querySelectorAll<HTMLElement>(
+            "[data-transcript-segment-content]",
+          ),
+        )
+      : [],
+  );
+}
+
+// Les paragraphes d'un long segment hors de la fenêtre virtuelle ne sont pas
+// montés : le menu contextuel reprend alors le segment entier depuis les
+// données, comme quand il était affiché d'un seul bloc.
+export function completeTranscriptContextSelection(
+  mounted: TranscriptWordSelection,
+  entry: TranscriptWordSelection | undefined,
+): TranscriptWordSelection {
+  if (!entry) {
+    return mounted;
+  }
+  return countSelectedWords(entry) > countSelectedWords(mounted)
+    ? entry
+    : mounted;
+}
+
+function countSelectedWords(selection: TranscriptWordSelection) {
+  return selection.groups.reduce(
+    (total, group) => total + group.wordIds.length,
+    0,
+  );
 }
 
 export function getTranscriptSegmentDomId(

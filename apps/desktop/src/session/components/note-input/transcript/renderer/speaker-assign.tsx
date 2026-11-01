@@ -39,8 +39,12 @@ export function SpeakerAssignPopover({
   label,
   className,
   onAssigned,
+  resolveSegment,
 }: {
   segment: Segment;
+  // Segment à réattribuer, lu au moment du choix : l'en-tête d'un segment
+  // affiché en paragraphes n'en reçoit que le premier (issue 281).
+  resolveSegment?: (segment: Segment) => Segment;
   transcriptId: string;
   sessionId?: string;
   color: string;
@@ -57,8 +61,9 @@ export function SpeakerAssignPopover({
 
   const handleAssign = useCallback(
     (humanId: string, assignmentMode: AssignmentMode) => {
-      if (segment.words.length === 0) return;
-      const anchorWordId = getAssignmentAnchorWordId(segment);
+      const target = resolveSegment?.(segment) ?? segment;
+      if (target.words.length === 0) return;
+      const anchorWordId = getAssignmentAnchorWordId(target);
       if (!anchorWordId) return;
       const scrollContainer =
         triggerRef.current?.closest<HTMLElement>(
@@ -69,18 +74,18 @@ export function SpeakerAssignPopover({
           ? assignSessionTranscriptSpeaker({
               sessionId,
               transcriptId,
-              segmentKey: segment.key,
+              segmentKey: target.key,
               humanId,
               anchorWordId,
-              wordIds: getAssignmentWordIds(segment),
+              wordIds: getAssignmentWordIds(target),
             })
           : assignTranscriptSpeaker({
               transcriptId,
-              segmentKey: segment.key,
+              segmentKey: target.key,
               humanId,
               anchorWordId,
               mode: assignmentMode,
-              wordIds: getAssignmentWordIds(segment),
+              wordIds: getAssignmentWordIds(target),
             });
       void preserveScrollPosition(scrollContainer, assign)
         .then(() => {
@@ -91,7 +96,14 @@ export function SpeakerAssignPopover({
           console.error("[transcript] failed to assign speaker", error);
         });
     },
-    [handleOpenChange, onAssigned, sessionId, transcriptId, segment],
+    [
+      handleOpenChange,
+      onAssigned,
+      resolveSegment,
+      sessionId,
+      transcriptId,
+      segment,
+    ],
   );
 
   return (

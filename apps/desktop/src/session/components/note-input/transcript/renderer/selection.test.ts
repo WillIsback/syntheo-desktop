@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   canMergeTranscriptEntries,
+  completeTranscriptContextSelection,
   focusTranscriptSelection,
   getTranscriptContextSelection,
   getTranscriptMergeTarget,
@@ -90,6 +91,87 @@ describe("transcript word selection", () => {
         container,
       })?.selection.groups[0]?.wordIds,
     ).toEqual(["word-1", "word-2", "word-3"]);
+  });
+
+  // Issue 281 : un segment est affiché en plusieurs paragraphes (une section par
+  // ligne virtuelle, même identité de segment).
+  it("uses every paragraph of the containing segment when opening a context menu without a range", () => {
+    const container = document.createElement("div");
+    const paragraphs = [
+      ["segment-a", ["One", "Two"]],
+      ["segment-a", ["Three", "Four"]],
+      ["segment-b", ["Five"]],
+    ] as const;
+    let wordIndex = 0;
+    const words: HTMLElement[] = [];
+    for (const [segmentId, texts] of paragraphs) {
+      const row = document.createElement("div");
+      const section = createSection();
+      section.dataset.transcriptSegmentId = segmentId;
+      const content = document.createElement("div");
+      content.dataset.transcriptSegmentContent = "";
+      for (const text of texts) {
+        wordIndex += 1;
+        const word = document.createElement("span");
+        word.dataset.transcriptWordId = `word-${wordIndex}`;
+        word.dataset.transcriptWordStartMs = String(wordIndex * 100);
+        word.textContent = text;
+        content.append(word, document.createTextNode(" "));
+        words.push(word);
+      }
+      section.append(content);
+      row.append(section);
+      container.append(row);
+    }
+    document.body.append(container);
+
+    const request = getTranscriptContextSelection({
+      target: words[2],
+      container,
+    });
+
+    expect(request?.selection.groups[0]?.wordIds).toEqual([
+      "word-1",
+      "word-2",
+      "word-3",
+      "word-4",
+    ]);
+    expect(request?.selection.text).toBe("One Two Three Four");
+    expect(request?.sectionKey).toBe("transcript-1:segment-a");
+  });
+
+  it("completes a context selection with paragraphs that are not mounted", () => {
+    const segmentKey = {
+      channel: "RemoteParty" as const,
+      speaker_index: 1,
+      speaker_human_id: null,
+    };
+    const mounted = {
+      sessionId: "session-1",
+      text: "Three Four",
+      startMs: 1_300,
+      groups: [
+        { transcriptId: "transcript-1", segmentKey, wordIds: ["w-3", "w-4"] },
+      ],
+    };
+    const entry = {
+      sessionId: "session-1",
+      text: "One Two Three Four",
+      startMs: 1_100,
+      groups: [
+        {
+          transcriptId: "transcript-1",
+          segmentKey,
+          wordIds: ["w-1", "w-2", "w-3", "w-4"],
+        },
+      ],
+    };
+
+    expect(completeTranscriptContextSelection(mounted, entry)).toBe(entry);
+    expect(completeTranscriptContextSelection(entry, entry)).toBe(entry);
+    expect(completeTranscriptContextSelection(mounted, undefined)).toBe(
+      mounted,
+    );
   });
 
   it("maps write-mode character selection back to transcript words", () => {

@@ -88,6 +88,38 @@ export async function preserveScrollPosition<T>(
   }
 }
 
+// Suit la hauteur du contenu d'un conteneur défilant : le conteneur et ses
+// enfants directs (un bloc par transcription). Contrairement à un
+// MutationObserver sur tout le sous-arbre, rien ne se déclenche quand un
+// partiel change un mot sans changer de hauteur (issue 281).
+export function observeScrollContent(
+  element: HTMLElement,
+  onResize: () => void,
+): () => void {
+  const resizeObserver =
+    typeof ResizeObserver === "undefined" ? null : new ResizeObserver(onResize);
+  const observeChildren = () => {
+    resizeObserver?.observe(element);
+    for (const child of element.children) {
+      resizeObserver?.observe(child);
+    }
+  };
+  observeChildren();
+  const mutationObserver =
+    typeof MutationObserver === "undefined"
+      ? null
+      : new MutationObserver(() => {
+          observeChildren();
+          onResize();
+        });
+  mutationObserver?.observe(element, { childList: true });
+
+  return () => {
+    resizeObserver?.disconnect();
+    mutationObserver?.disconnect();
+  };
+}
+
 export function useScrollDetection(
   containerRef: RefObject<HTMLDivElement | null>,
   active = true,
@@ -124,9 +156,10 @@ export function useScrollDetection(
 
     const updateScrollState = () => {
       const bottomThreshold = 100;
+      const scrollHeight = element.scrollHeight;
       const distanceToBottom =
-        element.scrollHeight - element.scrollTop - element.clientHeight;
-      const hasOverflow = element.scrollHeight - element.clientHeight > 1;
+        scrollHeight - element.scrollTop - element.clientHeight;
+      const hasOverflow = scrollHeight - element.clientHeight > 1;
       const isNearBottom = distanceToBottom < bottomThreshold;
       const isAtExactTop = element.scrollTop <= 1;
       const isAtExactBottom = !isAtExactTop && distanceToBottom <= 1;
@@ -182,29 +215,25 @@ export function useScrollDetection(
     element.addEventListener("scroll", handleScroll);
     handleScroll();
 
-    const resizeObserver =
-      typeof ResizeObserver === "undefined"
-        ? null
-        : new ResizeObserver(updateScrollState);
-    resizeObserver?.observe(element);
-
-    const mutationObserver =
-      typeof MutationObserver === "undefined"
-        ? null
-        : new MutationObserver(updateScrollState);
-    mutationObserver?.observe(element, {
-      childList: true,
-      characterData: true,
-      subtree: true,
-    });
+    // Une seule lecture de la mise en page par image, quand la hauteur du
+    // contenu a changé.
+    let frame: number | null = null;
+    const scheduleUpdate = () => {
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        updateScrollState();
+      });
+    };
+    const stopObserving = observeScrollContent(element, scheduleUpdate);
 
     return () => {
       gestureEvents.forEach((type) =>
         element.removeEventListener(type, markUserGesture),
       );
       element.removeEventListener("scroll", handleScroll);
-      resizeObserver?.disconnect();
-      mutationObserver?.disconnect();
+      stopObserving();
+      if (frame !== null) cancelAnimationFrame(frame);
     };
   }, [containerRef]);
 
@@ -252,13 +281,18 @@ export function useScrollDetection(
   };
 }
 
+// Garde la fin de la transcription à l'écran pendant l'écoute. Le suivi
+// réagit aux changements de hauteur du contenu, pas aux partiels : un mot de
+// plus qui ne fait pas grandir le texte ne déclenche ni lecture de la mise en
+// page ni défilement. Les lectures (scrollHeight, scrollTop, clientHeight) se
+// font au plus une fois par image, dans l'image elle-même (issue 281).
 export function useAutoScroll(
   containerRef: RefObject<HTMLElement | null>,
   deps: DependencyList,
   enabled = true,
 ) {
-  const rafRef = useRef<number | null>(null);
-  const lastHeightRef = useRef(0);
+  const frameRef = useRef<number | null>(null);
+  const lastHeightRef = useRef<number | null>(null);
   const initialFlushRef = useRef(enabled);
   const previousEnabledRef = useRef(enabled);
 
@@ -268,29 +302,35 @@ export function useAutoScroll(
       return;
     }
 
-    lastHeightRef.current = element.scrollHeight;
-
-    const isPinned = () => {
-      const distanceToBottom =
-        element.scrollHeight - element.scrollTop - element.clientHeight;
-      return distanceToBottom < 80;
-    };
-
+    let forced = false;
     const flush = () => {
-      element.scrollTop = element.scrollHeight;
+      frameRef.current = null;
+      const height = element.scrollHeight;
+      // Collé au bas avant que le contenu grandisse : la distance se mesure
+      // avec la hauteur précédente.
+      const previousHeight = lastHeightRef.current ?? height;
+      lastHeightRef.current = height;
+      const pinned =
+        previousHeight - element.scrollTop - element.clientHeight < 80;
+      const force = forced;
+      forced = false;
+      if (force || (enabled && pinned)) {
+        element.scrollTop = height;
+      }
     };
 
+    // Deux images : la hauteur mesurée des lignes virtuelles est appliquée
+    // une image après leur rendu.
     const schedule = (force = false) => {
-      if (!force && (!enabled || !isPinned())) {
+      forced ||= force;
+      if (!forced && !enabled) {
         return;
       }
-
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
+      if (frameRef.current !== null) {
+        return;
       }
-
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = requestAnimationFrame(flush);
+      frameRef.current = requestAnimationFrame(() => {
+        frameRef.current = requestAnimationFrame(flush);
       });
     };
 
@@ -299,31 +339,16 @@ export function useAutoScroll(
       schedule(true);
     } else if (enabled && !previousEnabledRef.current) {
       schedule(true);
-    } else {
-      schedule(enabled);
     }
     previousEnabledRef.current = enabled;
 
-    const resizeObserver = new ResizeObserver(() => {
-      const nextHeight = element.scrollHeight;
-      if (nextHeight === lastHeightRef.current) {
-        return;
-      }
-      lastHeightRef.current = nextHeight;
-      schedule(enabled);
-    });
-
-    const targets = new Set<Element>([element]);
-    element
-      .querySelectorAll<HTMLElement>("[data-virtual-root]")
-      .forEach((target) => targets.add(target));
-    targets.forEach((target) => resizeObserver.observe(target));
+    const stopObserving = observeScrollContent(element, () => schedule());
 
     return () => {
-      resizeObserver.disconnect();
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
+      stopObserving();
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
       }
     };
   }, deps);

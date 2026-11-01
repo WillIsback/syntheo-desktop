@@ -438,11 +438,7 @@ describe("RenderTranscript", () => {
 
     renderTranscript(scrollElement);
 
-    expect(
-      document.querySelector(
-        "section[data-transcript-segment-id='segment-999']",
-      ),
-    ).toBeTruthy();
+    expect(document.querySelector(sectionSelector(99_900))).toBeTruthy();
     expect(scrollElement.scrollTo).toHaveBeenCalled();
   });
 
@@ -456,11 +452,7 @@ describe("RenderTranscript", () => {
 
     renderTranscript(null, 99_950);
 
-    expect(
-      document.querySelector(
-        "section[data-transcript-segment-id='segment-999']",
-      ),
-    ).toBeTruthy();
+    expect(document.querySelector(sectionSelector(99_900))).toBeTruthy();
     expect(document.querySelectorAll("section").length).toBeLessThanOrEqual(30);
   });
 
@@ -472,9 +464,8 @@ describe("RenderTranscript", () => {
       segments: initial,
     });
     const rendered = renderTranscript();
-    const first = document.querySelector(
-      "section[data-transcript-segment-id='segment-0']",
-    );
+    const first = document.querySelector(sectionSelector(0));
+    expect(first).toBeTruthy();
     const updated = [...initial, createSegment("500", 500)];
     mocks.useRenderedTranscriptData.mockReturnValue({
       maxSpeakerNumber: undefined,
@@ -497,9 +488,7 @@ describe("RenderTranscript", () => {
       />,
     );
 
-    expect(
-      document.querySelector("section[data-transcript-segment-id='segment-0']"),
-    ).toBe(first);
+    expect(document.querySelector(sectionSelector(0))).toBe(first);
     expect(document.querySelectorAll("section").length).toBeLessThanOrEqual(30);
   });
 
@@ -524,9 +513,10 @@ describe("RenderTranscript", () => {
         audioExists
       />,
     );
-    const initialNode = document.querySelector(
-      "section[data-transcript-segment-id='segment-live-start:live-end']",
-    );
+    // L'identité de section d'un segment vivant ne dépend que de son premier
+    // mot : elle ne change pas quand ses derniers mots arrivent (issue 281).
+    const initialNode = document.querySelector(sectionSelector(0));
+    expect(initialNode).toBeTruthy();
     const nextWord = {
       id: "word-live-next",
       text: " next",
@@ -563,13 +553,16 @@ describe("RenderTranscript", () => {
       />,
     );
 
-    expect(
-      document.querySelector(
-        "section[data-transcript-segment-id='segment-live-start:live-next']",
-      ),
-    ).toBe(initialNode);
+    expect(document.querySelector(sectionSelector(0))).toBe(initialNode);
+    expect(initialNode?.textContent).toContain("next");
   });
 });
+
+// Identité de section d'un segment : sa clé stable (transcription, canal,
+// début du premier mot).
+function sectionSelector(startMs: number) {
+  return `section[data-transcript-segment-id='transcript-1:MixedCapture:start-${startMs}']`;
+}
 
 function renderTranscript(
   scrollElement: HTMLDivElement | null = null,

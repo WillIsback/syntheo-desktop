@@ -13,12 +13,14 @@ export function SegmentHeader({
   sessionId,
   label,
   selected = false,
+  resolveSegment,
 }: {
   segment: Segment;
   transcriptId: string;
   sessionId?: string;
   label: string;
   selected?: boolean;
+  resolveSegment?: (segment: Segment) => Segment;
 }) {
   const { selectMode } = useTranscriptSelectionState();
   const colorVars = useSegmentColorVars(segment.key);
@@ -47,6 +49,7 @@ export function SegmentHeader({
       ) : null}
       <SpeakerAssignPopover
         segment={segment}
+        resolveSegment={resolveSegment}
         transcriptId={transcriptId}
         sessionId={sessionId}
         color="var(--segment-color)"
