@@ -3,9 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useState } from "react";
 
-import { commands as sfxCommands } from "@syntheo/plugin-sfx";
-import { SpeakerHigh, SpeakerX } from "@syntheo/ui/components/icons";
-import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 import { cn } from "@syntheo/utils";
 
 import { CalendarSection } from "./calendar";
@@ -80,7 +77,6 @@ function OnboardingScreenContent({
   headerDragRegion?: boolean;
 }) {
   const queryClient = useQueryClient();
-  const [isMuted, setIsMuted] = useState(false);
   const [currentStep, setCurrentStep] = useState(getInitialStep);
   const currentPlatform = platform();
 
@@ -101,17 +97,6 @@ function OnboardingScreenContent({
 
   useEffect(() => {}, [currentPlatform, currentStep]);
 
-  useMountEffect(() => {
-    sfxCommands.play("BGM").catch(console.error);
-    return () => {
-      sfxCommands.stop("BGM").catch(console.error);
-    };
-  });
-
-  useEffect(() => {
-    sfxCommands.setVolume("BGM", isMuted ? 0 : 0.2).catch(console.error);
-  }, [isMuted]);
-
   const handleFinish = useCallback(
     (sessionId: string) => {
       void queryClient.invalidateQueries({ queryKey: ["onboarding-needed"] });
@@ -124,21 +109,8 @@ function OnboardingScreenContent({
     <div className="bg-background relative flex h-full min-h-0 flex-col overflow-hidden">
       <div
         data-tauri-drag-region={headerDragRegion || undefined}
-        className="relative z-30 flex h-12 shrink-0 items-center justify-end pr-3 pl-12"
-      >
-        <button
-          onClick={() => setIsMuted((prev) => !prev)}
-          data-tauri-drag-region="false"
-          className="hover:bg-accent rounded-full p-1.5 transition-colors"
-          aria-label={isMuted ? "Unmute" : "Mute"}
-        >
-          {isMuted ? (
-            <SpeakerX size={16} className="text-muted-foreground" />
-          ) : (
-            <SpeakerHigh size={16} className="text-muted-foreground" />
-          )}
-        </button>
-      </div>
+        className="relative z-30 h-12 shrink-0"
+      />
 
       <div
         data-tauri-drag-region={headerDragRegion || undefined}

@@ -51,9 +51,6 @@ import { StandaloneOnboardingScreen } from "./index";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.playSfx.mockResolvedValue(null);
-  mocks.stopSfx.mockResolvedValue(null);
-  mocks.setSfxVolume.mockResolvedValue(null);
 });
 
 afterEach(cleanup);
@@ -74,4 +71,16 @@ it("affiche l'accueil guidé sur un fond uni, sans vidéo ni flou (issue 320)", 
 
   const root = container.firstElementChild;
   expect(root?.className).toContain("bg-background");
+});
+
+it("ne lance plus de musique de fond et n'affiche plus de bouton muet (issue 323)", () => {
+  const { unmount } = render(<StandaloneOnboardingScreen onFinish={vi.fn()} />);
+
+  expect(screen.queryByRole("button", { name: /mute/i })).toBeNull();
+
+  unmount();
+
+  expect(mocks.playSfx).not.toHaveBeenCalled();
+  expect(mocks.stopSfx).not.toHaveBeenCalled();
+  expect(mocks.setSfxVolume).not.toHaveBeenCalled();
 });

@@ -30,7 +30,7 @@ async playCompletionSound(sound: CompletionSound, volume: number) : Promise<void
 
 /** user-defined types **/
 
-export type AppSounds = "StartRecording" | "StopRecording" | "BGM"
+export type AppSounds = "StartRecording" | "StopRecording"
 /**
  * Son de fin choisi dans les réglages. Les noms sont ceux qui sont enregistrés
  * dans `notification_completion_sound_name`.

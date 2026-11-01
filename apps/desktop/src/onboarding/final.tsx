@@ -3,7 +3,6 @@ import { Trans } from "@lingui/react/macro";
 import { useRef, useState } from "react";
 
 import { commands as openerCommands } from "@syntheo/plugin-opener2";
-import { commands as sfxCommands } from "@syntheo/plugin-sfx";
 import { CircleNotch, GithubLogo } from "@syntheo/ui/components/icons";
 
 import { OnboardingButton } from "./shared";
@@ -112,7 +111,6 @@ export async function finishOnboarding(
   onContinue?: (sessionId: string) => void,
   welcomeSessionRef?: { current: string | null },
 ) {
-  await sfxCommands.stop("BGM").catch(console.error);
   const welcomeSessionId =
     welcomeSessionRef?.current ??
     (await getOrCreateWelcomeSession().catch((error) => {
