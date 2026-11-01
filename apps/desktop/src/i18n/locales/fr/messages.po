@@ -1516,7 +1516,6 @@ msgstr "Commencer"
 msgid "Get your attention when a summary is ready in the background."
 msgstr "Soyez averti lorsqu'un résumé est prêt en arrière-plan."
 
-#: src/main/windows-title-bar.tsx
 #: src/sidebar/custom-sidebar-header.tsx
 msgid "Go home"
 msgstr "Aller à l'accueil"
@@ -1623,6 +1622,14 @@ msgstr "Historique {0}/{1}"
 #: src/settings/dictation.tsx
 msgid "Hold your shortcut while speaking, then release it to finish."
 msgstr "Maintenez votre raccourci pendant que vous parlez, puis relâchez-le pour terminer."
+
+#: src/main/windows-title-bar.tsx
+msgid "Home"
+msgstr "Accueil"
+
+#: src/main/windows-title-bar.tsx
+msgid "Home · Esc"
+msgstr "Accueil · Échap"
 
 #: src/home/home-capsule.tsx
 msgid "Home capsule"
