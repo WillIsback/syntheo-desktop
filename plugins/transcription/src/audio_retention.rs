@@ -255,19 +255,59 @@ async fn sweep<R: tauri::Runtime>(
     Ok(())
 }
 
+/// Attend la fin du démarrage de la base, migrations comprises. Le pool est
+/// exposé dès le `setup` du plugin db, avant les migrations : sa présence seule
+/// ne garantit pas que les tables existent.
+async fn database_ready<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> bool {
+    let Some(runtime) = app
+        .try_state::<tauri_plugin_db::ManagedState>()
+        .map(|state| state.inner().clone())
+    else {
+        tracing::warn!("audio_retention_disabled_database_unavailable");
+        return false;
+    };
+    match runtime.wait_until_ready().await {
+        Ok(()) => true,
+        Err(error) => {
+            tracing::warn!(%error, "audio_retention_disabled_database_startup_failed");
+            false
+        }
+    }
+}
+
+/// Aucun balayage tant que `ready` n'a pas abouti ; ensuite, un balayage
+/// immédiat, puis un par `period`.
+async fn run_sweep_loop<Ready, Sweep, SweepFut>(ready: Ready, period: Duration, mut sweep: Sweep)
+where
+    Ready: std::future::Future<Output = bool>,
+    Sweep: FnMut() -> SweepFut,
+    SweepFut: std::future::Future<Output = ()>,
+{
+    if !ready.await {
+        return;
+    }
+    let mut interval = tokio::time::interval(period);
+    interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+    loop {
+        interval.tick().await;
+        sweep().await;
+    }
+}
+
 pub(crate) fn spawn<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
     tauri::async_runtime::spawn(async move {
-        let mut interval = tokio::time::interval(SWEEP_INTERVAL);
-        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-        loop {
-            interval.tick().await;
-            let Some(pool) = db_pool(&app) else {
-                continue;
-            };
-            if let Err(error) = sweep(&app, &pool).await {
-                tracing::warn!(%error, "audio_retention_sweep_failed");
+        run_sweep_loop(database_ready(&app), SWEEP_INTERVAL, || {
+            let app = app.clone();
+            async move {
+                let Some(pool) = db_pool(&app) else {
+                    return;
+                };
+                if let Err(error) = sweep(&app, &pool).await {
+                    tracing::warn!(%error, "audio_retention_sweep_failed");
+                }
             }
-        }
+        })
+        .await;
     });
 }
 
@@ -350,6 +390,55 @@ mod tests {
             i64::MAX
         ));
         assert!(is_expired(None, AudioRetentionPolicy::None, 0));
+    }
+
+    fn counting_sweep() -> (
+        Arc<std::sync::atomic::AtomicUsize>,
+        impl FnMut() -> std::future::Ready<()>,
+    ) {
+        let count = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let counter = Arc::clone(&count);
+        (count, move || {
+            counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            std::future::ready(())
+        })
+    }
+
+    #[tokio::test]
+    async fn no_sweep_before_database_is_ready() {
+        let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<()>();
+        let (count, sweep) = counting_sweep();
+        let task = tokio::spawn(run_sweep_loop(
+            async move { ready_rx.await.is_ok() },
+            Duration::from_millis(5),
+            sweep,
+        ));
+
+        // Plusieurs périodes s'écoulent sans que la base soit prête.
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 0);
+
+        ready_tx.send(()).unwrap();
+        tokio::time::timeout(Duration::from_secs(5), async {
+            while count.load(std::sync::atomic::Ordering::SeqCst) == 0 {
+                tokio::time::sleep(Duration::from_millis(1)).await;
+            }
+        })
+        .await
+        .expect("le balayage démarre une fois la base prête");
+        task.abort();
+    }
+
+    #[tokio::test]
+    async fn no_sweep_when_database_startup_fails() {
+        let (count, sweep) = counting_sweep();
+        tokio::time::timeout(
+            Duration::from_secs(5),
+            run_sweep_loop(async { false }, Duration::from_millis(1), sweep),
+        )
+        .await
+        .expect("la boucle s'arrête si la base ne démarre pas");
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 0);
     }
 
     #[test]
