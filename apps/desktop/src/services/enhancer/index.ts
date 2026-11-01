@@ -296,9 +296,17 @@ export class EnhancerService {
         if (failure && Date.now() < failure.nextAttemptAt) {
           continue;
         }
-        console.info("[enhancer] resuming pending auto-enhance", {
-          sessionId: job.sessionId,
-        });
+        // The job stays durable until its summary is saved; while that run is
+        // still generating, the tick has nothing to resume.
+        if (this.isEnhanceGenerating(job.noteId)) {
+          continue;
+        }
+        console.info(
+          "[enhancer:resume-pending] resuming pending auto-enhance",
+          {
+            sessionId: job.sessionId,
+          },
+        );
         this.queueAutoEnhance(job.sessionId, job);
       }
 
@@ -438,6 +446,13 @@ export class EnhancerService {
       clearTimeout(timer);
       this.pendingRetries.delete(sessionId);
     }
+  }
+
+  private isEnhanceGenerating(noteId: string): boolean {
+    return (
+      this.deps.aiTaskStore.getState().getState(createTaskId(noteId, "enhance"))
+        ?.status === "generating"
+    );
   }
 
   private async hasGeneratingSummary(sessionId: string): Promise<boolean> {
