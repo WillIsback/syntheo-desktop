@@ -8,7 +8,7 @@ vi.mock("~/settings/hydration-boundary", () => ({
 
 vi.mock("./general", () => ({
   SettingsAccount: () => <div>Account settings</div>,
-  SettingsApp: () => null,
+  SettingsApp: () => <div>Profile settings</div>,
   SettingsMeetings: () => null,
   SettingsNotifications: () => null,
   SettingsPermissions: () => null,
@@ -22,9 +22,6 @@ vi.mock("~/settings/developers", () => ({ SettingsDevelopers: () => null }));
 vi.mock("~/settings/dictionary", () => ({ SettingsDictionary: () => null }));
 vi.mock("~/settings/imports", () => ({ SettingsImports: () => null }));
 vi.mock("~/settings/privacy", () => ({ SettingsPrivacy: () => null }));
-vi.mock("~/settings/stats", () => ({
-  SettingsInsights: () => <div>Personal insights</div>,
-}));
 vi.mock("~/shared/main", () => ({
   StandardContentWrapper: ({ children }: { children: React.ReactNode }) =>
     children,
@@ -37,15 +34,17 @@ import { createSettingsTab } from "~/store/zustand/tabs/test-utils";
 describe("TabContentSettings", () => {
   afterEach(cleanup);
 
-  it.each([
-    ["insights", "Personal insights"],
-    ["stats", "Personal insights"],
-  ] as const)("opens the %s destination", (destination, heading) => {
-    render(
-      <TabContentSettings
-        tab={createSettingsTab({ state: { tab: destination } })}
-      />,
-    );
-    expect(screen.getByText(heading)).toBeTruthy();
-  });
+  // « Analyses » a été retiré : un onglet persisté avant la refonte (ou un
+  // lien resté vers ces écrans) ouvre le profil au lieu d'une page vide.
+  it.each(["insights", "stats"])(
+    "opens the profile for the removed %s destination",
+    (destination) => {
+      render(
+        <TabContentSettings
+          tab={createSettingsTab({ state: { tab: destination as never } })}
+        />,
+      );
+      expect(screen.getByText("Profile settings")).toBeTruthy();
+    },
+  );
 });

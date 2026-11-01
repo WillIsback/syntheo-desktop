@@ -33,6 +33,16 @@ describe("estimateTranscriptRowHeight", () => {
   });
 });
 
+describe("estimateTranscriptRowHeight dans la marge", () => {
+  it("prévoit plus de lignes dans une colonne étroite (marge de 280px)", () => {
+    const text = "mot ".repeat(60).trim();
+    const wide = estimateTranscriptRowHeight(createSegment(text), 0, 680);
+    const narrow = estimateTranscriptRowHeight(createSegment(text), 0, 260);
+
+    expect(narrow).toBeGreaterThan(wide + 40);
+  });
+});
+
 describe("VirtualSegmentRow", () => {
   it.each([false, true])(
     "measures once at mount and uses observer sizes during resize (editMode=%s)",

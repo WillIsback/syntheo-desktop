@@ -1,47 +1,44 @@
 import { memo } from "react";
 
 import { ClassicMainBody } from "./body";
-import { resolveMainSurfaceChrome } from "./main-surface-chrome";
+import { hasViewNavigation } from "./view-navigation";
 import { WindowsTitleBar } from "./windows-title-bar";
 
-import { useShell } from "~/contexts/shell";
 import { DevtoolsStatusBar } from "~/devtools-bar";
+import { PerfZone } from "~/devtools-bar/perf-zone";
 import { usesWindowsStyleTitleBar } from "~/shared/hooks/useWindowControlsGutter";
-import { MainShellBodyFrame, MainShellScaffold } from "~/shared/main";
-import { ToastNotifications } from "~/sidebar/toast";
 import {
-  hasCustomSidebarTab,
-  hasLeftSurfaceCustomSidebarTab,
-  useCustomSidebarEffect,
-} from "~/sidebar/use-custom-sidebar";
-import { useTabs } from "~/store/zustand/tabs";
+  MainShellBodyFrame,
+  MainShellScaffold,
+  type MainSurfaceChrome,
+} from "~/shared/main";
+import { ToastNotifications } from "~/sidebar/toast";
+import { type Tab, useTabs } from "~/store/zustand/tabs";
+
+export function resolveMainSurfaceChrome(
+  tab: Pick<Tab, "type"> | null,
+): MainSurfaceChrome | undefined {
+  if (tab?.type === "onboarding") {
+    return undefined;
+  }
+  if (hasViewNavigation(tab)) {
+    // La colonne de navigation interne borde la surface à gauche.
+    return "left";
+  }
+  if (tab?.type === "changelog") {
+    return "top";
+  }
+  return "top-borderless";
+}
 
 export function ClassicMainShellFrame() {
-  const { leftsidebar } = useShell();
   const currentTab = useTabs((state) => state.currentTab);
-
   const isOnboarding = currentTab?.type === "onboarding";
-  const isChangelog = currentTab?.type === "changelog";
-  const hasCustomSidebar = hasCustomSidebarTab(currentTab);
-  // Chat session changes remount the body; sidebar ownership must survive them.
-  useCustomSidebarEffect(hasCustomSidebar, leftsidebar);
-
-  const hasLeftSurfaceCustomSidebar =
-    hasLeftSurfaceCustomSidebarTab(currentTab);
-  const showSidebarTimelineChrome = !hasCustomSidebar && !isOnboarding;
-  const showSidebarTimeline = showSidebarTimelineChrome && leftsidebar.expanded;
-  const mainSurfaceChrome = resolveMainSurfaceChrome({
-    hasLeftSurfaceCustomSidebar,
-    isChangelog,
-    leftSidebarExpanded: leftsidebar.expanded,
-    showSidebarTimeline,
-    showSidebarTimelineChrome,
-  });
 
   const shell = (
     <MainShellScaffold
       edgeToEdge={isOnboarding}
-      mainSurfaceChrome={isOnboarding ? undefined : mainSurfaceChrome}
+      mainSurfaceChrome={resolveMainSurfaceChrome(currentTab)}
     >
       <ClassicMainBodyHost />
       <ToastNotifications />
@@ -50,12 +47,10 @@ export function ClassicMainShellFrame() {
 
   return (
     <div className="bg-background flex h-full min-h-0 flex-col">
-      {usesWindowsStyleTitleBar() ? (
-        <WindowsTitleBar
-          showSidebarTimelineChrome={showSidebarTimelineChrome}
-        />
-      ) : null}
-      <div className="min-h-0 flex-1">{shell}</div>
+      {usesWindowsStyleTitleBar() ? <WindowsTitleBar /> : null}
+      <div className="min-h-0 flex-1">
+        <PerfZone id="app-shell">{shell}</PerfZone>
+      </div>
       <DevtoolsStatusBar />
     </div>
   );

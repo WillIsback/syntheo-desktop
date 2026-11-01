@@ -1,6 +1,8 @@
 import chroma from "chroma-js";
 import { describe, expect, it } from "vitest";
 
+import { DesignColors } from "@syntheo/design-system";
+
 import {
   getActiveLineIndex,
   getSegmentColor,
@@ -42,7 +44,7 @@ describe("transcript renderer utils", () => {
     expect(colors[1]).toBe(colors[5]);
   });
 
-  it("expose la même couleur en clair et en sombre", () => {
+  it("expose la variante claire et la variante sombre du jeton chart", () => {
     const key: SegmentKey = {
       channel: "DirectMic",
       speaker_index: 0,
@@ -51,8 +53,9 @@ describe("transcript renderer utils", () => {
 
     expect(getSegmentColorVars(key)).toEqual({
       "--segment-color-light": getSegmentColor(key),
-      "--segment-color-dark": getSegmentColor(key),
+      "--segment-color-dark": DesignColors.dark.chart2,
     });
+    expect(getSegmentColor(key)).toBe(DesignColors.light.chart2);
   });
 
   it("finds the active transcript line without building line groups", () => {

@@ -157,10 +157,21 @@ function credentialRequest({ baseUrl, apiKey }: ProviderCredential) {
 }
 
 // Un endpoint on-prem en HTTP clair reste acceptable sur la machine ou un
-// réseau privé (LAN, plage CGNAT de Tailscale, noms .local) ; ailleurs, HTTPS.
+// réseau privé (LAN, plage CGNAT de Tailscale, noms .local, noms MagicDNS
+// *.ts.net) ; ailleurs, HTTPS.
+//
+// Les noms MagicDNS en `.ts.net` ne se résolvent que dans le tailnet, dont
+// tout le trafic est chiffré de bout en bout par WireGuard ; et Tailscale
+// Funnel, seul moyen de les exposer sur Internet, ne le fait qu'en HTTPS.
+// Le HTTP clair vers ces noms ne quitte donc jamais le tunnel chiffré.
+// Seul le suffixe exact « .ts.net » compte : « evil-ts.net » est refusé.
 export function isPrivateHost(hostname: string) {
   const host = hostname.toLowerCase();
-  if (["localhost", "[::1]"].includes(host) || host.endsWith(".local")) {
+  if (
+    ["localhost", "[::1]"].includes(host) ||
+    host.endsWith(".local") ||
+    isTailnetName(host)
+  ) {
     return true;
   }
   const octets = host.split(".").map(Number);
@@ -178,6 +189,15 @@ export function isPrivateHost(hostname: string) {
     (a === 192 && b === 168) ||
     (a === 100 && b >= 64 && b <= 127)
   );
+}
+
+// Nom de machine sous `.ts.net` : au moins une étiquette non vide avant le
+// suffixe (ni « ts.net » ni « .ts.net » seuls).
+function isTailnetName(host: string) {
+  const suffix = ".ts.net";
+  if (!host.endsWith(suffix)) return false;
+  const labels = host.slice(0, -suffix.length).split(".");
+  return labels.every((label) => label.length > 0);
 }
 
 function record(value: unknown): Record<string, unknown> {

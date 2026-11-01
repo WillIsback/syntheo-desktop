@@ -1,3 +1,8 @@
+import {
+  applyDocumentPalette,
+  normalizePalette,
+  writeStoredPalette,
+} from "./palette";
 import { resolveIsDarkMode, type ThemePreference } from "./resolve";
 
 import { getStoredSettingValues } from "~/settings/queries";
@@ -59,6 +64,11 @@ async function loadThemeFromSettings(): Promise<void> {
     );
     applyDocumentTheme(preference);
     writeStoredThemePreference(preference);
+    const palette = normalizePalette(
+      stored.hasValues.has("palette") ? stored.values.palette : null,
+    );
+    applyDocumentPalette(palette);
+    writeStoredPalette(palette);
   } catch {
     // Non-Tauri dev sessions can skip persisted theme bootstrap.
   }

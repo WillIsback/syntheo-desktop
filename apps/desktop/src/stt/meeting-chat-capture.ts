@@ -15,7 +15,28 @@ import { MEETING_DISCLOSURE_MESSAGE } from "~/stt/meeting-disclosure";
 import { recordCapturedMeetingPlatform } from "~/stt/meeting-source-apps";
 
 const MEETING_CHAT_CAPTURE_INTERVAL_MS = 5_000;
+const MEETING_CHAT_CAPTURE_MAX_INTERVAL_MS = 60_000;
+// Un raté isolé (surface de chat masquée un instant) garde la cadence normale.
+const MEETING_CHAT_CAPTURE_TOLERATED_MISSES = 1;
 const MAX_CAPTURED_CHAT_WINDOW = 1_000;
+
+/**
+ * Délai avant la prochaine capture du chat (issue 273) : 5 s tant qu'une réunion
+ * est visible, puis, après des captures sans réunion consécutives, 10 s, 20 s,
+ * 40 s et 60 s au plus. Chaque capture interroge l'arbre d'accessibilité ; inutile
+ * de le faire toutes les 5 s quand on écoute une vidéo ou une salle sans visio.
+ */
+export function meetingChatCaptureDelayMs(consecutiveMisses: number) {
+  const backoffSteps =
+    consecutiveMisses - MEETING_CHAT_CAPTURE_TOLERATED_MISSES;
+  if (backoffSteps <= 0) {
+    return MEETING_CHAT_CAPTURE_INTERVAL_MS;
+  }
+  return Math.min(
+    MEETING_CHAT_CAPTURE_INTERVAL_MS * 2 ** backoffSteps,
+    MEETING_CHAT_CAPTURE_MAX_INTERVAL_MS,
+  );
+}
 
 export function startMeetingChatCapture({
   sessionId,
@@ -38,6 +59,8 @@ export function startMeetingChatCapture({
   let timeout: ReturnType<typeof setTimeout> | null = null;
   let lastWarning = "";
   let lastRecordedSource = "";
+  // Captures consécutives sans contexte de réunion ; pilote le ralentissement.
+  let consecutiveMisses = 0;
   const captureIsEnabled =
     isEnabled ??
     (async () =>
@@ -49,10 +72,15 @@ export function startMeetingChatCapture({
   const captureOnce = async () => {
     try {
       if (!(await captureIsEnabled())) {
+        // Simple lecture des réglages : on garde la cadence normale pour réagir
+        // vite si la capture est réactivée.
+        consecutiveMisses = 0;
         baselineContext = null;
         return;
       }
 
+      // Compté comme un raté jusqu'à preuve d'un contexte de réunion.
+      consecutiveMisses += 1;
       const result = await detectCommands.captureMeetingChatMessages();
       if (stopped || !(await captureIsEnabled())) {
         baselineContext = null;
@@ -71,6 +99,7 @@ export function startMeetingChatCapture({
       if (!bundleId || !contextId) {
         return;
       }
+      consecutiveMisses = 0;
 
       const sourceSignature = `${bundleId}\n${result.data.platform}`;
       if (sourceSignature !== lastRecordedSource && result.data.app) {
@@ -211,7 +240,7 @@ export function startMeetingChatCapture({
     timeout = setTimeout(() => {
       timeout = null;
       void capture();
-    }, MEETING_CHAT_CAPTURE_INTERVAL_MS);
+    }, meetingChatCaptureDelayMs(consecutiveMisses));
   };
 
   const capture = () => {

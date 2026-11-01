@@ -8,9 +8,10 @@ import {
 
 import { ActionButton, MessageBubble, MessageContainer } from "./shared";
 
-// Pas d'application web hébergée : l'aide renvoie à la documentation du dépôt.
-const CONTEXT_LENGTH_HELP_URL =
-  "https://github.com/WillIsback/syntheo-desktop#readme";
+import { documentationUrl } from "~/shared/documentation";
+
+// Pas d'application web hébergée : l'aide renvoie à la documentation publique.
+const CONTEXT_LENGTH_HELP_URL = documentationUrl("chat#guider-le-contexte");
 
 // `useChat().error` is typed as Error but holds whatever the transport threw.
 export function getChatErrorText(error: unknown): string {
@@ -52,7 +53,7 @@ export function ErrorMessage({
         {showContextLengthHelp && (
           <button
             onClick={handleOpenFaq}
-            className="mt-2 flex items-center gap-1 text-xs text-red-700 underline hover:text-red-900"
+            className="text-alert-foreground hover:text-destructive mt-2 flex items-center gap-1 text-xs underline"
           >
             <ArrowSquareOut className="h-3 w-3" />
             <Trans>Learn how to fix this</Trans>

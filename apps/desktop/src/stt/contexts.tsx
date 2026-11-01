@@ -39,6 +39,19 @@ export const ListenerProvider = ({
   );
 };
 
+// Le magasin lui-même, pour s'y abonner hors du rendu (rythme d'affichage).
+export const useListenerStore = (): ListenerStore => {
+  const store = useContext(ListenerContext);
+
+  if (!store) {
+    throw new Error(
+      "'useListenerStore' must be used within a 'ListenerProvider'",
+    );
+  }
+
+  return store;
+};
+
 export const useListener = <T,>(
   selector: Parameters<
     typeof useStore<ReturnType<typeof createListenerStore>, T>

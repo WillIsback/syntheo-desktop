@@ -4,30 +4,6 @@ use std::sync::{Arc, Mutex};
 
 const LAUNCH_LOCK_FILENAME: &str = "launch.lock";
 const SLOW_STARTUP_INDICATOR_DELAY: std::time::Duration = std::time::Duration::from_secs(3);
-const WEBKIT_DISABLE_DMABUF_RENDERER: &str = "WEBKIT_DISABLE_DMABUF_RENDERER";
-
-// WebKitGTK's DMA-BUF renderer leaves a blank window on NVIDIA/Wayland and
-// some other GPU/compositor combinations. Set the fallback before Tokio or
-// the webview start, and leave an explicit user override alone.
-pub(crate) fn apply_linux_webkit_workarounds() {
-    if !cfg!(target_os = "linux") {
-        return;
-    }
-
-    if let Some(value) =
-        linux_webkit_dmabuf_override(std::env::var_os(WEBKIT_DISABLE_DMABUF_RENDERER).as_deref())
-    {
-        // SAFETY: called from the process entrypoint before other threads start.
-        unsafe {
-            std::env::set_var(WEBKIT_DISABLE_DMABUF_RENDERER, value);
-        }
-    }
-}
-
-fn linux_webkit_dmabuf_override(existing: Option<&std::ffi::OsStr>) -> Option<&'static str> {
-    existing.is_none().then_some("1")
-}
-
 // Startup migrations can hold the database for minutes before any window or
 // plugin exists, so single-instance semantics are enforced with an OS file
 // lock that is held from process start until the single-instance plugin is
@@ -258,19 +234,6 @@ fn spawn_indicator_alert() -> Option<std::process::Child> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn linux_webkit_workaround_defaults_dmabuf_off_unless_overridden() {
-        assert_eq!(linux_webkit_dmabuf_override(None), Some("1"));
-        assert_eq!(
-            linux_webkit_dmabuf_override(Some(std::ffi::OsStr::new("0"))),
-            None
-        );
-        assert_eq!(
-            linux_webkit_dmabuf_override(Some(std::ffi::OsStr::new("1"))),
-            None
-        );
-    }
 
     #[test]
     fn launch_lock_excludes_a_second_holder_until_released() {

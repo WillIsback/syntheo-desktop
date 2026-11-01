@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { EventListeners } from "./event-listeners";
 
+import { registerPreparedNoteStart } from "~/session/components/capsule/start-shortcut";
 import {
   cancelAutoStopEndedNotification,
   createAutoStopEndedNotificationKey,
@@ -860,6 +861,93 @@ describe("EventListeners notification events", () => {
         scheduledAutoStart: null,
       },
     });
+  });
+
+  test.each(["notification_confirm", "notification_accept"])(
+    "%s de détection de réunion démarre l'écoute dans la note en Préparer au premier plan",
+    async (type) => {
+      const startPrepared = vi.fn();
+      const unregister = registerPreparedNoteStart(startPrepared);
+      try {
+        const handler = await renderNotificationHandler();
+
+        handler({
+          payload: {
+            type,
+            source: {
+              type: "mic_detected",
+              app_names: ["Zoom"],
+              app_ids: ["us.zoom.xos"],
+              event_ids: ["event-1"],
+            },
+          },
+        });
+
+        expect(startPrepared).toHaveBeenCalledTimes(1);
+        expect(setTriggerAppIdsMock).toHaveBeenCalledWith(["us.zoom.xos"]);
+        await Promise.resolve();
+        expect(createSessionMock).not.toHaveBeenCalled();
+        expect(getOrCreateSessionForEventIdMock).not.toHaveBeenCalled();
+        expect(openNewMock).not.toHaveBeenCalled();
+      } finally {
+        unregister();
+      }
+    },
+  );
+
+  test("le choix « aucune de ces réunions » démarre l'écoute dans la note en Préparer", async () => {
+    const startPrepared = vi.fn();
+    const unregister = registerPreparedNoteStart(startPrepared);
+    try {
+      const handler = await renderNotificationHandler();
+
+      handler({
+        payload: {
+          type: "notification_option_selected",
+          selected_index: 1,
+          source: {
+            type: "mic_detected",
+            app_names: ["Zoom"],
+            app_ids: ["us.zoom.xos"],
+            event_ids: ["event-1"],
+          },
+        },
+      });
+
+      expect(startPrepared).toHaveBeenCalledTimes(1);
+      await Promise.resolve();
+      expect(createSessionMock).not.toHaveBeenCalled();
+      expect(openNewMock).not.toHaveBeenCalled();
+    } finally {
+      unregister();
+    }
+  });
+
+  test("une réunion de l'agenda choisie explicitement ouvre toujours sa note", async () => {
+    const startPrepared = vi.fn();
+    const unregister = registerPreparedNoteStart(startPrepared);
+    try {
+      const handler = await renderNotificationHandler();
+
+      handler({
+        payload: {
+          type: "notification_option_selected",
+          selected_index: 0,
+          source: {
+            type: "mic_detected",
+            app_names: ["Zoom"],
+            app_ids: ["us.zoom.xos"],
+            event_ids: ["event-1"],
+          },
+        },
+      });
+
+      await vi.waitFor(() => expect(openNewMock).toHaveBeenCalledTimes(1));
+      expect(startPrepared).not.toHaveBeenCalled();
+      expect(getOrCreateSessionForEventIdMock).toHaveBeenCalledWith("event-1");
+    } finally {
+      unregister();
+    }
   });
 
   test("notification_option_selected with mic_detected source sets triggerAppIds", async () => {

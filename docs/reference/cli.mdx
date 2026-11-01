@@ -42,11 +42,11 @@ syntheo meetings --source local list
 | `meetings folders` | `-q, --query TEXTE`, `--limit 1..200`, `--offset N` | Dossiers, avec `path`, `name` et `parent_path`, y compris les dossiers vides et parents. 100 par défaut. |
 | `meetings get ID` | — | Métadonnées, note canonique, résumés, participants et actions. |
 | `meetings note ID` | `--kind note\|summary\|all` | Les documents demandés. `note` par défaut. |
-| `meetings transcript ID` | `--limit 1..500`, `--offset N` | Une page bornée du transcript, en mots. 200 mots depuis l'offset 0 par défaut. |
+| `meetings transcript ID` | `--limit 1..500`, `--offset N` | Une page bornée de la transcription, en mots. 200 mots depuis l'offset 0 par défaut. |
 | `meetings history ID` | `--limit 1..200`, `--offset N` | Une page des réunions de la même série récurrente. 20 depuis l'offset 0 par défaut. |
-| `meetings export ID` | `--format markdown\|json`, `-o, --output FICHIER`, `--force` | Export complet, transcripts compris. Markdown sur la sortie standard par défaut. Un fichier existant n'est remplacé qu'avec `--force`, qui exige `--output`. |
+| `meetings export ID` | `--format markdown\|json`, `-o, --output FICHIER`, `--force` | Export complet, transcriptions comprises. Markdown sur la sortie standard par défaut. Un fichier existant n'est remplacé qu'avec `--force`, qui exige `--output`. |
 
-Les exports Markdown présentent le transcript en paragraphes attribués aux locuteurs quand cette information existe au niveau des mots. Sinon, ils gardent le texte brut du transcript. Les exports JSON peuvent contenir un champ `speakers` avec les noms utilisés.
+Les exports Markdown présentent la transcription en paragraphes attribués aux locuteurs quand cette information existe au niveau des mots. Sinon, ils gardent le texte brut de la transcription. Les exports JSON peuvent contenir un champ `speakers` avec les noms utilisés.
 
 ## Importer un enregistrement
 
@@ -63,7 +63,7 @@ syntheo --json meetings get MEETING_ID
 
 L'application doit être ouverte sur la même base : sans elle, l'import est refusé. Elle transcrit le fichier avec le serveur de transcription configuré dans l'application, puis génère le résumé avec le LLM configuré. L'audio est envoyé à ce serveur.
 
-- Formats acceptés : WAV, MP3, OGG, MP4, M4A, FLAC, WebM, AAC. Le fichier doit être non vide et lisible sur la machine qui exécute la CLI. Les fichiers de sous-titres ou de transcript ne sont pas acceptés.
+- Formats acceptés : WAV, MP3, OGG, MP4, M4A, FLAC, WebM, AAC. Le fichier doit être non vide et lisible sur la machine qui exécute la CLI. Les fichiers de sous-titres ou de transcription ne sont pas acceptés.
 - Le fichier n'est pas copié : l'application le lit à son emplacement d'origine. Ne le déplacez pas et ne le supprimez pas avant la fin de la tâche.
 - `--title` vaut par défaut le nom du fichier sans extension. `--folder` doit désigner un dossier existant (voir `meetings folders`).
 - `--request-key` (1 à 200 octets) rend l'import rejouable : réutilisez la même clé pour réessayer le même import, et il renvoie la tâche et la réunion d'origine, même après un échec. Un nouvel import exige une nouvelle clé.
@@ -184,4 +184,4 @@ Exige `--json` et `--source local`. `--from-ms` et `--until-ms` sont des millise
 syntheo --json meetings --source local delete MEETING_ID --if-export-sha256 HASH --require-transcription-complete
 ```
 
-Supprime définitivement une réunion locale terminée : historique des documents, transcripts et index de recherche dérivé. Exige `--source local`, `--if-export-sha256` (le SHA-256 de l'export JSON complet, tel qu'imprimé sur la sortie standard avec son retour à la ligne final, ou tel qu'enregistré avec `--output`) et `--require-transcription-complete`. Fermez l'application avant. Un export modifié, un transcript inachevé ou une proposition en attente empêche la suppression. Une suppression interrompue reprend avec le même identifiant et la même empreinte.
+Supprime définitivement une réunion locale terminée : historique des documents, transcriptions et index de recherche dérivé. Exige `--source local`, `--if-export-sha256` (le SHA-256 de l'export JSON complet, tel qu'imprimé sur la sortie standard avec son retour à la ligne final, ou tel qu'enregistré avec `--output`) et `--require-transcription-complete`. Fermez l'application avant. Un export modifié, une transcription inachevé ou une proposition en attente empêche la suppression. Une suppression interrompue reprend avec le même identifiant et la même empreinte.

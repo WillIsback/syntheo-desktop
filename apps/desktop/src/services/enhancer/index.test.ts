@@ -841,6 +841,56 @@ describe("EnhancerService", () => {
     service.dispose();
   });
 
+  it("leaves a durable job alone while its summary is still generating", async () => {
+    vi.useFakeTimers();
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    snapshot = createSnapshot({ notes: [createNote()], wordCount: 40 });
+    mocks.loadPendingAutoEnhanceJobs.mockResolvedValue([createPendingJob()]);
+    mocks.listenerGetState.mockReturnValue({
+      live: { status: "inactive", sessionId: null },
+    });
+    const ai = createMockAITaskStore((taskId) =>
+      taskId === "note-1-enhance"
+        ? { taskType: "enhance", status: "generating", streamedText: "" }
+        : undefined,
+    );
+    const service = new EnhancerService(createDeps({ aiTaskStore: ai.store }));
+
+    service.start();
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(15_000);
+
+    // Le tic de reprise passe toutes les 5 s : il ne relance ni ne journalise
+    // un compte-rendu dont la génération est déjà en cours.
+    expect(mocks.loadPendingAutoEnhanceJobs.mock.calls.length).toBeGreaterThan(
+      1,
+    );
+    expect(mocks.loadSessionContentSnapshot).not.toHaveBeenCalled();
+    expect(ai.generate).not.toHaveBeenCalled();
+    expect(info).not.toHaveBeenCalled();
+    info.mockRestore();
+    service.dispose();
+  });
+
+  it("labels the pending-job resume log for app.log", async () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    snapshot = createSnapshot({ notes: [createNote()], wordCount: 40 });
+    mocks.loadPendingAutoEnhanceJobs.mockResolvedValue([createPendingJob()]);
+    mocks.listenerGetState.mockReturnValue({
+      live: { status: "inactive", sessionId: null },
+    });
+    const ai = createMockAITaskStore();
+    const service = new EnhancerService(createDeps({ aiTaskStore: ai.store }));
+
+    service.start();
+
+    await vi.waitFor(() => expect(info).toHaveBeenCalled());
+    // Seule l'étiquette de code survit dans app.log : elle doit nommer l'action.
+    expect(info.mock.calls[0]?.[0]).toMatch(/^\[enhancer:resume-pending\] /);
+    info.mockRestore();
+    service.dispose();
+  });
+
   it("emits no-model and started auto-enhance outcomes", async () => {
     snapshot = createSnapshot({ wordCount: 40 });
     const noModelService = new EnhancerService(

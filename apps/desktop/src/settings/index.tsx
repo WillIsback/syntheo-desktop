@@ -17,7 +17,6 @@ import { SettingsDictionary } from "~/settings/dictionary";
 import { SettingsHydrationBoundary } from "~/settings/hydration-boundary";
 import { SettingsImports } from "~/settings/imports";
 import { SettingsPrivacy } from "~/settings/privacy";
-import { SettingsInsights } from "~/settings/stats";
 import { StandardContentWrapper } from "~/shared/main";
 import { type Tab } from "~/store/zustand/tabs";
 
@@ -48,9 +47,6 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "stats":
-      case "insights":
-        return <SettingsInsights />;
       case "app":
         return <SettingsApp />;
       case "meetings":
@@ -85,15 +81,17 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
   return (
     <div
       data-settings-content
-      className="bg-card dark:bg-accent flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
+      className="bg-background flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
     >
       <div className="relative min-h-0 w-full min-w-0 flex-1 overflow-hidden">
         <div
           className={cn([
-            "scroll-fade-y scrollbar-hide h-full min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto px-6 pt-6 pb-10",
+            "scroll-fade-y scrollbar-hide h-full min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto",
           ])}
         >
-          {renderContent()}
+          <div className="flex max-w-[720px] flex-col gap-[26px] px-12 pt-9 pb-16">
+            {renderContent()}
+          </div>
         </div>
       </div>
     </div>

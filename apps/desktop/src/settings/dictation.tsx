@@ -5,6 +5,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { useShallow } from "zustand/react/shallow";
 
 import { commands as transcription } from "@syntheo/plugin-transcription";
+import { Microphone } from "@syntheo/ui/components/icons";
 import { Button } from "@syntheo/ui/components/ui/button";
 import { Textarea } from "@syntheo/ui/components/ui/textarea";
 
@@ -16,9 +17,15 @@ import { AudioDeviceRow } from "~/settings/general/audio-settings";
 import { SettingsPageTitle } from "~/settings/page-title";
 import { PlanGate } from "~/settings/plan-gate";
 import { useSetSettingValue } from "~/settings/queries";
-import { SettingSwitchRow } from "~/settings/setting-row";
+import {
+  SettingRow,
+  SettingRows,
+  SettingSwitchRow,
+} from "~/settings/setting-row";
 import { useConfigValue } from "~/shared/config";
-import { useTabs } from "~/store/zustand/tabs";
+import { type SettingsTab, useTabs } from "~/store/zustand/tabs";
+
+const LINK_CLASS = "text-primary underline underline-offset-[3px]";
 
 export function SettingsDictation() {
   const { t } = useLingui();
@@ -53,112 +60,140 @@ export function SettingsDictation() {
     })),
   );
   const openNew = useTabs((state) => state.openNew);
+  const open = (tab: SettingsTab) =>
+    openNew({ type: "settings", state: { tab } });
   const copy = useMutation({
     mutationFn: (transcript: string) => writeText(transcript),
   });
+  const linux = platform() === "linux";
 
   return (
-    <div className="flex flex-col gap-8">
-      <SettingsPageTitle title={<Trans>Dictation</Trans>} />
+    <div className="flex flex-col gap-[26px]">
+      <SettingsPageTitle
+        title={<Trans>Dictation</Trans>}
+        lede={
+          <Trans>
+            Speak into any text field, in any app. The text is inserted when you
+            finish.
+          </Trans>
+        }
+      />
       <PlanGate plan="pro" allowed={isPro}>
-        <div className="flex flex-col gap-6">
-          <p className="text-muted-foreground text-sm">
-            <Trans>
-              Speak into the focused text field in your apps. Your transcript
-              appears when you finish.
-            </Trans>
-          </p>
-          <SettingSwitchRow
-            title={<Trans>Enable dictation</Trans>}
-            description={
-              <Trans>
-                Keep Syntheo running to use your shortcut in other apps.
-              </Trans>
-            }
-            checked={enabled}
-            onChange={setEnabled}
-          />
-          <DictationShortcut shortcut={shortcut} />
-          <AudioDeviceRow
-            title={<Trans>Microphone</Trans>}
-            description={
-              <Trans>Choose the microphone that captures your voice.</Trans>
-            }
-            value={microphone}
-            devices={microphones.data ?? []}
-            onChange={setMicrophone}
-          />
-          <SettingSwitchRow
-            title={<Trans>Live transcript preview</Trans>}
-            description={
-              <Trans>
-                Show words in the floating panel as you speak. Uses a live
-                connection to your selected transcription provider when
-                supported. Text is inserted when you finish.
-              </Trans>
-            }
-            checked={livePreview}
-            onChange={setLivePreview}
-          />
-          <SettingSwitchRow
-            title={<Trans>Hands-free dictation</Trans>}
-            description={
-              handsFree ? (
+        <div className="flex flex-col gap-[26px]">
+          <SettingRows>
+            <SettingSwitchRow
+              title={<Trans>Enable dictation</Trans>}
+              description={
                 <Trans>
-                  Press your shortcut to start, then press it again to finish.
+                  Keep Syntheo running to use your shortcut in other apps.
                 </Trans>
-              ) : (
+              }
+              checked={enabled}
+              onChange={setEnabled}
+            />
+            <DictationShortcut shortcut={shortcut} />
+            <SettingSwitchRow
+              title={<Trans>Hands-free dictation</Trans>}
+              description={
+                handsFree ? (
+                  <Trans>
+                    Press your shortcut to start, then press it again to finish.
+                  </Trans>
+                ) : (
+                  <Trans>
+                    Hold your shortcut while speaking, then release it to
+                    finish.
+                  </Trans>
+                )
+              }
+              checked={handsFree}
+              onChange={setHandsFree}
+            />
+            <AudioDeviceRow
+              title={<Trans>Microphone</Trans>}
+              description={
+                <>
+                  <Trans>The one that captures your voice.</Trans>{" "}
+                  <button
+                    type="button"
+                    className={LINK_CLASS}
+                    onClick={() => open("permissions")}
+                  >
+                    <Trans>System permissions</Trans>
+                  </button>
+                </>
+              }
+              value={microphone}
+              devices={microphones.data ?? []}
+              onChange={setMicrophone}
+            />
+            <SettingSwitchRow
+              title={<Trans>Live transcript preview</Trans>}
+              description={
                 <Trans>
-                  Hold your shortcut while speaking, then release it to finish.
+                  Words appear in a small bubble while you speak. Text is
+                  inserted when you finish.
                 </Trans>
-              )
-            }
-            checked={handsFree}
-            onChange={setHandsFree}
-          />
-          <p className="text-muted-foreground text-xs">
-            {platform() === "linux" ? (
-              <Trans>
-                On Wayland, approve the shortcuts in your desktop's prompt. Use
-                Control + Alt + Escape to cancel. On X11, press Escape to
-                cancel. The target app must expose an editable accessibility
-                field.
-              </Trans>
-            ) : (
+              }
+              checked={livePreview}
+              onChange={setLivePreview}
+            />
+            <SettingRow
+              controlWidth="content"
+              title={<Trans>Language and vocabulary</Trans>}
+              description={
+                <>
+                  <Trans>Words specific to you go in your</Trans>{" "}
+                  <button
+                    type="button"
+                    className={LINK_CLASS}
+                    onClick={() => open("dictionary")}
+                  >
+                    <Trans>dictionary</Trans>
+                  </button>
+                </>
+              }
+            >
+              {() => (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => open("transcription")}
+                >
+                  <Trans>Transcription server ›</Trans>
+                </Button>
+              )}
+            </SettingRow>
+          </SettingRows>
+
+          {linux ? (
+            <details data-testid="dictation-linux-help">
+              <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-sm">
+                <Trans>On Linux (Wayland or X11)</Trans>
+              </summary>
+              <p className="text-muted-foreground mt-2.5 text-sm">
+                <Trans>
+                  On Wayland, approve the shortcuts in your desktop's prompt.
+                  Use Control + Alt + Escape to cancel. On X11, press Escape to
+                  cancel. The target app must expose an editable accessibility
+                  field.
+                </Trans>
+              </p>
+            </details>
+          ) : (
+            <p className="text-muted-foreground text-[13px]">
               <Trans>
                 Press Escape to cancel. Dictation stops after five minutes and
                 pauses while Syntheo records a meeting.
               </Trans>
-            )}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              onClick={() =>
-                openNew({ type: "settings", state: { tab: "permissions" } })
-              }
-            >
-              <Trans>Permissions</Trans>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() =>
-                openNew({ type: "settings", state: { tab: "transcription" } })
-              }
-            >
-              <Trans>Language & transcription</Trans>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() =>
-                openNew({ type: "settings", state: { tab: "dictionary" } })
-              }
-            >
-              <Trans>Dictionary</Trans>
-            </Button>
-          </div>
+            </p>
+          )}
+
           {enabled && (
-            <div className="border-border rounded-lg border p-4" role="status">
+            <div
+              className="border-border rounded-[10px] border p-4"
+              role="status"
+            >
               <p className="text-sm">
                 {status.phase === "recording"
                   ? t`Listening…`
@@ -197,28 +232,35 @@ export function SettingsDictation() {
               )}
             </div>
           )}
-          <label className="flex flex-col gap-2 text-sm">
-            <span>
-              <Trans>Try dictation</Trans>
-            </span>
-            <Textarea
-              placeholder={t`Click here, then use your dictation shortcut.`}
-            />
-          </label>
-          <p className="text-muted-foreground text-xs">
-            <Trans>
-              Dictation uses your microphone, transcription provider, languages,
-              and dictionary. Audio is never written to disk; it only passes
-              through memory. Your last transcript stays in memory until
-              dictation is disabled or Syntheo closes.
-            </Trans>
-          </p>
+
+          <section className="flex flex-col gap-3">
+            <h3 className="text-faint text-[11px] font-semibold tracking-[0.08em] uppercase">
+              <Trans>Try it</Trans>
+            </h3>
+            <label className="border-input text-muted-foreground flex items-start gap-2.5 rounded-[10px] border border-dashed p-3.5 text-sm">
+              <Microphone aria-hidden className="mt-1 size-[18px] shrink-0" />
+              <Textarea
+                aria-label={t`Try dictation`}
+                placeholder={t`Click here, then use your dictation shortcut.`}
+                className="text-foreground min-h-16 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
+              />
+            </label>
+            <p className="text-muted-foreground text-[13px]">
+              <Trans>
+                Dictation uses your microphone, transcription provider,
+                languages, and dictionary. Audio is never written to disk; it
+                only passes through memory. Your last transcript stays in memory
+                until dictation is disabled or Syntheo closes.
+              </Trans>
+            </p>
+          </section>
+
           {status.lastTranscript && (
             <div className="flex flex-col gap-3">
               <h3 className="text-sm font-medium">
                 <Trans>Last dictation</Trans>
               </h3>
-              <p className="border-border rounded-lg border p-4 text-sm whitespace-pre-wrap">
+              <p className="border-border rounded-[10px] border p-4 text-sm whitespace-pre-wrap">
                 {status.lastTranscript}
               </p>
               <Button

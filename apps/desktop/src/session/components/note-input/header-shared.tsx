@@ -103,7 +103,7 @@ export function iconHeaderViewClassName(
     "group/header-view rounded-pill flex shrink-0 items-center justify-center transition-colors select-none [corner-shape:round] [&>svg]:shrink-0",
     isActive
       ? [
-          "text-foreground bg-white shadow-xs",
+          "text-foreground bg-card shadow-xs",
           "dark:bg-accent dark:text-foreground dark:shadow-none",
         ]
       : [

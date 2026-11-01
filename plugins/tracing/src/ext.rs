@@ -20,6 +20,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'a, R, M> {
     pub fn do_log(&self, level: Level, data: Vec<serde_json::Value>) -> Result<(), crate::Error> {
         let argument_count = data.len();
         let diagnostic = diagnostic_message(&data);
+        let diagnostic = diagnostic.as_deref();
         match level {
             Level::Trace => {
                 tracing::trace!(target: super::WEBVIEW_CONSOLE_TARGET, argument_count, diagnostic, "webview_console_event");
@@ -41,25 +42,95 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'a, R, M> {
     }
 }
 
-const DIAGNOSTIC_PREFIXES: &[&str] = &["[cloudsync]"];
+// `[render-perf]` : résumé des rendus pendant l'écoute, émis par les seuls
+// builds devtools (`devtools-bar/render-perf.ts`) et fait uniquement de noms
+// de code et de nombres.
+const DIAGNOSTIC_PREFIXES: &[&str] = &["[cloudsync]", "[render-perf]"];
 const DIAGNOSTIC_MAX_LEN: usize = 200;
+const CODE_LABEL_MAX_LEN: usize = 40;
+const ERROR_IDENTIFIER_MAX_LEN: usize = 64;
+const MAX_ERROR_KINDS: usize = 4;
 
-/// Console payloads are dropped from app.log for privacy. The only exception is
-/// a leading static diagnostic literal from an allowlisted subsystem; trailing
-/// arguments (error objects, ids) are never recorded.
-fn diagnostic_message(data: &[serde_json::Value]) -> Option<&str> {
-    let first = data.first()?.as_str()?;
-    if !DIAGNOSTIC_PREFIXES
+/// Console payloads are dropped from app.log for privacy. What survives is
+/// limited to what the code itself wrote, never data:
+/// - the leading literal of an allowlisted subsystem (`[cloudsync] …`);
+/// - otherwise only the code label of the first argument (`[speaker-context]`
+///   out of `"[speaker-context] observation failed"`), the rest of that string
+///   being dropped since it may be interpolated;
+/// - the name and code of `Error` arguments (`error=Error(ERR_SQLITE_ERROR)`),
+///   serialized as `{"$error": {name, code}}` by [`JS_INIT_SCRIPT`]. Their
+///   message, string errors and any other argument are never recorded.
+///
+/// Labels, names and codes must look like code identifiers, so free text that
+/// merely starts with brackets is not logged either.
+fn diagnostic_message(data: &[serde_json::Value]) -> Option<String> {
+    let first = data.first().and_then(serde_json::Value::as_str);
+    let label = first.and_then(|first| {
+        if DIAGNOSTIC_PREFIXES
+            .iter()
+            .any(|prefix| first.starts_with(prefix))
+        {
+            let end = first
+                .char_indices()
+                .nth(DIAGNOSTIC_MAX_LEN)
+                .map_or(first.len(), |(index, _)| index);
+            Some(&first[..end])
+        } else {
+            code_label(first)
+        }
+    });
+    let errors: Vec<String> = data
         .iter()
-        .any(|prefix| first.starts_with(prefix))
-    {
-        return None;
+        .filter_map(error_kind)
+        .take(MAX_ERROR_KINDS)
+        .collect();
+    let errors = (!errors.is_empty()).then(|| format!("error={}", errors.join(",")));
+    match (label, errors) {
+        (Some(label), Some(errors)) => Some(format!("{label} {errors}")),
+        (Some(label), None) => Some(label.to_string()),
+        (None, errors) => errors,
     }
-    let end = first
-        .char_indices()
-        .nth(DIAGNOSTIC_MAX_LEN)
-        .map_or(first.len(), |(index, _)| index);
-    Some(&first[..end])
+}
+
+/// `[module]` at the start of a console message, followed by more text.
+fn code_label(message: &str) -> Option<&str> {
+    let end = message.find(']')?;
+    let inner = message.strip_prefix('[')?.get(..end - 1)?;
+    let valid = !inner.is_empty()
+        && inner.len() <= CODE_LABEL_MAX_LEN
+        && inner
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"-_.:/".contains(&byte))
+        && message[end + 1..].starts_with(' ');
+    valid.then(|| &message[..=end])
+}
+
+fn error_kind(value: &serde_json::Value) -> Option<String> {
+    let error = value.get("$error")?;
+    let name = error.get("name")?.as_str().filter(|name| {
+        name.len() <= ERROR_IDENTIFIER_MAX_LEN
+            && name.starts_with(|first: char| first.is_ascii_alphabetic())
+            && name
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
+    })?;
+    let code = match error.get("code") {
+        Some(serde_json::Value::Number(code)) => code.as_i64().map(|code| code.to_string()),
+        Some(serde_json::Value::String(code))
+            if !code.is_empty()
+                && code.len() <= ERROR_IDENTIFIER_MAX_LEN
+                && code
+                    .bytes()
+                    .all(|byte| byte.is_ascii_alphanumeric() || b"_.-".contains(&byte)) =>
+        {
+            Some(code.clone())
+        }
+        _ => None,
+    };
+    Some(match code {
+        Some(code) => format!("{name}({code})"),
+        None => name.to_string(),
+    })
 }
 
 impl<R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'_, R, M> {
@@ -262,7 +333,14 @@ pub const JS_INIT_SCRIPT: &str = r#"
         const originalError = console.error.bind(console);
         
         const invoke = window.__TAURI__.core.invoke;
-        const log = (level, ...args) => invoke('plugin:tracing|do_log', { level, data: args });
+        // An Error only keeps its name and code: its message may quote meeting
+        // content and is never logged (see `diagnostic_message`).
+        const describe = (arg) => {
+            if (!(arg instanceof Error)) return arg;
+            const code = typeof arg.code === 'string' || typeof arg.code === 'number' ? arg.code : undefined;
+            return { $error: { name: String(arg.name), code } };
+        };
+        const log = (level, ...args) => invoke('plugin:tracing|do_log', { level, data: args.map(describe) });
         
         console.log = (...args) => { originalLog(...args); log('INFO', ...args); };
         console.debug = (...args) => { originalDebug(...args); log('DEBUG', ...args); };
@@ -324,7 +402,7 @@ mod tests {
             serde_json::json!({ "message": "secret" }),
         ];
         assert_eq!(
-            super::diagnostic_message(&data),
+            super::diagnostic_message(&data).as_deref(),
             Some("[cloudsync] local sync configuration failed; retrying")
         );
 
@@ -344,6 +422,106 @@ mod tests {
         ))];
         let truncated = super::diagnostic_message(&long).unwrap();
         assert_eq!(truncated.chars().count(), super::DIAGNOSTIC_MAX_LEN);
+    }
+
+    #[test]
+    fn diagnostic_message_keeps_render_perf_summaries() {
+        let summary =
+            "[render-perf] component seq=3 name=SessionLevelMeter zone=capsule renders=100";
+        assert_eq!(
+            super::diagnostic_message(&[serde_json::json!(summary)]).as_deref(),
+            Some(summary)
+        );
+    }
+
+    #[test]
+    fn diagnostic_message_keeps_code_labels_and_error_kinds_only() {
+        // A periodic `console.error("[speaker-context] observation failed", error)`
+        // must say where it comes from and what failed (issue #268)…
+        let data = vec![
+            serde_json::json!("[speaker-context] observation failed for Réunion Alice"),
+            serde_json::json!({ "$error": { "name": "Error", "code": "ERR_SQLITE_ERROR" } }),
+        ];
+        assert_eq!(
+            super::diagnostic_message(&data).as_deref(),
+            Some("[speaker-context] error=Error(ERR_SQLITE_ERROR)")
+        );
+        // …without the rest of the message, string errors or anything that
+        // does not look like a code identifier.
+        assert_eq!(
+            super::diagnostic_message(&[
+                serde_json::json!("[listener] audio recovery deferred"),
+                serde_json::json!("no such table: Réunion Alice"),
+                serde_json::json!({ "$error": { "name": "Bonjour Alice", "code": "a b" } }),
+                serde_json::json!({ "$error": { "name": "AbortError", "code": 20 } }),
+            ])
+            .as_deref(),
+            Some("[listener] error=AbortError(20)")
+        );
+        assert_eq!(
+            super::diagnostic_message(&[
+                serde_json::json!("query failed"),
+                serde_json::json!({ "$error": { "name": "TypeError" } }),
+            ])
+            .as_deref(),
+            Some("error=TypeError")
+        );
+        for not_a_label in [
+            "[Réunion avec Alice] notes",
+            "[alice bob] x",
+            "[] x",
+            "[speaker-context]",
+            "speaker-context] x",
+        ] {
+            assert_eq!(
+                super::diagnostic_message(&[serde_json::json!(not_a_label)]),
+                None,
+                "{not_a_label}"
+            );
+        }
+        assert_eq!(
+            super::diagnostic_message(&[
+                serde_json::json!("[cloudsync] local sync configuration failed"),
+                serde_json::json!({ "$error": { "name": "Error" } }),
+            ])
+            .as_deref(),
+            Some("[cloudsync] local sync configuration failed error=Error")
+        );
+    }
+
+    #[test]
+    fn console_override_sends_error_kind_but_not_error_message() {
+        let (_rt, ctx) = setup_runtime();
+        ctx.with(|ctx| {
+            ctx.eval::<(), _>(
+                r#"
+                globalThis.window = globalThis;
+                globalThis.setTimeout = function(fn) { fn(); };
+                globalThis.console = { log() {}, debug() {}, info() {}, warn() {}, error() {} };
+                globalThis.sent = [];
+                globalThis.window.__TAURI__ = { core: { invoke: function(_cmd, payload) {
+                    globalThis.sent.push(payload);
+                    return Promise.resolve();
+                } } };
+            "#,
+            )
+            .unwrap();
+            ctx.eval::<(), _>(super::JS_INIT_SCRIPT).unwrap();
+            let sent: String = ctx
+                .eval(
+                    r#"
+                    const error = new TypeError("secret meeting title");
+                    error.code = "ERR_X";
+                    console.error("[speaker-context] observation failed", error);
+                    JSON.stringify(globalThis.sent)
+                "#,
+                )
+                .unwrap();
+            assert_eq!(
+                sent,
+                r#"[{"level":"ERROR","data":["[speaker-context] observation failed",{"$error":{"name":"TypeError","code":"ERR_X"}}]}]"#
+            );
+        });
     }
 
     fn setup_runtime() -> (Runtime, Context) {

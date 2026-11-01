@@ -5,12 +5,7 @@ import { useRef, useState } from "react";
 
 import { PromptEditor, type PromptEditorHandle } from "@syntheo/editor/prompt";
 import { commands as templateCommands } from "@syntheo/plugin-template";
-import {
-  Check,
-  DotsThree,
-  MagicWand,
-  Sparkle,
-} from "@syntheo/ui/components/icons";
+import { Check, DotsThree, MagicWand } from "@syntheo/ui/components/icons";
 import { Button } from "@syntheo/ui/components/ui/button";
 import {
   AppFloatingPanel,
@@ -53,7 +48,9 @@ export function AutoTemplateDetails() {
   if (sourceQuery.error || !sourceQuery.data) {
     return (
       <div className="text-destructive flex h-full items-center justify-center px-6 text-center text-sm">
-        {sourceQuery.error?.message || "Auto format is unavailable."}
+        {sourceQuery.error?.message || (
+          <Trans>The Automatic format is unavailable.</Trans>
+        )}
       </div>
     );
   }
@@ -145,10 +142,17 @@ export function AutoFormatForm({
         void form.handleSubmit().catch(() => {});
       }}
     >
-      <div className="flex h-12 shrink-0 items-center justify-between gap-3 pr-1 pl-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <Sparkle className="size-4 shrink-0 text-violet-500" />
-          <span className="truncate text-sm font-semibold">Auto</span>
+      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3 px-6 pt-6 lg:px-11 lg:pt-8">
+        <div className="flex max-w-[600px] min-w-0 flex-col gap-1">
+          <h1 className="font-serif text-[34px] leading-[1.1] font-medium">
+            <Trans>Automatic</Trans>
+          </h1>
+          <p className="text-muted-foreground text-[15px]">
+            <Trans>
+              Syntheo structures the summary itself, without a fixed template.
+              Used when no template is chosen for a meeting.
+            </Trans>
+          </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <Button
@@ -156,9 +160,9 @@ export function AutoFormatForm({
             size="sm"
             variant="ghost"
             className={cn([
-              "text-muted-foreground shrink-0 hover:text-black",
+              "text-muted-foreground hover:text-foreground h-8 shrink-0 rounded-lg px-2.5 text-[13px]",
               isDefault
-                ? "text-emerald-600 hover:bg-transparent hover:text-emerald-700 disabled:opacity-100 dark:text-emerald-400 dark:hover:text-emerald-300"
+                ? "bg-accent text-accent-foreground disabled:opacity-100"
                 : null,
             ])}
             onClick={() => {
@@ -176,10 +180,10 @@ export function AutoFormatForm({
             {isDefault ? (
               <>
                 <Check className="size-3.5" weight="bold" />
-                <Trans>Current default</Trans>
+                <Trans>Default template</Trans>
               </>
             ) : (
-              <Trans>Set as default</Trans>
+              <Trans>Use by default</Trans>
             )}
           </Button>
           <form.Subscribe selector={(state) => state.values.format}>
@@ -219,13 +223,13 @@ export function AutoFormatForm({
         </div>
       </div>
 
-      <div className="scroll-fade-y min-h-0 flex-1 overflow-y-auto px-6 pt-3 pb-6">
+      <div className="scroll-fade-y min-h-0 flex-1 overflow-y-auto px-6 pt-5 pb-6 lg:px-11">
         <div className="flex max-w-4xl flex-col gap-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-lg font-semibold">
+              <h2 className="text-lg font-semibold">
                 <Trans>Summary format</Trans>
-              </h1>
+              </h2>
               <p className="text-muted-foreground mt-1 text-sm">
                 <Trans>
                   Choose how Auto structures and styles your summaries.

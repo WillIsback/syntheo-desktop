@@ -1,11 +1,8 @@
+import { t } from "@lingui/core/macro";
+
 import type { DegradedError } from "@syntheo/plugin-transcription";
 
 import { PROVIDERS } from "~/settings/ai/stt/shared";
-
-// Règle audio de Syntheo : rien n'est conservé, la coupure manquera au
-// transcript.
-const NO_AUDIO_KEPT_NOTE =
-  "Aucun audio n'est conservé : ce passage manquera au transcript. Reconnexion…";
 
 function providerDisplayName(providerId: string | null | undefined) {
   if (!providerId) return null;
@@ -23,6 +20,16 @@ function isProviderSideStreamError(message: string) {
   );
 }
 
+// Le listener (crates/listener-core, supervisor) ne retente pas la connexion
+// après un refus de clé ou de réglages : seule une action de l'utilisateur
+// peut alors relancer la transcription en direct.
+function isRetriedAutomatically(degraded: DegradedError | null) {
+  return (
+    degraded?.type !== "authentication_failed" &&
+    degraded?.type !== "provider_configuration"
+  );
+}
+
 function getPauseCause({
   degraded,
   sttProvider,
@@ -33,32 +40,32 @@ function getPauseCause({
   online: boolean;
 }) {
   const providerName =
-    providerDisplayName(sttProvider) ?? "le service de transcription";
+    providerDisplayName(sttProvider) ?? t`the transcription service`;
 
   if (!online) {
-    return "vous êtes hors ligne";
+    return t`you are offline`;
   }
 
   if (degraded?.type === "authentication_failed") {
-    return `${providerName} a refusé votre clé d'API`;
+    return t`${providerName} rejected your API key`;
   }
 
   if (degraded?.type === "provider_configuration") {
-    return `${providerName} a refusé les réglages de transcription`;
+    return t`${providerName} rejected the transcription settings`;
   }
 
   if (
     degraded?.type === "stream_error" &&
     isProviderSideStreamError(degraded.message)
   ) {
-    return `${providerName} subit une panne`;
+    return t`${providerName} is having an outage`;
   }
 
   if (degraded) {
-    return `Syntheo ne parvient pas à joindre ${providerName}`;
+    return t`Syntheo cannot reach ${providerName}`;
   }
 
-  return `${providerName} n'envoie plus de texte`;
+  return t`${providerName} stopped sending text`;
 }
 
 export function getLiveTranscriptPausedMessage({
@@ -71,5 +78,14 @@ export function getLiveTranscriptPausedMessage({
   online?: boolean;
 }) {
   const cause = getPauseCause({ degraded, sttProvider, online });
-  return `Transcript en direct en pause : ${cause}. ${NO_AUDIO_KEPT_NOTE}`;
+  // Règle audio de Syntheo : rien n'est conservé, la coupure manquera à la
+  // transcription.
+  if (!isRetriedAutomatically(degraded)) {
+    return t`Live transcription paused: ${cause}. No audio is kept: this passage will be missing from the transcription. Check the transcription server settings.`;
+  }
+  return t`Live transcription paused: ${cause}. No audio is kept: this passage will be missing from the transcription. Reconnecting…`;
+}
+
+export function getLiveTranscriptResumedMessage() {
+  return t`Live transcription resumed.`;
 }

@@ -490,10 +490,33 @@ describe("session correction chat tool", () => {
 
     expect(result).toEqual({
       status: "error",
-      message: "The requested summary does not belong to the target session.",
+      code: "summary_not_in_session",
+      message:
+        'Summary "missing-note" does not belong to session session-1. Retry with one of these enhancedNoteId values, or omit enhancedNoteId: "note-1".',
       sessionId: "session-1",
     });
     expect(mocks.applySessionContentCorrections).not.toHaveBeenCalled();
+  });
+
+  it("ignores a stale summary id from the tab view and corrects the note's summaries", async () => {
+    // Vue d'onglet périmée (compte-rendu par défaut remplacé) : le document
+    // vivant montre le vrai compte-rendu, la correction doit l'atteindre.
+    mocks.loadSessionContentSnapshot.mockResolvedValue(
+      snapshot({ notes: [summary("Discussed X roadmap.")] }),
+    );
+
+    const result = await (
+      buildTool({ enhancedNoteId: "summary:session-1" }) as any
+    ).execute({
+      target: "summary",
+      oldText: "X roadmap",
+      newText: "Y roadmap",
+    });
+
+    expect(result).toMatchObject({
+      status: "applied",
+      summaryChanges: [{ enhancedNoteId: "note-1", replacements: 1 }],
+    });
   });
 
   it("still corrects the transcript when the default target has an invalid summary id", async () => {

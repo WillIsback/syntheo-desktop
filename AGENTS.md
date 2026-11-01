@@ -6,6 +6,7 @@ Syntheo Desktop is a pnpm and Rust workspace (Tauri 2 desktop app), derived from
 - `crates/db-app/`: SQLite schema and migrations. New migrations are timestamped after the last existing one.
 - `crates/owhisper-client/`: STT adapters. Only on-premise protocols are allowed (OpenAI Realtime, vLLM Realtime, NVIDIA NIM WebSocket/gRPC, OpenAI-compatible batch).
 - `crates/template-app/`: Jinja prompt templates (enhance).
+- `design/refonte-the-vert/`: UI redesign in progress ("Thé vert" identity, "document vivant" note flow). Read its `README.md` before any UI change: it defines the target design, the work lots and the clickable mockups.
 
 Project rules (see `docs/architecture.mdx`):
 

@@ -339,7 +339,6 @@ const SESSION_REMOTE_PARTICIPANT_IDS_SQL = `
                         NULLIF(human.email, ''),
                         participant.email
                       ))
-                    )
                   )
                 )
                 OR (

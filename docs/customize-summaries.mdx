@@ -1,15 +1,17 @@
 ---
 title: "Personnaliser les comptes rendus"
-description: "Choisissez un modèle de compte rendu, créez le vôtre ou faites-le générer par l'IA."
+description: "Choisissez un modèle de compte rendu, créez le vôtre ou faites proposer ses sections par l'IA."
 ---
 
-Un compte rendu suit soit le format « Auto », soit un modèle aux sections fixes. Vous gérez les deux dans l'onglet **« Modèles »** (**Paramètres → Espace de travail → « Modèles »**).
+Un compte rendu suit soit le format « Automatique », soit un modèle aux sections fixes. Vous gérez les deux dans la vue **Modèles** : **Paramètres → Mes réunions → « Modèles »**, ou la palette <kbd>Ctrl</kbd> + <kbd>K</kbd>.
+
+La colonne de gauche liste les modèles en trois groupes : « Par défaut » (le format « Automatique »), « Mes favoris » et « Tous les modèles ». Utilisez « Rechercher un modèle » pour filtrer la liste.
 
 ## Les modèles fournis
 
 Syntheo installe 21 modèles en français.
 
-Quatre modèles Syntheo sont marqués comme favoris et apparaissent en tête de liste :
+Quatre modèles Syntheo sont marqués comme favoris et apparaissent sous « Mes favoris » :
 
 | Modèle | Usage |
 | --- | --- |
@@ -20,39 +22,49 @@ Quatre modèles Syntheo sont marqués comme favoris et apparaissent en tête de 
 
 Dix-sept autres modèles couvrent des cas courants : conseil d'administration, séance de brainstorming, lancement client, entretien de découverte client, standup quotidien, point direction, post-mortem d'incident, rendez-vous investisseur, notes de cours, entretien individuel (1:1), entretien annuel, revue de roadmap produit, lancement de projet, appel de découverte commerciale, planification de sprint, rétrospective de sprint et revue de conception technique.
 
-Tous ces modèles sont modifiables. Pour ajouter ou retirer un modèle des favoris, faites un clic droit sur son nom dans la liste et choisissez « Ajouter aux favoris » ou « Retirer des favoris ».
+Tous ces modèles sont modifiables. Pour ajouter ou retirer un modèle des favoris, faites un clic droit sur son nom dans la liste et choisissez « Ajouter aux favoris » ou « Retirer des favoris ». Dans l'éditeur, le bouton « Ajouter aux favoris » (ou « Favori ») fait de même.
 
 ## Choisir un modèle pour une réunion
 
-Dans une note, cliquez sur l'onglet du compte rendu pour ouvrir le sélecteur. Recherchez un modèle, puis sélectionnez-le pour générer un compte rendu avec ce format.
+Avant la réunion, à l'étape **Préparer**, cliquez sur le type affiché à côté de « Type », dans la fiche de la note (« Automatique » par défaut). Recherchez un modèle avec « Rechercher un type de réunion », puis sélectionnez-le. Le compte rendu suivra ce modèle.
 
-Changer de modèle ne réécrit pas un compte rendu existant. Pour appliquer à nouveau le même modèle, utilisez « Régénérer » dans le sélecteur.
+Après la réunion, à l'étape **Synthèse**, cliquez sur le nom du modèle sous le titre pour ouvrir le sélecteur. Sélectionner un autre modèle remplace le compte rendu par un nouveau, rédigé selon ce modèle. Pour appliquer à nouveau le même modèle, utilisez « Régénérer ». Voir [Notes, comptes rendus et transcriptions](/notes).
 
 ## Créer un modèle
 
-1. Ouvrez l'onglet **« Modèles »**.
-2. Cliquez sur **+** en haut de la liste, ou sur « Créer un modèle ».
-3. Donnez un titre et une description, puis ajoutez des sections. Chaque section a un titre et une consigne qui décrit ce que le compte rendu doit contenir.
+1. Ouvrez la vue **Modèles**.
+2. Cliquez sur « + Nouveau modèle » en bas de la liste.
+3. Donnez un nom et une description (« À quoi sert ce modèle ? »).
+4. Sous « Utilisé pour », cliquez sur « + Ajouter » pour indiquer les réunions auxquelles ce modèle est destiné (équipe, rôle, fréquence…), par exemple « Hebdo » ou « Équipe RH ».
+5. Sous « Sections », ajoutez des sections avec « + Ajouter une section ». Chaque section a un titre et une consigne d'une ligne : « Décrivez en une ligne ce que Syntheo doit y écrire. »
 
-Les modifications sont enregistrées au fil de l'eau. Depuis le menu du modèle, vous pouvez le « Dupliquer » ou le « Supprimer ».
+Pour réordonner les sections, faites glisser la poignée d'une section. Au clavier, placez le focus sur la poignée et utilisez les flèches haut et bas.
 
-## Générer un modèle avec l'IA
+Les modifications sont enregistrées au fil de l'eau. Le menu « Plus d'actions » de l'éditeur propose « Utiliser par défaut », « Dupliquer » et « Supprimer ».
 
-Dans l'éditeur d'un modèle, le champ « Décrivez le type de réunion… » permet de faire rédiger le modèle par votre modèle de langage.
+### Voir la forme du compte rendu
 
-1. Décrivez la réunion en une phrase, par exemple : « Revue mensuelle de sécurité avec l'équipe infrastructure ».
-2. Cliquez sur « Générer avec l'IA ».
-3. Syntheo remplit le titre, la description, l'icône et 3 à 6 sections en français. Relisez-les et ajustez-les.
+En haut de l'éditeur, basculez de « Modifier » à « Aperçu ». L'aperçu montre la forme de la synthèse : chaque section avec un exemple de ligne rédigée selon sa consigne.
+
+## Proposer des sections avec l'IA
+
+Dans l'éditeur d'un modèle, le champ « Décrivez la réunion, Syntheo propose les sections… » fait rédiger les sections par votre serveur de synthèse local.
+
+1. Décrivez la réunion en une phrase, par exemple : « Revue mensuelle de sécurité avec l'équipe infrastructure ». Si vous laissez le champ vide, Syntheo part du nom et de la description du modèle.
+2. Cliquez sur « Proposer des sections ».
+3. Syntheo propose 3 à 6 sections. Relisez-les et ajustez-les.
 
 <Warning>
-  La génération remplace le titre, la description, l'icône et les sections du modèle ouvert. Dupliquez d'abord un modèle que vous voulez conserver.
+  Les sections proposées remplacent les sections du modèle ouvert. Le nom, l'icône et la description ne sont remplis que s'ils sont encore vides. Dupliquez d'abord un modèle que vous voulez conserver.
 </Warning>
 
-Le bouton reste désactivé tant qu'aucun modèle de langage n'est connecté. Voir [Configurer l'IA](/ai-setup).
+Le bouton reste désactivé tant qu'aucun serveur de synthèse n'est connecté : « Configurez votre serveur de synthèse dans les paramètres pour obtenir des propositions de sections. ». Voir [Configurer la transcription et l'IA](/ai-setup).
 
-## Personnaliser « Auto »
+## Personnaliser « Automatique »
 
-1. Ouvrez l'onglet **« Modèles »** et sélectionnez **Auto**.
+Le format « Automatique » laisse Syntheo structurer le compte rendu lui-même, sans modèle fixe. Il sert quand aucun modèle n'est choisi pour une réunion.
+
+1. Ouvrez la vue **Modèles** et sélectionnez **Automatique**.
 2. Modifiez le « Format du résumé », puis cliquez sur « Enregistrer ».
 
 Par exemple :
@@ -61,18 +73,18 @@ Par exemple :
 Commencez par les décisions. Listez ensuite les actions avec un responsable et une échéance. Limitez le contexte à trois puces.
 ```
 
-« Améliorer avec des exemples » vous permet de coller jusqu'à trois comptes rendus que vous aimez (ou de joindre des fichiers Markdown ou texte) : votre modèle de langage en déduit un nouveau format. « Réinitialiser au format par défaut » rétablit le format d'origine.
+« Améliorer avec des exemples » vous permet de coller jusqu'à trois comptes rendus que vous aimez (ou de joindre des fichiers Markdown ou texte) : votre modèle de langage en déduit un nouveau format. « Réinitialiser au format par défaut », dans le menu « Actions du modèle », rétablit le format d'origine.
 
-Les notes, le transcript et les participants sont toujours transmis au modèle de langage, quel que soit le format. Le format « Auto » ne s'applique que lorsque « Auto » est sélectionné : les autres modèles gardent leurs sections.
+Les notes, la transcription et les participants sont toujours transmis au modèle de langage, quel que soit le format. Le format « Automatique » ne s'applique que lorsque « Automatique » est sélectionné : les autres modèles gardent leurs sections.
 
 Après la génération, les suggestions « Raccourcissez le résumé. » et « Allongez le résumé. » du [chat](/chat) permettent d'ajuster la longueur.
 
 ## Améliorer les noms et termes spécialisés
 
-Sous **Paramètres → « Dictionnaire »**, ajoutez les noms de collègues, acronymes, noms de produits et termes métier que la transcription reconnaît mal. Syntheo les transmet comme indices à votre serveur de transcription ; leur effet dépend de ce que ce serveur prend en charge.
+Sous **Paramètres → Écrire → « Dictionnaire »**, ajoutez les noms de collègues, acronymes, noms de produits et termes métier que la transcription reconnaît mal. Syntheo les transmet comme indices à votre serveur de transcription ; leur effet dépend de ce que ce serveur prend en charge.
 
 Le dictionnaire ne remplace pas le bon choix des langues parlées. Voir [Langues](/languages).
 
 ## Appliquer vos changements
 
-Les nouveaux comptes rendus utilisent le format sélectionné. Régénérez un ancien compte rendu pour lui appliquer la dernière version d'un modèle ou du format « Auto ».
+Les nouveaux comptes rendus utilisent le format sélectionné. Régénérez un ancien compte rendu pour lui appliquer la dernière version d'un modèle ou du format « Automatique ».

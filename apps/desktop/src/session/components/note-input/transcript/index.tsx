@@ -1,10 +1,11 @@
+import { t } from "@lingui/core/macro";
 import type { RefObject } from "react";
 import { useCallback } from "react";
 
 import { TranscriptViewer } from "./renderer";
 import { BatchState } from "./screens/batch";
 import { TranscriptEmptyState } from "./screens/empty";
-import { LiveTranscriptInterruptedNotice } from "./screens/interrupted";
+import { LiveTranscriptStatusNotice } from "./screens/interrupted";
 import { TranscriptListeningState } from "./screens/listening";
 import { useTranscriptScreen } from "./state";
 
@@ -59,11 +60,11 @@ function TranscriptContent({
       {incompleteCapture && (
         <div
           role="status"
-          className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900"
+          className="border-chart-3/30 bg-chart-3/10 text-foreground border-b px-4 py-2 text-sm"
         >
           {incompleteCapture.interruptions?.length
             ? `${formatInterruptions(incompleteCapture.interruptions)}.`
-            : "Ce transcript est incomplet."}
+            : t`This transcription is incomplete.`}
         </div>
       )}
       {screen.kind === "running_batch" && (
@@ -102,8 +103,10 @@ function TranscriptContent({
           editMode={editMode && !screen.currentActive}
           onEditModeChange={screen.currentActive ? undefined : onEditModeChange}
           footer={
-            screen.liveTranscriptInterrupted ? (
-              <LiveTranscriptInterruptedNotice />
+            screen.currentActive ? (
+              <LiveTranscriptStatusNotice
+                interrupted={screen.liveTranscriptInterrupted}
+              />
             ) : null
           }
         />

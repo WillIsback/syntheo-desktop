@@ -18,6 +18,7 @@ import {
   registerTranscriptSearchSource,
   type TranscriptSearchSource,
 } from "../../search/matching";
+import { observeScrollContent, scrollBehavior } from "./viewport-hooks";
 
 import type { Segment } from "~/stt/live-segment";
 
@@ -25,18 +26,65 @@ const ESTIMATED_LINE_HEIGHT = 22;
 const ESTIMATED_ROW_CHARS = 90;
 const ESTIMATED_ROW_CHROME = 36;
 const SEGMENT_GAP = 16;
+// Paragraphe suivant d'une même prise de parole (issue 281) : ni en-tête, ni
+// marge sous l'en-tête, et un espacement de paragraphe plus serré.
+const ESTIMATED_CONTINUATION_CHROME = 0;
+const PARAGRAPH_GAP = 8;
 const OVERSCAN_PX = 800;
 const FALLBACK_VIEWPORT_HEIGHT = 800;
 
-export function estimateTranscriptRowHeight(segment: Segment, index: number) {
-  const characterCount = segment.words.reduce(
-    (total, word) => total + word.text.length + 1,
-    0,
-  );
+// Largeur moyenne d'un caractère du texte de transcription : 90 caractères
+// tiennent dans la colonne pleine largeur (~680px).
+const ESTIMATED_CHAR_WIDTH_PX = 7.5;
+
+function estimatedCharsPerRow(rowWidthPx?: number) {
+  if (!rowWidthPx || !Number.isFinite(rowWidthPx) || rowWidthPx <= 0) {
+    return ESTIMATED_ROW_CHARS;
+  }
+  return Math.max(12, Math.floor(rowWidthPx / ESTIMATED_CHAR_WIDTH_PX));
+}
+
+// La marge d'écoute ne fait que 280px : estimer avec la largeur réelle évite
+// que les hauteurs mesurées, bien plus grandes que l'estimation, ne décalent
+// brutalement les blocs à chaque mesure.
+// Les hauteurs estimées sont recalculées à chaque battement pour toutes les
+// lignes : le compte de caractères d'une ligne inchangée n'est pas relu
+// (issue 287).
+const characterCounts = new WeakMap<Segment, number>();
+
+function getCharacterCount(segment: Segment): number {
+  let count = characterCounts.get(segment);
+  if (count === undefined) {
+    count = segment.words.reduce(
+      (total, word) => total + word.text.length + 1,
+      0,
+    );
+    characterCounts.set(segment, count);
+  }
+  return count;
+}
+
+export function estimateTranscriptRowHeight(
+  segment: Segment,
+  index: number,
+  rowWidthPx?: number,
+  continuation = false,
+) {
+  const characterCount = getCharacterCount(segment);
   const lineCount =
     characterCount === 0
       ? 0
-      : Math.max(1, Math.ceil(characterCount / ESTIMATED_ROW_CHARS));
+      : Math.max(
+          1,
+          Math.ceil(characterCount / estimatedCharsPerRow(rowWidthPx)),
+        );
+  if (continuation) {
+    return (
+      ESTIMATED_CONTINUATION_CHROME +
+      lineCount * ESTIMATED_LINE_HEIGHT +
+      (index > 0 ? PARAGRAPH_GAP : 0)
+    );
+  }
   return (
     ESTIMATED_ROW_CHROME +
     lineCount * ESTIMATED_LINE_HEIGHT +
@@ -47,6 +95,7 @@ export function estimateTranscriptRowHeight(segment: Segment, index: number) {
 export function useVirtualSegments({
   segments,
   segmentKeys,
+  continuations,
   scrollElement,
   activeMatchId,
   searchEnabled,
@@ -55,6 +104,8 @@ export function useVirtualSegments({
 }: {
   segments: Segment[];
   segmentKeys: string[];
+  // Lignes qui poursuivent la prise de parole précédente (sans en-tête).
+  continuations?: readonly boolean[];
   scrollElement: HTMLDivElement | null;
   activeMatchId: string | null;
   searchEnabled: boolean;
@@ -87,12 +138,18 @@ export function useVirtualSegments({
     };
   });
 
+  const listWidth = useElementWidth(listElement);
   const estimatedHeights = useMemo(
     () =>
       segments.map((segment, index) =>
-        estimateTranscriptRowHeight(segment, index),
+        estimateTranscriptRowHeight(
+          segment,
+          index,
+          listWidth,
+          continuations?.[index] ?? false,
+        ),
       ),
-    [segments],
+    [continuations, listWidth, segments],
   );
   const offsets = useMemo(() => {
     const values = [0];
@@ -108,13 +165,23 @@ export function useVirtualSegments({
   }, [estimatedHeights, measuredHeights, segmentKeys]);
   const totalHeight = offsets[offsets.length - 1] ?? 0;
   const viewport = useVirtualViewport(scrollElement, listElement);
-  const segmentIndex = useMemo(() => createSegmentIndex(segments), [segments]);
-
-  const activeMatchIndex = activeMatchId
-    ? (segmentIndex.wordIndexes.get(activeMatchId) ?? null)
-    : null;
+  // Index construits seulement quand ils servent (recherche, lecture) : à
+  // chaque battement de l'écoute, ils reliraient tous les mots (issue 287).
+  const activeMatchIndex = useMemo(
+    () =>
+      activeMatchId ? findWordSegmentIndex(segments, activeMatchId) : null,
+    [activeMatchId, segments],
+  );
+  const playing = currentMs > 0;
+  const segmentIndex = useMemo(
+    () => (playing ? createSegmentIndex(segments) : null),
+    [playing, segments],
+  );
   const playbackIndex = useMemo(
-    () => findPlaybackSegmentIndex(segmentIndex, currentMs, offsetMs),
+    () =>
+      segmentIndex
+        ? findPlaybackSegmentIndex(segmentIndex, currentMs, offsetMs)
+        : null,
     [currentMs, offsetMs, segmentIndex],
   );
   const selectedIndexes = useSelectedSegmentIndexes(listElement);
@@ -153,14 +220,19 @@ export function useVirtualSegments({
 
     return Array.from(indexes)
       .sort((left, right) => left - right)
-      .map((index) => ({
-        index,
-        key: segmentKeys[index]!,
-        top: offsets[index]!,
-      }));
+      .map((index) => {
+        const key = segmentKeys[index]!;
+        return {
+          index,
+          key,
+          top: offsets[index]!,
+          measuredHeight: measuredHeights.get(key),
+        };
+      });
   }, [
     activeMatchIndex,
     focusedIndex,
+    measuredHeights,
     offsets,
     playbackIndex,
     scrollElement,
@@ -242,7 +314,7 @@ export function useVirtualSegments({
       listElement &&
       scrollElement
     ) {
-      scrollToIndex(activeMatchIndex, "smooth");
+      scrollToIndex(activeMatchIndex, scrollBehavior());
       previousActiveMatchRef.current = activeMatchId;
     } else if (!activeMatchId) {
       previousActiveMatchRef.current = null;
@@ -263,7 +335,8 @@ export function useVirtualSegments({
               segment.words.map((word) => ({
                 id: word.id ?? null,
                 text: word.text.trim(),
-                scrollIntoView: () => scrollToIndexRef.current(index, "smooth"),
+                scrollIntoView: () =>
+                  scrollToIndexRef.current(index, scrollBehavior()),
               })),
             ),
           )
@@ -344,6 +417,7 @@ export function VirtualSegmentRow({
   rowKey,
   top,
   index,
+  measuredHeight,
   onMeasure,
   onFocus,
   onBlur,
@@ -352,6 +426,7 @@ export function VirtualSegmentRow({
   rowKey: string;
   top: number;
   index: number;
+  measuredHeight?: number;
   onMeasure: (key: string, height: number) => void;
   onFocus: (index: number) => void;
   onBlur: (event: FocusEvent<HTMLDivElement>) => void;
@@ -383,8 +458,24 @@ export function VirtualSegmentRow({
       position: "absolute",
       top,
       width: "100%",
+      // Chaque ligne est isolée : un partiel qui fait grandir la dernière ne
+      // remet en page ni ne repeint les autres (issue 281).
+      contain: "content",
+      // Les blocs du débord (overscan), hors de l'écran, ne sont ni mis en
+      // page ni peints. Seulement une fois mesurés : la taille réservée est
+      // alors exactement la hauteur mesurée, donc ni la position des blocs,
+      // ni le défilement vers la fin, ni le centrage d'un résultat de
+      // recherche ne bougent. Un bloc jamais mesuré est rendu normalement,
+      // sinon sa première mesure renverrait la taille réservée au lieu de
+      // sa vraie hauteur.
+      ...(measuredHeight === undefined
+        ? null
+        : {
+            contentVisibility: "auto",
+            containIntrinsicSize: `auto ${measuredHeight}px`,
+          }),
     }),
-    [top],
+    [measuredHeight, top],
   );
 
   return (
@@ -398,6 +489,29 @@ export function VirtualSegmentRow({
       {children}
     </div>
   );
+}
+
+function useElementWidth(element: HTMLElement | null): number | undefined {
+  const subscribe = useCallback(
+    (notify: () => void) => {
+      if (!element || typeof ResizeObserver === "undefined") {
+        return () => {};
+      }
+      const observer = new ResizeObserver(notify);
+      observer.observe(element);
+      return () => observer.disconnect();
+    },
+    [element],
+  );
+  // Arrondie à 10px près pour ne pas tout réestimer au moindre pixel.
+  const getSnapshot = useCallback(
+    () =>
+      element && element.clientWidth > 0
+        ? Math.round(element.clientWidth / 10) * 10
+        : undefined,
+    [element],
+  );
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 function useVirtualViewport(
@@ -466,20 +580,17 @@ function createVirtualViewportStore(
     const handleLayout = () => scheduleRefresh(true);
     scrollElement.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleLayout);
+    // La position de la liste ne change que si un bloc au-dessus d'elle
+    // change de hauteur : pas à chaque partiel (issue 281).
+    const stopObservingContent = observeScrollContent(
+      scrollElement,
+      handleLayout,
+    );
     const resizeObserver =
       typeof ResizeObserver === "undefined"
         ? null
         : new ResizeObserver(handleLayout);
-    resizeObserver?.observe(scrollElement);
     if (listElement) resizeObserver?.observe(listElement);
-    const mutationObserver =
-      typeof MutationObserver === "undefined"
-        ? null
-        : new MutationObserver(handleLayout);
-    mutationObserver?.observe(scrollElement, {
-      childList: true,
-      subtree: true,
-    });
     scheduleRefresh(true);
 
     return () => {
@@ -487,7 +598,7 @@ function createVirtualViewportStore(
       scrollElement.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleLayout);
       resizeObserver?.disconnect();
-      mutationObserver?.disconnect();
+      stopObservingContent();
       if (animationFrame !== null) {
         cancelAnimationFrame(animationFrame);
         animationFrame = null;
@@ -513,19 +624,24 @@ function findRowIndex(offsets: number[], target: number): number {
   return low;
 }
 
+// Première ligne qui contient le mot `wordId`.
+function findWordSegmentIndex(
+  segments: Segment[],
+  wordId: string,
+): number | null {
+  const index = segments.findIndex((segment) =>
+    segment.words.some((word) => word.id === wordId),
+  );
+  return index === -1 ? null : index;
+}
+
 function createSegmentIndex(segments: Segment[]) {
-  const wordIndexes = new Map<string, number>();
   const playbackStarts: number[] = [];
   const playbackEnds: number[] = [];
   const playbackSegmentIndexes: number[] = [];
   const playbackPrefixMaxEnds: number[] = [];
 
   segments.forEach((segment, segmentIndex) => {
-    for (const word of segment.words) {
-      if (word.id && !wordIndexes.has(word.id)) {
-        wordIndexes.set(word.id, segmentIndex);
-      }
-    }
     const first = segment.words[0];
     const last = segment.words[segment.words.length - 1];
     if (!first || !last) return;
@@ -544,7 +660,6 @@ function createSegmentIndex(segments: Segment[]) {
   });
 
   return {
-    wordIndexes,
     playbackStarts,
     playbackEnds,
     playbackSegmentIndexes,

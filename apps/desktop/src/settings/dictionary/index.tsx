@@ -111,7 +111,7 @@ export function DictionarySettings({
                   type="submit"
                   variant="ghost"
                   size="xs"
-                  className="rounded-full bg-black text-white hover:bg-black/90 hover:text-white dark:bg-white dark:text-black dark:hover:bg-white/90 dark:hover:text-black"
+                  className="bg-foreground text-background hover:bg-foreground/90 hover:text-background rounded-full"
                   disabled={!canAdd}
                   aria-label={t`Add`}
                 >

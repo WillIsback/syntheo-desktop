@@ -4,6 +4,7 @@ import { cn } from "@syntheo/utils";
 
 import type { HighlightSegment } from "./utils";
 
+import { nameMemoComponent } from "~/devtools-bar/render-tracker";
 import type { SegmentWord } from "~/stt/live-segment";
 import { isTranscriptWordSeekable } from "~/stt/timing";
 
@@ -52,6 +53,7 @@ export const WordSpan = memo(function WordSpan(props: WordSpanProps) {
     </span>
   );
 });
+nameMemoComponent(WordSpan, "WordSpan");
 
 function useHighlightedContent(
   word: SegmentWord,
@@ -70,7 +72,7 @@ function useHighlightedContent(
       segment.isMatch ? (
         <span
           key={`${baseKey}-match-${index}`}
-          className={isActive ? "bg-yellow-500" : "bg-yellow-200/50"}
+          className={isActive ? "bg-chart-3/35" : "bg-chart-3/15"}
         >
           {segment.text}
         </span>

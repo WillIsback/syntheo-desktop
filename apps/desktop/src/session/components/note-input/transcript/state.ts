@@ -1,8 +1,11 @@
+import { useMemo } from "react";
+
 import {
   getLiveCaptureUiMode,
   isLiveTranscriptInterrupted,
 } from "~/store/zustand/listener/general-shared";
 import { useListener } from "~/stt/contexts";
+import { useLiveSegmentsForDisplay } from "~/stt/live-display";
 import type { Segment } from "~/stt/live-segment";
 import { useSessionTranscriptMetadata } from "~/stt/queries";
 
@@ -126,10 +129,20 @@ function useTranscriptContent(
     sessionId,
     includePendingDeltas,
   );
-  const liveSegments = useListener((state) => state.liveSegments);
+  // Affichage seulement, au rythme de la marge (issue 287) : 4 rendus par
+  // seconde au plus, moins pendant la frappe, aucun fenêtre masquée.
+  const liveSegments = useLiveSegmentsForDisplay();
+  // Même liste d'identifiants, même tableau : sinon chaque rendu de l'écran
+  // relance le suivi du défilement de la marge (`useAutoScroll`), qui relit
+  // la mise en page et recrée ses observateurs.
+  const idsKey = transcripts.map((transcript) => transcript.id).join("\u0000");
+  const transcriptIds = useMemo(
+    () => (idsKey ? idsKey.split("\u0000") : []),
+    [idsKey],
+  );
 
   return {
-    transcriptIds: transcripts.map((transcript) => transcript.id),
+    transcriptIds,
     liveSegments,
     hasTranscriptWords: transcripts.some((transcript) => transcript.hasWords),
   };

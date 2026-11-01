@@ -106,6 +106,7 @@ vi.mock("~/cloud-api/client", () => ({
 import { createListenerStore } from ".";
 import {
   getLiveCaptureUiMode,
+  isLiveTranscriptInterrupted,
   markLiveActive,
   markLiveInactive,
   markLiveStartRequested,
@@ -1513,6 +1514,81 @@ describe("General Listener Slice", () => {
         expect(store.getState().live.transcriptionStalled).toBe(false);
         expect(store.getState().live.needsBatchRepair).toBe(true);
         expect(store.getState().live.status).toBe("active");
+      } finally {
+        clearInterval(store.getState().live.intervalId);
+        dismiss.mockRestore();
+      }
+    });
+
+    test("reprend la transcription en direct sans action quand le listener se reconnecte", async () => {
+      // Le supervisor Rust reconnecte seul le flux STT après une coupure : la
+      // marge doit alors quitter l'état « en pause » et le chien de garde
+      // repartir de zéro pour le nouveau flux.
+      const dismiss = vi.spyOn(toast, "dismiss");
+      let lifecycleHandler:
+        | ((event: {
+            payload: {
+              type: "started";
+              session_id: string;
+              requested_live_transcription: boolean;
+              live_transcription_active: boolean;
+              degraded: { type: "connection_timeout" } | null;
+            };
+          }) => void)
+        | undefined;
+      listenCaptureLifecycleMock.mockImplementationOnce((handler) => {
+        lifecycleHandler = handler;
+        return Promise.resolve(() => {});
+      });
+      getCaptureSnapshotMock.mockResolvedValueOnce({
+        status: "ok",
+        data: {
+          activeSessionId: "session-a",
+          finalizingSessionIds: [],
+          liveTranscriptionActive: true,
+          requestedLiveTranscription: true,
+          state: "active",
+        },
+      });
+
+      try {
+        await store.getState().attachLiveSession("session-a");
+        lifecycleHandler?.({
+          payload: {
+            type: "started",
+            session_id: "session-a",
+            requested_live_transcription: true,
+            live_transcription_active: false,
+            degraded: { type: "connection_timeout" },
+          },
+        });
+        store.setState((state) => ({
+          live: {
+            ...state.live,
+            transcriptionStalled: true,
+            stallAudibleSeconds: 44,
+            finalStallAudibleSeconds: 89,
+          },
+        }));
+        expect(isLiveTranscriptInterrupted(store.getState().live)).toBe(true);
+
+        lifecycleHandler?.({
+          payload: {
+            type: "started",
+            session_id: "session-a",
+            requested_live_transcription: true,
+            live_transcription_active: true,
+            degraded: null,
+          },
+        });
+
+        const live = store.getState().live;
+        expect(live.degraded).toBeNull();
+        expect(live.transcriptionStalled).toBe(false);
+        expect(live.stallAudibleSeconds).toBe(0);
+        expect(live.finalStallAudibleSeconds).toBe(0);
+        expect(isLiveTranscriptInterrupted(live)).toBe(false);
+        expect(dismiss).toHaveBeenCalledWith("live-transcription-stalled");
       } finally {
         clearInterval(store.getState().live.intervalId);
         dismiss.mockRestore();

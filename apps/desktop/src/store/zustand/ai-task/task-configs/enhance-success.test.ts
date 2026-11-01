@@ -360,6 +360,96 @@ describe("enhanceSuccess.onSuccess", () => {
     });
   });
 
+  it("waits for an in-flight title instead of keeping its partial text", async () => {
+    vi.useFakeTimers();
+    let titleTask: Record<string, unknown> = {
+      taskType: "title",
+      status: "generating",
+      streamedText: "Rachat de",
+      abortController: new AbortController(),
+    };
+    const startTask = vi.fn();
+    const run = enhanceSuccess.onSuccess?.(
+      createParams({
+        startTask,
+        getTaskState: vi.fn(() => titleTask) as any,
+      }),
+    );
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    titleTask = {
+      taskType: "title",
+      status: "success",
+      streamedText: "Rachat de Dreamer par Meta",
+      abortController: null,
+    };
+    await vi.advanceTimersByTimeAsync(1_000);
+    await run;
+
+    expect(startTask).not.toHaveBeenCalled();
+    expect(mocks.persistGeneratedTitle).toHaveBeenCalledWith({
+      text: "Rachat de Dreamer par Meta",
+      args: { sessionId: "session-1" },
+    });
+  });
+
+  it("starts its own title when the in-flight one ends without a title", async () => {
+    vi.useFakeTimers();
+    let titleTask: Record<string, unknown> = {
+      taskType: "title",
+      status: "generating",
+      streamedText: "",
+      abortController: new AbortController(),
+    };
+    const startTask = vi.fn().mockImplementation(async (_taskId, config) => {
+      config.onComplete?.("Podcast sur les mythes tech");
+    });
+    const run = enhanceSuccess.onSuccess?.(
+      createParams({
+        startTask,
+        getTaskState: vi.fn(() => titleTask) as any,
+      }),
+    );
+
+    await vi.advanceTimersByTimeAsync(500);
+    titleTask = { ...titleTask, status: "error", abortController: null };
+    await vi.advanceTimersByTimeAsync(500);
+    await run;
+
+    expect(startTask).toHaveBeenCalledOnce();
+    expect(mocks.persistGeneratedTitle).toHaveBeenCalledWith({
+      text: "Podcast sur les mythes tech",
+      args: { sessionId: "session-1" },
+    });
+  });
+
+  it("still saves the summary and names the cause when no title comes back", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const failure = new Error("AI generation took too long.");
+    const startTask = vi.fn().mockResolvedValue(undefined);
+
+    await enhanceSuccess.onSuccess?.(
+      createParams({
+        startTask,
+        getTaskState: vi.fn().mockReturnValueOnce(undefined).mockReturnValue({
+          taskType: "title",
+          status: "error",
+          streamedText: "",
+          error: failure,
+          abortController: null,
+        }),
+      }),
+    );
+
+    expect(mocks.persistGeneratedEnhancedNote).toHaveBeenCalledOnce();
+    expect(mocks.persistGeneratedTitle).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(/^\[enhancer:title-failed\] /),
+      failure,
+    );
+    warn.mockRestore();
+  });
+
   it("uses an existing title without starting title generation", async () => {
     mocks.loadSessionContentSnapshot.mockResolvedValue(
       createSnapshot("Existing title"),
@@ -385,7 +475,7 @@ describe("enhanceSuccess.onSuccess", () => {
         createParams({
           getTaskState: vi.fn().mockReturnValue({
             taskType: "title",
-            status: "generating",
+            status: "error",
             streamedText: "",
             abortController: null,
           }),

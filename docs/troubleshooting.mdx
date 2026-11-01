@@ -1,11 +1,13 @@
 ---
 title: "Dépannage"
-description: "Résoudre les problèmes courants : serveurs STT et LLM injoignables, HTTPS, liste de modèles vide, audio sous Linux et Windows, installation."
+description: "Résoudre les problèmes courants : serveurs de transcription et de synthèse injoignables, HTTPS, liste de modèles vide, audio sous Linux et Windows, installation."
 ---
 
-## Le serveur de transcription ou de modèle de langue est injoignable
+## Le serveur de transcription ou de synthèse est injoignable
 
-Syntheo ne contient aucun modèle : il dépend entièrement des serveurs dont vous avez saisi l'URL dans **Paramètres → Transcription** et **Paramètres → Intelligence**.
+Syntheo ne contient aucun modèle : il dépend entièrement des serveurs dont vous avez saisi l'adresse dans **Paramètres → Transcription** et **Paramètres → Synthèse**.
+
+Commencez par cliquer sur « Tester la connexion » dans la carte du serveur. La pastille d'état et le message affiché disent quoi vérifier : « Injoignable », « Clé refusée » ou « Adresse invalide ». Voir [La carte serveur](/ai-setup#la-carte-serveur).
 
 Vérifiez dans l'ordre :
 
@@ -17,12 +19,12 @@ Vérifiez dans l'ordre :
 
    Remplacez l'URL par celle de votre serveur. Ajoutez `-H "Authorization: Bearer <clé>"` si votre serveur exige une clé.
 
-2. **L'URL de base est complète.** Pour un serveur OpenAI-compatible, elle se termine en général par `/v1` (par exemple `http://localhost:8000/v1`), sans `/models` ni `/chat/completions` à la fin. Pour un serveur Nemotron ASR (NIM), indiquez l'adresse WebSocket du serveur, par exemple `http://localhost:9000/v1/realtime`.
+2. **L'URL de base est complète.** Pour un serveur OpenAI-compatible, elle se termine en général par `/v1` (par exemple `http://localhost:8000/v1`), sans `/models` ni `/chat/completions` à la fin. Pour un serveur NVIDIA NIM, indiquez l'adresse du serveur, par exemple `http://localhost:9000/v1/realtime`.
 3. **L'URL ne contient ni identifiant, ni paramètre.** Syntheo refuse une URL de la forme `https://utilisateur:motdepasse@…` ou contenant `?…`. Saisissez la clé dans le champ prévu.
-4. **La clé API est la bonne.** Si le serveur répond 401 ou 403, Syntheo indique que le fournisseur a refusé la clé.
+4. **La clé d'API est la bonne.** Si le serveur répond 401 ou 403, la pastille indique « Clé refusée ». Vérifiez la clé dans « Avancé », puis relancez le test.
 5. **Aucun pare-feu, VPN ou proxy ne bloque le port** entre votre poste et le serveur.
 
-Pour le modèle de langue, **Paramètres → Intelligence** affiche un message « Connection failed » suivi de la cause quand le serveur ne répond pas. Pour la transcription, la connexion n'est vérifiée qu'au démarrage d'une capture.
+Si le serveur de synthèse répond mais que le modèle choisi échoue, **Paramètres → Synthèse** affiche « Le modèle choisi n'a pas répondu : » suivi de la cause.
 
 ## Syntheo exige HTTPS
 
@@ -31,31 +33,39 @@ Syntheo accepte une URL en `http://` uniquement pour un serveur situé sur votre
 - `localhost`, `127.x.x.x` et `[::1]` ;
 - les noms se terminant par `.local` ;
 - les adresses privées `10.x.x.x`, `172.16.x.x` à `172.31.x.x` et `192.168.x.x` ;
-- la plage `100.64.x.x` à `100.127.x.x` (utilisée notamment par les VPN maillés).
+- la plage `100.64.x.x` à `100.127.x.x` (utilisée notamment par Tailscale) ;
+- les noms Tailscale (MagicDNS) se terminant par `.ts.net`.
 
 Pour toute autre adresse, y compris un nom de domaine interne comme `serveur.entreprise.lan`, utilisez `https://`. Sinon, Syntheo refuse l'URL avec le message « Utilisez HTTPS : le HTTP n'est accepté que sur cette machine ou un réseau privé. ». Placez votre serveur derrière un proxy inverse avec un certificat (Caddy, nginx, Traefik), ou utilisez directement son adresse IP privée.
 
 ## La liste des modèles est vide
 
-Syntheo lit les modèles de votre serveur de modèle de langue dans `/v1/models`.
+Syntheo lit les modèles de votre serveur dans `/v1/models` quand vous cliquez sur « Tester la connexion ». Tant que le test n'a pas réussi, la carte affiche « Testez la connexion pour lister les modèles servis. ».
 
-- **« Aucun modèle disponible. »** Le serveur n'a renvoyé aucun modèle. Vérifiez qu'un modèle est bien chargé, par exemple avec `curl <URL de base>/models`. Avec Ollama, téléchargez un modèle avant de le sélectionner. Avec LM Studio, chargez-en un dans le serveur local.
-- **« Aucun modèle prêt à l'emploi. »** Le serveur a renvoyé des modèles, mais Syntheo les a écartés parce qu'ils ne ressemblent pas à des modèles de chat (leur nom contient par exemple `embed`, `whisper`, `audio`, `tts` ou `transcribe`). Servez un modèle de chat sur ce serveur.
-- **La liste reste en chargement ou en erreur.** Le serveur ne répond pas à `/v1/models` dans les 5 secondes, ou répond dans un format inattendu. Reprenez la première section de cette page.
+- **Le test échoue.** Reprenez la première section de cette page. Syntheo attend la réponse 8 secondes au plus.
+- **Le test réussit, mais aucun modèle n'apparaît.** Vérifiez qu'un modèle est bien chargé, par exemple avec `curl <adresse>/models`. Avec Ollama, téléchargez un modèle avant de le sélectionner. Avec LM Studio, chargez-en un dans le serveur local.
+- **Votre modèle n'est pas dans la liste.** Cliquez sur « Saisir un autre nom » et tapez l'identifiant exact du modèle servi par votre déploiement.
 
-Pour la transcription, Syntheo ne vérifie pas la liste des modèles : saisissez le nom exact du modèle servi par votre déploiement. Un serveur NIM ne liste pas ses modèles. Indiquez par exemple `nemotron-asr-streaming` ou `parakeet-tdt-0.6b-v3`, selon votre déploiement.
+Un serveur NVIDIA NIM ne publie pas sa liste de modèles. Syntheo propose les identifiants connus (`nemotron-asr-streaming`, `parakeet-tdt-0.6b-v3`…) ; choisissez celui de votre déploiement.
 
-## Le transcript s'arrête pendant la réunion
+## La transcription s'arrête pendant la réunion
 
-Si le serveur de transcription se coupe ou devient injoignable, Syntheo affiche un avertissement qui indique la cause probable (réseau hors ligne, clé refusée, réglages refusés, panne du serveur) et tente de se reconnecter automatiquement.
+Si le serveur de transcription se coupe ou devient injoignable, Syntheo affiche en bas de la marge de transcription un message qui donne la cause probable, par exemple :
 
-Syntheo ne conserve pas l'audio. Ce qui a été dit pendant la coupure ne peut donc pas être transcrit après coup. Au-dessus du transcript, un bandeau indique les périodes manquantes, par exemple « Transcription interrompue 14:32–14:35. ». Si les horaires ne sont pas connus, le bandeau indique « Ce transcript est incomplet. ».
+> Transcription en direct en pause : vous êtes hors ligne. Aucun audio n'est conservé : ce passage manquera à la transcription. Reconnexion…
+
+Les causes possibles sont : vous êtes hors ligne, le serveur a refusé votre clé d'API, il a refusé les réglages de transcription, il subit une panne, Syntheo ne parvient pas à le joindre, ou il n'envoie plus de texte.
+
+- **Coupure réseau ou panne du serveur** : Syntheo tente de se reconnecter automatiquement. Quand le flux revient, il affiche brièvement « Transcription en direct reprise. ».
+- **Clé ou réglages refusés** : Syntheo ne retente pas la connexion. Le message se termine par « Vérifiez les réglages du serveur de transcription. ». Corrigez la clé ou le modèle dans **Paramètres → Transcription**, puis relancez l'écoute.
+
+Syntheo ne conserve pas l'audio. Ce qui a été dit pendant la coupure ne peut donc pas être transcrit après coup. Au-dessus de la transcription, un bandeau indique les périodes manquantes, par exemple « Transcription interrompue 14:32–14:35. ». Si les horaires ne sont pas connus, le bandeau indique « Cette transcription est incomplète. ».
 
 Pour limiter ces trous, vérifiez la stabilité du réseau entre votre poste et le serveur, ainsi que la charge du serveur (mémoire GPU, nombre de sessions simultanées).
 
 ## Il manque du son : microphone ou audio système
 
-Ouvrez **Paramètres → Autorisations**. Sous Linux et Windows, la section « Audio » affiche deux lignes :
+Ouvrez **Paramètres → Avancé → Autorisations**. Sous Linux et Windows, la section « Audio » affiche deux lignes :
 
 - « Microphone » : votre voix ;
 - « Audio système » : la voix des autres participants.
@@ -113,23 +123,31 @@ Pour Debian ou Ubuntu, installez le paquet avec `sudo apt install ./syntheo-*.de
 
 Au premier lancement, l'écran d'accueil s'ouvre avec une musique de fond discrète. Une fenêtre noire, avec la musique qui joue, signifie en général que WebKitGTK n'a pas réussi à dessiner la fenêtre, le plus souvent sous Wayland avec une carte NVIDIA.
 
-Syntheo désactive déjà automatiquement le rendu DMA-BUF de WebKit. Si la fenêtre reste noire, lancez :
+Syntheo utilise l'accélération graphique de WebKit, bien plus fluide. Sur certaines combinaisons de carte graphique et de compositeur, le rendu DMA-BUF de WebKit peut laisser une fenêtre noire. Lancez alors :
 
 ```bash
-WEBKIT_DISABLE_COMPOSITING_MODE=1 ./syntheo-*.AppImage
+WEBKIT_DISABLE_DMABUF_RENDERER=1 ./syntheo-*.AppImage
 ```
+
+Si elle reste encore noire, désactivez aussi la composition :
+
+```bash
+WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 ./syntheo-*.AppImage
+```
+
+Signalez-nous le problème en indiquant votre carte graphique, la version de son pilote et votre environnement de bureau.
 
 La même variable fonctionne avec la commande `syntheo` installée par le paquet `.deb`.
 
-## Aucun résumé n'apparaît
+## Aucun compte rendu n'apparaît
 
-Un résumé nécessite un modèle de langue. Ouvrez **Paramètres → Intelligence**, vérifiez que « vLLM (OpenAI-compatible) » est configuré, puis choisissez un modèle sous « Modèle utilisé ». Si le serveur est injoignable, reprenez la première section de cette page.
+Un compte rendu nécessite un serveur de synthèse. Ouvrez **Paramètres → Synthèse**, vérifiez que la pastille indique « Connecté », puis choisissez un modèle sous « Modèle ». Si le serveur est injoignable, reprenez la première section de cette page.
 
 ## Un fichier importé ne donne rien
 
-Les imports audio acceptent WAV, MP3, OGG, MP4, M4A, FLAC, WebM et AAC. Les imports de transcript acceptent SRT et VTT.
+Les imports audio acceptent WAV, MP3, OGG, MP4, M4A, FLAC, WebM et AAC. Les imports de transcription acceptent SRT et VTT.
 
-Pour un fichier audio, votre serveur de transcription doit être configuré et exposer `/v1/audio/transcriptions`. Voir [Importer un audio ou un transcript](/import-recordings).
+Pour un fichier audio, votre serveur de transcription doit être configuré et exposer `/v1/audio/transcriptions`. Voir [Importer un enregistrement](/import-recordings).
 
 ## Obtenir de l'aide
 
@@ -142,6 +160,8 @@ Pour un fichier audio, votre serveur de transcription doit être configuré et e
 - pour un problème d'IA, le type de serveur (vLLM, Ollama, NIM…) et le modèle utilisé.
 
 Si besoin, joignez le journal `app.log` de l'application, situé dans le dossier `logs` des données de l'application (sous Windows : `%LOCALAPPDATA%\fr.willisback.syntheo\logs`). Relisez-le avant de le partager.
+
+Les messages de la console de l'interface y apparaissent sous la forme `webview_console_event`, sans leur contenu : seuls le nombre d'arguments, l'étiquette du module qui les émet (par exemple `diagnostic="[speaker-context] error=Error(ERR_SQLITE_ERROR)"`) ainsi que le type et le code d'une erreur sont conservés. Le texte du message, celui des erreurs et toute autre valeur ne sont jamais écrits dans le journal.
 
 <Warning>
   Ne publiez jamais de clé API, de contenu de réunion ni l'adresse interne de vos serveurs dans une issue publique.

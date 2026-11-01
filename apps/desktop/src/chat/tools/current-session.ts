@@ -58,6 +58,28 @@ export function resolveFolderPaths(
   return ambient ? [ambient] : [];
 }
 
+// Compte-rendu affiché par le document vivant pour cette note, dans le même
+// ordre que getLivingDocumentView (session/components/capsule/stage.ts) : la
+// vue de l'onglet si elle désigne un compte-rendu existant, sinon le premier.
+// La vue de l'onglet peut être vide, `raw` / `transcript` (ancienne vue) ou
+// un id périmé (compte-rendu par défaut `summary:<session>` remplacé) :
+// dans ces cas on suit ce que l'utilisateur voit, pas la vue brute.
+// `undefined` quand la note n'est pas celle de l'onglet affiché.
+export function resolveViewedSummaryId(
+  deps: Pick<ToolDependencies, "getSessionId" | "getEnhancedNoteId">,
+  sessionId: string,
+  orderedSummaryIds: readonly string[],
+): string | undefined {
+  if (deps.getSessionId() !== sessionId) {
+    return undefined;
+  }
+  const viewId = deps.getEnhancedNoteId();
+  if (viewId && orderedSummaryIds.includes(viewId)) {
+    return viewId;
+  }
+  return orderedSummaryIds[0];
+}
+
 export function resolveActiveEnhancedNoteId(
   deps: Pick<ToolDependencies, "getSessionId" | "getEnhancedNoteId">,
   sessionId: string,

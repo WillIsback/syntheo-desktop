@@ -5,13 +5,11 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { EditorView } from "~/store/zustand/tabs/schema";
 
 const mocks = vi.hoisted(() => ({
-  leftsidebar: { expanded: true },
   sessionModes: {} as Record<string, string>,
   sessionEvents: {} as Record<string, any>,
   nowMs: 0,
@@ -53,10 +51,6 @@ vi.mock("@syntheo/plugin-opener2", () => ({
 
 vi.mock("~/calendar/hooks", () => ({
   useNow: () => new Date(mocks.nowMs),
-}));
-
-vi.mock("~/contexts/shell", () => ({
-  useShell: () => ({ leftsidebar: mocks.leftsidebar }),
 }));
 
 vi.mock("~/session/hooks/useSessionEvent", () => ({
@@ -137,7 +131,6 @@ function renderHeader(
   props: {
     view?: EditorView;
     withTab?: boolean;
-    viewSwitcher?: ReactNode;
     standaloneWindow?: boolean;
   } = {},
 ) {
@@ -147,7 +140,6 @@ function renderHeader(
       sessionId="session-1"
       currentView={view}
       standaloneWindow={props.standaloneWindow}
-      viewSwitcher={props.viewSwitcher}
       tab={
         props.withTab
           ? {
@@ -176,7 +168,6 @@ function visibleAction() {
 
 describe("OuterHeader", () => {
   beforeEach(() => {
-    mocks.leftsidebar.expanded = true;
     mocks.sessionModes = {};
     mocks.sessionEvents = {};
     mocks.nowMs = new Date(BEFORE).getTime();
@@ -196,13 +187,15 @@ describe("OuterHeader", () => {
     vi.useRealTimers();
   });
 
+  // Commencer / terminer l'écoute passent par la capsule (document vivant) :
+  // l'en-tête ne propose plus que « Join & record » pour une réunion en ligne.
   it.each<[string, Scenario, (typeof ACTIONS)[number] | null]>([
-    ["new ad hoc note", {}, "Record"],
-    ["active recording", { mode: "active" }, "Stop"],
+    ["new ad hoc note", {}, null],
+    ["active recording", { mode: "active" }, null],
     [
       "active recording past the scheduled end",
       { mode: "active", event: scheduled(MEET_LINK), now: AFTER },
-      "Stop",
+      null,
     ],
     ["post-meeting transcription", { mode: "running_batch", now: AFTER }, null],
     ["finalizing", { mode: "finalizing", event: scheduled(MEET_LINK) }, null],
@@ -218,11 +211,11 @@ describe("OuterHeader", () => {
       },
       null,
     ],
-    ["meeting without a link", { event: scheduled() }, "Record"],
+    ["meeting without a link", { event: scheduled() }, null],
     [
       "meeting with an unrecognized link",
       { event: scheduled("https://naver.me/example") },
-      "Record",
+      null,
     ],
     [
       "remote meeting before start",
@@ -242,7 +235,7 @@ describe("OuterHeader", () => {
     [
       "remote meeting after start with mic in use",
       { event: scheduled(MEET_LINK), now: DURING, micInUse: true },
-      "Record",
+      null,
     ],
   ])("shows the right meeting action for %s", (_label, scenario, expected) => {
     arrange(scenario);
@@ -250,16 +243,6 @@ describe("OuterHeader", () => {
 
     expect(visibleAction()).toBe(expected);
     expect(screen.getByRole("button", { name: "More" })).not.toBeNull();
-  });
-
-  it("starts listening from record without opening a meeting", () => {
-    arrange({ event: scheduled("https://naver.me/example") });
-    renderHeader();
-
-    fireEvent.click(screen.getByRole("button", { name: "Record" }));
-
-    expect(mocks.startListening).toHaveBeenCalledTimes(1);
-    expect(mocks.openUrl).not.toHaveBeenCalled();
   });
 
   it("opens the meeting link and starts listening from join & record", () => {
@@ -272,27 +255,28 @@ describe("OuterHeader", () => {
     expect(mocks.startListening).toHaveBeenCalledTimes(1);
   });
 
-  it("stops listening from the stop button", () => {
-    arrange({ mode: "active" });
-    renderHeader();
-
-    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
-
-    expect(mocks.stopListening).toHaveBeenCalledTimes(1);
-  });
-
-  it("delegates stop to the main window from standalone windows", () => {
-    arrange({ mode: "active" });
+  it("delegates join & record to the main window from standalone windows", () => {
+    arrange({ event: scheduled(MEET_LINK) });
     mocks.isMainWebviewWindow = false;
     renderHeader({ standaloneWindow: true });
 
-    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
+    fireEvent.click(screen.getByRole("button", { name: "Join & record" }));
 
     expect(mocks.requestMainListenerControl).toHaveBeenCalledWith(
-      "stop",
+      "start",
       "session-1",
     );
-    expect(mocks.stopListening).not.toHaveBeenCalled();
+    expect(mocks.startListening).not.toHaveBeenCalled();
+  });
+
+  it("keeps the countdown for a scheduled meeting without a link", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-05T09:55:30.000Z"));
+    arrange({ event: scheduled(), now: new Date().toISOString() });
+    renderHeader();
+
+    expect(visibleAction()).toBeNull();
+    expect(screen.getByText("starts in 4m 30s")).not.toBeNull();
   });
 
   it("shows the meeting countdown before start and hides it while listening", () => {
@@ -330,32 +314,16 @@ describe("OuterHeader", () => {
     expect(mocks.openUrl).not.toHaveBeenCalled();
   });
 
-  it.each<[string, Scenario, { view?: EditorView; tabs?: boolean }, boolean]>([
-    [
-      "summary tab before recording",
-      {},
-      { view: { type: "enhanced", id: "n" } as EditorView },
-      true,
-    ],
-    ["memo tab before recording", {}, {}, true],
-    ["view switcher is shown", {}, { tabs: true }, false],
-    ["transcript exists", { transcript: true }, {}, false],
-    ["meeting is over", { event: scheduled(), now: AFTER }, {}, false],
-    ["listening", { mode: "active" }, {}, false],
-    ["finalizing", { mode: "finalizing" }, {}, false],
-  ])(
-    "title input visibility when %s",
-    (_label, scenario, { view, tabs }, visible) => {
-      arrange(scenario);
-      renderHeader({
-        view,
-        withTab: true,
-        viewSwitcher: tabs ? <div>Tabs</div> : undefined,
-      });
+  // Le titre est maintenant en tête du document (serif 40px), plus dans
+  // l'en-tête.
+  it.each<[string, Scenario]>([
+    ["before recording", {}],
+    ["transcript exists", { transcript: true }],
+    ["listening", { mode: "active" }],
+  ])("never shows the title input in the header %s", (_label, scenario) => {
+    arrange(scenario);
+    renderHeader({ withTab: true });
 
-      expect(
-        screen.queryByRole("textbox", { name: "Session title" }) !== null,
-      ).toBe(visible);
-    },
-  );
+    expect(screen.queryByRole("textbox", { name: "Session title" })).toBeNull();
+  });
 });

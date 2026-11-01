@@ -6,8 +6,6 @@ import { Button } from "@syntheo/ui/components/ui/button";
 import { Input } from "@syntheo/ui/components/ui/input";
 import { Textarea } from "@syntheo/ui/components/ui/textarea";
 
-import { formatProfilePhone } from "./phone";
-
 import { ContactOrganizationSelector } from "~/contacts/details";
 import { ProfilePhoto } from "~/contacts/profile-photo";
 import {
@@ -48,6 +46,11 @@ function ProfileLoader({ humanId }: { humanId: string }) {
   return <ProfileForm humanId={humanId} human={data} />;
 }
 
+type ProfileValues = Pick<
+  HumanRecord,
+  "name" | "jobTitle" | "email" | "memo" | "organizationId"
+>;
+
 function ProfileForm({
   humanId,
   human,
@@ -57,20 +60,22 @@ function ProfileForm({
 }) {
   const { t } = useLingui();
   const organizations = useOrganizations();
+  // Le téléphone et LinkedIn ne se saisissent plus ici, mais l'enregistrement
+  // réécrit toute la fiche : on renvoie les valeurs déjà connues pour ne rien
+  // effacer.
+  const kept = {
+    phone: human?.phone ?? "",
+    linkedinUsername: human?.linkedinUsername ?? "",
+  };
   const save = useMutation({
-    mutationFn: (values: Parameters<typeof savePersonalContact>[1]) =>
-      savePersonalContact(humanId, {
-        ...values,
-        phone: formatProfilePhone(values.phone, navigator.language),
-      }),
+    mutationFn: (values: ProfileValues) =>
+      savePersonalContact(humanId, { ...values, ...kept }),
   });
   const form = useForm({
     defaultValues: {
       name: human?.name ?? "",
-      email: human?.email ?? "",
-      phone: formatProfilePhone(human?.phone ?? "", navigator.language),
       jobTitle: human?.jobTitle ?? "",
-      linkedinUsername: human?.linkedinUsername ?? "",
+      email: human?.email ?? "",
       memo: human?.memo ?? "",
       organizationId: human?.organizationId ?? "",
     },
@@ -81,10 +86,7 @@ function ProfileForm({
   });
   const fields = [
     { name: "name", label: t`Name`, type: "text" },
-    { name: "jobTitle", label: t`Job Title`, type: "text" },
-    { name: "email", label: t`Email`, type: "email" },
-    { name: "phone", label: t`Phone`, type: "tel" },
-    { name: "linkedinUsername", label: t`LinkedIn`, type: "text" },
+    { name: "jobTitle", label: t`Job Title` },
   ] as const;
 
   return (
@@ -95,15 +97,9 @@ function ProfileForm({
         void form.handleSubmit();
       }}
     >
-      <h3 className="text-sm font-medium">
-        <Trans>Your info</Trans>
+      <h3 className="text-faint text-[11px] font-semibold tracking-[0.08em] uppercase">
+        <Trans>Identity</Trans>
       </h3>
-      <p className="text-muted-foreground text-sm">
-        <Trans>
-          Update your personal contact card. Your sign-in email is managed
-          separately.
-        </Trans>
-      </p>
       <fieldset className="flex min-w-0 flex-col gap-4">
         <ProfilePhoto
           userId={humanId}
@@ -112,40 +108,56 @@ function ProfileForm({
           onSave={(avatarDataUrl) =>
             savePersonalContact(humanId, {
               ...form.state.values,
-              phone: formatProfilePhone(
-                form.state.values.phone,
-                navigator.language,
-              ),
+              ...kept,
               avatarDataUrl,
             })
           }
         />
-        {fields.map(({ name, label, type }) => (
+        {fields.map(({ name, label }) => (
           <form.Field key={name} name={name}>
             {(field) => (
               <label className="flex flex-col gap-2 text-sm">
                 {label}
                 <Input
-                  type={type}
+                  type="text"
                   value={field.state.value}
                   onChange={(event) => field.handleChange(event.target.value)}
-                  onBlur={() => {
-                    if (name === "phone") {
-                      field.handleChange(
-                        formatProfilePhone(
-                          field.state.value,
-                          navigator.language,
-                        ),
-                      );
-                    }
-                    field.handleBlur();
-                  }}
-                  placeholder={name === "phone" ? "+1 202 555 0123" : undefined}
+                  onBlur={field.handleBlur}
                 />
               </label>
             )}
           </form.Field>
         ))}
+        {/* L'e-mail sert à reconnaître le propriétaire parmi les participants
+            d'un événement du calendrier, pour ne pas le compter parmi eux. */}
+        <form.Field name="email">
+          {(field) => (
+            <div className="flex flex-col gap-2 text-sm">
+              <label htmlFor="profile-email">
+                <Trans>Email</Trans>
+              </label>
+              <Input
+                id="profile-email"
+                type="email"
+                autoComplete="email"
+                aria-describedby="profile-email-help"
+                value={field.state.value}
+                onChange={(event) => field.handleChange(event.target.value)}
+                onBlur={field.handleBlur}
+              />
+              <p
+                id="profile-email-help"
+                className="text-muted-foreground text-[13px] leading-[1.4]"
+              >
+                <Trans>
+                  Syntheo uses it to recognize you among the attendees of your
+                  calendar meetings, so you are not counted as a participant. It
+                  stays on this device.
+                </Trans>
+              </p>
+            </div>
+          )}
+        </form.Field>
         <form.Field name="organizationId">
           {(field) => (
             <div className="flex flex-col gap-2 text-sm">

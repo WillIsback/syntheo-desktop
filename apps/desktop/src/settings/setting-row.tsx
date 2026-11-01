@@ -5,6 +5,28 @@ import { cn } from "@syntheo/utils";
 
 export const SETTING_CONTROL_CLASS = "bg-card h-9 w-full shadow-none";
 
+// Lignes régulières « libellé à gauche, réglage à droite », séparées par des
+// filets plutôt que posées dans des cartes.
+export function SettingRows({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn([
+        "border-border flex flex-col border-t",
+        "[&>*]:border-border [&>*]:border-b [&>*]:py-3.5",
+        className,
+      ])}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function SettingRow({
   title,
   description,
@@ -23,13 +45,13 @@ export function SettingRow({
   const descriptionId = useId();
 
   return (
-    <div className="flex w-full min-w-0 items-center justify-between gap-4">
+    <div className="flex w-full min-w-0 items-center justify-between gap-5">
       <div className="min-w-0 flex-1">
-        <h3 id={titleId} className="mb-1 text-sm font-medium">
+        <h3 id={titleId} className="text-[15px] font-medium">
           {title}
         </h3>
         {description && (
-          <p id={descriptionId} className="text-muted-foreground text-xs">
+          <p id={descriptionId} className="text-muted-foreground text-[13px]">
             {description}
           </p>
         )}

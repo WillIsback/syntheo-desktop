@@ -4,6 +4,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { useShell } from "~/contexts/shell";
+import { startPreparedNoteFromShortcut } from "~/session/components/capsule/start-shortcut";
 import { leaveOverlayTab } from "~/shared/leave-overlay-tab";
 import { useNewNote, useNewNoteAndListen } from "~/shared/useNewNote";
 import { useTabs } from "~/store/zustand/tabs";
@@ -76,7 +77,14 @@ export function useMainShortcuts() {
 
   useHotkeys(
     "mod+shift+n",
-    () => newNoteAndListen(),
+    () => {
+      // Note en préparation ouverte : « Commencer l'écoute » de cette note.
+      if (startPreparedNoteFromShortcut()) {
+        return;
+      }
+
+      newNoteAndListen();
+    },
     {
       preventDefault: true,
       enableOnFormTags: true,

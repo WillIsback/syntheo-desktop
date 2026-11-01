@@ -27,6 +27,7 @@ vi.mock("~/settings/queries", () => ({
 }));
 
 const originalEnhanceConfig = { ...TASK_CONFIGS.enhance };
+const originalTitleConfig = { ...TASK_CONFIGS.title };
 
 beforeEach(() => {
   mocks.getStoredSettingValues.mockReset();
@@ -39,6 +40,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   Object.assign(TASK_CONFIGS.enhance, originalEnhanceConfig);
+  Object.assign(TASK_CONFIGS.title, originalTitleConfig);
 });
 
 describe("createTasksSlice", () => {
@@ -449,6 +451,94 @@ describe("createTasksSlice", () => {
         message: "AI generation did not return any text.",
       }),
     });
+  });
+
+  it("ends a title task at its deadline even when its preparation hangs", async () => {
+    vi.useFakeTimers();
+    let state: ReturnType<typeof createTasksSlice>;
+    const set = (updater: any) => {
+      state =
+        typeof updater === "function"
+          ? updater(state)
+          : { ...state, ...updater };
+    };
+    const get = () => state;
+    state = createTasksSlice(set, get);
+
+    const maxDurationMs = TASK_CONFIGS.title.maxDurationMs;
+    expect(maxDurationMs).toBeGreaterThan(0);
+    TASK_CONFIGS.title.transformArgs = vi.fn(
+      () => new Promise<never>(() => {}),
+    );
+    const onComplete = vi.fn();
+
+    const taskId = "session-1-title" as const;
+    let settled = false;
+    const promise = state
+      .generate(taskId, {
+        model: {} as any,
+        taskType: "title",
+        args: { sessionId: "session-1" },
+        onComplete,
+      })
+      .then(() => {
+        settled = true;
+      });
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(state.tasks[taskId]).toMatchObject({ status: "generating" });
+
+    await vi.advanceTimersByTimeAsync(maxDurationMs!);
+    await promise;
+
+    expect(settled).toBe(true);
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(state.tasks[taskId]).toMatchObject({
+      status: "error",
+      abortController: null,
+      error: expect.objectContaining({
+        message: "AI generation took too long.",
+      }),
+    });
+  });
+
+  it("keeps the deadline failure when the late title stream finishes", async () => {
+    vi.useFakeTimers();
+    let state: ReturnType<typeof createTasksSlice>;
+    const set = (updater: any) => {
+      state =
+        typeof updater === "function"
+          ? updater(state)
+          : { ...state, ...updater };
+    };
+    const get = () => state;
+    state = createTasksSlice(set, get);
+
+    const maxDurationMs = TASK_CONFIGS.title.maxDurationMs!;
+    let finishStream: () => void = () => {};
+    TASK_CONFIGS.title.transformArgs = vi.fn(async () => ({}) as any);
+    TASK_CONFIGS.title.executeWorkflow = vi.fn(async function* () {
+      await new Promise<void>((resolve) => {
+        finishStream = resolve;
+      });
+      yield { type: "text-delta", text: "Late title" } as any;
+    });
+    TASK_CONFIGS.title.onSuccess = vi.fn(async () => {});
+
+    const taskId = "session-late-title" as const;
+    const promise = state.generate(taskId, {
+      model: {} as any,
+      taskType: "title",
+      args: { sessionId: "session-1" },
+    });
+
+    await vi.advanceTimersByTimeAsync(maxDurationMs);
+    await promise;
+    finishStream();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(TASK_CONFIGS.title.onSuccess).not.toHaveBeenCalled();
+    expect(state.tasks[taskId]).toMatchObject({ status: "error" });
   });
 
   it("stops generation before retaining an oversized output", async () => {

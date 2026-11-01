@@ -1,18 +1,14 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Command as CommandPrimitive } from "cmdk";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { create } from "zustand";
 
 import {
   FileText,
+  Folder,
   Gear,
+  NotePencil,
   Lock,
   MagnifyingGlass,
   Users,
@@ -27,12 +23,21 @@ import {
 import { cn } from "@syntheo/utils";
 
 import { useBillingAccess } from "~/billing/billing-context";
-import { useSessionSummaries } from "~/session/queries";
+import { useFolderSelection } from "~/folders/selection";
+import { useFolderPaths, useSessionSummaries } from "~/session/queries";
 import { useMainContentCenterOffset } from "~/shared/main/content-offset";
+import { useNewNote } from "~/shared/useNewNote";
 import { useSettingsNavGroups } from "~/sidebar/settings-nav-groups";
 import { type TabInput, useTabs } from "~/store/zustand/tabs";
 
 const MAX_RECENT_DISPLAY = 5;
+
+const PALETTE_ITEM_CLASS = cn([
+  "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2",
+  "text-muted-foreground text-sm",
+  "data-[selected=true]:bg-accent data-[selected=true]:text-foreground",
+  "transition-colors",
+]);
 
 interface OpenNoteDialogProps {
   readonly open: boolean;
@@ -40,7 +45,7 @@ interface OpenNoteDialogProps {
   readonly mainContentCenterOffset?: number;
 }
 
-type OpenNoteDialogContextValue = {
+type OpenNoteDialogApi = {
   open: () => void;
 };
 
@@ -59,7 +64,13 @@ type PageResult = {
   icon: Icon;
   requiresPro: boolean;
   destination: TabInput;
+  folderPath?: string;
 };
+
+function folderLabel(path: string) {
+  const segments = path.split("/").filter(Boolean);
+  return segments[segments.length - 1] ?? path;
+}
 
 function filterPageResults(
   query: string,
@@ -111,50 +122,69 @@ function preventCloseWhenOnDragRegion(event: {
   }
 }
 
-const OpenNoteDialogContext = createContext<OpenNoteDialogContextValue | null>(
-  null,
-);
+// Palette `Ctrl K` : seul point d'entrée vers l'historique des notes depuis la
+// disparition de la barre latérale. Son état vit dans un store pour qu'on
+// puisse l'ouvrir de n'importe où (accueil, barre de titre, raccourcis) sans
+// dépendre d'un contexte React.
+const useOpenNoteDialogStore = create<{
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}>((set) => ({
+  open: false,
+  setOpen: (open) => set({ open }),
+}));
+
+/** Ouvre la palette de recherche (`Ctrl K`). Stable, utilisable hors React. */
+export function openNoteDialog() {
+  useOpenNoteDialogStore.getState().setOpen(true);
+}
+
+/** Ferme la palette de recherche. */
+export function closeNoteDialog() {
+  useOpenNoteDialogStore.getState().setOpen(false);
+}
+
+/** Indique si la palette est ouverte (lecture réactive). */
+export function useIsNoteDialogOpen() {
+  return useOpenNoteDialogStore((state) => state.open);
+}
+
+const OPEN_NOTE_DIALOG_API: OpenNoteDialogApi = { open: openNoteDialog };
+
+/**
+ * API historique : renvoie `{ open }`, une référence stable. Fonctionne aussi
+ * hors de `OpenNoteDialogProvider` ; le provider ne fait que monter la palette
+ * et le raccourci `Ctrl K`.
+ */
+export function useOpenNoteDialog(): OpenNoteDialogApi {
+  return OPEN_NOTE_DIALOG_API;
+}
 
 export function OpenNoteDialogProvider({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [open, setOpen] = useState(false);
+  const open = useIsNoteDialogOpen();
+  const setOpen = useOpenNoteDialogStore((state) => state.setOpen);
   const mainContentCenterOffset = useMainContentCenterOffset();
 
-  const openDialog = useCallback(() => {
-    setOpen(true);
-  }, []);
-
-  useHotkeys("mod+k", openDialog, {
+  useHotkeys("mod+k", openNoteDialog, {
     preventDefault: true,
     enableOnFormTags: true,
     enableOnContentEditable: true,
   });
 
-  const value = useMemo(() => ({ open: openDialog }), [openDialog]);
-
   return (
-    <OpenNoteDialogContext.Provider value={value}>
+    <>
       {children}
       <OpenNoteDialog
         open={open}
         onOpenChange={setOpen}
         mainContentCenterOffset={mainContentCenterOffset}
       />
-    </OpenNoteDialogContext.Provider>
+    </>
   );
-}
-
-export function useOpenNoteDialog() {
-  const context = useContext(OpenNoteDialogContext);
-  if (!context) {
-    throw new Error(
-      "useOpenNoteDialog must be used within OpenNoteDialogProvider",
-    );
-  }
-  return context;
 }
 
 export function OpenNoteDialog({
@@ -171,6 +201,8 @@ export function OpenNoteDialog({
   );
   const { isPro } = useBillingAccess();
   const settingsNavGroups = useSettingsNavGroups();
+  const createNewNote = useNewNote();
+  const folderPaths = useFolderPaths();
 
   const sessions = useSessionSummaries();
 
@@ -202,8 +234,19 @@ export function OpenNoteDialog({
         requiresPro: false,
         destination: { type: "settings", state: { tab: "app" } },
       },
+      // Les dossiers (ex-filtre de la barre latérale) : recherche par nom.
+      ...folderPaths.map((path): PageResult => ({
+        id: `folder:${path}`,
+        label: folderLabel(path),
+        hint: path.includes("/") ? path : t`Folder`,
+        groupLabel: t`Folders`,
+        icon: Folder,
+        requiresPro: false,
+        destination: { type: "folders" },
+        folderPath: path,
+      })),
     ],
-    [settingsNavGroups, t],
+    [folderPaths, settingsNavGroups, t],
   );
 
   const topLevelPageIds = new Set([
@@ -262,7 +305,13 @@ export function OpenNoteDialog({
     [otherNotes, query],
   );
 
+  const newNoteLabel = t`New note`;
+  const showNewNote =
+    !query.trim() ||
+    newNoteLabel.toLowerCase().includes(query.trim().toLowerCase());
+
   const hasAnyResults =
+    showNewNote ||
     filteredPages.length > 0 ||
     filteredRecentSessions.length > 0 ||
     filteredOtherNotes.length > 0;
@@ -304,9 +353,33 @@ export function OpenNoteDialog({
   const handleSelectPage = useCallback(
     (page: PageResult) => {
       handleOpenChange(false);
+      if (page.folderPath) {
+        useFolderSelection.getState().setSelectedPath(page.folderPath);
+      }
       openNew(page.destination);
     },
     [handleOpenChange, openNew, query],
+  );
+
+  const handleNewNote = useCallback(() => {
+    handleOpenChange(false);
+    createNewNote();
+  }, [createNewNote, handleOpenChange]);
+
+  const actionGroup = showNewNote && (
+    <CommandPrimitive.Group className="pb-1.5">
+      <CommandPrimitive.Item
+        value="action-new-note"
+        onSelect={handleNewNote}
+        className={PALETTE_ITEM_CLASS}
+      >
+        <NotePencil className="text-muted-foreground h-4 w-4 shrink-0" />
+        <span className="truncate">{newNoteLabel}</span>
+        <kbd className="text-muted-foreground ml-auto shrink-0 font-sans text-xs">
+          Ctrl N
+        </kbd>
+      </CommandPrimitive.Item>
+    </CommandPrimitive.Group>
   );
 
   const isQueryEmpty = !query.trim();
@@ -332,12 +405,7 @@ export function OpenNoteDialog({
           key={`page-${page.id}`}
           value={`page-${page.id}`}
           onSelect={() => handleSelectPage(page)}
-          className={cn([
-            "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
-            "text-muted-foreground text-sm",
-            "data-[selected=true]:bg-accent/60",
-            "transition-colors",
-          ])}
+          className={PALETTE_ITEM_CLASS}
         >
           <page.icon className="text-muted-foreground h-4 w-4 shrink-0" />
           <span className="truncate">{page.label}</span>
@@ -363,7 +431,7 @@ export function OpenNoteDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         aria-describedby={undefined}
-        overlayClassName="bg-black/20 backdrop-blur-xs"
+        overlayClassName="bg-background/40 backdrop-blur-xs"
         overlayChildren={
           <div
             data-open-note-dialog-drag-region
@@ -384,9 +452,8 @@ export function OpenNoteDialog({
         </DialogTitle>
         <div
           className={cn([
-            "border-border/80 bg-background rounded-2xl border",
-            "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]",
-            "overflow-hidden",
+            "border-border bg-popover text-popover-foreground rounded-2xl border",
+            "shadow-capsule overflow-hidden",
           ])}
         >
           <CommandPrimitive shouldFilter={false} className="flex flex-col">
@@ -403,6 +470,7 @@ export function OpenNoteDialog({
                 ])}
               />
               <button
+                type="button"
                 aria-label={t`Close`}
                 onClick={() => handleOpenChange(false)}
                 className={cn([
@@ -410,6 +478,7 @@ export function OpenNoteDialog({
                   "flex items-center justify-center",
                   "bg-accent/80 hover:bg-accent/80",
                   "text-muted-foreground text-xs",
+                  "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
                   "transition-colors",
                 ])}
               >
@@ -424,6 +493,7 @@ export function OpenNoteDialog({
                 </CommandPrimitive.Empty>
               ) : (
                 <>
+                  {actionGroup}
                   {isQueryEmpty ? null : pageGroup}
 
                   {filteredRecentSessions.length > 0 && (
@@ -450,12 +520,7 @@ export function OpenNoteDialog({
                           key={`recent-${session.id}`}
                           value={`recent-${session.id}`}
                           onSelect={() => handleSelect(session)}
-                          className={cn([
-                            "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
-                            "text-muted-foreground text-sm",
-                            "data-[selected=true]:bg-accent/60",
-                            "transition-colors",
-                          ])}
+                          className={PALETTE_ITEM_CLASS}
                         >
                           <FileText className="text-muted-foreground h-4 w-4 shrink-0" />
                           <span className="truncate">{session.title}</span>
@@ -485,12 +550,7 @@ export function OpenNoteDialog({
                           key={`${note.resourceType}-${note.id}`}
                           value={`${note.resourceType}-${note.id}`}
                           onSelect={() => handleSelect(note)}
-                          className={cn([
-                            "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
-                            "text-muted-foreground text-sm",
-                            "data-[selected=true]:bg-accent/60",
-                            "transition-colors",
-                          ])}
+                          className={PALETTE_ITEM_CLASS}
                         >
                           {note.resourceType === "shared_session" ? (
                             <Users

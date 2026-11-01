@@ -1,0 +1,49 @@
+/* Document vivant (refonte « Thé vert », lot 2).
+ * Typographie de note d'identite.md : corps Geist 16/1.65, sections en
+ * Newsreader 22/1.35. Couleurs : uniquement les jetons. */
+
+[data-living-document] .note-typography {
+  --note-editor-font-size: 16px;
+  line-height: 1.65;
+}
+
+[data-living-document] .note-typography p {
+  line-height: 1.65;
+}
+
+[data-living-document] .note-typography :is(h1, h2, h3) {
+  font-family: var(--font-serif, "Newsreader", Georgia, serif);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.35;
+  margin-top: 10px;
+}
+
+/* Qui a écrit quoi (principe 4) : le compte-rendu complété par Syntheo est à
+ * l'encre foreground, jamais en italique ni en gris ; les notes personnelles
+ * de l'utilisateur sont en user-ink (vert). Les cases à cocher des actions
+ * prennent l'encre du texte qui les porte : foreground par défaut dans
+ * l'éditeur (packages/editor, task-list.css), user-ink dans les notes. */
+[data-provenance="ai"] .note-typography {
+  color: hsl(var(--foreground));
+}
+
+/* Revue d'une proposition (summary-review.tsx) : le texte retiré reste
+ * lisible mais s'efface (muted-foreground, barré), le texte ajouté garde
+ * l'encre du compte-rendu. */
+[data-proposal-review] del .note-typography {
+  color: hsl(var(--muted-foreground));
+}
+
+[data-provenance="user"] .note-typography {
+  color: hsl(var(--user-ink));
+}
+
+[data-provenance="user"] .note-typography input.task-checkbox {
+  border-color: hsl(var(--user-ink));
+}
+
+[data-provenance="user"] .note-typography input.task-checkbox:checked {
+  background-color: hsl(var(--user-ink));
+  border-color: hsl(var(--user-ink));
+}

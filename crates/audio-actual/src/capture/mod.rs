@@ -1,3 +1,4 @@
+mod echo_gate;
 mod joiner;
 mod recovery;
 mod stream;

@@ -152,7 +152,7 @@ function EditableDateForm({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="text-muted-foreground size-7 shrink-0 rounded-full hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50 dark:hover:text-red-300"
+                  className="text-muted-foreground hover:bg-alert hover:text-alert-foreground size-7 shrink-0 rounded-full"
                   onClick={onCancel}
                   aria-label={t`Cancel date edit`}
                 >
@@ -166,7 +166,7 @@ function EditableDateForm({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="text-muted-foreground size-7 shrink-0 rounded-full hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-950/50 dark:hover:text-green-300"
+                    className="text-muted-foreground hover:bg-accent hover:text-accent-foreground size-7 shrink-0 rounded-full"
                     onClick={() => void form.handleSubmit()}
                     disabled={!canSubmit}
                     aria-label={t`Save date`}
@@ -183,7 +183,7 @@ function EditableDateForm({
       <form.Field name="createdAt">
         {(field) =>
           field.state.meta.errors[0] ? (
-            <div className="text-xs text-red-600">
+            <div className="text-destructive text-xs">
               {field.state.meta.errors[0]}
             </div>
           ) : null

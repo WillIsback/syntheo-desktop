@@ -1,19 +1,24 @@
 import { Trans } from "@lingui/react/macro";
 
-import { ConfigureProviders } from "./configure";
-import { SttSettingsProvider } from "./context";
-import { SelectProviderAndModel } from "./select";
+import { TranscriptionLanguageWarningToast } from "./language-warning";
+import { SttServerCard } from "./server-card";
 
 import { SettingsPageTitle } from "~/settings/page-title";
 
 export function STT() {
   return (
-    <SttSettingsProvider>
-      <div className="flex flex-col gap-6">
-        <SettingsPageTitle title={<Trans>Transcription</Trans>} />
-        <SelectProviderAndModel />
-        <ConfigureProviders />
-      </div>
-    </SttSettingsProvider>
+    <div className="flex flex-col gap-[26px]">
+      <SettingsPageTitle
+        title={<Trans>Transcription</Trans>}
+        lede={
+          <Trans>
+            The server that turns speech into text during your meetings. Audio
+            is never written to disk.
+          </Trans>
+        }
+      />
+      <TranscriptionLanguageWarningToast />
+      <SttServerCard />
+    </div>
   );
 }

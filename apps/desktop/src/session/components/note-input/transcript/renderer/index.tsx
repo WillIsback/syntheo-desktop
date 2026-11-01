@@ -15,6 +15,7 @@ import { ArrowDown, ArrowUp } from "@syntheo/ui/components/icons";
 import { cn } from "@syntheo/utils";
 
 import {
+  completeTranscriptContextSelection,
   focusTranscriptSelection,
   getTranscriptContextSelection,
   getTranscriptMergeTarget,
@@ -158,7 +159,6 @@ export function TranscriptViewer({
   const {
     isAtTop,
     isAtBottom,
-    isNearBottom,
     canScroll,
     autoScrollEnabled,
     scrollToTop,
@@ -171,10 +171,13 @@ export function TranscriptViewer({
   const seek = NO_PLAYBACK_SEEK;
   const start = NO_PLAYBACK;
   const shouldAutoScroll = currentActive && autoScrollEnabled;
-  const shouldScrollLastTranscriptToEnd = currentActive && isNearBottom;
+  // Une seule règle de suivi : la dernière transcription ne recolle au bas
+  // que si le suivi automatique est actif (l'utilisateur n'a pas remonté).
+  const shouldScrollLastTranscriptToEnd = shouldAutoScroll;
+  // Pas de dépendance aux partiels : le suivi réagit à la hauteur du contenu.
   useAutoScroll(
     containerRef,
-    [transcriptIds, liveSegments, shouldAutoScroll],
+    [transcriptIds, shouldAutoScroll],
     shouldAutoScroll,
   );
   const visibleTranscriptIds = getVisibleTranscriptIds(
@@ -330,18 +333,26 @@ export function TranscriptViewer({
       if (!request) {
         return;
       }
+      const selection = request.sectionKey
+        ? completeTranscriptContextSelection(
+            request.selection,
+            collectEntries(visibleTranscriptIdsRef.current).entries.get(
+              request.sectionKey,
+            ),
+          )
+        : request.selection;
 
       event.preventDefault();
       event.stopPropagation();
       setContextRequest({
         id: crypto.randomUUID(),
         range: request.range,
-        selection: request.selection,
+        selection,
         x: event.clientX,
         y: event.clientY,
       });
     },
-    [selectMode],
+    [collectEntries, selectMode],
   );
   const handleContextClose = useCallback(() => {
     setContextRequest(null);

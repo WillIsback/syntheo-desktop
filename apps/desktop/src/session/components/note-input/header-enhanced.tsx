@@ -261,13 +261,9 @@ function HeaderViewEnhancedActive({
           isGenerating ? "cursor-not-allowed opacity-70" : "cursor-pointer",
           isError
             ? [
-                "text-red-600 hover:bg-red-50 hover:text-red-700 focus-visible:bg-red-50",
-                "dark:text-red-400 dark:hover:bg-red-950/50 dark:hover:text-red-300 dark:focus-visible:bg-red-950/50",
+                "text-destructive hover:bg-alert hover:text-alert-foreground focus-visible:bg-alert",
               ]
-            : [
-                "focus-visible:text-foreground focus-visible:bg-white",
-                "dark:focus-visible:text-primary dark:focus-visible:bg-white",
-              ],
+            : ["focus-visible:text-foreground focus-visible:bg-card"],
         ]),
       )}
     >

@@ -31,6 +31,9 @@ import {
   FLOATING_BAR_INSET,
   compactControlsWidth,
 } from "./layout";
+import { tokensFor, withAlpha } from "./palette";
+
+import { type PaletteId, useDocumentPalette } from "~/shared/theme/palette";
 
 export function FloatingBarOverlay({
   state,
@@ -45,7 +48,10 @@ export function FloatingBarOverlay({
   const isExpanded =
     state.liveCaptionToggleVisible && !state.liveCaptionMinimized;
   const showsHoverHandle = hovered && !isExpanded;
-  const colors = barColors(state);
+  // Re-rend la barre (et ses enfants, qui lisent la palette du document) quand
+  // la palette change dans les paramètres.
+  const palette = useDocumentPalette();
+  const colors = barColors(state, palette);
   const controlsWidth = compactControlsWidth(state.liveCaptionToggleVisible);
   const expandsUpward = state.layout?.expandsUpward ?? false;
 
@@ -219,7 +225,7 @@ function StopControl({
         width,
         height: FLOATING_BAR_COMPACT_ICON_SIZE,
         borderRadius: FLOATING_BAR_CONTROL_RADIUS,
-        background: hovered ? "rgba(255, 51, 77, 0.18)" : colors.controlFill,
+        background: hovered ? colors.accentHover : colors.controlFill,
         color: colors.accent,
       }}
     >
@@ -308,12 +314,7 @@ function TranscriptList({
             <p
               role="status"
               className="px-3 py-1.5 text-center text-[12px] leading-4"
-              style={{
-                color:
-                  colorScheme === "dark"
-                    ? "rgba(255, 255, 255, 0.5)"
-                    : "rgba(0, 0, 0, 0.45)",
-              }}
+              style={{ color: tokensFor(colorScheme).mutedForeground }}
             >
               {notice}
             </p>
@@ -337,9 +338,8 @@ function TranscriptList({
           }}
           className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[11px] font-medium"
           style={{
-            background:
-              colorScheme === "dark" ? "rgb(46, 46, 43)" : "rgb(242, 242, 237)",
-            color: colorScheme === "dark" ? "white" : "rgb(31, 28, 26)",
+            background: tokensFor(colorScheme).card,
+            color: tokensFor(colorScheme).foreground,
           }}
         >
           <CaretDown size={10} weight="bold" />
@@ -360,6 +360,7 @@ function TranscriptBubble({
   colorScheme: FloatingBarState["colorScheme"];
 }) {
   const overlapping = bubble.overlapsPrevious || bubble.overlapsNext;
+  const tokens = tokensFor(colorScheme);
 
   return (
     <div
@@ -367,20 +368,20 @@ function TranscriptBubble({
     >
       <div className="max-w-[calc(100%-40px)] text-left">
         {(showsSpeakerLabel || overlapping) && (
-          <p className="mb-1 text-[10px] font-semibold text-white">
+          <p
+            className="mb-1 text-[10px] font-semibold"
+            style={{ color: tokens.foreground }}
+          >
             {showsSpeakerLabel ? bubble.speakerLabel : ""}
           </p>
         )}
         <p
-          className="rounded-[11px] px-2.5 py-2 text-[13px] leading-5 text-white"
+          className="rounded-[11px] px-2.5 py-2 text-[13px] leading-5"
           style={{
-            background: bubble.isSelf
-              ? `rgba(0, 0, 0, ${colorScheme === "dark" ? 0.34 : 0.24})`
-              : `rgba(0, 0, 0, ${colorScheme === "dark" ? 0.28 : 0.2})`,
+            color: tokens.foreground,
+            background: bubble.isSelf ? tokens.accent : tokens.card,
             boxShadow: overlapping
-              ? `inset 0 0 0 1px rgba(255, 255, 255, ${
-                  colorScheme === "dark" ? 0.26 : 0.34
-                })`
+              ? `inset 0 0 0 1px ${tokens.input}`
               : undefined,
           }}
         >
@@ -424,21 +425,24 @@ type BarColors = {
   outerStroke: string;
   controlFill: string;
   accent: string;
+  accentHover: string;
 };
 
-function barColors(state: FloatingBarState): BarColors {
+function barColors(state: FloatingBarState, palette: PaletteId): BarColors {
   const opacity = Math.min(Math.max(state.opacity, 0.35), 0.95);
-  const dark = state.colorScheme === "dark";
-  const content = dark ? "rgb(255, 255, 255)" : "rgb(31, 28, 26)";
-  const surfaceRgb = dark ? "110, 112, 102" : "219, 217, 209";
+  const tokens = tokensFor(state.colorScheme, palette);
 
   return {
-    surface: `rgba(${surfaceRgb}, ${opacity * 0.82})`,
-    envelopeSurface: `rgba(${surfaceRgb}, ${Math.min(opacity * 1.08, 0.95)})`,
-    content,
-    handle: dark ? "rgba(255, 255, 255, 0.48)" : "rgba(31, 28, 26, 0.36)",
-    outerStroke: dark ? "rgba(255, 255, 255, 0.14)" : "rgba(31, 28, 26, 0.12)",
-    controlFill: dark ? "rgba(255, 255, 255, 0.08)" : "rgba(31, 28, 26, 0.07)",
-    accent: "rgb(255, 51, 77)",
+    surface: withAlpha(tokens.floatingChrome, opacity * 82),
+    envelopeSurface: withAlpha(
+      tokens.floatingChrome,
+      Math.min(opacity * 108, 95),
+    ),
+    content: tokens.foreground,
+    handle: withAlpha(tokens.foreground, 40),
+    outerStroke: withAlpha(tokens.foreground, 14),
+    controlFill: withAlpha(tokens.foreground, 8),
+    accent: tokens.recording,
+    accentHover: withAlpha(tokens.recording, 18),
   };
 }

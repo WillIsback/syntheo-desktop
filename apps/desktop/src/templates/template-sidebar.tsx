@@ -1,38 +1,42 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type MouseEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import {
-  ArrowsDownUp,
-  BookOpenText,
-  MagnifyingGlass,
-  Plus,
-  Sparkle,
-  X,
-} from "@syntheo/ui/components/icons";
-import { Button } from "@syntheo/ui/components/ui/button";
-import {
-  AppFloatingPanel,
-  appFloatingMenuPanelClassName,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@syntheo/ui/components/ui/dropdown-menu";
-import { useSquircleRef } from "@syntheo/ui/hooks/use-squircle";
+import { MagnifyingGlass, Star, X } from "@syntheo/ui/components/icons";
 import { cn } from "@syntheo/utils";
 
 import { type WebTemplate } from "./codec";
 import { getTemplateCopyTitle, type UserTemplate } from "./queries";
-import { TemplateIconGlyph } from "./template-icon";
-import { AUTO_TEMPLATE_ID, useTemplateTab } from "./utils";
+import { AUTO_TEMPLATE_ID, groupUserTemplates, useTemplateTab } from "./utils";
 
 import { useConfigValue } from "~/shared/config";
 import { useNativeContextMenu } from "~/shared/hooks/useNativeContextMenu";
 import { CustomSidebarHeader } from "~/sidebar/custom-sidebar-header";
 import { type Tab } from "~/store/zustand/tabs";
 
-type SortOption = "alphabetical" | "reverse-alphabetical";
+type ListEntry =
+  | { source: "auto"; key: string; selected: boolean }
+  | { source: "user"; key: string; selected: boolean; template: UserTemplate }
+  | {
+      source: "web";
+      key: string;
+      selected: boolean;
+      index: number;
+      template: WebTemplate;
+    };
 
+/**
+ * Liste des modèles, rangée en trois groupes : « Par défaut » (Automatique),
+ * « Mes favoris » (modèles épinglés) et « Tous les modèles ».
+ */
 export function TemplatesSidebarContent({
   tab,
 }: {
@@ -40,18 +44,16 @@ export function TemplatesSidebarContent({
 }) {
   const { t } = useLingui();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const searchRef = useSquircleRef<HTMLDivElement>();
   const [search, setSearch] = useState("");
-  const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
   const autoPrompt = useConfigValue("auto_summary_prompt");
+  const defaultTemplateId = useConfigValue("selected_template_id");
 
   const {
     userTemplates,
     webTemplates,
-    isWebLoading,
     isWebMode,
-    selectedMineId: effectiveSelectedMineId,
-    selectedWebIndex: effectiveSelectedWebIndex,
+    selectedMineId,
+    selectedWebIndex,
     setSelectedMineId,
     setSelectedWebIndex,
     createTemplate,
@@ -82,191 +84,106 @@ export function TemplatesSidebarContent({
     async (id: string) => {
       await deleteTemplate(id);
 
-      if (effectiveSelectedMineId === id) {
+      if (selectedMineId === id) {
         setSelectedMineId(null);
       }
     },
-    [deleteTemplate, effectiveSelectedMineId, setSelectedMineId],
+    [deleteTemplate, selectedMineId, setSelectedMineId],
   );
 
-  const handleToggleFavorite = useCallback(
-    async (id: string) => {
-      await toggleTemplateFavorite(id);
-    },
-    [toggleTemplateFavorite],
+  const query = search.trim().toLowerCase();
+  const autoLabel = t`Automatic`;
+  const showAuto =
+    !query || autoLabel.toLowerCase().includes(query) || "auto".includes(query);
+
+  const { favorites, others } = useMemo(
+    () => groupUserTemplates(userTemplates, search),
+    [userTemplates, search],
   );
 
-  const sortedUserTemplates = useMemo(() => {
-    const favorites = userTemplates
-      .filter((template) => template.pinned)
-      .sort((a, b) => {
-        const orderA = a.pinOrder ?? Infinity;
-        const orderB = b.pinOrder ?? Infinity;
-        if (orderA !== orderB) {
-          return orderA - orderB;
-        }
-        return (a.title || "").localeCompare(b.title || "");
-      });
+  const filteredWeb = useMemo(
+    () =>
+      webTemplates.flatMap((template, index) => {
+        const matches =
+          !query ||
+          [
+            template.title,
+            template.description,
+            template.category,
+            ...(template.targets ?? []),
+          ].some((value) => value?.toLowerCase().includes(query));
+        return matches ? [{ template, index }] : [];
+      }),
+    [query, webTemplates],
+  );
 
-    const others = userTemplates.filter((template) => !template.pinned);
-    switch (sortOption) {
-      case "alphabetical":
-        others.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-        break;
-      case "reverse-alphabetical":
-      default:
-        others.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
-        break;
-    }
-
-    return [...favorites, ...others];
-  }, [userTemplates, sortOption]);
-
-  const filteredMine = useMemo(() => {
-    if (!search.trim()) return sortedUserTemplates;
-    const q = search.toLowerCase();
-    return sortedUserTemplates.filter(
-      (template) =>
-        template.title?.toLowerCase().includes(q) ||
-        template.description?.toLowerCase().includes(q) ||
-        template.category?.toLowerCase().includes(q) ||
-        template.targets?.some((target) => target.toLowerCase().includes(q)),
-    );
-  }, [sortedUserTemplates, search]);
-
-  const filteredWeb = useMemo(() => {
-    const query = search.toLowerCase().trim();
-
-    const matchingTemplates = webTemplates.flatMap((template, index) => {
-      const matches =
-        !query ||
-        template.title?.toLowerCase().includes(query) ||
-        template.description?.toLowerCase().includes(query) ||
-        template.category?.toLowerCase().includes(query) ||
-        template.targets?.some((target) =>
-          target.toLowerCase().includes(query),
-        );
-
-      return matches ? [{ template, index }] : [];
-    });
-
-    matchingTemplates.sort((a, b) => {
-      const titleA = a.template.title || "";
-      const titleB = b.template.title || "";
-
-      return sortOption === "reverse-alphabetical"
-        ? titleB.localeCompare(titleA)
-        : titleA.localeCompare(titleB);
-    });
-
-    return matchingTemplates;
-  }, [search, sortOption, webTemplates]);
-
-  const combinedTemplates = useMemo<
-    Array<
-      | {
-          key: typeof AUTO_TEMPLATE_ID;
-          title: "Auto";
-          selected: boolean;
-          source: "auto";
-          customized: boolean;
-        }
-      | {
-          key: string;
-          title: string;
-          selected: boolean;
-          pinned: boolean;
-          source: "user";
-          template: UserTemplate;
-        }
-      | {
-          key: string;
-          title: string;
-          selected: boolean;
-          pinned: false;
-          source: "web";
-          index: number;
-          template: WebTemplate;
-        }
-    >
-  >(() => {
-    const query = search.trim().toLowerCase();
-    const auto =
-      !query || "auto".includes(query)
-        ? [
-            {
-              key: AUTO_TEMPLATE_ID as typeof AUTO_TEMPLATE_ID,
-              title: "Auto" as const,
-              selected:
-                !isWebMode && effectiveSelectedMineId === AUTO_TEMPLATE_ID,
-              source: "auto" as const,
-              customized: Boolean(autoPrompt.trim()),
-            },
-          ]
-        : [];
-    const mine = filteredMine.map((template) => ({
+  const groups = useMemo(() => {
+    const auto: ListEntry[] = showAuto
+      ? [
+          {
+            source: "auto",
+            key: AUTO_TEMPLATE_ID,
+            selected: !isWebMode && selectedMineId === AUTO_TEMPLATE_ID,
+          },
+        ]
+      : [];
+    const toUserEntry = (template: UserTemplate): ListEntry => ({
+      source: "user",
       key: template.id,
-      title: template.title?.trim() || "Untitled",
-      selected: !isWebMode && effectiveSelectedMineId === template.id,
-      pinned: Boolean(template.pinned),
-      source: "user" as const,
+      selected: !isWebMode && selectedMineId === template.id,
       template,
-    }));
-
-    const web = filteredWeb.map(({ template, index }) => ({
+    });
+    const web: ListEntry[] = filteredWeb.map(({ template, index }) => ({
+      source: "web",
       key: template.slug || `web-${index}`,
-      title: template.title?.trim() || "Untitled",
-      selected: isWebMode && effectiveSelectedWebIndex === index,
-      pinned: false as const,
-      source: "web" as const,
+      selected: isWebMode && selectedWebIndex === index,
       index,
       template,
     }));
 
-    return [...auto, ...mine, ...web];
+    return [
+      { id: "default", label: t`Default`, entries: auto },
+      {
+        id: "favorites",
+        label: t`My favorites`,
+        entries: favorites.map(toUserEntry),
+      },
+      {
+        id: "all",
+        label: t`All templates`,
+        entries: [...others.map(toUserEntry), ...web],
+      },
+    ].filter((group) => group.entries.length > 0);
   }, [
-    autoPrompt,
-    effectiveSelectedMineId,
-    effectiveSelectedWebIndex,
-    filteredMine,
+    favorites,
     filteredWeb,
     isWebMode,
-    search,
+    others,
+    selectedMineId,
+    selectedWebIndex,
+    showAuto,
+    t,
   ]);
 
-  const hasResults = combinedTemplates.length > 0;
-  const isEmpty = !isWebLoading && !hasResults;
+  const flatEntries = useMemo(
+    () => groups.flatMap((group) => group.entries),
+    [groups],
+  );
 
-  const selectCombinedTemplate = useCallback(
-    (
-      item:
-        | {
-            source: "auto";
-          }
-        | {
-            source: "user";
-            template: UserTemplate;
-          }
-        | {
-            source: "web";
-            index: number;
-          },
-    ) => {
-      if (item.source === "auto") {
+  const selectEntry = useCallback(
+    (entry: ListEntry) => {
+      if (entry.source === "auto") {
         setSelectedMineId(AUTO_TEMPLATE_ID);
-        return;
+      } else if (entry.source === "user") {
+        setSelectedMineId(entry.template.id);
+      } else {
+        setSelectedWebIndex(entry.index);
       }
-
-      if (item.source === "user") {
-        setSelectedMineId(item.template.id);
-        return;
-      }
-
-      setSelectedWebIndex(item.index);
     },
     [setSelectedMineId, setSelectedWebIndex],
   );
 
+  // Alt + flèches : passer au modèle précédent ou suivant depuis l'éditeur.
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
@@ -288,249 +205,208 @@ export function TemplatesSidebarContent({
         return;
       }
 
-      if (combinedTemplates.length === 0) {
+      if (flatEntries.length === 0) {
         return;
       }
 
       event.preventDefault();
       event.stopPropagation();
 
-      const currentIndex = combinedTemplates.findIndex((item) => item.selected);
+      const currentIndex = flatEntries.findIndex((entry) => entry.selected);
+      const step = event.key === "ArrowDown" ? 1 : -1;
       const nextIndex =
         currentIndex === -1
-          ? event.key === "ArrowDown"
+          ? step === 1
             ? 0
-            : combinedTemplates.length - 1
-          : Math.max(
-              0,
-              Math.min(
-                combinedTemplates.length - 1,
-                currentIndex + (event.key === "ArrowDown" ? 1 : -1),
-              ),
-            );
+            : flatEntries.length - 1
+          : Math.max(0, Math.min(flatEntries.length - 1, currentIndex + step));
 
-      const nextItem = combinedTemplates[nextIndex];
-      if (!nextItem || nextIndex === currentIndex) {
-        return;
+      const nextEntry = flatEntries[nextIndex];
+      if (nextEntry && nextIndex !== currentIndex) {
+        selectEntry(nextEntry);
       }
-
-      selectCombinedTemplate(nextItem);
     };
 
     window.addEventListener("keydown", handleKeyDown, { capture: true });
     return () => {
       window.removeEventListener("keydown", handleKeyDown, { capture: true });
     };
-  }, [combinedTemplates, selectCombinedTemplate]);
+  }, [flatEntries, selectEntry]);
 
   useEffect(() => {
     const selectedElement = scrollContainerRef.current?.querySelector(
       "[data-template-selected='true']",
     );
-
-    if (!(selectedElement instanceof HTMLElement)) {
-      return;
+    if (selectedElement instanceof HTMLElement) {
+      selectedElement.scrollIntoView({ block: "nearest" });
     }
+  }, [selectedMineId, selectedWebIndex]);
 
-    selectedElement.scrollIntoView({
-      block: "nearest",
-    });
-  }, [effectiveSelectedMineId, effectiveSelectedWebIndex]);
+  const isEmpty = flatEntries.length === 0;
+  const hasNoTemplates =
+    userTemplates.length === 0 && webTemplates.length === 0;
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <div>
-        <CustomSidebarHeader>
-          {userTemplates.length > 1 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-muted-foreground hover:text-foreground relative z-[60]"
-                >
-                  <ArrowsDownUp size={16} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent variant="app" align="end">
-                <AppFloatingPanel className={appFloatingMenuPanelClassName}>
-                  <DropdownMenuItem
-                    onClick={() => setSortOption("alphabetical")}
-                  >
-                    <Trans>A to Z</Trans>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setSortOption("reverse-alphabetical")}
-                  >
-                    <Trans>Z to A</Trans>
-                  </DropdownMenuItem>
-                </AppFloatingPanel>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+      <CustomSidebarHeader />
 
-          <Button
-            size="icon"
-            variant="ghost"
-            className="text-muted-foreground hover:text-foreground relative z-[60]"
-            onClick={createDefaultTemplate}
-          >
-            <Plus size={16} />
-          </Button>
-        </CustomSidebarHeader>
-
-        <div className="pb-2">
-          <div
-            ref={searchRef}
-            className={cn([
-              "border-border bg-accent/50 flex h-8 w-full shrink-0 items-center gap-2 rounded-lg border px-3",
-              "focus-within:bg-accent transition-colors",
-            ])}
-          >
-            <MagnifyingGlass className="text-muted-foreground h-4 w-4 shrink-0" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  setSearch("");
-                }
-              }}
-              placeholder={t`Search templates...`}
-              className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className={cn([
-                  "h-4 w-4 shrink-0",
-                  "text-muted-foreground hover:text-muted-foreground",
-                  "transition-colors",
-                ])}
-                aria-label={t`Clear search`}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
+      <div className="pb-3">
+        <div className="border-border bg-card focus-within:ring-ring/50 flex h-8 w-full items-center gap-2 rounded-lg border px-2.5 focus-within:ring-2">
+          <MagnifyingGlass
+            aria-hidden="true"
+            className="text-faint size-4 shrink-0"
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                setSearch("");
+              }
+            }}
+            aria-label={t`Search templates`}
+            placeholder={t`Search a template`}
+            className="placeholder:text-faint min-w-0 flex-1 bg-transparent text-sm outline-hidden"
+          />
+          {search ? (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="text-faint hover:text-foreground shrink-0"
+              aria-label={t`Clear search`}
+            >
+              <X className="size-4" />
+            </button>
+          ) : null}
         </div>
       </div>
 
-      <div
+      <nav
         ref={scrollContainerRef}
-        className="scrollbar-hide flex-1 overflow-y-auto"
+        aria-label={t`Templates`}
+        className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto"
       >
         {isEmpty ? (
-          <div className="text-muted-foreground px-3 py-8 text-center">
-            <BookOpenText
-              size={32}
-              className="text-muted-foreground/70 mx-auto mb-2"
-            />
-            <p className="text-sm">
-              {search ? "No templates found" : "No templates yet"}
-            </p>
-            {!search && (
-              <button
-                onClick={createDefaultTemplate}
-                className="text-muted-foreground hover:text-foreground mt-3 text-sm underline"
-              >
-                Create my first template
-              </button>
+          <p className="text-muted-foreground px-2 py-6 text-center text-sm">
+            {search && !hasNoTemplates ? (
+              <Trans>No template found</Trans>
+            ) : (
+              <Trans>No templates yet</Trans>
             )}
-          </div>
+          </p>
         ) : (
-          <>
-            {hasResults && (
-              <div className="pt-1">
-                {combinedTemplates.map((item) =>
-                  item.source === "auto" ? (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onClick={() => setSelectedMineId(AUTO_TEMPLATE_ID)}
-                      data-template-selected={item.selected}
-                      className={cn([
-                        "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors select-none",
-                        item.selected ? "bg-accent" : "hover:bg-accent/50",
-                      ])}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Sparkle className="size-4 text-violet-500" />
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate font-medium">
-                            {item.title}
-                          </div>
-                          {item.customized ? (
-                            <div className="text-muted-foreground truncate text-xs">
-                              <Trans>Customized</Trans>
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </button>
-                  ) : item.source === "user" ? (
-                    <TemplateListItem
-                      key={item.key}
-                      template={item.template}
-                      selected={item.selected}
-                      onSelect={setSelectedMineId}
-                      onToggleFavorite={handleToggleFavorite}
-                      onDuplicate={handleDuplicateTemplate}
-                      onDelete={handleDeleteTemplate}
-                    />
-                  ) : (
-                    <button
-                      key={item.key}
-                      onClick={() => setSelectedWebIndex(item.index)}
-                      data-template-selected={item.selected}
-                      className={cn([
-                        "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors select-none",
-                        item.selected ? "bg-accent" : "hover:bg-accent/50",
-                      ])}
-                    >
-                      <div className="flex items-center gap-2">
-                        <TemplateIconGlyph
-                          icon={item.template.icon}
-                          className="size-4 text-sm"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate font-medium">
-                            {item.title}
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  ),
-                )}
-              </div>
-            )}
-
-            {isWebLoading && !hasResults && (
-              <div className="pt-1">
-                <div className="flex flex-col gap-1">
-                  {[0, 1, 2, 3].map((index) => (
-                    <div
-                      key={index}
-                      className="animate-pulse rounded-lg px-3 py-2"
-                    >
-                      <div className="bg-accent h-4 w-3/4 rounded-xs" />
-                      <div className="bg-muted mt-1.5 h-3 w-1/3 rounded-xs" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
+          groups.map((group) => (
+            <TemplateGroup key={group.id} label={group.label}>
+              {group.entries.map((entry) =>
+                entry.source === "auto" ? (
+                  <TemplateListButton
+                    key={entry.key}
+                    selected={entry.selected}
+                    onSelect={() => selectEntry(entry)}
+                    label={autoLabel}
+                    meta={
+                      autoPrompt.trim() ? (
+                        <span className="text-muted-foreground text-xs">
+                          <Trans>customized</Trans>
+                        </span>
+                      ) : null
+                    }
+                  />
+                ) : entry.source === "user" ? (
+                  <UserTemplateListItem
+                    key={entry.key}
+                    template={entry.template}
+                    selected={entry.selected}
+                    isDefault={defaultTemplateId === entry.template.id}
+                    onSelect={setSelectedMineId}
+                    onToggleFavorite={toggleTemplateFavorite}
+                    onDuplicate={handleDuplicateTemplate}
+                    onDelete={handleDeleteTemplate}
+                  />
+                ) : (
+                  <TemplateListButton
+                    key={entry.key}
+                    selected={entry.selected}
+                    onSelect={() => selectEntry(entry)}
+                    label={entry.template.title?.trim() || t`Untitled`}
+                  />
+                ),
+              )}
+            </TemplateGroup>
+          ))
         )}
-      </div>
+      </nav>
+
+      <button
+        type="button"
+        onClick={() => void createDefaultTemplate()}
+        className="border-input bg-card hover:bg-muted focus-visible:ring-ring/50 mt-3 flex h-9 w-full shrink-0 items-center justify-center rounded-lg border text-sm font-medium outline-hidden focus-visible:ring-2"
+      >
+        <Trans>+ New template</Trans>
+      </button>
     </div>
   );
 }
 
-function TemplateListItem({
+function TemplateGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  const labelId = useId();
+  return (
+    <div role="group" aria-labelledby={labelId} className="flex flex-col">
+      <h3
+        id={labelId}
+        className="text-faint px-2 pb-1 text-[11px] font-semibold tracking-[0.08em] uppercase"
+      >
+        {label}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+function TemplateListButton({
+  label,
+  selected,
+  onSelect,
+  onContextMenu,
+  meta,
+}: {
+  label: string;
+  selected: boolean;
+  onSelect: () => void;
+  onContextMenu?: (event: MouseEvent<HTMLButtonElement>) => void;
+  meta?: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      onContextMenu={onContextMenu}
+      aria-current={selected ? "true" : undefined}
+      data-template-selected={selected}
+      className={cn([
+        "focus-visible:ring-ring/50 flex w-full items-center gap-2 rounded-[7px] px-2 py-1.5 text-left text-sm outline-hidden select-none focus-visible:ring-2",
+        selected
+          ? "bg-accent text-accent-foreground font-semibold"
+          : "hover:bg-muted",
+      ])}
+    >
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {meta}
+    </button>
+  );
+}
+
+function UserTemplateListItem({
   template,
   selected,
+  isDefault,
   onSelect,
   onToggleFavorite,
   onDuplicate,
@@ -538,8 +414,9 @@ function TemplateListItem({
 }: {
   template: UserTemplate;
   selected: boolean;
+  isDefault: boolean;
   onSelect: (id: string) => void;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: string) => void | Promise<void>;
   onDuplicate: (template: UserTemplate) => void;
   onDelete: (id: string) => void;
 }) {
@@ -548,8 +425,8 @@ function TemplateListItem({
     () => [
       {
         id: `favorite-template-${template.id}`,
-        text: template.pinned ? t`Unfavorite` : t`Favorite`,
-        action: () => onToggleFavorite(template.id),
+        text: template.pinned ? t`Remove from favorites` : t`Add to favorites`,
+        action: () => void onToggleFavorite(template.id),
       },
       { separator: true as const },
       {
@@ -568,26 +445,29 @@ function TemplateListItem({
   const showContextMenu = useNativeContextMenu(contextMenu);
 
   return (
-    <button
-      onClick={() => onSelect(template.id)}
-      onContextMenu={(e) => {
+    <TemplateListButton
+      label={template.title?.trim() || t`Untitled`}
+      selected={selected}
+      onSelect={() => onSelect(template.id)}
+      onContextMenu={(event) => {
         onSelect(template.id);
-        void showContextMenu(e);
+        void showContextMenu(event);
       }}
-      data-template-selected={selected}
-      className={cn([
-        "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors select-none",
-        selected ? "bg-accent" : "hover:bg-accent/50",
-      ])}
-    >
-      <div className="flex items-center gap-2">
-        <TemplateIconGlyph icon={template.icon} className="size-4 text-sm" />
-        <div className="min-w-0 flex-1">
-          <div className="truncate font-medium">
-            {template.title?.trim() || "Untitled"}
-          </div>
-        </div>
-      </div>
-    </button>
+      meta={
+        <>
+          {isDefault ? (
+            <span className="text-muted-foreground text-xs font-normal">
+              <Trans>default</Trans>
+            </span>
+          ) : null}
+          {template.pinned ? (
+            <Star
+              className="text-primary size-3 shrink-0 [&_path]:fill-current"
+              aria-label={t`In favorites`}
+            />
+          ) : null}
+        </>
+      }
+    />
   );
 }

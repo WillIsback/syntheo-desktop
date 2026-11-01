@@ -40,6 +40,7 @@ unicode-width = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libloading = { workspace = true }
+tray-icon = { version = "0.25.1", default-features = false, features = ["libappindicator"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = { workspace = true }

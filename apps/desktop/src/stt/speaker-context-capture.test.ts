@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   currentDevice: vi.fn(),
   participants: vi.fn(),
   eventJson: "{}",
+  writes: 0,
 }));
 
 vi.mock("@syntheo/plugin-detect", () => ({
@@ -40,12 +41,14 @@ vi.mock("~/db", () => ({
           ],
   },
   executeTransaction: async (writes: Array<{ params: unknown[] }>) => {
+    mocks.writes += 1;
     mocks.context = JSON.parse(writes[0]!.params[0] as string);
   },
 }));
 
 import {
   observeSpeakerMicrophone,
+  speakerInspectionDelayMs,
   startSpeakerContextCapture,
   stopSpeakerContextCapture,
 } from "./speaker-context-capture";
@@ -68,6 +71,7 @@ describe("capturing speaker context", () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);
     mocks.context = { intervals: [] };
+    mocks.writes = 0;
     mocks.inspect.mockResolvedValue({ status: "ok", data: [inspection] });
     mocks.mic.mockResolvedValue({ status: "ok", data: [inspection.app] });
     mocks.currentDevice.mockResolvedValue({
@@ -267,6 +271,20 @@ describe("capturing speaker context", () => {
     expect(mocks.context.intervals).toHaveLength(1);
   });
 
+  // Issue #271 : une écoute de 8 min réécrivait la ligne de la session toutes
+  // les 5 s alors que les constats ne changeaient pas.
+  it("does not rewrite unchanged evidence on every poll", async () => {
+    startSpeakerContextCapture("session");
+    await vi.advanceTimersByTimeAsync(0);
+    const initialWrites = mocks.writes;
+    await vi.advanceTimersByTimeAsync(60_000);
+    const writesPerMinute = mocks.writes - initialWrites;
+    expect(writesPerMinute).toBeLessThanOrEqual(3);
+    expect(mocks.context.intervals).toHaveLength(1);
+    // The lease still covers the time the capture has been observed.
+    expect(Number(latestInterval()?.end_ms)).toBeGreaterThan(Date.now());
+  });
+
   it("does not write stale inspection results after capture stops", async () => {
     let finish!: (value: unknown) => void;
     mocks.inspect.mockImplementationOnce(
@@ -281,5 +299,80 @@ describe("capturing speaker context", () => {
     finish({ status: "ok", data: [inspection] });
     await stopping;
     expect(mocks.context.intervals).toEqual([]);
+  });
+
+  // Issue #273 : l'inspection d'accessibilité parcourait l'arbre AT-SPI du
+  // navigateur toutes les 5 s pendant l'écoute d'une vidéo YouTube.
+  describe("accessibility inspection cost (issue 273)", () => {
+    const syntheoOnly = {
+      status: "ok",
+      data: [
+        { id: "PipeWire ALSA [syntheo]", name: "PipeWire ALSA [syntheo]" },
+      ],
+    };
+    const noMeeting = {
+      status: "ok",
+      data: [{ ...inspection, activeCall: false }],
+    };
+
+    it("backs the inspection off to twenty seconds at most", () => {
+      expect([0, 1, 2, 3, 4, 10].map(speakerInspectionDelayMs)).toEqual([
+        0, 0, 10_000, 20_000, 20_000, 20_000,
+      ]);
+    });
+
+    it("skips the inspection while no meeting-capable app holds the microphone", async () => {
+      mocks.mic.mockResolvedValue(syntheoOnly);
+      startSpeakerContextCapture("session");
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(120_000);
+
+      expect(mocks.inspect).not.toHaveBeenCalled();
+      expect(latestInterval()?.active_call).toBe(false);
+      // Le bail de 30 s (#272) n'est pas régressé : pas d'écriture par sondage.
+      expect(mocks.writes).toBeLessThanOrEqual(1 + 120_000 / 20_000);
+      expect(mocks.context.intervals).toHaveLength(1);
+    });
+
+    it("bench: spaces out inspections while a browser holds the microphone without a meeting", async () => {
+      mocks.inspect.mockResolvedValue(noMeeting);
+      startSpeakerContextCapture("session");
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(120_000);
+
+      // Avant : 25 inspections sur [0 ; 120 s]. Après : t = 0, 5, 15, 35, 55, 75, 95, 115 s.
+      expect(mocks.inspect).toHaveBeenCalledTimes(8);
+      expect(latestInterval()?.active_call).toBe(false);
+      expect(Number(latestInterval()?.end_ms)).toBeGreaterThan(Date.now());
+    });
+
+    it("inspects again at once when a meeting app takes the microphone", async () => {
+      mocks.mic.mockResolvedValue(syntheoOnly);
+      startSpeakerContextCapture("session");
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(mocks.inspect).not.toHaveBeenCalled();
+
+      mocks.mic.mockResolvedValue({ status: "ok", data: [inspection.app] });
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(mocks.inspect).toHaveBeenCalledTimes(1);
+      expect(latestInterval()?.active_call).toBe(true);
+    });
+
+    it("returns to every poll once a meeting is seen", async () => {
+      mocks.inspect.mockResolvedValue(noMeeting);
+      startSpeakerContextCapture("session");
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(35_000);
+      expect(mocks.inspect).toHaveBeenCalledTimes(4);
+
+      mocks.inspect.mockResolvedValue({ status: "ok", data: [inspection] });
+      await vi.advanceTimersByTimeAsync(20_000);
+      expect(mocks.inspect).toHaveBeenCalledTimes(5);
+      expect(latestInterval()?.active_call).toBe(true);
+      await vi.advanceTimersByTimeAsync(5_000);
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(mocks.inspect).toHaveBeenCalledTimes(7);
+    });
   });
 });

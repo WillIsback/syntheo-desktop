@@ -11,10 +11,10 @@ Syntheo n'a besoin d'internet pour aucune de ses fonctions : il n'a ni compte, n
 Ces fonctions ne font appel à aucun serveur :
 
 - créer, modifier et organiser vos notes et vos dossiers ;
-- relire les transcripts et comptes rendus déjà produits ;
+- relire les transcriptions et comptes rendus déjà produits ;
 - la recherche plein texte (index local) ;
 - l'export de vos notes ;
-- gérer vos templates.
+- gérer vos modèles de compte rendu.
 
 ## Ce qui exige le serveur de transcription
 
@@ -25,15 +25,15 @@ Ces fonctions ne font appel à aucun serveur :
 Sans serveur de transcription joignable, **il n'y a pas de transcription**. Syntheo ne conserve jamais l'audio : il ne peut donc pas enregistrer maintenant pour transcrire plus tard.
 
 - Si aucun fournisseur de transcription n'est configuré, Syntheo refuse de démarrer la capture : « Aucun fournisseur de transcription n'est configuré. Syntheo ne conserve pas l'audio : configurez un endpoint de transcription avant d'enregistrer. »
-- Si le serveur devient injoignable pendant une réunion, la transcription en direct se met en pause et Syntheo tente de se reconnecter. Le passage prononcé pendant la coupure manquera au transcript.
+- Si le serveur devient injoignable pendant une réunion, la transcription en direct se met en pause et Syntheo tente de se reconnecter. Le passage prononcé pendant la coupure manquera à la transcription.
 
-## Ce qui exige le serveur LLM
+## Ce qui exige le serveur de synthèse
 
 - la génération des comptes rendus ;
-- le chat sur les notes ;
-- le générateur de templates par IA.
+- le chat sur les notes (« Demander à la note ») ;
+- « Proposer des sections » dans l'éditeur de modèles.
 
-Sans serveur LLM joignable, vos transcripts restent disponibles : vous pourrez générer le compte rendu une fois le serveur revenu.
+Sans serveur de synthèse joignable, vos transcriptions restent disponibles : vous pourrez générer le compte rendu une fois le serveur revenu.
 
 ## Travailler entièrement hors ligne
 

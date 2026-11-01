@@ -27,6 +27,22 @@ export interface TitleInputHandle {
   focusAtPixelWidth: (pixelWidth: number) => void;
 }
 
+type TitleVariant = "title" | "breadcrumb" | "document";
+
+const TITLE_HEIGHT_CLASS: Record<TitleVariant, string> = {
+  breadcrumb: "h-5",
+  title: "h-8",
+  // Titre de note du « document vivant » : Newsreader 40/1.1.
+  document: "h-11",
+};
+
+const TITLE_TEXT_CLASS: Record<TitleVariant, string> = {
+  breadcrumb: "text-sm leading-5",
+  title: "text-xl font-semibold",
+  document:
+    "font-serif text-[40px] leading-[1.1] font-medium tracking-[-0.01em]",
+};
+
 export const TitleInput = forwardRef<
   TitleInputHandle,
   {
@@ -34,7 +50,7 @@ export const TitleInput = forwardRef<
     onTransferContentToEditor?: (content: string) => void;
     onFocusEditorAtStart?: () => void;
     onFocusEditorAtPixelWidth?: (pixelWidth: number) => void;
-    variant?: "title" | "breadcrumb";
+    variant?: TitleVariant;
   }
 >(
   (
@@ -79,15 +95,13 @@ export const TitleInput = forwardRef<
           data-tauri-drag-region="false"
           className={cn([
             "flex w-full items-center justify-start",
-            variant === "breadcrumb" ? "h-5" : "h-8",
+            TITLE_HEIGHT_CLASS[variant],
           ])}
         >
           <span
             className={cn([
               "text-muted-foreground animate-pulse",
-              variant === "breadcrumb"
-                ? "text-sm leading-5"
-                : "text-xl font-semibold",
+              TITLE_TEXT_CLASS[variant],
             ])}
           >
             <Trans>Generating title...</Trans>
@@ -102,15 +116,13 @@ export const TitleInput = forwardRef<
           data-tauri-drag-region="false"
           className={cn([
             "flex w-full items-center justify-start overflow-hidden",
-            variant === "breadcrumb" ? "h-5" : "h-8",
+            TITLE_HEIGHT_CLASS[variant],
           ])}
         >
           <span
             className={cn([
               "animate-reveal-left whitespace-nowrap",
-              variant === "breadcrumb"
-                ? "text-sm leading-5"
-                : "text-xl font-semibold",
+              TITLE_TEXT_CLASS[variant],
             ])}
           >
             {generatedTitle}
@@ -141,7 +153,7 @@ interface TitleInputInnerProps {
   onTransferContentToEditor?: (content: string) => void;
   onFocusEditorAtStart?: () => void;
   onFocusEditorAtPixelWidth?: (pixelWidth: number) => void;
-  variant: "title" | "breadcrumb";
+  variant: TitleVariant;
 }
 
 const TitleInputInner = memo(
@@ -411,9 +423,8 @@ const TitleInputInner = memo(
           style={titleFadeStyle}
           className={cn([
             "group/title-input relative grid w-fit max-w-full grid-cols-[minmax(0,1fr)] items-center overflow-hidden",
-            variant === "breadcrumb"
-              ? "h-5 text-sm leading-5"
-              : "h-8 text-xl font-semibold",
+            TITLE_HEIGHT_CLASS[variant],
+            TITLE_TEXT_CLASS[variant],
           ])}
         >
           <span
@@ -465,8 +476,10 @@ const TitleInputInner = memo(
               "border-none bg-transparent focus:outline-hidden",
               "placeholder:text-muted-foreground text-left",
               variant === "breadcrumb"
-                ? "h-5 appearance-none p-0 text-sm leading-5 text-neutral-700 focus:underline dark:text-white"
-                : "text-xl font-semibold",
+                ? "text-foreground h-5 appearance-none p-0 text-sm leading-5 focus:underline"
+                : TITLE_TEXT_CLASS[variant],
+              variant === "document" &&
+                "text-foreground placeholder:text-faint focus-visible:ring-ring focus-visible:ring-offset-background h-11 rounded-md focus-visible:ring-2 focus-visible:ring-offset-4",
               variant === "breadcrumb" &&
                 (isTitleFocused
                   ? "overflow-x-auto whitespace-nowrap"
@@ -483,9 +496,7 @@ const TitleInputInner = memo(
                 style={titleHoverScrollStyle}
                 className={cn([
                   "group-hover/title-input:animate-title-hover-scroll whitespace-nowrap group-hover/title-input:will-change-transform",
-                  variant === "breadcrumb"
-                    ? "text-sm leading-5"
-                    : "text-xl font-semibold",
+                  TITLE_TEXT_CLASS[variant],
                 ])}
               >
                 {title}

@@ -10,6 +10,12 @@ pub fn should_skip_path(relative_path: &str, path: &Path) -> bool {
         if name.starts_with(".tmp") {
             return true;
         }
+
+        // SQLite rewrites its write-ahead log, shared-memory index and rollback
+        // journal on every transaction; they are never user content.
+        if is_sqlite_internal_file(name) {
+            return true;
+        }
     }
 
     if relative_path == "store.json" {
@@ -36,6 +42,15 @@ pub fn should_skip_path(relative_path: &str, path: &Path) -> bool {
     }
 
     false
+}
+
+fn is_sqlite_internal_file(name: &str) -> bool {
+    // Companion files are named after their database (`app.db-wal`), so the
+    // remaining stem must itself look like a database file name.
+    ["-wal", "-shm", "-journal"].iter().any(|suffix| {
+        name.strip_suffix(suffix)
+            .is_some_and(|database| database.contains('.') && !database.ends_with('.'))
+    })
 }
 
 pub fn to_relative_path(path: &Path, base: &Path) -> String {
@@ -89,8 +104,26 @@ mod tests {
     }
 
     #[test]
+    fn skips_sqlite_internal_files() {
+        for (relative, absolute) in [
+            ("app.db-wal", "/vault/app.db-wal"),
+            ("app.db-shm", "/vault/app.db-shm"),
+            ("app.db-journal", "/vault/app.db-journal"),
+            ("nested/other.sqlite-wal", "/vault/nested/other.sqlite-wal"),
+        ] {
+            assert!(
+                should_skip_path(relative, &PathBuf::from(absolute)),
+                "expected {relative:?} to be skipped"
+            );
+        }
+    }
+
+    #[test]
     fn keeps_user_files() {
         for (relative, absolute) in [
+            ("app.db", "/vault/app.db"),
+            ("notes/my-journal", "/vault/notes/my-journal"),
+            ("-wal", "/vault/-wal"),
             ("notes/note.md", "/vault/notes/note.md"),
             ("data.json", "/vault/data.json"),
             ("sessions/session.txt", "/vault/sessions/session.txt"),

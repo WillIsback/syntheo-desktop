@@ -80,6 +80,11 @@ beforeEach(() => {
 afterEach(cleanup);
 
 it("saves the contact fields and photo to the local owner's personal card", async () => {
+  mocks.contact.data = {
+    email: "kept@example.com",
+    phone: "+33 6 12 34 56 78",
+    linkedinUsername: "kept",
+  };
   render(view());
   expect(mocks.query).toHaveBeenCalledWith("account-1");
   // Aucun compte : rien n'est prérempli depuis un profil hébergé.
@@ -87,9 +92,7 @@ it("saves the contact fields and photo to the local owner's personal card", asyn
   for (const [label, value] of [
     ["Name", "Ada Lovelace"],
     ["Job Title", "Engineer"],
-    ["Email", "contact@example.com"],
-    ["Phone", "+123"],
-    ["LinkedIn", "ada"],
+    ["Email", "ada@example.com"],
     ["Notes", "My notes"],
   ]) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
@@ -100,9 +103,11 @@ it("saves the contact fields and photo to the local owner's personal card", asyn
     expect(mocks.save).toHaveBeenCalledWith("account-1", {
       name: "Ada Lovelace",
       jobTitle: "Engineer",
-      email: "contact@example.com",
-      phone: "+123",
-      linkedinUsername: "ada",
+      email: "ada@example.com",
+      // Champs retirés du formulaire : les valeurs déjà enregistrées sont
+      // conservées telles quelles, jamais effacées.
+      phone: "+33 6 12 34 56 78",
+      linkedinUsername: "kept",
       memo: "My notes",
       organizationId: "company-1",
       avatarDataUrl: "data:image/jpeg;base64,photo",
@@ -178,9 +183,6 @@ it("loads saved contact fields and removes a photo without clearing other detail
   expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe(
     "Saved name",
   );
-  expect((screen.getByLabelText("Email") as HTMLInputElement).value).toBe(
-    "saved@example.com",
-  );
   fireEvent.click(screen.getByRole("button", { name: "Remove photo" }));
   await waitFor(() =>
     expect(mocks.save).toHaveBeenCalledWith("account-1", {
@@ -190,29 +192,30 @@ it("loads saved contact fields and removes a photo without clearing other detail
   );
 });
 
-it("formats phone numbers on blur and saves the country-specific format", async () => {
+it("demande l'e-mail en expliquant son usage, plus le téléphone ni LinkedIn", () => {
   render(view());
-  const phone = screen.getByLabelText("Phone") as HTMLInputElement;
-  fireEvent.change(phone, { target: { value: "+821012345678" } });
-  expect(phone.value).toBe("+821012345678");
-  fireEvent.blur(phone);
-  expect(phone.value).toBe("+82 10 1234 5678");
+  const email = screen.getByLabelText("Email") as HTMLInputElement;
+  expect(email.type).toBe("email");
+  expect(email.getAttribute("aria-describedby")).toBe("profile-email-help");
+  expect(document.getElementById("profile-email-help")?.textContent).toMatch(
+    /recognize you among the attendees/,
+  );
+  for (const label of ["Phone", "LinkedIn"]) {
+    expect(screen.queryByLabelText(label)).toBeNull();
+  }
+});
+
+it("enregistre des champs retirés vides quand le profil est nouveau", async () => {
+  render(view());
+  fireEvent.change(screen.getByLabelText("Name"), {
+    target: { value: "Ada" },
+  });
   await waitFor(() =>
     expect(mocks.save).toHaveBeenCalledWith(
       "account-1",
-      expect.objectContaining({ phone: "+82 10 1234 5678" }),
+      expect.objectContaining({ email: "", phone: "", linkedinUsername: "" }),
     ),
   );
-});
-
-it("formats a saved phone without marking the profile dirty", () => {
-  mocks.contact.data = { name: "Ada", phone: "+16693299320" };
-  render(view());
-  expect((screen.getByLabelText("Phone") as HTMLInputElement).value).toBe(
-    "+1 669 329 9320",
-  );
-  expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
-  expect(mocks.save).not.toHaveBeenCalled();
 });
 
 it("does not replace newer edits when an earlier save finishes", async () => {

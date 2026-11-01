@@ -23,7 +23,6 @@ import {
   type StartFailureStage,
 } from "./start-failure";
 
-import { useShell } from "~/contexts/shell";
 import { getBaseLanguageDisplayName } from "~/settings/general/language";
 import { useConfigValue } from "~/shared/config";
 import { useTabs } from "~/store/zustand/tabs";
@@ -88,8 +87,6 @@ export function useStartListeningState(
 
   const start = useListener((state) => state.start);
   const stop = useListener((state) => state.stop);
-  const { leftsidebar } = useShell();
-  const setLeftSidebarExpanded = leftsidebar.setExpanded;
   const openNew = useTabs((state) => state.openNew);
 
   const reportStartFailure = useCallback(
@@ -303,8 +300,6 @@ export function useStartListeningState(
       });
     }
 
-    setLeftSidebarExpanded(false);
-
     const stopChatCapture = startMeetingChatCapture({
       sessionId,
       excludedTexts: [MEETING_DISCLOSURE_MESSAGE],
@@ -344,7 +339,6 @@ export function useStartListeningState(
     session,
     sessionId,
     setStopMeetingChatCapture,
-    setLeftSidebarExpanded,
     meetingDisclosureAutoSendChat,
     spokenLanguages,
     start,

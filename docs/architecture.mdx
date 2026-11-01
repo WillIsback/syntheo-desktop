@@ -16,7 +16,7 @@ Le dépôt est un monorepo **pnpm** (`pnpm-workspace.yaml` : `apps/*`, `packages
 | CLI | `apps/cli` | Binaire `syntheo` en Rust : lecture et export des réunions, propositions de modification, serveur MCP. |
 | Plugins Tauri | `plugins/*` | Pont entre l'interface et le natif : `db`, `transcription`, `dictation`, `template`, `tantivy`, `export`, `store2`, `detect`, `notification`, `shortcut`, `local-api`, `mcp`… Chaque plugin expose des commandes typées, générées pour TypeScript avec `tauri-specta`. |
 | Capture audio | `crates/audio*`, `crates/aec`, `crates/vad*`, `crates/listener-core` | Accès aux périphériques, capture du micro et de l'audio système, annulation d'écho, détection d'activité vocale, supervision de la session de capture. |
-| Transcription | `crates/owhisper-client`, `crates/transcript`, `crates/ws-client` | Adaptateurs STT et assemblage du transcript. |
+| Transcription | `crates/owhisper-client`, `crates/transcript`, `crates/ws-client` | Adaptateurs STT et assemblage de la transcription. |
 | Données | `crates/db-core`, `crates/db-app`, `crates/db-migrate`, `crates/storage` | Accès SQLite (sqlx), schéma et migrations, emplacement des dossiers de données. |
 | Prompts et export | `crates/template-app`, `crates/export-core` | Prompts Jinja pour le LLM, export PDF via Typst. |
 | Accès agents | `crates/agent-access` | Opérations partagées par la CLI et le serveur MCP. |
@@ -31,7 +31,7 @@ flowchart LR
     CAP["Capture<br/>crates/listener-core<br/>(mémoire uniquement)"] --> STT
     STT["Adaptateur STT<br/>crates/owhisper-client"] -->|OpenAI Realtime /<br/>OpenAI-compatible| SRV1[(Serveur STT<br/>configuré)]
     STT -->|NVIDIA NIM<br/>WebSocket| SRV1
-    SRV1 --> LIVE[Transcript en direct]
+    SRV1 --> LIVE[Transcription en direct]
     LIVE --> DB[(SQLite<br/>app.db)]
     NOTES[Notes de l'utilisateur] --> DB
     DB --> ENH["Enhance<br/>prompts Jinja<br/>crates/template-app"]
@@ -44,14 +44,14 @@ flowchart LR
 
 1. **Capture.** `crates/listener-core` capture séparément le micro et l'audio système. Une connexion STT est ouverte par canal, ce qui fournit une première séparation des locuteurs (vous et les autres participants).
 2. **Transcription.** `crates/owhisper-client` ne contient que des adaptateurs on-premise : le protocole OpenAI (Realtime et `/v1/audio/transcriptions`, dans `adapter/openai` et `adapter/openai_compatible_batch.rs`) et NVIDIA NIM (`adapter/nvidia.rs`). Aucune URL n'est fournie par défaut : l'utilisateur saisit celle de son serveur. Le même client sert la dictée (`plugins/dictation`) et l'import de fichiers audio.
-3. **Transcript en direct.** Les segments reçus sont assemblés puis enregistrés dans SQLite. Si le flux STT s'interrompt, la session se reconnecte sans redémarrer la capture.
-4. **Enhance.** À la fin de la réunion, l'interface fusionne les notes et le transcript (`apps/desktop/src/store/zustand/ai-task/`). Les prompts sont rendus côté Rust par `plugins/template` à partir des modèles Jinja de `crates/template-app/assets` (`enhance.*`, `title.*`, `chat.*`…). Les templates de compte rendu sont stockés en base (migration `20260413020000_templates.sql`). L'appel au LLM passe par le SDK `ai` et `@ai-sdk/openai-compatible`, vers l'unique endpoint configuré.
+3. **Transcription en direct.** Les segments reçus sont assemblés puis enregistrés dans SQLite. Si le flux STT s'interrompt, la session se reconnecte sans redémarrer la capture.
+4. **Enhance.** À la fin de la réunion, l'interface fusionne les notes et la transcription (`apps/desktop/src/store/zustand/ai-task/`). Les prompts sont rendus côté Rust par `plugins/template` à partir des modèles Jinja de `crates/template-app/assets` (`enhance.*`, `title.*`, `chat.*`…). Les templates de compte rendu sont stockés en base (migration `20260413020000_templates.sql`). L'appel au LLM passe par le SDK `ai` et `@ai-sdk/openai-compatible`, vers l'unique endpoint configuré.
 5. **Note finale et export.** Le résultat est enregistré en base, puis exportable : PDF via `crates/export-core`, et Markdown ou JSON depuis la CLI.
 
 ## Stockage local
 
 - **Base SQLite** : fichier `app.db` (`apps/desktop/src-tauri/src/db.rs`), accédé via sqlx (`crates/db-core`). Le schéma et ses migrations SQL sont dans `crates/db-app/migrations`, appliquées par `crates/db-migrate`.
-- **Recherche plein texte** : `plugins/tantivy` maintient un index `search_index` dans le dossier de données. Des déclencheurs SQLite alimentent une file `search_index_dirty`, que l'application consomme pour réindexer les sessions, documents et transcripts modifiés.
+- **Recherche plein texte** : `plugins/tantivy` maintient un index `search_index` dans le dossier de données. Des déclencheurs SQLite alimentent une file `search_index_dirty`, que l'application consomme pour réindexer les sessions, documents et transcriptions modifiés.
 - **Emplacement des données** : le dossier `syntheo` du répertoire de données de l'utilisateur, par exemple `~/.local/share/syntheo` sous Linux (`crates/storage`, identifiant d'application `fr.willisback.syntheo`).
 - **Clés d'API** : jamais en base ni dans le binaire. `plugins/store2` les range dans le trousseau du système via la crate `keyring` : Secret Service sous Linux, Credential Manager sous Windows.
 
@@ -73,7 +73,7 @@ Les flux réseau sans rapport avec l'inférence, encore présents dans le code, 
 ## Interfaces pour les agents
 
 - **CLI** (`apps/cli`) : le binaire `syntheo` lit directement la base `app.db`, en lecture seule pour la consultation et l'export. Les modifications passent par des **propositions**, que l'utilisateur relit ensuite dans l'application. Voir la [référence de la CLI](/reference/cli).
-- **Serveur MCP** : `syntheo mcp` lance un serveur MCP en stdio (`apps/cli/src/mcp.rs`, bibliothèque `rmcp`). Il expose la liste des réunions, les transcripts, l'export, l'import d'un enregistrement et les propositions de modification. Côté application, `plugins/local-api` et `plugins/mcp` portent les commandes et les types associés.
+- **Serveur MCP** : `syntheo mcp` lance un serveur MCP en stdio (`apps/cli/src/mcp.rs`, bibliothèque `rmcp`). Il expose la liste des réunions, les transcriptions, l'export, l'import d'un enregistrement et les propositions de modification. Côté application, `plugins/local-api` et `plugins/mcp` portent les commandes et les types associés.
 
 La vue d'ensemble se trouve dans [Agents](/agents/overview).
 

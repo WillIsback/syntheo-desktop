@@ -19,6 +19,18 @@
 
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-hover: hsl(var(--primary-hover));
+  --color-faint: hsl(var(--faint));
+  --color-recording: hsl(var(--recording));
+  --color-seal: hsl(var(--seal));
+  --color-user-ink: hsl(var(--user-ink));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-scrim: var(--scrim);
 
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
@@ -59,6 +71,12 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+}
+
+/* Utilitaire plutôt que jeton @theme : --shadow-capsule vient déjà de tokens.css
+   (clair/sombre) et le redéclarer sous le même nom créerait une référence circulaire. */
+@utility shadow-capsule {
+  box-shadow: var(--shadow-capsule);
 }
 
 @theme inline {

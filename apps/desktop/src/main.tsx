@@ -1,6 +1,8 @@
 // Must be the first import: React only reports commits to a devtools hook that
 // exists before react-dom evaluates.
 import "./devtools-bar/render-hook";
+import "@fontsource-variable/geist";
+import "@fontsource-variable/newsreader";
 import "./styles/globals.css";
 import "./styles/cursor.css";
 
@@ -18,6 +20,7 @@ import { useMountEffect } from "@syntheo/ui/hooks/use-mount-effect";
 
 import { AITaskWindowSyncBridge } from "./ai/task-window-sync";
 import { createToolRegistry } from "./contexts/tool-registry/core";
+import { startRenderPerfMonitor } from "./devtools-bar/render-perf";
 import { AppI18nProvider } from "./i18n/provider";
 import { AppLockGate } from "./lock/gate";
 import { FloatingMeetingWindowHost } from "./meeting-float/host";
@@ -45,6 +48,7 @@ import { AppThemeProvider } from "./shared/theme/provider";
 import type { ThemePreference } from "./shared/theme/resolve";
 import { createAITaskStore } from "./store/zustand/ai-task";
 import { listenerStore } from "./store/zustand/listener/instance";
+import { commands } from "./types/tauri.gen";
 
 const toolRegistry = createToolRegistry();
 const queryClient = new QueryClient({
@@ -182,6 +186,22 @@ function runMainWindowStartupTasks() {
     "ai_credentials_migrate",
     migratePlaintextAiProviderApiKeys,
   );
+  void startRenderPerfForDevtoolsBuilds();
+}
+
+// Résumé `[render-perf]` des rendus pendant l'écoute, dans le journal de
+// l'app : builds devtools seulement, rien n'est démarré en release.
+async function startRenderPerfForDevtoolsBuilds() {
+  try {
+    if (!(await commands.showDevtool())) {
+      return;
+    }
+  } catch {
+    return;
+  }
+  startRenderPerfMonitor({
+    getListenerStatus: () => listenerStore.getState().live.status,
+  });
 }
 
 async function runStartupTask(

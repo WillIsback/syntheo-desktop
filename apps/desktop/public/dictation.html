@@ -1,22 +1,39 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Syntheo Dictation</title>
+  <title>Syntheo · Dictée</title>
   <style>
-    html, body { margin: 0; width: 100%; height: 100%; background: #191919; color: white; font: 14px system-ui; }
+    /* Page statique hors bundle Vite : les valeurs reprennent les jetons de
+       packages/design-system/src/tokens.css (HSL), en clair et en sombre. */
+    :root {
+      --background: 50 43% 97%; /* background clair, kinari */
+      --foreground: 100 8% 15%; /* foreground clair */
+      --recording: 357 54% 51%; /* recording clair, beni */
+      --faint: 95 5% 56%; /* faint clair */
+      color-scheme: light dark;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: 105 7% 11%; /* background sombre, sumi */
+        --foreground: 46 25% 90%;
+        --recording: 4 72% 64%;
+        --faint: 90 6% 48%;
+      }
+    }
+    html, body { margin: 0; width: 100%; height: 100%; background: hsl(var(--background)); color: hsl(var(--foreground)); font: 14px system-ui; }
     body { display: flex; align-items: center; justify-content: center; gap: 12px; }
-    .light { width: 10px; height: 10px; border-radius: 50%; background: #ff5757; animation: pulse 1s infinite alternate; }
+    .light { width: 10px; height: 10px; border-radius: 50%; background: hsl(var(--recording)); animation: pulse 1s infinite alternate; }
     .processing { display: none; }
     [data-phase="processing"] .recording { display: none; }
     [data-phase="processing"] .processing { display: inline; }
-    [data-phase="processing"] .light { background: #aaa; }
+    [data-phase="processing"] .light { background: hsl(var(--faint)); }
     @keyframes pulse { to { opacity: 0.45; } }
     @media (prefers-reduced-motion: reduce) { .light { animation: none; } }
   </style>
   <body data-phase="recording">
-    <span class="light"></span>
-    <span class="recording">Listening…</span>
-    <span class="processing">Transcribing…</span>
+    <span class="light" aria-hidden="true"></span>
+    <span class="recording">À l'écoute…</span>
+    <span class="processing">Transcription…</span>
   </body>
 </html>

@@ -1,77 +1,291 @@
+/*
+ * Syntheo · 緑茶 Thé vert : remplaçant proposé pour packages/design-system/src/tokens.css.
+ * Même format HSL et mêmes noms que l'existant ; nouveaux : primary-hover, faint, recording, seal, user-ink, shadow-capsule.
+ * --radius passe de 0.5rem à 0.625rem (10px, radius-md des champs).
+ *
+ * Palettes (Paramètres › Apparence, #259) : 緑茶 Thé vert par défaut (:root / .dark),
+ * 藤 Glycine et 臙脂 Laque et encre via l'attribut data-palette="fuji|enji" sur <html>,
+ * indépendant du mode clair / sombre. Chaque palette redéfinit le jeu complet de jetons.
+ * Garder DesignPalettes (src/index.ts) aligné.
+ */
 @layer base {
   :root {
-    --background: 210 17% 98%;
-    --foreground: 225 6% 13%;
-    --card: 0 0% 100%;
-    --card-foreground: 225 6% 13%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 225 6% 13%;
-    --primary: 214 82% 51%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 200 12% 95%;
-    --secondary-foreground: 225 6% 13%;
-    --muted: 200 12% 95%;
-    --muted-foreground: 213 5% 39%;
-    --accent: 218 92% 95%;
-    --accent-foreground: 214 79% 39%;
-    --destructive: 1 73% 45%;
-    --destructive-foreground: 0 0% 100%;
-    --alert: 5 81% 96%;
-    --alert-foreground: 1 73% 45%;
-    --alert-border: 5 70% 86%;
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 214 82% 51%;
-    --app-floating-chrome: 200 12% 95%;
-    --app-floating-panel: 210 17% 98%;
-    --app-floating-border: 0 0% 88%;
-    --chart-1: 214 82% 51%;
-    --chart-2: 151 83% 34%;
-    --chart-3: 31 100% 45%;
-    --chart-4: 272 89% 61%;
-    --chart-5: 214 79% 39%;
-    --radius: 0.5rem;
-    --sidebar-accent: 218 92% 95%;
-    --kbd-shadow-outer: rgba(0, 0, 0, 0.1);
+    --background: 50 43% 97%; /* #fbfaf5 生成り kinari / 墨 sumi */
+    /* #262a24 texte, encre du compte-rendu de Syntheo */
+    --foreground: 100 8% 15%;
+    --card: 48 100% 99%; /* #fffefa */
+    --card-foreground: 100 8% 15%; /* #262a24 */
+    --popover: 48 100% 99%; /* #fffefa */
+    --popover-foreground: 100 8% 15%; /* #262a24 */
+    --primary: 142 36% 30%; /* #316745 千歳緑 chitose-midori */
+    --primary-hover: 146 39% 24%; /* #25553a nouveau */
+    --primary-foreground: 50 43% 97%; /* #fbfaf5 */
+    --secondary: 53 22% 92%; /* #efeee6 */
+    --secondary-foreground: 100 8% 15%; /* #262a24 */
+    --muted: 53 22% 92%; /* #efeee6 */
+    --muted-foreground: 95 6% 36%; /* #5c6357 利休鼠 */
+    --faint: 95 5% 56%; /* #8f968a nouveau, jamais pour du texte à lire */
+    --accent: 105 25% 91%; /* #e4ede1 */
+    --accent-foreground: 146 39% 24%; /* #25553a */
+    --destructive: 358 51% 46%; /* #b23a3f */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    --alert: 7 68% 95%; /* #fbecea */
+    --alert-foreground: 357 53% 42%; /* #a33237 */
+    --alert-border: 4 58% 86%; /* #f0c9c6 */
+    --border: 55 18% 87%; /* #e4e3d8 */
+    --input: 55 14% 82%; /* #d8d7cb */
+    --ring: 142 36% 30%; /* #316745 = primary */
+    --recording: 357 54% 51%; /* #c53d43 nouveau, 紅 beni : écoute seule */
+    --seal: 357 54% 51%; /* #c53d43 nouveau, sceau 記 */
+    /* #316745 nouveau, notes personnelles de l'utilisateur */
+    --user-ink: 142 36% 30%;
+    --app-floating-chrome: 53 22% 92%; /* #efeee6 */
+    --app-floating-panel: 50 43% 97%; /* #fbfaf5 */
+    --app-floating-border: 55 18% 87%; /* #e4e3d8 */
+    --chart-1: 142 36% 30%; /* #316745 千歳緑 */
+    --chart-2: 200 71% 30%; /* #165e83 藍 */
+    --chart-3: 39 70% 34%; /* #93691a 山吹 (lot 6 : 4.68:1) */
+    --chart-4: 266 31% 42%; /* #674a8c 江戸紫 */
+    --chart-5: 357 54% 51%; /* #c53d43 紅 */
+    --sidebar-accent: 105 25% 91%; /* #e4ede1 */
+    --radius: 0.625rem;
+    --kbd-shadow-outer: rgba(38, 42, 36, 0.1);
     --kbd-shadow-inset: rgba(255, 255, 255, 0.8);
-    --kbd-shadow-outer-hover: rgba(0, 0, 0, 0.15);
+    --kbd-shadow-outer-hover: rgba(38, 42, 36, 0.15);
+    --shadow-capsule: 0 8px 28px rgba(38, 42, 36, 0.18);
+    --scrim: rgba(38, 42, 36, 0.32); /* voile sous les dialogues (lot 6) */
   }
 
   .dark {
-    --background: 220 6% 10%;
-    --foreground: 216 12% 92%;
-    --card: 225 5% 17%;
-    --card-foreground: 216 12% 92%;
-    --popover: 225 5% 17%;
-    --popover-foreground: 216 12% 92%;
-    --primary: 217 89% 76%;
-    --primary-foreground: 220 6% 10%;
-    --secondary: 206 6% 25%;
-    --secondary-foreground: 216 12% 92%;
-    --muted: 206 6% 25%;
-    --muted-foreground: 210 6% 63%;
-    --accent: 217 30% 25%;
-    --accent-foreground: 217 89% 76%;
-    --destructive: 1 60% 35%;
-    --destructive-foreground: 0 0% 98%;
-    --alert: 1 50% 14%;
-    --alert-foreground: 5 86% 72%;
-    --alert-border: 1 45% 24%;
-    --border: 206 6% 25%;
-    --input: 206 6% 25%;
-    --ring: 217 89% 76%;
-    --app-floating-chrome: 206 6% 25%;
-    --app-floating-panel: 225 5% 17%;
-    --app-floating-border: 206 6% 32%;
-    --chart-1: 217 89% 76%;
-    --chart-2: 151 60% 45%;
-    --chart-3: 31 80% 60%;
-    --chart-4: 272 70% 70%;
-    --chart-5: 214 79% 60%;
-    --radius: 0.5rem;
-    --sidebar-accent: 217 30% 25%;
+    --background: 105 7% 11%; /* #1b1e1a 生成り kinari / 墨 sumi */
+    /* #ece9df texte, encre du compte-rendu de Syntheo */
+    --foreground: 46 25% 90%;
+    --card: 103 10% 14%; /* #232821 */
+    --card-foreground: 46 25% 90%; /* #ece9df */
+    --popover: 103 10% 14%; /* #232821 */
+    --popover-foreground: 46 25% 90%; /* #ece9df */
+    --primary: 142 34% 62%; /* #7dbf95 千歳緑 chitose-midori */
+    --primary-hover: 141 36% 70%; /* #97ceaa nouveau */
+    --primary-foreground: 143 32% 11%; /* #13251a */
+    --secondary: 105 9% 18%; /* #2c322a */
+    --secondary-foreground: 46 25% 90%; /* #ece9df */
+    --muted: 105 9% 18%; /* #2c322a */
+    --muted-foreground: 86 8% 65%; /* #a7ad9f 利休鼠 */
+    --faint: 90 6% 48%; /* #7b8274 nouveau, jamais pour du texte à lire */
+    --accent: 141 22% 18%; /* #24382b */
+    --accent-foreground: 140 36% 72%; /* #9fd2b0 */
+    --destructive: 358 66% 64%; /* #e0676b (lot 6 : 5.05:1) */
+    --destructive-foreground: 358 45% 12%; /* #2c1112 (lot 6) */
+    --alert: 358 35% 17%; /* #3a1c1d */
+    --alert-foreground: 4 77% 75%; /* #f0938d */
+    --alert-border: 359 36% 26%; /* #5a2a2b */
+    --border: 105 7% 21%; /* #343a32 */
+    --input: 102 8% 25%; /* #3d443a */
+    --ring: 142 34% 62%; /* #7dbf95 = primary */
+    --recording: 4 72% 64%; /* #e5675f nouveau, 紅 beni : écoute seule */
+    --seal: 4 72% 64%; /* #e5675f nouveau, sceau 記 */
+    /* #7dbf95 nouveau, notes personnelles de l'utilisateur */
+    --user-ink: 142 34% 62%;
+    --app-floating-chrome: 105 9% 18%; /* #2c322a */
+    --app-floating-panel: 103 10% 14%; /* #232821 */
+    --app-floating-border: 102 8% 25%; /* #3d443a */
+    --chart-1: 142 34% 62%; /* #7dbf95 千歳緑 */
+    --chart-2: 203 51% 61%; /* #6aa9cf 藍 */
+    --chart-3: 39 62% 60%; /* #d9ad5b 山吹 */
+    --chart-4: 266 41% 68%; /* #a98bcf 江戸紫 */
+    --chart-5: 4 72% 64%; /* #e5675f 紅 */
+    --sidebar-accent: 141 22% 18%; /* #24382b */
+    --radius: 0.625rem;
     --kbd-shadow-outer: rgba(0, 0, 0, 0.35);
     --kbd-shadow-inset: rgba(255, 255, 255, 0.08);
     --kbd-shadow-outer-hover: rgba(0, 0, 0, 0.5);
+    --shadow-capsule: 0 8px 28px rgba(0, 0, 0, 0.5);
+    --scrim: rgba(0, 0, 0, 0.5); /* voile sous les dialogues (lot 6) */
+  }
+
+  [data-palette="fuji"] {
+    --background: 40 33% 98%; /* #fcfbf9 藤 fuji : papier / encre violine */
+    /* #2c2732 texte, encre du compte-rendu de Syntheo */
+    --foreground: 267 12% 17%;
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 267 12% 17%; /* #2c2732 */
+    --popover: 0 0% 100%; /* #ffffff */
+    --popover-foreground: 267 12% 17%; /* #2c2732 */
+    --primary: 266 31% 42%; /* #674a8c 江戸紫 edo-murasaki */
+    --primary-hover: 266 34% 36%; /* #583d7b */
+    --primary-foreground: 40 33% 98%; /* #fcfbf9 */
+    --secondary: 270 13% 94%; /* #f0eef2 */
+    --secondary-foreground: 267 12% 17%; /* #2c2732 */
+    --muted: 270 13% 94%; /* #f0eef2 */
+    --muted-foreground: 268 8% 39%; /* #635c6b gris glycine */
+    --faint: 270 7% 58%; /* #958e9c jamais pour du texte à lire */
+    --accent: 266 39% 93%; /* #ece6f4 白藤 shirofuji */
+    --accent-foreground: 266 34% 36%; /* #583d7b */
+    --destructive: 358 51% 46%; /* #b23a3f */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    --alert: 7 68% 95%; /* #fbecea */
+    --alert-foreground: 357 53% 42%; /* #a33237 */
+    --alert-border: 4 58% 86%; /* #f0c9c6 */
+    --border: 274 16% 91%; /* #e9e5ec */
+    --input: 270 14% 86%; /* #dcd7e1 */
+    --ring: 266 31% 42%; /* #674a8c = primary */
+    --recording: 357 54% 51%; /* #c53d43 écoute seule */
+    --seal: 357 54% 51%; /* #c53d43 = recording, sceau 記 */
+    --user-ink: 266 31% 42%; /* #674a8c = primary */
+    --app-floating-chrome: 270 13% 94%; /* #f0eef2 */
+    --app-floating-panel: 40 33% 98%; /* #fcfbf9 */
+    --app-floating-border: 274 16% 91%; /* #e9e5ec */
+    --chart-1: 266 31% 42%; /* #674a8c = primary */
+    --chart-2: 200 71% 30%; /* #165e83 藍 */
+    --chart-3: 39 70% 34%; /* #93691a 山吹 */
+    --chart-4: 142 36% 30%; /* #316745 千歳緑 */
+    --chart-5: 357 54% 51%; /* #c53d43 紅 */
+    --sidebar-accent: 266 39% 93%; /* #ece6f4 */
+    --radius: 0.625rem;
+    --kbd-shadow-outer: rgba(44, 39, 50, 0.1);
+    --kbd-shadow-inset: rgba(255, 255, 255, 0.8);
+    --kbd-shadow-outer-hover: rgba(44, 39, 50, 0.15);
+    --shadow-capsule: 0 8px 28px rgba(44, 39, 50, 0.18);
+    --scrim: rgba(44, 39, 50, 0.32); /* voile sous les dialogues */
+  }
+
+  [data-palette="fuji"].dark,
+  [data-palette="fuji"] .dark {
+    --background: 260 10% 11%; /* #1c1a20 藤 fuji : papier / encre violine */
+    /* #ece9f0 texte, encre du compte-rendu de Syntheo */
+    --foreground: 266 19% 93%;
+    --card: 260 12% 15%; /* #24212a */
+    --card-foreground: 266 19% 93%; /* #ece9f0 */
+    --popover: 260 12% 15%; /* #24212a */
+    --popover-foreground: 266 19% 93%; /* #ece9f0 */
+    --primary: 264 42% 72%; /* #b39bd6 江戸紫 edo-murasaki */
+    --primary-hover: 264 45% 79%; /* #c6b3e2 */
+    --primary-foreground: 265 33% 11%; /* #1b1326 */
+    --secondary: 262 12% 19%; /* #2e2a35 */
+    --secondary-foreground: 266 19% 93%; /* #ece9f0 */
+    --muted: 262 12% 19%; /* #2e2a35 */
+    --muted-foreground: 266 9% 68%; /* #aca6b4 gris glycine */
+    --faint: 266 6% 50%; /* #7f7888 jamais pour du texte à lire */
+    --accent: 258 29% 23%; /* #33294a 白藤 shirofuji */
+    --accent-foreground: 263 45% 82%; /* #cdbde6 */
+    --destructive: 358 66% 64%; /* #e0676b */
+    --destructive-foreground: 358 44% 12%; /* #2c1112 */
+    --alert: 358 35% 17%; /* #3a1c1d */
+    --alert-foreground: 4 77% 75%; /* #f0938d */
+    --alert-border: 359 36% 26%; /* #5a2a2b */
+    --border: 260 11% 22%; /* #36323e */
+    --input: 261 11% 26%; /* #403b49 */
+    --ring: 264 42% 72%; /* #b39bd6 = primary */
+    --recording: 4 72% 64%; /* #e5675f écoute seule */
+    --seal: 4 72% 64%; /* #e5675f = recording, sceau 記 */
+    --user-ink: 264 42% 72%; /* #b39bd6 = primary */
+    --app-floating-chrome: 262 12% 19%; /* #2e2a35 */
+    --app-floating-panel: 260 12% 15%; /* #24212a */
+    --app-floating-border: 261 11% 26%; /* #403b49 */
+    --chart-1: 264 42% 72%; /* #b39bd6 = primary */
+    --chart-2: 203 51% 61%; /* #6aa9cf 藍 */
+    --chart-3: 39 62% 60%; /* #d9ad5b 山吹 */
+    --chart-4: 142 34% 62%; /* #7dbf95 千歳緑 */
+    --chart-5: 4 72% 64%; /* #e5675f 紅 */
+    --sidebar-accent: 258 29% 23%; /* #33294a */
+    --radius: 0.625rem;
+    --kbd-shadow-outer: rgba(0, 0, 0, 0.35);
+    --kbd-shadow-inset: rgba(255, 255, 255, 0.08);
+    --kbd-shadow-outer-hover: rgba(0, 0, 0, 0.5);
+    --shadow-capsule: 0 8px 28px rgba(0, 0, 0, 0.5);
+    --scrim: rgba(0, 0, 0, 0.5); /* voile sous les dialogues */
+  }
+
+  [data-palette="enji"] {
+    --background: 60 100% 99%; /* #fffffc 胡粉 gofun / 墨 sumi */
+    /* #1f1c1c texte, encre du compte-rendu de Syntheo */
+    --foreground: 0 5% 12%;
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 0 5% 12%; /* #1f1c1c */
+    --popover: 0 0% 100%; /* #ffffff */
+    --popover-foreground: 0 5% 12%; /* #1f1c1c */
+    --primary: 357 50% 42%; /* #9f353a 臙脂 enji */
+    --primary-hover: 357 55% 34%; /* #86272c */
+    --primary-foreground: 60 100% 99%; /* #fffffc */
+    --secondary: 17 26% 95%; /* #f5f0ee */
+    --secondary-foreground: 0 5% 12%; /* #1f1c1c */
+    --muted: 17 26% 95%; /* #f5f0ee */
+    --muted-foreground: 17 4% 39%; /* #66615f gris laque */
+    --faint: 27 4% 59%; /* #9a9591 jamais pour du texte à lire */
+    --accent: 6 61% 94%; /* #f9e8e6 桜 sakura */
+    --accent-foreground: 357 55% 34%; /* #86272c */
+    --destructive: 9 74% 41%; /* #b5321b */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    --alert: 16 85% 95%; /* #fdece6 */
+    --alert-foreground: 9 73% 38%; /* #a62f1a */
+    --alert-border: 14 68% 85%; /* #f3cbbf */
+    --border: 15 27% 91%; /* #efe6e3 */
+    --input: 14 19% 86%; /* #e3d9d6 */
+    --ring: 357 50% 42%; /* #9f353a = primary */
+    --recording: 9 77% 47%; /* #d3381c 朱 shu : écoute seule, ≠ primary */
+    --seal: 9 77% 47%; /* #d3381c = recording, sceau 記 */
+    --user-ink: 357 50% 42%; /* #9f353a = primary */
+    --app-floating-chrome: 17 26% 95%; /* #f5f0ee */
+    --app-floating-panel: 60 100% 99%; /* #fffffc */
+    --app-floating-border: 15 27% 91%; /* #efe6e3 */
+    --chart-1: 357 50% 42%; /* #9f353a = primary */
+    --chart-2: 200 71% 30%; /* #165e83 藍 */
+    --chart-3: 39 70% 34%; /* #93691a 山吹 */
+    --chart-4: 266 31% 42%; /* #674a8c 江戸紫 */
+    --chart-5: 142 36% 30%; /* #316745 千歳緑 */
+    --sidebar-accent: 6 61% 94%; /* #f9e8e6 */
+    --radius: 0.625rem;
+    --kbd-shadow-outer: rgba(31, 28, 28, 0.1);
+    --kbd-shadow-inset: rgba(255, 255, 255, 0.8);
+    --kbd-shadow-outer-hover: rgba(31, 28, 28, 0.15);
+    --shadow-capsule: 0 8px 28px rgba(31, 28, 28, 0.18);
+    --scrim: rgba(31, 28, 28, 0.32); /* voile sous les dialogues */
+  }
+
+  [data-palette="enji"].dark,
+  [data-palette="enji"] .dark {
+    --background: 0 7% 11%; /* #1e1a1a 胡粉 gofun / 墨 sumi */
+    /* #eee8e6 texte, encre du compte-rendu de Syntheo */
+    --foreground: 15 19% 92%;
+    --card: 0 8% 14%; /* #272121 */
+    --card-foreground: 15 19% 92%; /* #eee8e6 */
+    --popover: 0 8% 14%; /* #272121 */
+    --popover-foreground: 15 19% 92%; /* #eee8e6 */
+    --primary: 355 61% 74%; /* #e5939a 臙脂 enji */
+    --primary-hover: 355 64% 80%; /* #edadb2 */
+    --primary-foreground: 355 40% 12%; /* #2a1214 */
+    --secondary: 0 9% 18%; /* #322a2a */
+    --secondary-foreground: 15 19% 92%; /* #eee8e6 */
+    --muted: 0 9% 18%; /* #322a2a */
+    --muted-foreground: 10 7% 67%; /* #b2a8a6 gris laque */
+    --faint: 10 5% 51%; /* #877d7b jamais pour du texte à lire */
+    --accent: 354 28% 21%; /* #432629 桜 sakura */
+    --accent-foreground: 355 65% 84%; /* #f1bcc0 */
+    --destructive: 12 80% 63%; /* #ec7356 */
+    --destructive-foreground: 11 57% 11%; /* #2c120c */
+    --alert: 11 44% 17%; /* #3d1f18 */
+    --alert-foreground: 12 82% 73%; /* #f39a83 */
+    --alert-border: 11 46% 25%; /* #5e2e23 */
+    --border: 0 8% 21%; /* #3a3131 */
+    --input: 0 8% 25%; /* #443a3a */
+    --ring: 355 61% 74%; /* #e5939a = primary */
+    --recording: 12 84% 63%; /* #f0704f 朱 shu : écoute seule, ≠ primary */
+    --seal: 12 84% 63%; /* #f0704f = recording, sceau 記 */
+    --user-ink: 355 61% 74%; /* #e5939a = primary */
+    --app-floating-chrome: 0 9% 18%; /* #322a2a */
+    --app-floating-panel: 0 8% 14%; /* #272121 */
+    --app-floating-border: 0 8% 25%; /* #443a3a */
+    --chart-1: 355 61% 74%; /* #e5939a = primary */
+    --chart-2: 203 51% 61%; /* #6aa9cf 藍 */
+    --chart-3: 39 62% 60%; /* #d9ad5b 山吹 */
+    --chart-4: 266 41% 68%; /* #a98bcf 江戸紫 */
+    --chart-5: 142 34% 62%; /* #7dbf95 千歳緑 */
+    --sidebar-accent: 354 28% 21%; /* #432629 */
+    --radius: 0.625rem;
+    --kbd-shadow-outer: rgba(0, 0, 0, 0.35);
+    --kbd-shadow-inset: rgba(255, 255, 255, 0.08);
+    --kbd-shadow-outer-hover: rgba(0, 0, 0, 0.5);
+    --shadow-capsule: 0 8px 28px rgba(0, 0, 0, 0.5);
+    --scrim: rgba(0, 0, 0, 0.5); /* voile sous les dialogues */
   }
 }

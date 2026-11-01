@@ -1,64 +1,76 @@
 ---
-title: "Notes, comptes rendus et transcripts"
+title: "Notes, comptes rendus et transcriptions"
 description: "Relisez une réunion, corrigez les détails et exportez le résultat."
 ---
 
-Chaque note de réunion propose jusqu'à trois vues :
+Une fois l'écoute terminée, la note passe à l'étape **Synthèse**. Tout tient dans un seul document :
 
-- **« Mémos »** : les notes que vous écrivez vous-même.
-- **Le compte rendu** : la note structurée générée par votre modèle de langage. Son onglet porte le nom du modèle de compte rendu utilisé.
-- **« Transcript »** : la conversation transcrite.
+- **le compte rendu**, rédigé par votre serveur de synthèse ;
+- **« Vos notes »**, les notes que vous avez prises vous-même, sous le compte rendu ;
+- **la transcription**, que vous affichez dans la marge de droite.
 
-Vous modifiez les mémos et les comptes rendus comme des notes ordinaires.
+Une légende « Provenance du texte » rappelle qui a écrit quoi : vos notes sont en vert (« Vos notes »), le texte de Syntheo est à l'encre normale (« Complété par Syntheo »). Le sceau 記 en bas du compte rendu indique qu'il est terminé.
+
+Vous modifiez le compte rendu et vos notes comme un texte ordinaire.
 
 <Note>
-  Syntheo ne conserve jamais l'audio. Il n'y a donc ni lecteur audio, ni retranscription après coup : le transcript produit pendant la capture est la seule trace de la conversation.
+  Syntheo ne conserve jamais l'audio. Il n'y a donc ni lecteur audio, ni retranscription après coup : la transcription produite pendant la capture est la seule trace de la conversation.
 </Note>
+
+## Agir sur la note
+
+La capsule en bas de la fenêtre propose trois actions :
+
+- **« Copier »** copie le compte rendu affiché dans le presse-papiers, au format Markdown (ou vos notes, s'il n'y a pas encore de compte rendu).
+- **« Exporter »** ouvre la fenêtre d'export (voir plus bas).
+- **« Demander à la note »** (<kbd>Ctrl</kbd> + <kbd>J</kbd>) ouvre le chat sur cette réunion. Voir [Discuter avec vos réunions](/chat).
 
 ## Vérifier une modification proposée
 
-Quand le chat, la CLI ou le serveur MCP local propose de remplacer un mémo ou un compte rendu, la note affiche un bandeau « 1 modification en attente ». Choisissez « Vérifier la note » ou « Vérifier le compte rendu » pour voir les différences, puis appliquez ou refusez la proposition. Tant que vous ne l'appliquez pas, la note reste inchangée.
+Quand le chat, la CLI ou le serveur MCP local propose de remplacer le compte rendu, la proposition s'affiche à sa place, à l'étape Synthèse : « Modification proposée du résumé ». Le texte retiré est barré, le texte ajouté est surligné. Choisissez « Appliquer au résumé » ou « Refuser ». Tant que vous ne l'appliquez pas, le compte rendu reste inchangé.
 
-## Corriger un transcript
+Une proposition en attente affiche aussi le bandeau « 1 modification en attente » en haut de la note, avec « Vérifier le compte rendu » ou, pour vos notes, « Vérifier la note ».
 
-- Une fois la capture arrêtée, cliquez à nouveau sur l'onglet « Transcript » (icône crayon) pour passer en mode édition. Cliquez encore une fois pour revenir à la lecture.
+## Afficher et corriger la transcription
+
+- Cliquez sur « Transcription », à droite de la ligne d'informations sous le titre, pour afficher ou masquer la marge.
+- Dans la marge, cliquez sur « Modifier » pour passer en mode édition, puis sur « Terminé » pour revenir à la lecture. Ce bouton n'apparaît qu'une fois l'écoute terminée.
 - Sélectionnez des mots pour afficher un menu : « Modifier », « Modifier l'orateur depuis ici » ou « Copier ».
 - Sélectionnez plusieurs blocs pour les réattribuer d'un coup avec « Modifier l'orateur », les « Fusionner » ou les « Supprimer » (en mode édition).
 - Cliquez sur le nom d'un locuteur pour choisir un participant existant ou « Créer un nouvel intervenant ». Cochez « Appliquer à tout » pour mettre à jour tous les segments de ce locuteur.
-- Faites un clic droit sur l'onglet « Transcript » pour copier tout le transcript ou reprendre l'écoute.
 
 ## Choisir la forme du compte rendu
 
-Cliquez sur l'onglet du compte rendu pour ouvrir le sélecteur de modèles. Choisissez « Auto » ou un modèle, ou utilisez « Régénérer » sur le modèle déjà utilisé.
+Le type de réunion choisi à l'étape Préparer fixe le modèle du compte rendu. À l'étape Synthèse, le nom du modèle utilisé s'affiche dans la ligne d'informations sous le titre. Cliquez dessus pour ouvrir le sélecteur :
+
+- recherchez un modèle (« Rechercher des modèles... ») et sélectionnez-le pour remplacer le compte rendu par un nouveau, rédigé selon ce modèle ;
+- choisissez « Régénérer » sur le modèle déjà utilisé pour le rédiger à nouveau ;
+- « Voir tous les modèles » ouvre l'éditeur de modèles.
+
+Un clic droit sur ce bouton propose aussi « Copier » et « Régénérer ».
 
 Consultez [Personnaliser les comptes rendus](/customize-summaries) pour créer vos propres modèles.
 
 ## Compléter une note existante
 
-Faites un clic droit sur l'onglet « Transcript » et choisissez « Reprendre l'écoute » pour ajouter une nouvelle capture à la même note. C'est utile quand une réunion reprend après une pause.
+Ouvrez le menu **•••** de la note et choisissez « Reprendre l'écoute » pour ajouter une nouvelle capture à la même note. C'est utile quand une réunion reprend après une pause.
 
-Vous pouvez aussi importer un fichier audio ou un transcript depuis le menu **•••** de la note (« Téléverser un audio », « Téléverser un transcript »). Voir [Importer des enregistrements](/import-recordings).
+Dans une note vide, le même menu propose aussi « Téléverser un audio » et « Téléverser un transcript ». Voir [Importer un enregistrement](/import-recordings).
 
 ## Exporter une réunion
 
-1. Ouvrez le menu **•••** dans l'en-tête de la note.
-2. Choisissez « Exporter ».
-3. Sous « Format de fichier », choisissez PDF, TXT, Markdown ou Org.
-4. Sous « Inclure », cochez le mémo, le résumé et le transcript, dans la combinaison de votre choix.
+1. Cliquez sur « Exporter » dans la capsule, ou ouvrez le menu **•••** de la note et choisissez « Exporter ».
+2. Sous « Format de fichier », choisissez PDF, TXT, Markdown ou Org.
+3. Sous « Inclure », cochez « Mémo », « Résumé » et « Transcript », dans la combinaison de votre choix.
 
-Syntheo écrit le fichier dans votre dossier d'export, puis l'affiche dans le gestionnaire de fichiers. Par défaut, il s'agit de votre dossier Téléchargements. Changez-le sous **Paramètres → Général → « Emplacement d'export »**.
+Syntheo écrit le fichier dans votre dossier d'export, puis l'affiche dans le gestionnaire de fichiers. Par défaut, il s'agit de votre dossier Téléchargements. Changez-le sous **Paramètres → Profil → « Emplacement d'export »**.
 
 Pour exporter automatiquement chaque réunion en Markdown, voir [Automatisations](/automations). La CLI exporte aussi une réunion en Markdown ou en JSON (`syntheo meetings export`).
 
 Syntheo ne propose aucun partage en ligne : pour transmettre une réunion, exportez-la puis envoyez le fichier par le moyen de votre choix.
 
-## Consulter vos statistiques
+## Retrouver une note
 
-Ouvrez **Paramètres → « Analyses »** pour voir :
-
-- un aperçu : nombre de conversations, heures transcrites, jours actifs ;
-- votre activité au cours de l'année écoulée et votre série hebdomadaire ;
-- vos habitudes (jour le plus chargé, durée typique d'une conversation) sur 7 jours, 30 jours ou depuis toujours ;
-- vos badges, attribués à certaines étapes (première conversation, 10 conversations, etc.). Ils restent sur cet appareil, même si vous supprimez une note.
-
-Ces statistiques sont calculées localement et ne sont disponibles que dans l'application de bureau.
+- L'accueil liste vos dernières notes sous « Reprendre ».
+- La palette « Rechercher une note » (<kbd>Ctrl</kbd> + <kbd>K</kbd>) affiche vos notes récentes (« Récent ») puis « Toutes les notes ». Tapez quelques lettres du titre pour filtrer.
+- La vue **Dossiers** et la vue **Calendrier** classent vos notes par dossier ou par date.

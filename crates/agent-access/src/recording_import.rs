@@ -3,6 +3,10 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 
+/// The desktop renews its import-worker heartbeat every 30 s (a sparse SQLite
+/// write, issue #271); three missed beats mean the app is gone.
+const DESKTOP_WORKER_FRESHNESS_SECS: i64 = 90;
+
 #[derive(Debug, Clone, Deserialize, JsonSchema)]
 pub struct ImportRecordingInput {
     pub file_path: String,
@@ -70,7 +74,8 @@ pub async fn import_recording(
             "Recording import is unavailable while managed intelligence is disabled".into(),
         ));
     }
-    let vault: Option<String> = sqlx::query_scalar("SELECT vault_path FROM local_recording_import_worker WHERE updated_at > unixepoch() - 15 AND vault_path != '' ORDER BY updated_at DESC LIMIT 1")
+    let vault: Option<String> = sqlx::query_scalar("SELECT vault_path FROM local_recording_import_worker WHERE updated_at > unixepoch() - ? AND vault_path != '' ORDER BY updated_at DESC LIMIT 1")
+        .bind(DESKTOP_WORKER_FRESHNESS_SECS)
         .fetch_optional(pool).await.map_err(database)?;
     if vault.is_none() {
         return Err(Error::Invalid(
@@ -209,6 +214,48 @@ mod tests {
         assert_eq!(std::fs::read(&file).unwrap(), b"recording content");
         // No staging directory is created: nothing was copied.
         assert!(!dir.path().join("recording-imports").exists());
+        db.pool().close().await;
+    }
+
+    #[tokio::test]
+    async fn desktop_worker_stays_available_between_sparse_heartbeats() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = syntheo_db_core::Db::connect_local_plain(dir.path().join("app.db"))
+            .await
+            .unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
+        let file = dir.path().join("meeting.wav");
+        tokio::fs::write(&file, b"audio").await.unwrap();
+        let input = || ImportRecordingInput {
+            file_path: file.to_string_lossy().into_owned(),
+            title: None,
+            folder_path: None,
+            request_key: None,
+        };
+        sqlx::query("INSERT INTO local_recording_import_worker (id, vault_path, updated_at) VALUES ('desktop', ?, unixepoch() - 45)")
+            .bind(dir.path().to_string_lossy().as_ref())
+            .execute(db.pool())
+            .await
+            .unwrap();
+        assert_eq!(
+            import_recording(db.pool(), input())
+                .await
+                .unwrap()
+                .processing_status,
+            "queued"
+        );
+
+        sqlx::query("UPDATE local_recording_import_worker SET updated_at = unixepoch() - 120")
+            .execute(db.pool())
+            .await
+            .unwrap();
+        assert!(
+            import_recording(db.pool(), input())
+                .await
+                .unwrap_err()
+                .to_string()
+                .contains("desktop")
+        );
         db.pool().close().await;
     }
 

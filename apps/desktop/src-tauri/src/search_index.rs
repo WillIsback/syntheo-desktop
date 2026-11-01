@@ -15,6 +15,12 @@ const BATCH_SIZE: i64 = 64;
 const DIRTY_DEBOUNCE: Duration = Duration::from_millis(250);
 const RETRY_INTERVAL: Duration = Duration::from_secs(5);
 
+// A session whose live transcript journal was written within this window is
+// being captured. Its note is indexed once the capture compacts the journal
+// (or once the journal goes quiet), instead of after every write made while
+// listening: each Tantivy commit rewrites segments on disk (issue #271).
+const ACTIVE_CAPTURE_WINDOW: &str = "-60 seconds";
+
 type WorkerResult<T> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
 #[derive(Debug)]
@@ -236,30 +242,12 @@ async fn drain_queue(app: &AppHandle, pool: &SqlitePool) -> WorkerResult<DrainOu
         let Some(mut connection) = pool.try_acquire() else {
             return Ok(DrainOutcome::Deferred);
         };
-        let rows = sqlx::query(
-            "SELECT entity_type, entity_id, generation
-             FROM search_index_dirty
-             WHERE generation > acknowledged_generation
-             ORDER BY queued_at, entity_type, entity_id
-             LIMIT ?",
-        )
-        .bind(BATCH_SIZE)
-        .fetch_all(&mut *connection)
-        .await?;
+        let dirty_entities = next_dirty_entities(&mut connection, BATCH_SIZE).await?;
         connection.return_to_pool().await;
 
-        if rows.is_empty() {
+        if dirty_entities.is_empty() {
             return Ok(DrainOutcome::Complete);
         }
-
-        let dirty_entities = rows
-            .into_iter()
-            .map(|row| DirtyEntity {
-                entity_type: row.get("entity_type"),
-                entity_id: row.get("entity_id"),
-                generation: row.get("generation"),
-            })
-            .collect::<Vec<_>>();
 
         let mut documents = Vec::new();
         let mut removals = Vec::new();
@@ -294,6 +282,44 @@ async fn drain_queue(app: &AppHandle, pool: &SqlitePool) -> WorkerResult<DrainOu
 
         tokio::task::yield_now().await;
     }
+}
+
+/// Queued entities ready to index, skipping notes that are still being captured.
+async fn next_dirty_entities(
+    connection: &mut sqlx::SqliteConnection,
+    limit: i64,
+) -> Result<Vec<DirtyEntity>, sqlx::Error> {
+    let rows = sqlx::query(
+        "SELECT dirty.entity_type, dirty.entity_id, dirty.generation
+         FROM search_index_dirty AS dirty
+         WHERE dirty.generation > dirty.acknowledged_generation
+           AND NOT (
+             dirty.entity_type = 'session'
+             AND EXISTS (
+               SELECT 1
+               FROM transcripts AS transcript
+               JOIN transcript_live_state AS live ON live.transcript_id = transcript.id
+               WHERE transcript.session_id = dirty.entity_id
+                 AND transcript.deleted_at IS NULL
+                 AND live.updated_at > strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?)
+             )
+           )
+         ORDER BY dirty.queued_at, dirty.entity_type, dirty.entity_id
+         LIMIT ?",
+    )
+    .bind(ACTIVE_CAPTURE_WINDOW)
+    .bind(limit)
+    .fetch_all(&mut *connection)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|row| DirtyEntity {
+            entity_type: row.get("entity_type"),
+            entity_id: row.get("entity_id"),
+            generation: row.get("generation"),
+        })
+        .collect())
 }
 
 async fn try_acknowledge_dirty_entities(
@@ -917,6 +943,143 @@ mod tests {
         assert!(document.content.contains("Google Meet"));
         assert!(document.content.contains("legacy"));
         assert!(document.content.contains("plain fallback message"));
+    }
+
+    async fn ready_session_ids(db: &syntheo_db_core::Db) -> Vec<String> {
+        let mut connection = db.pool().acquire().await.unwrap();
+        let ready = next_dirty_entities(&mut connection, BATCH_SIZE)
+            .await
+            .unwrap()
+            .into_iter()
+            .filter(|dirty| dirty.entity_type == "session")
+            .map(|dirty| dirty.entity_id)
+            .collect();
+        connection.return_to_pool().await;
+        ready
+    }
+
+    async fn acknowledge_all(db: &syntheo_db_core::Db) {
+        sqlx::query("UPDATE search_index_dirty SET acknowledged_generation = generation")
+            .execute(db.pool())
+            .await
+            .unwrap();
+    }
+
+    // Issue #271 : pendant l'écoute, chaque écriture sur la note la faisait
+    // réindexer (un commit Tantivy toutes les ~5 s). La note n'est indexée
+    // qu'une fois la transcription finalisée, et la recherche la trouve alors.
+    #[tokio::test]
+    async fn active_capture_defers_session_indexing_until_finalization() {
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
+        sqlx::query("INSERT INTO sessions (id, title) VALUES ('session-1', 'Réunion')")
+            .execute(db.pool())
+            .await
+            .unwrap();
+        let target = syntheo_db_app::LiveTranscriptInsert {
+            id: "transcript-1".to_string(),
+            session_id: "session-1".to_string(),
+            owner_user_id: String::new(),
+            created_at: "2026-10-31T23:13:36.000Z".to_string(),
+            started_at_ms: 0,
+            memo: String::new(),
+            provider: Some("nvidia".to_string()),
+            model: None,
+        };
+        let delta = r#"{"new_words":[{"id":"w1","text":"budget","start_ms":0,"end_ms":400,"channel":1,"state":"final"}],"replaced_ids":[],"partials":[]}"#.to_string();
+        syntheo_db_app::append_live_transcript_deltas(
+            db.pool(),
+            &target,
+            std::slice::from_ref(&delta),
+        )
+        .await
+        .unwrap();
+        acknowledge_all(&db).await;
+
+        // Writes made while listening (a rename here; note autosaves and chat
+        // messages queue the note the same way), polled like the worker does.
+        let mut reindexes_during_capture = 0;
+        for tick in 0..12 {
+            syntheo_db_app::append_live_transcript_deltas(
+                db.pool(),
+                &target,
+                std::slice::from_ref(&delta),
+            )
+            .await
+            .unwrap();
+            sqlx::query("UPDATE sessions SET title = ? WHERE id = 'session-1'")
+                .bind(format!("Réunion {tick}"))
+                .execute(db.pool())
+                .await
+                .unwrap();
+            if !ready_session_ids(&db).await.is_empty() {
+                reindexes_during_capture += 1;
+                acknowledge_all(&db).await;
+            }
+        }
+        assert_eq!(
+            reindexes_during_capture, 0,
+            "the note was reindexed {reindexes_during_capture} times while listening"
+        );
+
+        // Finalization compacts the journal into the transcript in one transaction.
+        let mut transaction = db.pool().begin().await.unwrap();
+        sqlx::query(
+            r#"UPDATE transcripts
+               SET words_json = '[{"id":"w1","text":"budget"}]',
+                   content_revision = content_revision + 1
+               WHERE id = 'transcript-1'"#,
+        )
+        .execute(&mut *transaction)
+        .await
+        .unwrap();
+        sqlx::query("DELETE FROM transcript_live_deltas WHERE transcript_id = 'transcript-1'")
+            .execute(&mut *transaction)
+            .await
+            .unwrap();
+        sqlx::query("DELETE FROM transcript_live_state WHERE transcript_id = 'transcript-1'")
+            .execute(&mut *transaction)
+            .await
+            .unwrap();
+        transaction.commit().await.unwrap();
+
+        assert_eq!(ready_session_ids(&db).await, ["session-1"]);
+        let mut connection = db.pool().acquire().await.unwrap();
+        let IndexAction::Upsert(document) = build_session_document(&mut connection, "session-1")
+            .await
+            .unwrap()
+        else {
+            panic!("the finalized note must be indexed");
+        };
+        connection.return_to_pool().await;
+        assert_eq!(document.title, "Réunion 11");
+        assert!(document.content.contains("budget"));
+    }
+
+    #[tokio::test]
+    async fn quiet_or_abandoned_capture_journal_does_not_block_indexing() {
+        let db = syntheo_db_core::Db::connect_memory_plain().await.unwrap();
+        syntheo_db_app::prepare_schema(&db).await.unwrap();
+        sqlx::query("INSERT INTO sessions (id, title) VALUES ('session-1', 'Réunion')")
+            .execute(db.pool())
+            .await
+            .unwrap();
+        sqlx::query(
+            "INSERT INTO transcripts (id, session_id, words_json)
+             VALUES ('transcript-1', 'session-1', '[]')",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+        sqlx::query(
+            "INSERT INTO transcript_live_state (transcript_id, next_sequence, updated_at)
+             VALUES ('transcript-1', 3, strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-5 minutes'))",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+
+        assert_eq!(ready_session_ids(&db).await, ["session-1"]);
     }
 
     #[test]
