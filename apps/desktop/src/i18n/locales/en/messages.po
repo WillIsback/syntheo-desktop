@@ -148,6 +148,10 @@ msgstr "A folder with this name already exists."
 msgid "A Markdown file with the note, summary, and transcript."
 msgstr "A Markdown file with the note, summary, and transcript."
 
+#: src/onboarding/final.tsx
+msgid "A meeting can't be replayed: audio is never kept, only the note remains. Your notes belong to you."
+msgstr "A meeting can't be replayed: audio is never kept, only the note remains. Your notes belong to you."
+
 #: src/sidebar/timeline/utils/index.ts
 msgid "a month ago"
 msgstr "a month ago"
@@ -498,6 +502,10 @@ msgstr "Back"
 #: src/chat/components/body/empty.tsx
 msgid "Based on the conversation so far, suggest a few questions I could ask next."
 msgstr "Based on the conversation so far, suggest a few questions I could ask next."
+
+#: src/onboarding/final.tsx
+msgid "Before the meeting, choose its type and add the participants."
+msgstr "Before the meeting, choose its type and add the participants."
 
 #: src/session/components/capsule/index.tsx
 msgid "Begin listening"
@@ -1736,10 +1744,6 @@ msgstr "Join & record"
 msgid "Join meeting and record"
 msgstr "Join meeting and record"
 
-#: src/onboarding/final.tsx
-msgid "Join our community and stay updated:"
-msgstr "Join our community and stay updated:"
-
 #: src/settings/general/meeting-settings.tsx
 msgid "Join scheduled meetings"
 msgstr "Join scheduled meetings"
@@ -1837,6 +1841,7 @@ msgid "List action items."
 msgstr "List action items."
 
 #: src/home/start-button.tsx
+#: src/onboarding/final.tsx
 #: src/session/components/capsule/index.tsx
 msgid "Listen"
 msgstr "Listen"
@@ -2659,6 +2664,7 @@ msgid "Post recording disclosure in meeting chat"
 msgstr "Post recording disclosure in meeting chat"
 
 #: src/home/start-button.tsx
+#: src/onboarding/final.tsx
 #: src/session/components/capsule/index.tsx
 msgid "Prepare"
 msgstr "Prepare"
@@ -3569,6 +3575,10 @@ msgstr "Sunday"
 msgid "Symbols"
 msgstr "Symbols"
 
+#: src/onboarding/final.tsx
+msgid "Syn·thé·o: what gathers around tea."
+msgstr "Syn·thé·o: what gathers around tea."
+
 #: src/session/components/version-history-dialog.tsx
 msgid "Synced"
 msgstr "Synced"
@@ -3592,6 +3602,10 @@ msgstr "Syntheo cannot reach {providerName}"
 #: src/settings/developers/cli.tsx
 msgid "Syntheo CLI"
 msgstr "Syntheo CLI"
+
+#: src/onboarding/final.tsx
+msgid "Syntheo completes your notes into a meeting summary."
+msgstr "Syntheo completes your notes into a meeting summary."
 
 #: src/chat/components/message/tool/edit-summary.tsx
 msgid "Syntheo could not find this summary in the note. Ask again from the note."
@@ -3636,6 +3650,7 @@ msgid "Syntheo will retry automatically. This does not affect your notes."
 msgstr "Syntheo will retry automatically. This does not affect your notes."
 
 #: src/home/start-button.tsx
+#: src/onboarding/final.tsx
 #: src/session/components/capsule/index.tsx
 #: src/session/components/living-document/welcome-card.tsx
 #: src/settings/ai/llm/index.tsx
@@ -3679,6 +3694,10 @@ msgstr "System audio enabled"
 #: src/settings/dictation.tsx
 msgid "System permissions"
 msgstr "System permissions"
+
+#: src/onboarding/final.tsx
+msgid "Take your notes while the transcript scrolls in the margin."
+msgstr "Take your notes while the transcript scrolls in the margin."
 
 #: src/settings/developers/skills.tsx
 msgid "Teach coding agents when and how to use the Syntheo CLI and MCP"

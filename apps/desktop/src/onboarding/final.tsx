@@ -1,9 +1,8 @@
 import { useLingui } from "@lingui/react";
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui as useLinguiMacro } from "@lingui/react/macro";
 import { useRef, useState } from "react";
 
-import { commands as openerCommands } from "@syntheo/plugin-opener2";
-import { CircleNotch, GithubLogo } from "@syntheo/ui/components/icons";
+import { CircleNotch } from "@syntheo/ui/components/icons";
 
 import { OnboardingButton } from "./shared";
 import {
@@ -11,42 +10,66 @@ import {
   setPendingWelcomeSession,
 } from "./welcome-note";
 
+import { STAGE_KANJI } from "~/session/components/capsule";
+import {
+  NOTE_STAGES,
+  type NoteStage,
+} from "~/session/components/capsule/stage";
+import { NoteSeal } from "~/session/components/living-document/provenance";
 import { createSession } from "~/session/queries";
 import { flushAutomaticRelaunch } from "~/shared/relaunch";
 import { commands } from "~/types/tauri.gen";
 
-const SOCIALS = [
-  {
-    label: "GitHub",
-    icon: GithubLogo,
-    url: "https://github.com/WillIsback/syntheo-desktop",
-  },
-] as const;
-
-const SOCIAL_ICON_SIZE = 18;
-
+// Récit du thé en version courte (identite.md § Récit) : les trois temps d'une
+// note, chacun avec son kanji d'ornement, puis le sceau 記 de la note terminée.
 export function FinalDescription() {
-  return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span>
-        <Trans>Join our community and stay updated:</Trans>
-      </span>
-      <div className="flex items-center gap-2">
-        {SOCIALS.map((social) => {
-          const iconSize = SOCIAL_ICON_SIZE;
-          const SocialIcon = social.icon;
+  const { t } = useLinguiMacro();
+  const steps: Record<NoteStage, { label: string; text: string }> = {
+    prepare: {
+      label: t`Prepare`,
+      text: t`Before the meeting, choose its type and add the participants.`,
+    },
+    listen: {
+      label: t`Listen`,
+      text: t`Take your notes while the transcript scrolls in the margin.`,
+    },
+    synthesis: {
+      label: t`Synthesis`,
+      text: t`Syntheo completes your notes into a meeting summary.`,
+    },
+  };
 
-          return (
-            <button
-              key={social.label}
-              onClick={() => void openerCommands.openUrl(social.url, null)}
-              className="text-muted-foreground hover:text-muted-foreground inline-flex size-5 items-center justify-center rounded-md transition-colors duration-150"
-              aria-label={social.label}
+  return (
+    <div data-onboarding-story className="flex flex-col gap-3">
+      <p>
+        <Trans>Syn·thé·o: what gathers around tea.</Trans>
+      </p>
+      <ol className="flex flex-col gap-1.5">
+        {NOTE_STAGES.map((stage) => (
+          <li key={stage} className="flex items-baseline gap-2.5">
+            <span
+              aria-hidden="true"
+              className="font-kanji text-primary w-4 shrink-0 text-[15px] opacity-60"
             >
-              <SocialIcon size={iconSize} />
-            </button>
-          );
-        })}
+              {STAGE_KANJI[stage]}
+            </span>
+            <span>
+              <span className="text-foreground font-medium">
+                {steps[stage].label}
+              </span>{" "}
+              · {steps[stage].text}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <div className="flex items-end gap-3">
+        <p>
+          <Trans>
+            A meeting can't be replayed: audio is never kept, only the note
+            remains. Your notes belong to you.
+          </Trans>
+        </p>
+        <NoteSeal />
       </div>
     </div>
   );

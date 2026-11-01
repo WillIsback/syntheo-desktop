@@ -37,7 +37,7 @@ vi.mock("~/types/tauri.gen", () => ({
   commands: { setOnboardingNeeded: mocks.setOnboardingNeeded },
 }));
 
-import { FinalSection, finishOnboarding } from "./final";
+import { FinalDescription, FinalSection, finishOnboarding } from "./final";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -137,4 +137,25 @@ it("ignores concurrent finish attempts", async () => {
   });
   expect(mocks.getOrCreateWelcomeSession).toHaveBeenCalledTimes(1);
   expect(onContinue).toHaveBeenCalledTimes(1);
+});
+
+it("tells the tea story: three steps with decorative kanji, then the 記 seal", () => {
+  const { container } = render(<FinalDescription />);
+
+  const steps = screen.getAllByRole("listitem");
+  expect(steps.map((step) => step.textContent)).toEqual([
+    expect.stringContaining("Prepare"),
+    expect.stringContaining("Listen"),
+    expect.stringContaining("Synthesis"),
+  ]);
+  const kanji = steps.map((step) => step.querySelector(".font-kanji"));
+  expect(kanji.map((node) => node?.textContent)).toEqual(["備", "聴", "結"]);
+  for (const node of kanji)
+    expect(node?.getAttribute("aria-hidden")).toBe("true");
+
+  expect(screen.getByText(/Your notes belong to you/)).toBeTruthy();
+  const seal = container.querySelector("[data-note-seal]");
+  expect(seal?.textContent).toBe("記");
+  expect(seal?.getAttribute("aria-hidden")).toBe("true");
+  expect(screen.queryByText(/Join our community/)).toBeNull();
 });
