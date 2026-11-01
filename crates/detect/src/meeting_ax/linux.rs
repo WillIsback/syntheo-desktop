@@ -30,11 +30,12 @@ use super::types::{
     MeetingChatSendResult, MeetingPlatform, MeetingSurface, NativeMeetingRoot, UniqueMatch,
 };
 use super::{
-    BrowserMeetingSnapshot, MAX_NODES, MAX_TREE_DEPTH, MeetingAccessibilityInspection,
-    browser_meeting_root_from_snapshot, browser_window_has_provider_signal, chat_input_is_owned,
-    inspection_label, is_chat_priority_label, is_enabled_slack_leave_control,
-    is_slack_huddle_composer_in_thread, is_slack_send_now_in_thread, is_slack_thread_control,
-    native_meeting_window_is_validated, slack_huddle_context, slack_thread_container_path,
+    BROWSER_WITHOUT_MEETING_SIGNAL_WARNING, BrowserMeetingSnapshot, MAX_NODES, MAX_TREE_DEPTH,
+    MeetingAccessibilityInspection, browser_meeting_root_from_snapshot,
+    browser_window_has_provider_signal, chat_input_is_owned, inspection_label,
+    is_chat_priority_label, is_enabled_slack_leave_control, is_slack_huddle_composer_in_thread,
+    is_slack_send_now_in_thread, is_slack_thread_control, native_meeting_window_is_validated,
+    retain_meeting_browser_windows, slack_huddle_context, slack_thread_container_path,
     unique_scope_for_count, validate_meeting_chat_message,
 };
 
@@ -660,6 +661,27 @@ async fn collect_window_snapshots(
     snapshots
 }
 
+/// Variante pour les navigateurs : seuls les noms des fenêtres sont lus (un appel
+/// D-Bus par fenêtre) et l'arbre n'est parcouru que pour celles dont le titre porte
+/// un signal de réunion (issue 273).
+async fn collect_browser_window_snapshots(
+    connection: &AccessibilityConnection,
+    app: &AccessibleProxy<'_>,
+    warnings: &mut Vec<String>,
+) -> Vec<(Option<String>, Vec<LiveNode>, bool)> {
+    let mut titled = Vec::new();
+    for window in application_windows(connection, app).await {
+        let title = window.name().await.ok().filter(|name| !name.is_empty());
+        titled.push((title, window));
+    }
+    let mut snapshots = Vec::new();
+    for (title, window) in retain_meeting_browser_windows(titled) {
+        let (nodes, complete) = collect_app_nodes(connection, &window, warnings).await;
+        snapshots.push((title, nodes, complete));
+    }
+    snapshots
+}
+
 fn inspection_from_nodes(
     app: MeetingApp,
     pid: i32,
@@ -714,7 +736,15 @@ async fn inspect_app_async(
         return inspection_from_nodes(app, pid, true, None, Vec::new(), None, warnings);
     };
 
-    let windows = collect_window_snapshots(connection, &ax_app, &mut warnings).await;
+    let windows = if is_browser_bundle(&app.id) {
+        let windows = collect_browser_window_snapshots(connection, &ax_app, &mut warnings).await;
+        if windows.is_empty() {
+            warnings.push(BROWSER_WITHOUT_MEETING_SIGNAL_WARNING.to_string());
+        }
+        windows
+    } else {
+        collect_window_snapshots(connection, &ax_app, &mut warnings).await
+    };
     let bundle_platform = classify_bundle(&app.id);
     if bundle_platform == MeetingPlatform::Slack {
         let mut roots = slack_roots_from_windows(windows);
@@ -1354,18 +1384,34 @@ pub(super) fn capture_meeting_chat_messages(bundle_ids: Vec<String>) -> MeetingC
         if is_browser_bundle(bundle_id) {
             let mut browser_roots = Vec::new();
             let mut poisoned = false;
+            let mut walked_windows = 0;
             for (app, pid) in running_apps {
                 let Some(ax_app) = find_application_for_pid(&connection, pid, &app.name).await
                 else {
                     continue;
                 };
-                let windows = collect_window_snapshots(&connection, &ax_app, &mut warnings).await;
+                let windows =
+                    collect_browser_window_snapshots(&connection, &ax_app, &mut warnings).await;
+                walked_windows += windows.len();
                 let (roots, window_poisoned) = browser_roots_from_windows(windows, &mut warnings);
                 poisoned |= window_poisoned;
                 browser_roots.extend(roots.into_iter().filter_map(|(root, _)| {
                     let context_id = browser_capture_context_id(&root)?;
                     Some((app.clone(), root, context_id))
                 }));
+            }
+            if walked_windows == 0 {
+                // Aucune fenêtre ne ressemble à une réunion : résultat vide immédiat,
+                // sans parcours d'arbre ni avertissement redondant.
+                warnings.push(BROWSER_WITHOUT_MEETING_SIGNAL_WARNING.to_string());
+                return MeetingChatCaptureResult {
+                    app: None,
+                    platform: detected_platform,
+                    surface: bundle_surface,
+                    context_id: None,
+                    messages: Vec::new(),
+                    warnings,
+                };
             }
             if poisoned || browser_roots.len() != 1 {
                 warnings.push(format!(

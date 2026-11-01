@@ -11,9 +11,10 @@ use windows::Win32::UI::WindowsAndMessaging::{
 use windows::core::BOOL;
 
 use super::{
-    AxNode, AxRect, BrowserMeetingRoot, MAX_NODES, MAX_TREE_DEPTH, MEETING_APP_BUNDLES,
-    MeetingAccessibilityInspection, MeetingApp, MeetingChatCaptureResult, MeetingPlatform,
-    MeetingSurface, NativeMeetingRoot, browser_capture_context_id, classify_browser_context,
+    AxNode, AxRect, BROWSER_WITHOUT_MEETING_SIGNAL_WARNING, BrowserMeetingRoot, MAX_NODES,
+    MAX_TREE_DEPTH, MEETING_APP_BUNDLES, MeetingAccessibilityInspection, MeetingApp,
+    MeetingChatCaptureResult, MeetingPlatform, MeetingSurface, NativeMeetingRoot,
+    browser_capture_context_id, browser_window_may_host_meeting, classify_browser_context,
     classify_bundle, classify_surface, extract_chat_messages, is_browser_bundle,
     is_platform_active_call_control, native_capture_context_id, node_needs_bounds,
     nodes_show_remote_screen_share, running_apps_for_bundle, running_meeting_apps,
@@ -415,6 +416,8 @@ pub(super) fn capture_meeting_chat_messages(bundle_ids: Vec<String>) -> MeetingC
 
     let mut detected_platform = bundle_platform.clone();
     let mut candidates = Vec::new();
+    let mut skipped_browser_windows = 0;
+    let window_count = windows.len();
     for (hwnd, process_id) in windows {
         let Some((app, _)) = running_apps
             .iter()
@@ -423,6 +426,12 @@ pub(super) fn capture_meeting_chat_messages(bundle_ids: Vec<String>) -> MeetingC
             continue;
         };
         let title = window_title(hwnd);
+        // Filtre bon marché (issue 273) : sans signal de réunion dans le titre, la
+        // classification d'un navigateur échoue toujours ; inutile de parcourir l'arbre.
+        if is_browser_bundle(bundle_id) && !browser_window_may_host_meeting(title.as_deref()) {
+            skipped_browser_windows += 1;
+            continue;
+        }
         let (mut nodes, complete) = match snapshot_window(&automation, &cache_request, hwnd) {
             Ok(snapshot) => snapshot,
             Err(error) => {
@@ -479,6 +488,18 @@ pub(super) fn capture_meeting_chat_messages(bundle_ids: Vec<String>) -> MeetingC
         });
     }
 
+    if window_count > 0 && skipped_browser_windows == window_count {
+        warnings.push(BROWSER_WITHOUT_MEETING_SIGNAL_WARNING.to_string());
+        return MeetingChatCaptureResult {
+            app: None,
+            platform: detected_platform,
+            surface: bundle_surface,
+            context_id: None,
+            messages: Vec::new(),
+            warnings,
+        };
+    }
+
     if candidates.len() != 1 {
         warnings.push(format!(
             "meeting chat capture requires exactly one validated visible Windows UI Automation chat surface; found {}",
@@ -532,6 +553,19 @@ pub(super) fn inspect_meeting_accessibility() -> Vec<MeetingAccessibilityInspect
                 .iter()
                 .find(|(_, pid)| u32::try_from(*pid) == Ok(process_id))?;
             let title = window_title(hwnd);
+            if is_browser_bundle(&app.id) && !browser_window_may_host_meeting(title.as_deref()) {
+                return Some(MeetingAccessibilityInspection {
+                    active_call: false,
+                    app: app.clone(),
+                    pid: *pid,
+                    platform: MeetingPlatform::Unknown,
+                    surface: classify_surface(&app.id, &MeetingPlatform::Unknown),
+                    accessibility_trusted: true,
+                    window_title: None,
+                    remote_screen_share: false,
+                    warnings: vec![BROWSER_WITHOUT_MEETING_SIGNAL_WARNING.to_string()],
+                });
+            }
             let (nodes, complete) = snapshot_window(&automation, &cache_request, hwnd).ok()?;
             let bundle_platform = classify_bundle(&app.id);
             let platform = if is_browser_bundle(&app.id) {

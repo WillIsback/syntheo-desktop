@@ -69,6 +69,7 @@ fn zoom_message_node(index: usize, text: &str) -> AxNode {
 }
 
 mod browser_detection;
+mod browser_prefilter;
 mod capture_identity;
 mod chat_scope;
 mod inspection;
