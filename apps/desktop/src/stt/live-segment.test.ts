@@ -6,15 +6,17 @@ import type {
 } from "@syntheo/plugin-transcription";
 
 import {
-  applyRenderRequestIdentitiesToSegments,
   getMaxSpeakerNumberForParticipants,
-  mergeAdjacentSpeakerSegments,
-  mergeRenderedAndLiveSegments,
   SegmentKeyUtils,
   SpeakerLabelManager,
   type RenderLabelContext,
   type Segment,
 } from "./live-segment";
+import { mergeRenderedAndLiveSegments } from "./live-segment-merge";
+import {
+  applyRenderRequestIdentitiesToSegments,
+  mergeAdjacentSpeakerSegments,
+} from "./live-segment-runs";
 
 const ctx: RenderLabelContext = {
   getSelfHumanId: () => "self",

@@ -50,10 +50,9 @@ export function useLiveSegmentsForDisplay(): Segment[] {
         cadence.request();
       }
     });
-    // Ce qui a pu arriver entre le rendu et l'abonnement.
-    if (store.getState().liveSegments !== initial) {
-      setSegments(store.getState().liveSegments);
-    }
+    // Ce qui a pu arriver entre le rendu et l'abonnement : au prochain
+    // battement.
+    if (store.getState().liveSegments !== initial) cadence.request();
     return () => {
       unsubscribe();
       cadence.dispose();

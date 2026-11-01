@@ -25,10 +25,31 @@ export const PARAGRAPH_MAX_SENTENCES = 5;
 // d'un mot provisoire, dont le texte et l'horodatage peuvent encore changer.
 // La décision ne dépend donc que des mots finaux qui la précèdent : quand le
 // flux grandit, un paragraphe fermé garde ses bornes et son premier mot.
-export function splitWordsIntoParagraphs(words: readonly SegmentWord[]) {
-  const starts = [0];
+//
+// `previous` (découpage d'une version antérieure du même flux) permet de
+// reprendre au dernier début de paragraphe dont les mots, et le suivant, sont
+// les mêmes objets : le découpage qui précède est forcément identique, et le
+// compte de phrases y repart de zéro. Pendant l'écoute, seul le dernier
+// paragraphe est ainsi relu à chaque battement (issue 287).
+export function splitWordsIntoParagraphs(
+  words: readonly SegmentWord[],
+  previous?: { words: readonly SegmentWord[]; starts: readonly number[] },
+) {
+  let starts = [0];
+  let from = 0;
+  if (previous) {
+    const limit = Math.min(words.length, previous.words.length);
+    let common = 0;
+    while (common < limit && words[common] === previous.words[common]) {
+      common += 1;
+    }
+    let resume = previous.starts.length - 1;
+    while (resume > 0 && previous.starts[resume]! >= common) resume -= 1;
+    starts = previous.starts.slice(0, resume + 1);
+    from = starts[resume]!;
+  }
   let sentences = 0;
-  for (let index = 0; index < words.length - 1; index += 1) {
+  for (let index = from; index < words.length - 1; index += 1) {
     const word = words[index]!;
     if (!endsSentence(word)) continue;
     sentences += 1;
@@ -63,29 +84,38 @@ export function useTranscriptParagraphs(
   split: boolean,
 ): TranscriptParagraph[] {
   const cacheRef = useRef<Map<SegmentWord, Segment>>(new Map());
+  const splitsRef = useRef<Map<SegmentWord, ParagraphSplit>>(new Map());
 
   return useMemo(() => {
     const nextCache = new Map<SegmentWord, Segment>();
+    const nextSplits = new Map<SegmentWord, ParagraphSplit>();
     const paragraphs: TranscriptParagraph[] = [];
     segments.forEach((segment, segmentIndex) => {
-      const starts = split ? splitWordsIntoParagraphs(segment.words) : [0];
+      const first = segment.words[0];
+      let starts: readonly number[] = [0];
+      if (split && first) {
+        const previous = splitsRef.current.get(first);
+        starts =
+          previous?.words === segment.words
+            ? previous.starts
+            : splitWordsIntoParagraphs(segment.words, previous);
+        nextSplits.set(first, { words: segment.words, starts });
+      }
       if (starts.length === 1) {
         paragraphs.push({ segment, segmentIndex, continuation: false });
         return;
       }
       starts.forEach((start, position) => {
-        const words = segment.words.slice(
-          start,
-          starts[position + 1] ?? segment.words.length,
-        );
-        const cached = cacheRef.current.get(words[0]!);
+        const end = starts[position + 1] ?? segment.words.length;
+        const head = segment.words[start]!;
+        const cached = cacheRef.current.get(head);
         const view =
           cached &&
-          wordsIdentical(cached.words, words) &&
+          wordsIdentical(cached.words, segment.words, start, end) &&
           sameSpeaker(cached, segment)
             ? cached
-            : createParagraphView(segment, words);
-        nextCache.set(words[0]!, view);
+            : createParagraphView(segment, segment.words.slice(start, end));
+        nextCache.set(head, view);
         paragraphs.push({
           segment: view,
           segmentIndex,
@@ -94,9 +124,15 @@ export function useTranscriptParagraphs(
       });
     });
     cacheRef.current = nextCache;
+    splitsRef.current = nextSplits;
     return paragraphs;
   }, [segments, split]);
 }
+
+type ParagraphSplit = {
+  words: readonly SegmentWord[];
+  starts: readonly number[];
+};
 
 function createParagraphView(segment: Segment, words: SegmentWord[]): Segment {
   return {
@@ -111,10 +147,16 @@ function createParagraphView(segment: Segment, words: SegmentWord[]): Segment {
   };
 }
 
-function wordsIdentical(a: readonly SegmentWord[], b: readonly SegmentWord[]) {
-  if (a.length !== b.length) return false;
+// Comparaison par identité de `a` et de `b[start..end)`, sans copie.
+function wordsIdentical(
+  a: readonly SegmentWord[],
+  b: readonly SegmentWord[],
+  start: number,
+  end: number,
+) {
+  if (a.length !== end - start) return false;
   for (let index = 0; index < a.length; index += 1) {
-    if (a[index] !== b[index]) return false;
+    if (a[index] !== b[start + index]) return false;
   }
   return true;
 }

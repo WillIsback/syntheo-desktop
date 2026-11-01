@@ -351,6 +351,71 @@ describe("transcript slice", () => {
     expect(store.getState().liveSegments).toEqual([segment("later", 150)]);
   });
 
+  // Issue 287 : appliquer un delta ne relit pas les mots des segments
+  // inchangés, quelle que soit leur longueur.
+  test.each([50, 5_000])(
+    "applies a segment delta without rereading unchanged words (%i phrases)",
+    (phrases) => {
+      let reads = 0;
+      let counting = false;
+      const words = Array.from(
+        { length: phrases * 6 },
+        (_, index) =>
+          new Proxy(
+            {
+              id: `w-${index}`,
+              text: " mot",
+              start_ms: index * 100,
+              end_ms: index * 100 + 90,
+              channel: "DirectMic" as const,
+              is_final: true,
+            },
+            {
+              get(target, property, receiver) {
+                if (counting && typeof property === "string") reads += 1;
+                return Reflect.get(target, property, receiver);
+              },
+            },
+          ),
+      );
+      const segment = (
+        id: string,
+        startMs: number,
+        segmentWords: LiveTranscriptSegment["words"],
+      ): LiveTranscriptSegment => ({
+        id,
+        key: {
+          channel: "DirectMic",
+          speaker_index: null,
+          speaker_human_id: null,
+        },
+        start_ms: startMs,
+        end_ms: startMs + 100,
+        text: id,
+        words: segmentWords,
+      });
+      store.getState().handleTranscriptSegmentDelta({
+        upserts: [segment("history", 0, words)],
+        removed_ids: [],
+      });
+
+      counting = true;
+      for (let beat = 0; beat < 3; beat += 1) {
+        store.getState().handleTranscriptSegmentDelta({
+          upserts: [segment("live", phrases * 600 + beat, [])],
+          removed_ids: [],
+        });
+      }
+      counting = false;
+
+      expect(reads).toBe(0);
+      expect(store.getState().liveSegments.map((entry) => entry.id)).toEqual([
+        "history",
+        "live",
+      ]);
+    },
+  );
+
   test("does not publish an empty segment delta", () => {
     const subscriber = vi.fn();
     const unsubscribe = store.subscribe(subscriber);

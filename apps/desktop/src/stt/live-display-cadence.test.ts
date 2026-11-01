@@ -172,7 +172,7 @@ describe("rythme d'affichage de la transcription en direct", () => {
     streamDeltas(cadence, applied, { everyMs: 30, durationMs: 1_000 });
     vi.advanceTimersByTime(LIVE_DISPLAY_TYPING_INTERVAL_MS);
 
-    expect(flushes.at(-1)).toBe(applied.length);
+    expect(flushes[flushes.length - 1]).toBe(applied.length);
     // Chaque affichage voit au moins autant de deltas que le précédent.
     expect(flushes).toEqual([...flushes].sort((a, b) => a - b));
     cadence.dispose();
